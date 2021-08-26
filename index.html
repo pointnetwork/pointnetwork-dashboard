@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<meta charset="UTF-8">
+	<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+	<title>Point Network Manager</title>
+	<link rel="stylesheet"
+	      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+	      integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
+	      crossorigin="anonymous">
+	<link rel="stylesheet"
+	      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+	      integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+	      crossorigin="anonymous"
+	      referrerpolicy="no-referrer" />
+	<link rel="stylesheet"
+	      href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css"
+	      integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ=="
+	      crossorigin="anonymous"
+	      referrerpolicy="no-referrer" />
+	<link rel="stylesheet"
+	      href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/black-tie/jquery-ui.min.css"
+	      integrity="sha512-04r7Y8N4Th7VJ+qG+4aBVIV8AQkP7MJi55IDI4dGTY00PjvwO4Ea7gz+f5WhtJascgU+e9X1R+phkyVwZVpYmQ=="
+	      crossorigin="anonymous"
+	      referrerpolicy="no-referrer" />
+	<link rel="stylesheet" type="text/css" href="main.css">
+    </head>
+    <body>
+	<div class="container">
+	    <div class="row">
+		<div class="col-md-4" id="firefox-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="firefox" class="d-flex flex-row">
+			    <i class="icon fab checking fa-firefox-browser"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Firefox Point Browser</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+			
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="docker-provider-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="docker-provider" class="d-flex flex-row">
+			    <i class="icon fab checking fa-docker"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Storage Provider</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="docker-contracts-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="docker-contracts" class="d-flex flex-row">
+			    <i class="icon fab checking fa-docker"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Contract Deployer</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="docker-pgadmin-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="docker-pgadmin" class="d-flex flex-row">
+			    <i class="icon fab checking fa-docker"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>pgAdmin</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="docker-database-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="docker-database" class="d-flex flex-row">
+			    <i class="icon fab checking fa-docker"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Postgres</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="docker-blockchain-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="docker-blockchain" class="d-flex flex-row">
+			    <i class="icon fab checking fa-docker"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Blockchain</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="docker-owner-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="docker-owner" class="d-flex flex-row">
+			    <i class="icon fab checking fa-docker"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Website Owner</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="docker-visitor-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="docker-visitor" class="d-flex flex-row">
+			    <i class="icon fab checking fa-docker"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Website Visitor</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="pn-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="pn" class="d-flex flex-row">
+			    <img class="fab logo" src="./resources/logo-checking.svg" height="70">
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Point Network Node</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="wallet-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="wallet" class="d-flex flex-row">
+			    <i class="fas fab checking fa-wallet"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>POINT Wallet</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+		<div class="col-md-4" id="notifications-container" class="collapsed">
+		    <div class="card p-3">
+			<div class="close right-text"></div>
+			<div id="notifications" class="d-flex flex-row">
+			    <i class="fas fab checking fa-bell"></i>
+			    <div class="d-flex flex-column ml-2 full-width">
+				<span>Notifications</span>
+				<span class="status text-black-50">Checking</span>
+				<div class="d-flex justify-content-between menu-extra mt-3">
+				    <span class="text-primary"></span>
+				    <span class="text-primary">View logs&nbsp;<i class="fa fa-angle-right"></i></span>
+				</div>
+			    </div>
+			</div>
+			<p class="content no-display"></p>
+		    </div>
+		</div>
+
+	    </div>
+	</div>
+
+	<!-- You can also require other files to run in this process -->
+	<script
+	    src="https://code.jquery.com/jquery-3.6.0.min.js"
+	    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+	    crossorigin="anonymous"></script>
+	<script
+	    src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"
+	    integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA=="
+	    crossorigin="anonymous"
+	    referrerpolicy="no-referrer"></script>
+	<script
+	    src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"
+	    integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g=="
+	    crossorigin="anonymous"
+	    referrerpolicy="no-referrer"></script>
+	<script
+	    src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js"
+	    integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/"
+	    crossorigin="anonymous"></script>
+	<script src="./renderer.js"></script>
+	<script src="./languages.js"></script>
+	<script>
+	 const dockerName = {
+	     "#docker-provider": "pointnetwork_storage_provider",
+	     "#docker-contracts": "pointnetwork_contract_deployer",
+	     "#docker-pgadmin": "pointnetwork_pgadmin",
+	     "#docker-database": "pointnetwork_database",
+	     "#docker-blockchain": "pointnetwork_blockchain_node",
+	     "#docker-owner": "pointnetwork_website_owner",
+	     "#docker-visitor": "pointnetwork_website_visitor",
+	 }
+	 
+	 function removeStates(id) {
+	     let elt = document.getElementById(id);
+	     elt.classList.remove('checking');
+	     elt.classList.remove('pass');
+	     elt.classList.remove('fail');
+	 }
+	 
+	 function toFail(id) {
+	     removeStates(id);
+	     let elt = document.getElementById(id);
+	     elt.classList.add('fail');
+	 }
+	 
+	 function downloadFirefoxHTML() {
+	     let html = '';
+	     html += 'Firefox Point Browser not installed.<br>';
+	     html += getLanguagesSelect();
+	     html += '<br><button onclick="downloadFirefox()">Download</button>';
+	     bullet.innerHTML = html;
+	 }
+
+	 function downloadingFirefoxHTML() {
+	     let bullet = document.getElementById('firefox-check');
+	     let html = 'Downloading and installing Firefox Point Browser.<br>';
+	     bullet.classList.remove('checking');
+	     bullet.classList.remove('pass');
+	     bullet.classList.remove('fail');
+	     bullet.classList.add('checking');
+	     bullet.innerHTML = html;
+	 }
+
+	 function downloadedFirefoxHTML() {
+	     let bullet = document.getElementById('firefox-check');
+	     let html = 'Firefox Point Browser is installed.';
+	     html += '<button onclick="firefoxRun()">Run Firefox Point Browser</button>';
+	     bullet.classList.remove('pass');
+	     bullet.classList.remove('fail');
+	     bullet.classList.remove('checking');
+	     bullet.classList.add('pass');
+	     bullet.innerHTML = html;
+	 }
+	 
+	 function sleep(ms) {
+	     return new Promise((resolve) => {
+		 setTimeout(resolve, ms);
+	     });
+	 }
+
+	 function removeIconStatuses(id) {
+	     $(id).removeClass('checking');
+	     $(id).removeClass('fail');
+	     $(id).removeClass('pass');
+	 }
+
+	 function addIconPassStatus(id) {
+	     removeIconStatuses(id);
+	     $(id).addClass('pass');
+	 }
+
+	 function addIconFailStatus(id) {
+	     removeIconStatuses(id);
+	     $(id).addClass('fail');
+	 }
+
+	 function addIconCheckingStatus(id) {
+	     removeIconStatuses(id);
+	     $(id).addClass('checking');
+	 }
+
+	 function expand(id, inBetween) {
+	     container = `${id}-container`;
+	     $(container).hide();
+	     $(container).removeClass('col-md-4');
+	     $(container).addClass('col-md-12');
+	     $(container).removeClass('collapsed');
+	     $(container).addClass('expanded');
+	     $(`${container} .menu-extra`).addClass('hidden');
+	     $(`${container} .content`).removeClass('no-display');
+	     if (inBetween != undefined) inBetween();
+	     $(container).show('slide');
+	 }
+
+	 function collapse(id, inBetween) {
+	     container = `${id}-container`;
+	     $(container).hide();
+	     $(`${container} .close`).html('');
+	     $(container).addClass('col-md-4');
+	     $(container).removeClass('col-md-12');
+	     $(container).addClass('collapsed');
+	     $(container).removeClass('expanded');
+	     $(`${container} .menu-extra`).removeClass('hidden');
+	     $(`${container} .content`).addClass('no-display');
+	     setContent(id, '');
+	     if (inBetween != undefined) inBetween();
+	     $(container).show('slide');
+	 }
+
+	 function addIconAction(id, fn) {
+	     $(`${id} .icon`).click(fn);
+	 }
+
+	 function firefoxRun() {
+	     $('#firefox .status').html('Opening...');
+	     // sleep(1000);
+	     window.api.send("firefox-run");
+	     $('#firefox .status').html('Running');
+	 }
+	 
+	 window.api.receive("firefox-checked", (isInstalled) => {
+	     if (isInstalled) {
+		 addIconPassStatus('#firefox .icon');
+		 addIconAction('#firefox', firefoxRun);
+		 setStatus('#firefox', 'Installed');
+		 return;
+	     }
+	     addIconFailStatus('#firefox .icon', 'fail');
+	     addIconAction('#firefox', firefoxInstallation);
+	     $('#firefox .status').html('Not installed');
+	 });
+
+	 window.api.receive("docker-checked", (containerInfo) => {
+	     const component = containerInfo.component;
+	     const status = containerInfo.Status
+	     
+	     if (status == "healthy") {
+		 addIconPassStatus(`${component} .icon`);
+		 // addIconAction(component, firefoxRun);
+		 setStatus(component, 'Healthy');
+		 return;
+	     }
+	     if (status == "starting") {
+		 addIconCheckingStatus(`${component} .icon`);
+		 // addIconAction(component, firefoxRun);
+		 setStatus(component, 'Starting');
+		 return;
+	     }
+	     if (status == "unhealthy") {
+		 addIconFailStatus(`${component} .icon`);
+		 // addIconAction(component, firefoxRun);
+		 setStatus(component, 'Unhealthy');
+		 return;
+	     }
+	     if (status == "no connection") {
+		 addIconFailStatus(`${component} .icon`);
+		 // addIconAction(component, firefoxRun);
+		 setStatus(component, 'No connection');
+		 return;
+	     }
+	     if (status == "not running") {
+		 addIconFailStatus(`${component} .icon`);
+		 // addIconAction(component, firefoxRun);
+		 setStatus(component, 'Not running');
+		 return;
+	     }
+	     addIconFailStatus(`${component} .icon`);
+	     setStatus(component, 'No connection');
+	 });
+
+	 function setStatus(componentId, status) {
+	     $(`${componentId} .status`).html(status);
+	 }
+
+	 function setContent(id, content) {
+	     $(`${id}-container .content`).html(content);
+	 }
+
+	 function cancelProcess(id, status) {
+	     collapse(id);
+	     firefoxCheck();
+	 }
+
+	 function addCloseButton(id) {
+	     $(`${id}-container .close`).html(`<button onclick="cancelProcess('${id}')" type="button" class="btn-close float-right" aria-label="Close"></button>`);
+	 }
+
+	 function firefoxInstallation() {
+	     expand('#firefox', () => {
+		 $('#firefox .status').html('Preparing Installation');
+		 
+		 addCloseButton('#firefox');
+
+		 let html = getLanguagesSelect();
+		 html += '<p><button onclick="firefoxInstall()" type="button" class="btn btn-success">Install</button></p>';
+		 
+		 setContent('#firefox', html);
+	     });
+	 }
+
+	 function expandClose(id) {
+	     collapse(id);
+	 }
+
+	 function firefoxInstalled() {
+	     addIconPassStatus('#firefox .icon');
+	     collapse('#firefox', () => {
+		 addIconAction('#firefox', firefoxRun);
+		 $('#firefox .status').html('Installed');
+	     });
+	 }
+
+	 function firefoxInstall() {
+	     $('#firefox .status').html('Installing');
+	     const language = $('#languages').val();
+	     window.api.send("firefox-download", {language: language});
+	 }
+
+	 function isExpanded(id) {
+	     return $(id).hasClass('expanded');
+	 }
+
+	 function isCollapsed(id) {
+	     return $(id).hasClass('collapsed');
+	 }
+
+	 window.api.receive("firefox-installed", () => {
+	     firefoxInstalled();
+	 });
+
+	 function firefoxCheck() {
+	     window.api.send("firefox-check");
+	 }
+
+	 function dockerHealth(id) {
+	     const container = dockerName[id];
+	     window.api.send("docker-check", {
+		 component: id,
+		 container: container
+	     });
+	 }
+
+	 firefoxCheck();
+	 dockerHealth('#docker-provider');
+	 addIconAction('#docker-provider', () => dockerHealth('#docker-provider'));
+	</script>
+    </body>
+</html>

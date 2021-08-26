@@ -1,0 +1,28 @@
+{
+  "name": "electron-quick-start",
+  "version": "1.0.0",
+  "description": "A minimal Electron application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^13.2.1"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "tar-fs": "^2.1.1",
+    "unbzip2-stream": "^1.4.3",
+    "xstate": "^4.23.1"
+  }
+}

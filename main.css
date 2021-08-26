@@ -1,0 +1,79 @@
+body {
+    background: #eee;
+}
+
+.center-text {
+    text-align: center;
+}
+.right-text {
+    text-align: right;
+}
+
+.no-display {
+    display: none;
+}
+.hidden {
+    visibility: hidden;
+}
+.full-width {
+    width: 100%;
+}
+
+.fab {
+    font-size: 70px;
+    margin: 0 15px 0 5px;
+    cursor: pointer;
+}
+
+.checking.fab {
+    color: orange;
+}
+.pass.fab {
+    color: green;
+}
+.fail.fab {
+    color: red;
+}
+
+.ratings i {
+    color: green
+}
+
+.menu-extra span {
+    font-size: 12px
+}
+
+.col-md-4 {
+    margin-top: 27px
+}
+
+ul {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+li {
+    padding-left: 1em;
+    text-indent: -1em;
+}
+
+li:before {
+    font-size: 30pt;
+    padding-right: 5px;
+}
+
+/* .pass:before {
+   content: "\2713";
+   color: green;
+   }
+
+   .fail:before {
+   content: "\2717";
+   color: red;
+   }
+
+   .checking:before {
+   content: "\1F5D8";
+   color: orange;
+   } */
