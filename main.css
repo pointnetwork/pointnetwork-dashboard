@@ -9,6 +9,19 @@ body {
     text-align: right;
 }
 
+.logs {
+    cursor: pointer;
+    font-size: 9pt;
+    height: 100%;
+}
+
+.title {
+    height: 100%;
+    font-size: 11pt;
+}
+.big-title {
+    font-size: 13pt;
+}
 .no-display {
     display: none;
 }
@@ -19,9 +32,23 @@ body {
     width: 100%;
 }
 
-.fab {
+.icon {
+    width: 60px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.big-icon {
     font-size: 70px;
-    margin: 0 15px 0 5px;
+    margin: 5px 25px 20px 15px;
+    text-align: center;
+}
+.small-icon {
+    font-size: 30px;
+    /* margin: 5px 20px 0 10px; */
+}
+
+.fab {
     cursor: pointer;
 }
 
@@ -39,12 +66,22 @@ body {
     color: green
 }
 
-.menu-extra span {
+.menu-extra {
+    /* line-height: 40pt;
+       height: 40pt; */
+}
+.menu-extra title {
+    font-size: 13px
+}
+.menu-extra status {
+    font-size: 12px
+}
+.big-status {
     font-size: 12px
 }
 
 .col-md-4 {
-    margin-top: 27px
+    margin-top: 15px
 }
 
 ul {
@@ -62,18 +99,3 @@ li:before {
     font-size: 30pt;
     padding-right: 5px;
 }
-
-/* .pass:before {
-   content: "\2713";
-   color: green;
-   }
-
-   .fail:before {
-   content: "\2717";
-   color: red;
-   }
-
-   .checking:before {
-   content: "\1F5D8";
-   color: orange;
-   } */
