@@ -1,13 +1,19 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage } = require('electron');
+const { app,
+        BrowserWindow,
+        ipcMain,
+        Menu,
+        Tray,
+        nativeImage
+      } = require('electron');
 const path = require('path');
 const http = require('http');
 const { platform } = require('process');
 const fs = require('fs');
 const tarfs = require('tar-fs');
 const bz2 = require('unbzip2-stream');
-const { exec } = require("child_process");
-const { Machine } = require('xstate');
+const { exec } = require('child_process');
+const url = require('url');
 
 let win;
 let tray = null;
@@ -16,7 +22,7 @@ function createWindow () {
     // Create the browser window.
     win = new BrowserWindow({
         width: 1000,
-        height: 700,
+        height: 400,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -97,24 +103,46 @@ ipcMain.on("firefox-check", async (event, args) => {
     win.webContents.send("firefox-checked", false);
 });
 
+// TODO: We need a better way of doing this. We're assuming paths.
+const projectDir = path.join(__dirname, '..', 'pointnetwork');
+const compose = path.join(projectDir, 'docker-compose.yaml');
+const composeDev = path.join(projectDir, 'docker-compose.dev.yaml');
+
 ipcMain.on("docker-check", async (event, args) => {
     // await sleep(1000);
     const containerName = args.container;
-    const cmd = `docker inspect --format='{{json .State.Health}}' ${containerName}`;
+    // const cmd = `docker inspect --format='{{json .State.Health}}' ${containerName}`;
+    const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${compose} -f ${composeDev} ps -q ${containerName})`;
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
-            win.webContents.send("docker-checked", {...args, Status: 'not running'});
+            win.webContents.send("docker-checked", {...args, status: 'not running'});
             return;
         }
         if (stderr) {
             console.log(`stderr: ${stderr}`);
-            win.webContents.send("docker-checked", {...args, Status: 'no connection'});
+            win.webContents.send("docker-checked", {...args, status: 'no connection'});
             return;
         }
 
         const resp = JSON.parse(stdout);
-        win.webContents.send("docker-checked", {...resp, ...args});
+        const status = resp != null ? resp.Status : 'no connection';
+        win.webContents.send("docker-checked", {status: status, ...args});
+    });
+});
+
+ipcMain.on("docker-logs", async (event, args) => {
+    const containerName = args.container;
+    const cmd = `x-terminal-emulator -e docker-compose -f ${compose} -f ${composeDev} logs -f ${containerName} && bash || bash`;
+    exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
     });
 });
 
@@ -124,6 +152,7 @@ ipcMain.on("platform-check", async (event, args) => {
 
 ipcMain.on("firefox-run", (event, args) => {
     exec("point-browser/firefox/firefox", (error, stdout, stderr) => {
+        win.webContents.send("firefox-closed");
         if (error) {
             console.log(`error: ${error.message}`);
             return;
@@ -140,28 +169,71 @@ ipcMain.on("firefox-download", async (event, args) => {
     const language = args.language;
     const version = '92.0b7';
     const filename = `firefox-${version}.tar.bz2`;
-    const browserDir = './point-browser';
+    const browserDir = path.join('.', 'point-browser');
     const releasePath = `${browserDir}/${filename}`;
+    const pacFile = url.pathToFileURL(path.join('..', 'pointnetwork', 'client', 'proxy', 'pac.js'));
     const firefoxRelease = fs.createWriteStream(releasePath);
-    const url = `http://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/linux-x86_64/${language}/${filename}`;
+    const firefoxURL = `http://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/linux-x86_64/${language}/${filename}`;
     // const url = `https://download.mozilla.org/?product=firefox-latest&os=win&lang=${language}`;
     // const request = await http.get("http://i3.ytimg.com/vi/J---aiyznGQ/mqdefault.jpg", async (response) => {
     //     await response.pipe(file);
     // });
 
-    const request = await http.get(url, async (response) => {
+    const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
+pref("general.config.obscure_value", 0);
+`;
+
+    const firefoxCfgContent = `
+// IMPORTANT: Start your code on the 2nd line
+// pref('network.proxy.type', 1);
+pref('network.proxy.type', 2);
+pref('network.proxy.http', 'localhost');
+pref('network.proxy.http_port', 65500);
+pref('browser.startup.homepage', 'about:blank');
+pref('network.proxy.allow_hijacking_localhost', true);
+pref('browser.fixup.domainsuffixwhitelist.z', true);
+pref('browser.fixup.domainsuffixwhitelist.point', true);
+pref('network.proxy.autoconfig_url', '${pacFile}');
+`;
+
+    const request = await http.get(firefoxURL, async (response) => {
         await response.pipe(firefoxRelease);
-        firefoxRelease.on('finish', async () => {
-            await fs.createReadStream(releasePath).pipe(bz2()).pipe(tarfs.extract(browserDir));
-            // fs.unlink(releasePath, (err) => {
-            //     if (err) {
-            //         console.log(err);
-            //     } else {
-            //         console.log(`\nDeleted file: ${releasePath}`);
-            //     }
-            //     win.webContents.send("firefox-installed");
-            // });
-            win.webContents.send("firefox-installed");
+        firefoxRelease.on('finish', () => {
+            let readStream = fs.createReadStream(releasePath).pipe(bz2()).pipe(tarfs.extract(browserDir));
+            readStream.on('finish', () => {
+                win.webContents.send("firefox-installed");
+                
+                fs.unlink(releasePath, (err) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(`\nDeleted file: ${releasePath}`);
+                    }
+                });
+
+                fs.mkdir(path.join(browserDir, 'firefox', 'defaults', 'pref'),
+                         { recursive: true },
+                         (err) => {
+                             if (err) throw err;
+                             fs.writeFile(path.join(browserDir, 'firefox', 'defaults', 'pref', 'autoconfig.js'),
+                                          autoconfigContent,
+                                          err => {
+                                              if (err) {
+                                                  console.error(err);
+                                                  return;
+                                              }
+                                          });
+                         });
+
+                fs.writeFile(path.join(browserDir, 'firefox', 'firefox.cfg'),
+                             firefoxCfgContent,
+                             err => {
+                                 if (err) {
+                                     console.error(err);
+                                     return;
+                                 }
+                             });
+            });            
         });
     });
 
