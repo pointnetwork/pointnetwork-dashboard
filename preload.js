@@ -25,15 +25,18 @@ contextBridge.exposeInMainWorld(
                                  "firefox-download",
                                  "firefox-run",
                                  "firefox-dialog-install",
-                                 "docker-check"];
+                                 "docker-check",
+                                 "docker-logs"
+                                ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }
         },
         receive: (channel, func) => {
             let validChannels = ["firefox-checked",
-                                 "platform-checked",
+                                 "firefox-closed",
                                  "firefox-installed",
+                                 "platform-checked",
                                  "docker-checked"];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 
