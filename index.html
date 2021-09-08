@@ -218,6 +218,12 @@
 	     $('#firefox .status').html('Not installed');
 	 });
 
+	 window.api.receive("platform-checked", (platform) => {
+	     const os = platform.os.charAt(0).toUpperCase() + platform.os.slice(1);
+	     const arch = platform.arch;
+	     $("#platform").html(`${os} (${arch})`);
+	 });
+
 	 window.api.receive("firefox-closed", () => {
 	     setStatus('#firefox', 'Ready');
 	 });
@@ -278,9 +284,12 @@
 		 
 		 addCloseButton('#firefox');
 
-		 let html = getLanguagesSelect();
+		 let html = '';
+		 html += '<p id="platform" class=""></p>';
+		 html += getLanguagesSelect();
 		 html += '<p><button onclick="firefoxInstall()" type="button" class="btn btn-success">Install</button></p>';
-		 
+
+		 platformCheck();
 		 setContent('#firefox', html);
 	     });
 	 }
@@ -318,6 +327,10 @@
 
 	 function firefoxCheck() {
 	     window.api.send("firefox-check");
+	 }
+
+	 function platformCheck() {
+	     window.api.send("platform-check");
 	 }
 
 	 function dockerHealth(id) {

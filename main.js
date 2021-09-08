@@ -7,13 +7,14 @@ const { app,
         nativeImage
       } = require('electron');
 const path = require('path');
-const http = require('http');
-const { platform } = require('process');
+const { http, https } = require('follow-redirects');
+const { platform, arch } = require('process');
 const fs = require('fs');
 const tarfs = require('tar-fs');
 const bz2 = require('unbzip2-stream');
 const { exec } = require('child_process');
 const url = require('url');
+const _7z = require('7zip-min');
 
 let win;
 let tray = null;
@@ -147,11 +148,12 @@ ipcMain.on("docker-logs", async (event, args) => {
 });
 
 ipcMain.on("platform-check", async (event, args) => {
-    win.webContents.send("platform-checked", platform);
+    win.webContents.send("platform-checked", {os: platform, arch: arch});
 });
 
 ipcMain.on("firefox-run", (event, args) => {
-    exec("point-browser/firefox/firefox", (error, stdout, stderr) => {
+    const cmd = getFirefoxBinPath(getOSAndArch());
+    exec(cmd, (error, stdout, stderr) => {
         win.webContents.send("firefox-closed");
         if (error) {
             console.log(`error: ${error.message}`);
@@ -165,24 +167,140 @@ ipcMain.on("firefox-run", (event, args) => {
     });
 });
 
-ipcMain.on("firefox-download", async (event, args) => {
-    const language = args.language;
-    const version = '92.0b7';
-    const filename = `firefox-${version}.tar.bz2`;
-    const browserDir = path.join('.', 'point-browser');
-    const releasePath = `${browserDir}/${filename}`;
-    const pacFile = url.pathToFileURL(path.join('..', 'pointnetwork', 'client', 'proxy', 'pac.js'));
-    const firefoxRelease = fs.createWriteStream(releasePath);
-    const firefoxURL = `http://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/linux-x86_64/${language}/${filename}`;
-    // const url = `https://download.mozilla.org/?product=firefox-latest&os=win&lang=${language}`;
-    // const request = await http.get("http://i3.ytimg.com/vi/J---aiyznGQ/mqdefault.jpg", async (response) => {
-    //     await response.pipe(file);
-    // });
+function getOSAndArch() {
+    let osAndArch = '';
+    
+    if (platform == 'darwin') {
+        osAndArch = 'mac';
+    }
+    if (platform == 'linux') {
+        if (arch == 'x64') {
+            osAndArch = 'linux-x86_64';
+        }
+        if (arch == 'x32') {
+            osAndArch = 'linux-i686';
+        }
+    }
+    if (platform == 'win32') {
+        if (arch == 'x64') {
+            osAndArch = 'win64';
+        }
+        if (arch == 'x32') {
+            osAndArch = 'win32';
+        }
+    }
+    
+    if (osAndArch == '') {
+        throw 'Platform not supported.';
+    }
+    return osAndArch;
+}
 
+function getFirefoxURL(version, osAndArch, language, filename) {
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        return 'https://github.com/pointnetwork/phyrox-esr-portable/releases/download/test/point-browser-portable-win64-78.12.0-55.7z';
+    }
+    // linux & mac
+    return `http://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`;
+}
+
+function getFirefoxFileName(osAndArch, version) {
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        // TODO: Still unsure about this: we need to decide on the name
+        // of the browser, check how we get the version, etc.
+        return `point-browser-portable-${osAndArch}-78.12.0-55.7z`;
+    }
+    if (osAndArch == 'mac') {
+        return `Firefox%20${version}.dmg`;
+    }
+    // linux & mac
+    return `firefox-${version}.tar.bz2`;
+}
+
+function getHTTPorHTTPs(osAndArch) {
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        return https;
+    }
+    return http;
+}
+
+function firefoxUnpack(osAndArch, releasePath, browserDir, cb) {
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        _7z.unpack(releasePath, browserDir, (err) => { if (err) throw err; cb();});
+    }
+    if (osAndArch == 'mac') {
+        // DMG. No extraction required.
+        return;
+    }
+    if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+        let readStream = fs.createReadStream(releasePath).pipe(bz2()).pipe(tarfs.extract(browserDir));
+        // readStream.on('finish', () => {cb();} );
+        readStream.on('finish', cb );
+    }
+}
+
+function getFirefoxRootPath(osAndArch) {
+    if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        return path.join('.', 'point-browser');
+    }
+    // linux
+    return path.join('.', 'point-browser', 'firefox');
+}
+
+function getFirefoxAppPath(osAndArch) {
+    const rootPath = getFirefoxRootPath(osAndArch);
+
+    if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        const appPath = path.join(rootPath, 'app');
+
+        if (!fs.existsSync(appPath)) {
+            fs.mkdirSync(appPath);
+        }
+        
+        return appPath;
+    }
+
+    // linux
+    return rootPath;
+}
+
+function getFirefoxPrefPath(osAndArch) {
+    const rootPath = getFirefoxRootPath(osAndArch);
+    
+    if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        const appPath = path.join(rootPath, 'app');
+        const defaultsPath = path.join(appPath, 'defaults');
+        const prefPath = path.join(defaultsPath, 'pref');
+
+        if (!fs.existsSync(appPath)) {
+            fs.mkdirSync(appPath);
+        }
+        if (!fs.existsSync(defaultsPath)) {
+            fs.mkdirSync(defaultsPath);
+        }
+        if (!fs.existsSync(prefPath)) {
+            fs.mkdirSync(prefPath);
+        }
+        
+        return prefPath;
+    }
+    // linux. all directories already exist.
+    return path.join(rootPath, 'defaults', 'pref');
+}
+
+function getFirefoxBinPath(osAndArch) {
+    const rootPath = getFirefoxRootPath(osAndArch);
+    if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        return path.join(rootPath, 'point-browser-portable.exe');
+    }
+    // linux
+    return path.join(rootPath, 'firefox', 'firefox');
+}
+
+function createFirefoxConfigFiles(osAndArch, pacFile) {
     const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
 pref("general.config.obscure_value", 0);
 `;
-
     const firefoxCfgContent = `
 // IMPORTANT: Start your code on the 2nd line
 // pref('network.proxy.type', 1);
@@ -195,12 +313,68 @@ pref('browser.fixup.domainsuffixwhitelist.z', true);
 pref('browser.fixup.domainsuffixwhitelist.point', true);
 pref('network.proxy.autoconfig_url', '${pacFile}');
 `;
+    const prefPath = getFirefoxPrefPath(osAndArch);
+    const appPath = getFirefoxAppPath(osAndArch);
+    
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        // Portapps creates `defaults/pref/autonfig.js` for us, same contents.
+        //
+        // Portapps also creates `portapps.cfg`, which is equivalent to *nix's firefox.cfg.
+        // We're just appending our preferences.
+        fs.appendFile(path.join(appPath, 'portapps.cfg'),
+                     firefoxCfgContent,
+                     err => {
+                         if (err) {
+                             console.error(err);
+                             return;
+                         }
+                     });
+    }
+    if (osAndArch == 'mac') {
+        return;
+    }
+    if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+        fs.writeFile(path.join(prefPath, 'autoconfig.js'),
+                     autoconfigContent,
+                     err => {
+                         if (err) {
+                             console.error(err);
+                             return;
+                         }
+                     });
 
-    const request = await http.get(firefoxURL, async (response) => {
+        fs.writeFile(path.join(appPath, 'firefox.cfg'),
+                     firefoxCfgContent,
+                     err => {
+                         if (err) {
+                             console.error(err);
+                             return;
+                         }
+                     });
+    }
+}
+
+ipcMain.on("firefox-download", async (event, args) => {
+    const language = args.language;
+    const version = '92.0b7';
+    const browserDir = path.join('.', 'point-browser');
+    const pacFile = url.pathToFileURL(path.join('..', 'pointnetwork', 'client', 'proxy', 'pac.js'));
+    const osAndArch = getOSAndArch();
+    const filename = getFirefoxFileName(osAndArch, version);
+    const releasePath = path.join(browserDir, filename);
+    const firefoxRelease = fs.createWriteStream(releasePath);
+    const firefoxURL = getFirefoxURL(version, osAndArch, language, filename);
+
+    if (!fs.existsSync(browserDir)){
+        fs.mkdirSync(browserDir);
+    }
+
+    const http_s = getHTTPorHTTPs(osAndArch, pacFile);
+
+    const request = await http_s.get(firefoxURL, async (response) => {
         await response.pipe(firefoxRelease);
         firefoxRelease.on('finish', () => {
-            let readStream = fs.createReadStream(releasePath).pipe(bz2()).pipe(tarfs.extract(browserDir));
-            readStream.on('finish', () => {
+            let cb = function() {
                 win.webContents.send("firefox-installed");
                 
                 fs.unlink(releasePath, (err) => {
@@ -211,40 +385,9 @@ pref('network.proxy.autoconfig_url', '${pacFile}');
                     }
                 });
 
-                fs.mkdir(path.join(browserDir, 'firefox', 'defaults', 'pref'),
-                         { recursive: true },
-                         (err) => {
-                             if (err) throw err;
-                             fs.writeFile(path.join(browserDir, 'firefox', 'defaults', 'pref', 'autoconfig.js'),
-                                          autoconfigContent,
-                                          err => {
-                                              if (err) {
-                                                  console.error(err);
-                                                  return;
-                                              }
-                                          });
-                         });
-
-                fs.writeFile(path.join(browserDir, 'firefox', 'firefox.cfg'),
-                             firefoxCfgContent,
-                             err => {
-                                 if (err) {
-                                     console.error(err);
-                                     return;
-                                 }
-                             });
-            });            
+                createFirefoxConfigFiles(osAndArch);
+            };
+            firefoxUnpack(osAndArch, releasePath, browserDir, cb);
         });
     });
-
-
-    // await fs.createReadStream(browserDir).pipe(bz2()).pipe(tarfs.extract('data'));
-    // await fs.unlink(releasePath);
-    
-    // fs.readFile("path/to/file", (error, data) => {
-    //     // Do something with file contents
-
-    //     // Send result back to renderer process
-    //     win.webContents.send("fromMain", responseObj);
-    // });
 });
