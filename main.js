@@ -71,20 +71,6 @@ app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') app.quit();
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-
-app.on('firefox-download', (event, arg) => {
-    // Displays the object sent from the renderer process:
-    //{
-    //    message: "Hi",
-    //    someData: "Let's go"
-    //}
-    console.log(
-        arg
-    );
-});
-
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -95,9 +81,21 @@ function isDirEmpty(path) {
     return fs.readdirSync(path).length === 0;
 }
 
+function isFirefoxInstalled() {
+    const browserDir = path.join('.', 'point-browser');
+
+    if (!fs.existsSync(browserDir)) {
+        fs.mkdirSync(browserDir);
+    }
+
+    if (!isDirEmpty(browserDir)) {
+        return true;
+    }
+    return false;
+}
+
 ipcMain.on("firefox-check", async (event, args) => {
-    // await sleep(1000);
-    if (!isDirEmpty('./point-browser')) {
+    if (isFirefoxInstalled()) {
         win.webContents.send("firefox-checked", true);
         return;
     }
