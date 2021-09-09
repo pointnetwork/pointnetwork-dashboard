@@ -15,6 +15,8 @@ const bz2 = require('unbzip2-stream');
 const { exec } = require('child_process');
 const url = require('url');
 const _7z = require('7zip-min');
+const util = require("util");
+const execProm = util.promisify(exec);
 
 let win;
 let tray = null;
@@ -103,24 +105,64 @@ ipcMain.on("firefox-check", async (event, args) => {
 });
 
 // TODO: We need a better way of doing this. We're assuming paths.
-const projectDir = path.join(__dirname, '..', 'pointnetwork');
-const compose = path.join(projectDir, 'docker-compose.yaml');
-const composeDev = path.join(projectDir, 'docker-compose.dev.yaml');
+// const projectDir = path.join(__dirname, '..', 'pointnetwork');
+// const compose = path.join(projectDir, 'docker-compose.yaml');
+// const composeDev = path.join(projectDir, 'docker-compose.dev.yaml');
+
+async function getHomePath(osAndArch) {
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        // NOTE: `wsl echo $HOME` doesn't work.
+        const cmd = `wsl realpath ~`;
+        try {
+            const result = await await execProm(cmd);
+            return result.stdout.trim();
+        } catch(ex) {
+            throw ex;
+        }
+    }
+    if (osAndArch == 'mac') {
+
+    }
+    if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+        return require('os').homedir();
+    }
+}
+
+function fixPath(osAndArch, pathStr) {
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        return pathStr.split(path.sep).join(path.posix.sep);
+    }
+    // linux & mac
+    return pathStr;
+}
+
+async function getPNPath(osAndArch) {
+    // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
+    const homePath = await getHomePath(osAndArch);
+    return path.join(homePath, 'pointnetwork', 'pointnetwork');
+}
+
+async function getDockerHealthCmd(osAndArch, containerName) {
+    const pnPath = await getPNPath(getOSAndArch());
+    const composePath = fixPath(osAndArch, path.join(pnPath, 'docker-compose.yaml'));
+    const composeDevPath = fixPath(osAndArch, path.join(pnPath, 'docker-compose.dev.yaml'));
+    
+    const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${composePath} -f ${composeDevPath} ps -q ${containerName})`;
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
+        return `wsl ${cmd}`;
+    }
+    return cmd;
+}
 
 ipcMain.on("docker-check", async (event, args) => {
-    // await sleep(1000);
     const containerName = args.container;
-    // const cmd = `docker inspect --format='{{json .State.Health}}' ${containerName}`;
-    const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${compose} -f ${composeDev} ps -q ${containerName})`;
+    const osAndArch = getOSAndArch();
+    const cmd = await getDockerHealthCmd(osAndArch, containerName);
+
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             win.webContents.send("docker-checked", {...args, status: 'not running'});
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            win.webContents.send("docker-checked", {...args, status: 'no connection'});
             return;
         }
 
