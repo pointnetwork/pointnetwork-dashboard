@@ -57,13 +57,39 @@ app.whenReady().then(() => {
     const iconPath = path.join(__dirname, 'resources/logo.ico');
     tray = new Tray(nativeImage.createFromPath(iconPath));
     const contextMenu = Menu.buildFromTemplate([
-        { label: 'Item1', type: 'radio' },
-        { label: 'Item2', type: 'radio' },
-        { label: 'Item3', type: 'radio', checked: true },
-        { label: 'Item4', type: 'radio' }
+        { label: 'Show App', click:  function(){
+            win.show();
+        } },
+        { label: 'Quit', click:  function(){
+            app.isQuiting = true;
+            app.quit();
+        } }
     ]);
     tray.setToolTip('This is my application.');
     tray.setContextMenu(contextMenu);
+    tray.on('right-click', () => {
+        tray.popUpContextMenu();
+    });
+    tray.on('click', () => {
+        win.show();
+        // win.setAlwaysOnTop(true);
+        // // restore overlay icon when going back from tray
+        // setOverlayIcon(currentOverlayIcon);
+    });
+
+    win.on('minimize',function(event){
+        event.preventDefault();
+        win.hide();
+    });
+
+    win.on('close', function (event) {
+        if(!app.isQuiting){
+            event.preventDefault();
+            win.hide();
+        }
+
+        return false;
+    });
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
