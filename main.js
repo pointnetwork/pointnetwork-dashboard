@@ -9,14 +9,16 @@ const { app,
 const path = require('path');
 const { http, https } = require('follow-redirects');
 const { platform, arch } = require('process');
-const fs = require('fs');
+const fs = require('fs-extra');
 const tarfs = require('tar-fs');
 const bz2 = require('unbzip2-stream');
 const { exec } = require('child_process');
 const url = require('url');
 const _7z = require('7zip-min');
-const util = require("util");
+const util = require('util');
 const execProm = util.promisify(exec);
+const os = require('os');
+const dmg = require('dmg');
 
 let win;
 let tray = null;
@@ -146,12 +148,13 @@ async function getHomePath(osAndArch) {
             throw ex;
         }
     }
-    if (osAndArch == 'mac') {
+    // if (osAndArch == 'mac') {
 
-    }
-    if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
-        return require('os').homedir();
-    }
+    // }
+    // if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+    //     return os.homedir();
+    // }
+    return os.homedir();
 }
 
 function fixPath(osAndArch, pathStr) {
@@ -172,7 +175,7 @@ async function getDockerHealthCmd(osAndArch, containerName) {
     const pnPath = await getPNPath(getOSAndArch());
     const composePath = fixPath(osAndArch, path.join(pnPath, 'docker-compose.yaml'));
     const composeDevPath = fixPath(osAndArch, path.join(pnPath, 'docker-compose.dev.yaml'));
-    
+
     const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${composePath} -f ${composeDevPath} ps -q ${containerName})`;
     if (osAndArch == 'win32' || osAndArch == 'win64') {
         return `wsl ${cmd}`;
@@ -295,7 +298,16 @@ function firefoxUnpack(osAndArch, releasePath, browserDir, cb) {
         _7z.unpack(releasePath, browserDir, (err) => { if (err) throw err; cb();});
     }
     if (osAndArch == 'mac') {
-        // DMG. No extraction required.
+        dmg.mount(releasePath, (err, dmgPath) => {
+            fs.copy(`${dmgPath}/Firefox.app`, `${browserDir}/Firefox.app`, (err) => {
+                if (err) {
+                    console.log("Error Found:", err);
+                    dmg.unmount(dmgPath, (err) => { if (err) throw err;});
+                    return;
+                }
+                dmg.unmount(dmgPath, (err) => { if (err) throw err; cb();});
+            });
+        });
         return;
     }
     if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
@@ -437,7 +449,7 @@ ipcMain.on("firefox-download", async (event, args) => {
 
     const http_s = getHTTPorHTTPs(osAndArch, pacFile);
 
-    const request = await http_s.get(firefoxURL, async (response) => {
+    await http_s.get(firefoxURL, async (response) => {
         await response.pipe(firefoxRelease);
         firefoxRelease.on('finish', () => {
             let cb = function() {
