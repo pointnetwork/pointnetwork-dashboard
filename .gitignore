@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Point Browser binary
+point-browser
