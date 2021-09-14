@@ -329,7 +329,12 @@ function getFirefoxAppPath(osAndArch) {
     const rootPath = getFirefoxRootPath(osAndArch);
 
     if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
-        const appPath = path.join(rootPath, 'app');
+        let appPath = '';
+        if (osAndArch == 'mac') {
+            appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');
+        } else {
+            appPath = path.join(rootPath, 'app');
+        }
 
         if (!fs.existsSync(appPath)) {
             fs.mkdirSync(appPath);
@@ -346,7 +351,13 @@ function getFirefoxPrefPath(osAndArch) {
     const rootPath = getFirefoxRootPath(osAndArch);
     
     if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
-        const appPath = path.join(rootPath, 'app');
+        let appPath = '';
+        if (osAndArch == 'mac') {
+            appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');
+        } else {
+            appPath = path.join(rootPath, 'app');
+        }
+        
         const defaultsPath = path.join(appPath, 'defaults');
         const prefPath = path.join(defaultsPath, 'pref');
 
@@ -368,8 +379,11 @@ function getFirefoxPrefPath(osAndArch) {
 
 function getFirefoxBinPath(osAndArch) {
     const rootPath = getFirefoxRootPath(osAndArch);
-    if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+    if (osAndArch == 'win32' || osAndArch == 'win64') {
         return path.join(rootPath, 'point-browser-portable.exe');
+    }
+    if (osAndArch == 'mac') {
+        return `open ${path.join(rootPath, 'Firefox.app')}`;
     }
     // linux
     return path.join(rootPath, 'firefox', 'firefox');
@@ -408,10 +422,7 @@ pref('network.proxy.autoconfig_url', '${pacFile}');
                          }
                      });
     }
-    if (osAndArch == 'mac') {
-        return;
-    }
-    if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+    if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686' || osAndArch == 'mac') {
         fs.writeFile(path.join(prefPath, 'autoconfig.js'),
                      autoconfigContent,
                      err => {
@@ -434,7 +445,7 @@ pref('network.proxy.autoconfig_url', '${pacFile}');
 
 ipcMain.on("firefox-download", async (event, args) => {
     const language = args.language;
-    const version = '92.0b7';
+    const version = '93.0b4';
     const browserDir = path.join('.', 'point-browser');
     const pacFile = url.pathToFileURL(path.join('..', 'pointnetwork', 'client', 'proxy', 'pac.js'));
     const osAndArch = getOSAndArch();
