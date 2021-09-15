@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
 const { exec } = require('child_process');
+const util = require('util');
+const { platform, arch } = require('process');
 const execProm = util.promisify(exec);
 
 module.exports = {
