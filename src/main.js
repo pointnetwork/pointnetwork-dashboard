@@ -12,9 +12,9 @@ const fs = require('fs-extra');
 const { exec } = require('child_process');
 const url = require('url');
 
-const helpers = require('helpers');
-const firefox = require('firefox');
-const docker = require('docker');
+const helpers = require('./helpers');
+const firefox = require('./firefox');
+const docker = require('./docker');
 
 let win;
 let tray = null;
@@ -28,12 +28,12 @@ function createWindow () {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'app.js')
         }
     });
 
     // and load the index.html of the app.
-    win.loadFile('index.html');
+    win.loadFile('app/app.html');
 
     // Open the DevTools.
     // win.webContents.openDevTools()
