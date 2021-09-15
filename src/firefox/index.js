@@ -135,7 +135,7 @@ module.exports = {
             return `open ${path.join(rootPath, 'Firefox.app')}`;
         }
         // linux
-        return path.join(rootPath, 'firefox', 'firefox');
+        return path.join(rootPath, 'firefox');
     },
 
     createConfigFiles(osAndArch, pacFile) {
