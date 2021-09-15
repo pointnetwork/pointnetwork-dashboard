@@ -1,3 +1,4 @@
+const process = require('process');
 const {
     contextBridge,
     ipcRenderer
