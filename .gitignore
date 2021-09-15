@@ -105,3 +105,8 @@ dist
 
 # Point Browser binary
 point-browser
+
+# ignore everything in 'app' folder that has been generated from 'src' folder
+/app/app.js
+/app/main.js
+/app/**/*.map
