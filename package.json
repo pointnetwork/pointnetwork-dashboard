@@ -1,5 +1,5 @@
 {
-  "name": "PointNetwork Dashboard",
+  "name": "pointnetwork-dashboard",
   "version": "1.0.0",
   "description": "PointNetwork Dashboard",
   "main": "app/main.js",
