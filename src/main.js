@@ -2,8 +2,6 @@
 const { app,
         BrowserWindow,
         ipcMain,
-        Menu,
-        Tray,
         nativeImage
       } = require('electron');
 const path = require('path');
@@ -11,10 +9,14 @@ const { platform, arch } = require('process');
 const fs = require('fs-extra');
 const { exec } = require('child_process');
 const url = require('url');
-
+const Installer = require('./installer');
+const ipcHooks = require('./ipc-hooks');
 const helpers = require('./helpers');
 const firefox = require('./firefox');
 const docker = require('./docker');
+const Tray = require('./tray');
+
+const INSTALLER_PATH = "~/.point/installer-finished";
 
 let win;
 let tray = null;
@@ -39,10 +41,20 @@ function createWindow () {
     // win.webContents.openDevTools()
 }
 
+function hasInstallerFinished() {
+    return (fs.pathExistsSync(INSTALLER_PATH));
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+    if (! hasInstallerFinished()) {
+        const installer = new Installer();
+        installer.run();
+        return;
+    }
+
     createWindow();
 
     app.on('activate', function () {
@@ -51,26 +63,7 @@ app.whenReady().then(() => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 
-    // Tray stuff.
-    const iconPath = path.join(__dirname, 'resources/logo.ico');
-    tray = new Tray(nativeImage.createFromPath(iconPath));
-    const contextMenu = Menu.buildFromTemplate([
-        { label: 'Show App', click:  function(){
-            win.show();
-        } },
-        { label: 'Quit', click:  function(){
-            app.isQuiting = true;
-            app.quit();
-        } }
-    ]);
-    tray.setToolTip('This is my application.');
-    tray.setContextMenu(contextMenu);
-    tray.on('right-click', () => {
-        tray.popUpContextMenu();
-    });
-    tray.on('click', () => {
-        win.show();
-    });
+    tray = Tray.init();
 
     win.on('minimize',function(event){
         event.preventDefault();
@@ -94,101 +87,4 @@ app.on('window-all-closed', function () {
     if (platform !== 'darwin') app.quit();
 });
 
-ipcMain.on("firefox-check", async (event, args) => {
-    if (firefox.isInstalled()) {
-        win.webContents.send("firefox-checked", true);
-        return;
-    }
-    win.webContents.send("firefox-checked", false);
-});
-
-ipcMain.on("docker-check", async (event, args) => {
-    const containerName = args.container;
-    const osAndArch = helpers.getOSAndArch();
-    const cmd = await docker.getHealthCmd(osAndArch, containerName);
-
-    exec(cmd, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            win.webContents.send("docker-checked", {...args, status: 'not running'});
-            return;
-        }
-
-        const resp = JSON.parse(stdout);
-        const status = resp != null ? resp.Status : 'no connection';
-        win.webContents.send("docker-checked", {status: status, ...args});
-    });
-});
-
-ipcMain.on("docker-logs", async (event, args) => {
-    const containerName = args.container;
-    const cmd = `x-terminal-emulator -e docker-compose -f ${compose} -f ${composeDev} logs -f ${containerName} && bash || bash`;
-    exec(cmd, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
-        }
-    });
-});
-
-ipcMain.on("platform-check", async (event, args) => {
-    win.webContents.send("platform-checked", {os: platform, arch: arch});
-});
-
-ipcMain.on("firefox-run", (event, args) => {
-    const cmd = firefox.getBinPath(helpers.getOSAndArch());
-    exec(cmd, (error, stdout, stderr) => {
-        win.webContents.send("firefox-closed");
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-    });
-});
-
-ipcMain.on("firefox-download", async (event, args) => {
-    const language = args.language;
-    const version = '93.0b4';
-    const browserDir = path.join('.', 'point-browser');
-    const pacFile = url.pathToFileURL(path.join('..', 'pointnetwork', 'client', 'proxy', 'pac.js'));
-    const osAndArch = helpers.getOSAndArch();
-    const filename = firefox.getFileName(osAndArch, version);
-    const releasePath = path.join(browserDir, filename);
-    const firefoxRelease = fs.createWriteStream(releasePath);
-    const firefoxURL = firefox.getURL(version, osAndArch, language, filename);
-
-    if (!fs.existsSync(browserDir)){
-        fs.mkdirSync(browserDir);
-    }
-
-    const http_s = helpers.getHTTPorHTTPs(osAndArch, pacFile);
-
-    await http_s.get(firefoxURL, async (response) => {
-        await response.pipe(firefoxRelease);
-        firefoxRelease.on('finish', () => {
-            let cb = function() {
-                win.webContents.send("firefox-installed");
-                
-                fs.unlink(releasePath, (err) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log(`\nDeleted file: ${releasePath}`);
-                    }
-                });
-
-                firefox.createConfigFiles(osAndArch);
-            };
-            firefox.unpack(osAndArch, releasePath, browserDir, cb);
-        });
-    });
-});
+ipcHooks.attach(ipcMain, win);

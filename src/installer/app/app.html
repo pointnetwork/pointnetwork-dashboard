@@ -1,0 +1,24 @@
+<h1>Point Network</h1>
+
+<p>Welcome to Point Network installer. Please review the components to be installed and click "Start".</p>
+
+<ul>
+    <li>WSL2</li>
+    <li>Docker & docker-compose</li>
+    <li>Point Network</li>
+</ul>
+
+<script>
+    function quit() {
+        console.log(window.api);
+        console.log(window);
+        console.log(window.api.send("firefox-check"));
+        window.api.send("quit");
+    }
+    function start() {
+        window.api.send("start");
+    }
+</script>
+
+<button onclick="start();">Start</button>
+<button onclick="quit();">Quit Installer</button>
