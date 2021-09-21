@@ -55,7 +55,7 @@ module.exports = {
     getPNPath: async (osAndArch) => {
         // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
         const homePath = await module.exports.getHomePath(osAndArch);
-        return path.join(homePath, 'pointnetwork', 'pointnetwork');
+        return path.join(homePath, '.point', 'src', 'pointnetwork');
     },
     
     getHomePath: async (osAndArch) => {

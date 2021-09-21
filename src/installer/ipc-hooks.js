@@ -6,12 +6,22 @@
 // import path from "path";
 // import url from "url";
 // import fs from "fs-extra";
+const InstallerService = require('./service').default;
 
 export const attach = (ipcMain, win, app) => {
-    console.log('attaching');
+    console.log({ipcMain, win, app});
     ipcMain.on("quit", async (event, args) => {
-        console.log("quitting...");
         app.quit();
+        process.exit();
+    });
+    ipcMain.on("start", async (event, args) => {
+        const installerService = new InstallerService(win);
+        try {
+            installerService.start();
+        } catch(e) {
+            installerService.tryToShowError(e);
+            throw e;
+        }
     });
     // ipcMain.on("quit", async (event, args) => {
     //     if (firefox.isInstalled()) {

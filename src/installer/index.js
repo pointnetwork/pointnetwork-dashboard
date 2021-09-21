@@ -1,4 +1,4 @@
-const {BrowserWindow, app, Tray, nativeImage, Menu, ipcMain} = require("electron");
+const {BrowserWindow, app, Tray, nativeImage, Menu, ipcMain, globalShortcut} = require("electron");
 const path = require("path");
 const fs = require("fs-extra");
 const {platform, arch} = require("process");
@@ -13,7 +13,7 @@ let win;
 
 class Installer {
     constructor() {
-        function createWindow () {
+        let createWindow = () => {
             // Create the browser window.
             win = new BrowserWindow({
                 width: 1000,
@@ -22,7 +22,7 @@ class Installer {
                     nodeIntegration: false,
                     contextIsolation: true,
                     enableRemoteModule: false,
-                    preload: path.join(__dirname, '..', 'src', 'installer', 'app', 'preload.js')
+                    preload: path.join(__dirname, '..', 'src', 'installer', 'preload.js')
                 }
             });
 
@@ -31,6 +31,14 @@ class Installer {
 
             // Open the DevTools.
             win.webContents.openDevTools()
+
+            // Register Cmd+Q on macs
+            if (process.platform === 'darwin') {
+                globalShortcut.register('Command+Q', () => {
+                    app.isQuiting = true;
+                    app.quit();
+                });
+            }
         }
 
         // This method will be called when Electron has finished
@@ -58,16 +66,19 @@ class Installer {
 
                 return false;
             });
+
+            // Quit when all windows are closed, except on macOS. There, it's common
+            // for applications and their menu bar to stay active until the user quits
+            // explicitly with Cmd + Q.
+            app.on('window-all-closed', function () {
+                if (platform !== 'darwin') app.quit();
+            });
+
+            ipcHooks.attach(ipcMain, win, app);
+
         });
 
-        // Quit when all windows are closed, except on macOS. There, it's common
-        // for applications and their menu bar to stay active until the user quits
-        // explicitly with Cmd + Q.
-        app.on('window-all-closed', function () {
-            if (platform !== 'darwin') app.quit();
-        });
-
-        ipcHooks.attach(ipcMain, win, app);
+        // WARNING! Do not write anything important here, `win` variable is undefined, it hasn't been created through createWindow yet
     }
 
     run() {

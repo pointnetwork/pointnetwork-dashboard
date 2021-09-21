@@ -1,24 +1,100 @@
-<h1>Point Network</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <title>Point Network Installer</title>
+    <link rel="stylesheet" href="../../../resources/assets/bootstrap-5.1.0.min.css">
+    <link rel="stylesheet" href="../../../resources/assets/font-awesome-5.15.4-all.css" />
+    <link rel="stylesheet" href="../../../resources/assets/jquery-ui-1.12.1.min.css" />
+    <link rel="stylesheet" href="../../../resources/assets/jquery-ui-theme-black-tie-1.12.1.min.css" />
+<!--    <link rel="stylesheet" type="text/css" href="../src/stylesheets/main.css">-->
 
-<p>Welcome to Point Network installer. Please review the components to be installed and click "Start".</p>
+    <!-- You can also require other files to run in this process -->
+    <script src="../../../resources/assets/jquery-3.6.0.min.js"></script>
+    <script src="../../../resources/assets/jquery-ui-1.12.1.min.js"></script>
+    <script src="../../../resources/assets/popper.min.js"></script>
+    <script src="../../../resources/assets/bootstrap-5.1.0.min.js"></script>
+</head>
 
-<ul>
-    <li>WSL2</li>
-    <li>Docker & docker-compose</li>
-    <li>Point Network</li>
-</ul>
+<body>
+
+<div class="container-fluid">
+    <h1>Point Network</h1>
+
+    <div class="row">
+        <div class="col-12">
+
+            <div class="screen screen-intro">
+                <p>Welcome to Point Network installer. Please review the components to be installed and click "Start".</p>
+
+                <ul>
+                    <li>WSL2</li>
+                    <li>Docker & docker-compose</li>
+                    <li>Point Network</li>
+                </ul>
+
+                <div>
+                    <input type="checkbox" id="accept_terms_checkbox" /> <label for="accept_terms_checkbox">I agree to the Terms of Use for Point Network</label>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-primary" id="btn-start" onclick="start();" disabled>Start</button>
+                    <button class="btn btn-secondary" onclick="quit();">Quit Installer</button>
+                </div>
+            </div>
+
+            <div class="screen screen-installation-progress">
+                <div class="log" id="log" style="padding: 10px; background-color: black; color: white;">
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script>
+    $(function() {
+        $('.screen').hide();
+        $('.screen-intro').show();
+    });
+
     function quit() {
-        console.log(window.api);
-        console.log(window);
-        console.log(window.api.send("firefox-check"));
         window.api.send("quit");
     }
     function start() {
+        $('.screen-intro').hide();
+        $('.screen-installation-progress').show();
         window.api.send("start");
     }
+
+    $('#accept_terms_checkbox').click(function() {
+        if ($('#accept_terms_checkbox').is(':checked')) {
+            $('#btn-start').removeAttr('disabled');
+        } else {
+            $('#btn-start').attr('disabled', 'disabled');
+        }
+    });
+
+    lastLogId = -1;
+    function addLog(x) {
+        lastLogId++;
+        $('<div>', {
+            id: 'log-line-'+lastLogId,
+            class: 'log-line'
+        }).appendTo('#log');
+
+        $('#log-line-'+lastLogId).append(x); // adds as text, not html, so we should be safe https://stackoverflow.com/questions/42550909/append-adds-html-as-text
+    }
+
+    window.api.receive("log", (args) => {
+        addLog(args.text);
+    });
+    window.api.receive("fatal", (args) => {
+        addLog('FATAL ERROR: '+args.e.message);
+        $('#log-line-'+lastLogId).css({color: '#ff0000'});
+    });
 </script>
 
-<button onclick="start();">Start</button>
-<button onclick="quit();">Quit Installer</button>
+</body>

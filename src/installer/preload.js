@@ -25,7 +25,6 @@ window.addEventListener('DOMContentLoaded', () => {
 contextBridge.exposeInMainWorld(
     "api", {
         send: (channel, data) => {
-            console.log({channel, func})
             // whitelist channels
             let validChannels = [
                                     "quit",
@@ -36,10 +35,9 @@ contextBridge.exposeInMainWorld(
             }
         },
         receive: (channel, func) => {
-            console.log({channel, func})
             let validChannels = [
-                "quit",
-                "start"
+                "log",
+                "fatal"
             ];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 

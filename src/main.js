@@ -2,8 +2,8 @@
 const { app,
         BrowserWindow,
         ipcMain,
-        nativeImage
-      } = require('electron');
+        nativeImage, globalShortcut
+} = require('electron');
 const path = require('path');
 const { platform, arch } = require('process');
 const fs = require('fs-extra');
@@ -78,6 +78,14 @@ app.whenReady().then(() => {
 
         return false;
     });
+
+    // Register Cmd+Q on macs
+    if (process.platform === 'darwin') {
+        globalShortcut.register('Command+Q', () => {
+            app.isQuiting = true;
+            app.quit();
+        });
+    }
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
