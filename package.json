@@ -4,7 +4,9 @@
   "description": "PointNetwork Dashboard",
   "main": "app/main.js",
   "scripts": {
-    "start": "node build/start.js"
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
@@ -17,6 +19,11 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.61",
+    "@electron-forge/maker-deb": "^6.0.0-beta.61",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.61",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.61",
+    "@electron-forge/maker-zip": "^6.0.0-beta.61",
     "electron": "^14.0.1"
   },
   "dependencies": {
@@ -26,6 +33,7 @@
     "babel-loader": "^8.2.2",
     "child_process": "^1.0.2",
     "dmg": "^0.1.0",
+    "electron-squirrel-startup": "^1.0.0",
     "follow-redirects": "^1.14.4",
     "fs-extra": "^10.0.0",
     "pify": "^5.0.0",
@@ -35,5 +43,32 @@
     "webpack": "^5.52.1",
     "webpack-merge": "^5.8.0",
     "webpack-node-externals": "^3.0.0"
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "pointnetwork_dashboard"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
   }
 }
