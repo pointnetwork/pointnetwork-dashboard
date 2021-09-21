@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Use this command to run Point Installer:
+#
+# wget -qO- pointer.sh | wget
+
 echo "Point Network Installer installing..."
 sudo apt install git nodejs -y || exit 1
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
