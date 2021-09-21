@@ -9,7 +9,6 @@
 const InstallerService = require('./service').default;
 
 export const attach = (ipcMain, win, app) => {
-    console.log({ipcMain, win, app});
     ipcMain.on("quit", async (event, args) => {
         app.quit();
         process.exit();

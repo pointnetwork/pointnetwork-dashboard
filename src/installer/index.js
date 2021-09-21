@@ -13,6 +13,9 @@ let win;
 
 class Installer {
     constructor() {
+    }
+
+    run() {
         let createWindow = () => {
             // Create the browser window.
             win = new BrowserWindow({
@@ -79,10 +82,6 @@ class Installer {
         });
 
         // WARNING! Do not write anything important here, `win` variable is undefined, it hasn't been created through createWindow yet
-    }
-
-    run() {
-        console.log('----------RUNNING INSTALLER---------');
     }
 }
 

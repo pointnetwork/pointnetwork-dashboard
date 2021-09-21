@@ -9,6 +9,9 @@ const execProm = util.promisify(exec);
 
 module.exports = {
     getOSAndArch: () => {
+        /*
+            Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
+         */
         let osAndArch = '';
         
         if (platform == 'darwin') {
