@@ -7,7 +7,7 @@
 echo "Point Network Installer installing..."
 sudo apt install git nodejs -y || exit 1
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-source ~/.bashrc || exit 1
+. ~/.bashrc || exit 1
 DASHBOARDDIR=$HOME/.point/dashboard
 mkdir -p $DASHBOARDDIR
 git clone https://github.com/pointnetwork/pointnetwork-dashboard $DASHBOARDDIR || exit 1
