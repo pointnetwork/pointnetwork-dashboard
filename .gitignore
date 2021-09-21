@@ -110,3 +110,6 @@ point-browser
 /app/app.js
 /app/main.js
 /app/**/*.map
+
+# electron-forge builds
+/out
