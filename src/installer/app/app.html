@@ -88,12 +88,23 @@
         $('#log-line-'+lastLogId).append(x); // adds as text, not html, so we should be safe https://stackoverflow.com/questions/42550909/append-adds-html-as-text
     }
 
+    function colorLastLogLine(color) {
+        $('#log-line-'+lastLogId).css({color: color});
+    }
+
     window.api.receive("log", (args) => {
         addLog(args.text);
+        if (args.opts && args.opts.type) {
+            switch(args.opts.type) {
+                case 'cmd': colorLastLogLine('#00ff00'); break;
+                case 'step': colorLastLogLine('#10e3d0'); break;
+                case 'error': colorLastLogLine('#ff0000'); break;
+                default:
+            }
+        }
     });
     window.api.receive("fatal", (args) => {
         addLog('FATAL ERROR: '+args.e.message);
-        $('#log-line-'+lastLogId).css({color: '#ff0000'});
     });
 </script>
 

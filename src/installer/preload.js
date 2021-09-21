@@ -37,7 +37,6 @@ contextBridge.exposeInMainWorld(
         receive: (channel, func) => {
             let validChannels = [
                 "log",
-                "fatal"
             ];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 
