@@ -4,9 +4,10 @@
   "description": "PointNetwork Dashboard",
   "main": "app/main.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "start": "node build/start.js",
+    "forge-start": "electron-forge start",
+    "forge-package": "electron-forge package",
+    "forge-make": "electron-forge make"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [

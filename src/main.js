@@ -10,6 +10,7 @@ const fs = require('fs-extra');
 const { exec } = require('child_process');
 const url = require('url');
 const Installer = require('./installer');
+const Welcome = require('./welcome');
 const ipcHooks = require('./ipc-hooks');
 const helpers = require('./helpers');
 const firefox = require('./firefox');
@@ -17,6 +18,8 @@ const docker = require('./docker');
 const Tray = require('./tray');
 
 const INSTALLER_PATH = "~/.point/installer-finished";
+
+console.log('what')
 
 let win;
 let tray = null;
@@ -42,18 +45,34 @@ function createWindow () {
 }
 
 function hasInstallerFinished() {
+    return true;
     return (fs.pathExistsSync(INSTALLER_PATH));
+}
+
+function isLoggedIn() {
+    return false;
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+    console.log('ok lets start')
     if (! hasInstallerFinished()) {
+        console.log('running installer');
         const installer = new Installer();
         installer.run();
         return;
     }
+
+    if (! isLoggedIn()) {
+        console.log('running welcome');
+        const welcome = new Welcome();
+        welcome.run();
+        return;
+    }
+    console.log('running normally');
+
 
     createWindow();
 

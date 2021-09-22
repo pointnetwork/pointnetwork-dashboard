@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <title>Point Network</title>
+    <link rel="stylesheet" href="../../../resources/assets/bootstrap-5.1.0.min.css">
+    <link rel="stylesheet" href="../../../resources/assets/font-awesome-5.15.4-all.css" />
+    <link rel="stylesheet" href="../../../resources/assets/jquery-ui-1.12.1.min.css" />
+    <link rel="stylesheet" href="../../../resources/assets/jquery-ui-theme-black-tie-1.12.1.min.css" />
+<!--    <link rel="stylesheet" type="text/css" href="../src/stylesheets/main.css">-->
+
+    <!-- You can also require other files to run in this process -->
+    <script src="../../../resources/assets/jquery-3.6.0.min.js"></script>
+    <script src="../../../resources/assets/jquery-ui-1.12.1.min.js"></script>
+    <script src="../../../resources/assets/popper.min.js"></script>
+    <script src="../../../resources/assets/bootstrap-5.1.0.min.js"></script>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <h1>Point Network</h1>
+
+    <div class="row">
+        <div class="col-12">
+
+            <div class="screen screen-intro">
+                <p>Welcome to Web 3.0!</p>
+
+                <div class="buttons">
+                    <button class="btn btn-primary" id="btn-start" onclick="start();" disabled>Start</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function() {
+        $('.screen').hide();
+        $('.screen-intro').show();
+    });
+
+    function quit() {
+        window.api.send("quit");
+    }
+    function start() {
+        $('.screen-intro').hide();
+        $('.screen-installation-progress').show();
+        window.api.send("start");
+    }
+
+    // window.api.receive("fatal", (args) => {
+    //     addLog('FATAL ERROR: '+args.e.message);
+    // });
+</script>
+
+</body>
