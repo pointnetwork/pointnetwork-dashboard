@@ -16,6 +16,8 @@ export const attach = (ipcMain, win) => {
         win.webContents.send("firefox-checked", false);
     });
 
+    // TODO: Rename to "docker-check-status", because we're having "docker-check-installed".
+    // TODO: Send these ipc hooks to other files: firefox, docker, etc.
     ipcMain.on("docker-check", async (event, args) => {
         const containerName = args.container;
         const osAndArch = helpers.getOSAndArch();
@@ -141,5 +143,13 @@ export const attach = (ipcMain, win) => {
                 docker.unpack(osAndArch, releasePath, dockerDir, cb);
             });
         });
+    });
+
+    ipcMain.on("docker-check-installed", async (event, args) => {
+        if (docker.isInstalled()) {
+            win.webContents.send("docker-checked-installed", true);
+            return;
+        }
+        win.webContents.send("docker-checkeded-installed", false);
     });
 }

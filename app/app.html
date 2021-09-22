@@ -338,6 +338,17 @@
 	     });
 	 }
 
+	 /* TODO: Change to something else. Currently you would need to be forced to click on #docker-provider icon */
+	 function dockerInstall() {
+	     addIconCheckingStatus('#docker-provider .icon');
+	     $('#docker-provider .status').html('Installing');
+	     window.api.send("docker-download", {language: language});
+	 }
+
+	 function dockerCheckInstalled() {
+	     window.api.send("docker-check-installed");
+	 }
+
 	 newComponent('firefox', 'Firefox Point Browser', '<i class="small-icon icon fab checking fa-firefox-browser fa-fw"></i>');
 	 newComponent('docker-provider', 'Storage Provider', '<i class="small-icon icon fab checking fa-docker fa-fw"></i>');
 	 newComponent('docker-contracts', 'Contract Deployer', '<i class="small-icon icon fab checking fa-docker fa-fw"></i>');
