@@ -66,7 +66,7 @@ module.exports = {
             // NOTE: `wsl echo $HOME` doesn't work.
             const cmd = `wsl realpath ~`;
             try {
-                const result = await await execProm(cmd);
+                const result = await execProm(cmd);
                 return result.stdout.trim();
             } catch(ex) {
                 throw ex;
