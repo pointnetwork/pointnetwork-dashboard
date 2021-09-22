@@ -29,7 +29,9 @@ contextBridge.exposeInMainWorld(
                                  "firefox-dialog-install",
                                  "docker-check",
                                  "docker-check-installed",
-                                 "docker-logs"
+                                 "docker-logs",
+                                 "start",
+                                 "quit"
                                 ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
@@ -41,7 +43,9 @@ contextBridge.exposeInMainWorld(
                                  "firefox-installed",
                                  "platform-checked",
                                  "docker-checked",
-                                 "docker-checked-installed"];
+                                 "docker-checked-installed",
+                                 "log",
+                                 "fatal"];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 
                 ipcRenderer.on(channel, (event, ...args) => func(...args));
