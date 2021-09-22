@@ -1,5 +1,7 @@
 const helpers = require('../helpers');
 const path = require('path');
+const { exec } = require('child_process');
+const execProm = util.promisify(exec);
 
 module.exports = {
     async getHealthCmd(osAndArch, containerName) {
@@ -12,6 +14,17 @@ module.exports = {
             return `wsl ${cmd}`;
         }
         return cmd;
+    },
+
+    async isInstalled() {
+        const cmd = 'docker --version';
+        const result = await execProm(cmd);
+
+        // TODO: Check what's result output if Docker's not installed. Not sure if it's `undefined`.
+        if (result != undefined) {
+            return true;
+        }
+        return false;
     },
 
     getFileName(osAndArch, version) {
