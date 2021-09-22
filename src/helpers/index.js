@@ -78,5 +78,35 @@ module.exports = {
     
     isDirEmpty: (path) => {
         return fs.readdirSync(path).length === 0;
-    }
+    },
+    
+    getPointSrcPath: async (osAndArch) => {
+         const homePath = await module.exports.getHomePath(osAndArch);
+        return path.join(homePath, 'pointnetwork', 'pointnetwork');
+        const pointPath = path.join(homePath, '.point/');
+        const pointSrcPath = path.join(pointPath, 'src/');
+
+        if (!fs.existsSync(pointPath)) {
+            fs.mkdirSync(pointPath);
+        }
+        if (!fs.existsSync(pointSrcPath)) {
+            fs.mkdirSync(pointSrcPath);
+        }
+
+        return pointSrcPath;
+     },
+
+    isPNCloned: async (osAndArch) => {
+        const git = simpleGit(module.exports.getPointSrcPath(osAndArch));
+        const pnPath = await module.exports.getPNPath(osAndArch);
+        return fs.existsSync(pnPath);
+    },
+
+    clonePN: async (pnPath, osAndArch) => {
+        const git = simpleGit(module.exports.getPointSrcPath(osAndArch));
+        const pnURL = 'https://github.com/pointnetwork/pointnetwork';
+
+        await git.clone(pnURL, pnPath, (err) => {if (err) throw err;});
+        await git.cwd({ path: pnPath, root: true });
+    },
 };
