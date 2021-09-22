@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld(
             let validChannels = ["platform-check",
                                  "firefox-check",
                                  "firefox-download",
+                                 "docker-download",
                                  "firefox-run",
                                  "firefox-dialog-install",
                                  "docker-check",
