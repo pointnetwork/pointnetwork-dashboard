@@ -16,6 +16,8 @@ export const attach = (ipcMain, win) => {
         win.webContents.send("firefox-checked", false);
     });
 
+    // TODO: Rename to "docker-check-status", because we're having "docker-check-installed".
+    // TODO: Send these ipc hooks to other files: firefox, docker, etc.
     ipcMain.on("docker-check", async (event, args) => {
         const containerName = args.container;
         const osAndArch = helpers.getOSAndArch();
@@ -105,5 +107,49 @@ export const attach = (ipcMain, win) => {
                 firefox.unpack(osAndArch, releasePath, browserDir, cb);
             });
         });
+    });
+
+    ipcMain.on("docker-download", async (event, args) => {
+        const language = args.language;
+        const dockerDir = path.join('.', 'docker');
+        const osAndArch = helpers.getOSAndArch();
+        const filename = docker.getFileName(osAndArch, version);
+        const releasePath = path.join(dockerDir, filename);
+        const dockerRelease = fs.createWriteStream(releasePath);
+        const dockerURL = docker.getURL(version, osAndArch, language, filename);
+
+        if (!fs.existsSync(dockerDir)){
+            fs.mkdirSync(dockerDir);
+        }
+
+        const http_s = helpers.getHTTPorHTTPs(osAndArch, pacFile);
+
+        await http_s.get(dockerURL, async (response) => {
+            await response.pipe(dockerRelease);
+            dockerRelease.on('finish', () => {
+                let cb = function() {
+                    win.webContents.send("docker-installed");
+
+                    fs.unlink(releasePath, (err) => {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(`\nDeleted file: ${releasePath}`);
+                        }
+                    });
+
+                    docker.createConfigFiles(osAndArch);
+                };
+                docker.unpack(osAndArch, releasePath, dockerDir, cb);
+            });
+        });
+    });
+
+    ipcMain.on("docker-check-installed", async (event, args) => {
+        if (docker.isInstalled()) {
+            win.webContents.send("docker-checked-installed", true);
+            return;
+        }
+        win.webContents.send("docker-checkeded-installed", false);
     });
 }
