@@ -2,6 +2,7 @@ import * as fsExtra from "fs-extra";
 import * as fs from "fs";
 import * as path from "path";
 import helpers, {getOSAndArch} from "../../helpers";
+import docker from "../../docker";
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 import * as axios from "axios";
@@ -23,7 +24,7 @@ class InstallerService {
             'Install Docker': this.installDocker,
         };
     }
-
+    
     async start() {
         try {
             this._log('Starting out...', {type: 'step'});
@@ -48,13 +49,13 @@ class InstallerService {
     }
 
     async makePointDirectory(testRun = false) {
-        this.pointDir = this._getHomeSubPath('.point');
+        this.pointDir = await this._getHomeSubPath('.point');
         if (testRun) return fs.existsSync(this.pointDir);
         fsExtra.mkdirpSync(this.pointDir);
     }
 
     async makePointSrcDirectory(testRun = false) {
-        this.pointSrcDir = this._getHomeSubPath('.point', 'src');
+        this.pointSrcDir = await this._getHomeSubPath('.point', 'src');
         if (testRun) return fs.existsSync(this.pointSrcDir);
         fsExtra.mkdirpSync(this.pointSrcDir);
     }
@@ -186,8 +187,8 @@ class InstallerService {
         const { stdout, stderr } = await promise;
     }
 
-    _getHomeSubPath(...paths) {
-        const homedir = require('os').homedir();
+    async _getHomeSubPath(...paths) {
+        const homedir = await helpers.getHomePath();
         return path.join(homedir, ...paths);
     }
 
