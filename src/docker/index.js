@@ -1,7 +1,7 @@
 const helpers = require('../helpers');
 const path = require('path');
-const { exec } = require('child_process');
-const execProm = util.promisify(exec);
+const util = require('util');
+const execProm = util.promisify(require('child_process').exec);
 
 module.exports = {
     async getHealthCmd(osAndArch, containerName) {
