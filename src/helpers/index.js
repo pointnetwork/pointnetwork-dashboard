@@ -2,10 +2,10 @@ const { http, https } = require('follow-redirects');
 const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
-const { exec } = require('child_process');
 const util = require('util');
 const { platform, arch } = require('process');
-const execProm = util.promisify(exec);
+const exec = util.promisify(require('child_process').exec);
+const simpleGit = require('simple-git');
 
 module.exports = {
     getOSAndArch: () => {
@@ -66,7 +66,7 @@ module.exports = {
             // NOTE: `wsl echo $HOME` doesn't work.
             const cmd = `wsl realpath ~`;
             try {
-                const result = await execProm(cmd);
+                const result = await exec(cmd);
                 return result.stdout.trim();
             } catch(ex) {
                 throw ex;
