@@ -1,7 +1,7 @@
 
-///////////////////////// INSTALLER APP.JS /////////////////////////////
+///////////////////////// WELCOME APP.JS /////////////////////////////
 
-console.log('---INSTALLER PRELOAD---');
+console.log('---WELCOME PRELOAD---');
 
 const process = require('process');
 const {

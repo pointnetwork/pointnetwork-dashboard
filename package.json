@@ -29,10 +29,11 @@
     "electron": "^15.0.0"
   },
   "dependencies": {
-    "@babel/core": "^7.15.5",
     "7zip-min": "^1.4.0",
+    "@babel/core": "^7.15.5",
     "axios": "^0.21.4",
     "babel-loader": "^8.2.2",
+    "bip39": "^3.0.4",
     "child_process": "^1.0.2",
     "dmg": "^0.1.0",
     "electron-squirrel-startup": "^1.0.0",
