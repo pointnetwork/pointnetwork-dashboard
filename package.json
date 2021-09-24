@@ -47,7 +47,8 @@
     "unbzip2-stream": "^1.4.3",
     "webpack": "^5.53.0",
     "webpack-merge": "^5.8.0",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "which": "^2.0.2"
   },
   "config": {
     "forge": {
