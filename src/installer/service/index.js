@@ -7,6 +7,9 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 import * as axios from "axios";
 const sudo = require('sudo-prompt');
+const os = require('os');
+const git = require('isomorphic-git');
+const http = require('isomorphic-git/http/node');
 
 class InstallerService {
     pointDir = '';
@@ -16,7 +19,6 @@ class InstallerService {
         this.win = win;
         this.osAndArch = getOSAndArch();
         this.steps = {
-            // todo: install git
             // todo: install wsl
             'Create ~/.point directory': this.makePointDirectory,
             'Create ~/.point/src directory': this.makePointSrcDirectory,
@@ -24,7 +26,7 @@ class InstallerService {
             'Install Docker': this.installDocker,
         };
     }
-    
+
     async start() {
         try {
             this._log('Starting out...', {type: 'step'});
@@ -113,6 +115,18 @@ class InstallerService {
         return (this.osAndArch === 'win64');
     }
 
+    isWindows32() {
+        return (this.osAndArch === 'win32');
+    }
+
+    isWindows() {
+        return isWindows64() || isWindows32();
+    }
+
+    isWindows10Pro() {
+        return isWindows() && os.release().indexOf("Pro");
+    }
+
     _log(text, opts) {
         this.win.webContents.send("log", { text, opts });
     }
@@ -121,9 +135,9 @@ class InstallerService {
         if (testRun) return false;
         const dir = path.join(this.pointSrcDir, repoName);
         if (fs.existsSync(dir)) {
-            await this._exec('cd '+this._quote(dir)+'; git pull; cd -');
+            await git.pull({fs, http, dir, author: {name: 'PointNetwork', email: 'pn@pointnetwork.io'}});
         } else {
-            await this._exec('git clone https://github.com/pointnetwork/'+repoName+' '+this._quote(dir));
+            await git.clone({fs, http, dir, url: `https://github.com/pointnetwork/${repoName}`});
         }
     }
 
