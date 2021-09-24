@@ -10,6 +10,7 @@ const sudo = require('sudo-prompt');
 const os = require('os');
 const git = require('isomorphic-git');
 const http = require('isomorphic-git/http/node');
+const which = require('which');
 
 class InstallerService {
     pointDir = '';
@@ -62,15 +63,16 @@ class InstallerService {
         fsExtra.mkdirpSync(this.pointSrcDir);
     }
 
+    async installWSL() {
+        
+    }
+
     async installDocker(testRun = false) {
         if (testRun) {
-            return false;
-            try {
-                await this._execAndGetOutput('which docker');
+            if (which.sync('docker', {nothrow: true}) != null) {
                 return true;
-            } catch(e) {
-                return false;
             }
+            return false;
         }
 
         if (this.isWindows64()) {
