@@ -33,19 +33,19 @@ function createWindow () {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            preload: path.join(__dirname, 'app.js')
+            preload: path.join(__dirname, '..', 'src/', 'preload.js')
         }
     });
 
     // and load the index.html of the app.
-    win.loadFile('app/app.html');
+    win.loadFile('./src/app/app.html');
 
     // Open the DevTools.
     // win.webContents.openDevTools()
 }
 
 function hasInstallerFinished() {
-    return true;
+    return false;
     return (fs.pathExistsSync(INSTALLER_PATH));
 }
 
