@@ -100,6 +100,8 @@ app.whenReady().then(() => {
             app.quit();
         });
     }
+
+    ipcHooks.attach(ipcMain, win, app);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -108,5 +110,3 @@ app.whenReady().then(() => {
 app.on('window-all-closed', function () {
     if (platform !== 'darwin') app.quit();
 });
-
-ipcHooks.attach(ipcMain, win);
