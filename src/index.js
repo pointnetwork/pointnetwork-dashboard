@@ -69,6 +69,12 @@ app.whenReady().then(() => {
         return;
     }
 
+    if (! isLoggedIn()) {
+        const welcome = new Welcome();
+        welcome.run();
+        return;
+    }
+
     createWindow();
 
     app.on('activate', function () {
