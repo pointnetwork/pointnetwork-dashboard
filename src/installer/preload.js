@@ -27,9 +27,9 @@ contextBridge.exposeInMainWorld(
         send: (channel, data) => {
             // whitelist channels
             let validChannels = [
-                                    "quit",
-                                    "start"
-                                ];
+                "quit",
+                "start"
+            ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }

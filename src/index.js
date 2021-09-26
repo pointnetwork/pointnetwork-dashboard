@@ -33,19 +33,19 @@ function createWindow () {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            preload: path.join(__dirname, 'app.js')
+            preload: path.join(__dirname, '..', 'src/', 'preload.js')
         }
     });
 
     // and load the index.html of the app.
-    win.loadFile('app/app.html');
+    win.loadFile('./src/app/app.html');
 
     // Open the DevTools.
     // win.webContents.openDevTools()
 }
 
 function hasInstallerFinished() {
-    return true;
+    return false;
     return (fs.pathExistsSync(INSTALLER_PATH));
 }
 
@@ -60,6 +60,12 @@ app.whenReady().then(() => {
     if (! hasInstallerFinished()) {
         const installer = new Installer();
         installer.run();
+        return;
+    }
+
+    if (! isLoggedIn()) {
+        const welcome = new Welcome();
+        welcome.run();
         return;
     }
 
@@ -100,6 +106,8 @@ app.whenReady().then(() => {
             app.quit();
         });
     }
+
+    ipcHooks.attach(ipcMain, win, app);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -108,5 +116,3 @@ app.whenReady().then(() => {
 app.on('window-all-closed', function () {
     if (platform !== 'darwin') app.quit();
 });
-
-ipcHooks.attach(ipcMain, win);

@@ -7,6 +7,10 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 import * as axios from "axios";
 const sudo = require('sudo-prompt');
+const os = require('os');
+const git = require('isomorphic-git');
+const http = require('isomorphic-git/http/node');
+const which = require('which');
 
 class InstallerService {
     pointDir = '';
@@ -15,16 +19,23 @@ class InstallerService {
     constructor(win) {
         this.win = win;
         this.osAndArch = getOSAndArch();
-        this.steps = {
-            // todo: install git
-            // todo: install wsl
+        
+        this.steps = {};
+        if (this.isWindows()) {
+            this.steps = {
+                'Install WSL': this.installWSL,
+            };
+        }
+        
+        Object.assign(this.steps, {
             'Create ~/.point directory': this.makePointDirectory,
             'Create ~/.point/src directory': this.makePointSrcDirectory,
             'Clone PointNetwork repositories': this.cloneRepos,
             'Install Docker': this.installDocker,
-        };
+            'Running Docker Containers': this.runDockerCompose,
+        });
     }
-    
+
     async start() {
         try {
             this._log('Starting out...', {type: 'step'});
@@ -60,15 +71,22 @@ class InstallerService {
         fsExtra.mkdirpSync(this.pointSrcDir);
     }
 
+    async installWSL(testRun = false) {
+        if (testRun) {
+            if (which.sync('wsl', {nothrow: true}) != null) {
+                return true;
+            }
+            return false;
+        }
+        sudo.exec('wsl --install');
+    }
+
     async installDocker(testRun = false) {
         if (testRun) {
-            return false;
-            try {
-                await this._execAndGetOutput('which docker');
+            if (which.sync('docker', {nothrow: true}) != null) {
                 return true;
-            } catch(e) {
-                return false;
             }
+            return false;
         }
 
         if (this.isWindows64()) {
@@ -97,6 +115,22 @@ class InstallerService {
         sudo.exec('curl -L '+this._quote("https://github.com/docker/compose/releases/download/"+latest_tag+"/docker-compose-$(uname -s)-$(uname -m)")+' -o /usr/local/bin/docker-compose');
     }
 
+    // TODO: Create `helpers.getDockerComposePath` and use that.
+    // TODO: Move `this._exec` to `helpers` or something.
+    // TODO: Just noticed `../welcome` has exact copies of _exec. Refactor before doing above TODOs.
+    async runDockerCompose(testRun = false) {
+        // TODO: `this._execAndGetOutput` doesn't return output, so it can't be used to test.
+        // if (testRun) return await this._execAndGetOutput('docker-compose ps -q');
+        if (testRun) return false;
+        const pnPath = await helpers.getPNPath(this.osAndArch);
+        const composePath = helpers.fixPath(this.osAndArch, path.join(pnPath, 'docker-compose.yaml'));
+        // TODO: `docker-compose.dev.yaml` is buggy at the moment.
+        // const composeDevPath = helpers.fixPath(osAndArch, path.join(pnPath, 'docker-compose.dev.yaml'));
+        // const cmd = `docker-compose -f ${composePath} -f ${composeDevPath} up -d`;
+        const cmd = `docker-compose -f ${composePath} up -d`;
+        await this._exec(cmd);
+    }
+
     async cloneRepos(testRun = false) {
         await this._clonePointNetworkRepo(testRun, 'pointnetwork');
     }
@@ -113,6 +147,18 @@ class InstallerService {
         return (this.osAndArch === 'win64');
     }
 
+    isWindows32() {
+        return (this.osAndArch === 'win32');
+    }
+
+    isWindows() {
+        return this.isWindows64() || this.isWindows32();
+    }
+
+    isWindows10Pro() {
+        return this.isWindows() && os.release().indexOf("Pro");
+    }
+
     _log(text, opts) {
         this.win.webContents.send("log", { text, opts });
     }
@@ -121,9 +167,9 @@ class InstallerService {
         if (testRun) return false;
         const dir = path.join(this.pointSrcDir, repoName);
         if (fs.existsSync(dir)) {
-            await this._exec('cd '+this._quote(dir)+'; git pull; cd -');
+            await git.pull({fs, http, dir, author: {name: 'PointNetwork', email: 'pn@pointnetwork.io'}});
         } else {
-            await this._exec('git clone https://github.com/pointnetwork/'+repoName+' '+this._quote(dir));
+            await git.clone({fs, http, dir, url: `https://github.com/pointnetwork/${repoName}`});
         }
     }
 

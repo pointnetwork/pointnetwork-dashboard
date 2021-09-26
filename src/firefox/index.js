@@ -68,10 +68,10 @@ module.exports = {
 
     getRootPath(osAndArch) {
         if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
-            return path.join('.', 'point-browser');
+            return path.join('..', '..', 'point-browser');
         }
         // linux
-        return path.join('.', 'point-browser', 'firefox');
+        return path.join('..', '..', 'point-browser', 'firefox');
     },
 
     getAppPath(osAndArch) {
