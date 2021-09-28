@@ -74,9 +74,9 @@ class InstallerService {
     async installWSL(testRun = false) {
         if (testRun) {
             const testMsg = 'Hello';
-            const wslTest = await this._execAndGetOutput(`wsl echo "${testMsg}"`);
+            const wslTest = await this._execAndGetOutput(`echo ${testMsg}`);
             // Checking both that wsl binary is present and that it has access to the virtual machine.
-            if (which.sync('wsl', {nothrow: true}) != null && wslTest.indexOf(testMsg) > 0) {
+            if (which.sync('wsl', {nothrow: true}) != null && wslTest.indexOf(testMsg) >= 0) {
                 return true;
             }
             return false;
@@ -198,6 +198,9 @@ class InstallerService {
             if (typeof data !== 'undefined' && data !== '') this.tryToShowError(data);
         });
         child.on('close', (code) => {
+            // I'm removing `&& err === ''`, because wsl sometimes throw errors related to your screen size not being appropriate for WSL.
+            // This is the error: `your 131072x1 screen size is bogus. expect trouble`.
+            // It shouldn't be a huge problem because we're still expecting the code to tell use everything went okay.
             if (code === 0) {
                 // Everything is well.
             } else {
@@ -225,7 +228,7 @@ class InstallerService {
             if (typeof data !== 'undefined' && data !== '') err += data;
         });
         child.on('close', (code) => {
-            if (code === 0 && err === '') {
+            if (code == 0 && err === '') {
                 // Everything is well.
                 return out;
             } else {
