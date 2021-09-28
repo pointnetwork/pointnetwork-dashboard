@@ -74,7 +74,14 @@ class InstallerService {
     async installWSL(testRun = false) {
         if (testRun) {
             const testMsg = 'Hello';
-            const wslTest = await this._execAndGetOutput(`echo ${testMsg}`);
+
+            let wslTest = '';
+	    try {
+                wslTest = await this._execAndGetOutput(`echo ${testMsg}`);
+	    } catch (e) {
+	        
+	    }
+            
             // Checking both that wsl binary is present and that it has access to the virtual machine.
             if (which.sync('wsl', {nothrow: true}) != null && wslTest.indexOf(testMsg) >= 0) {
                 return true;
@@ -228,11 +235,12 @@ class InstallerService {
             if (typeof data !== 'undefined' && data !== '') err += data;
         });
         child.on('close', (code) => {
-            if (code == 0) {
+            if (code === 0) {
                 // Everything is well.
                 return out;
             } else {
-                throw err;
+                this.tryToShowError('Command finished with code '+code);
+                // throw err;
             }
         });
 
