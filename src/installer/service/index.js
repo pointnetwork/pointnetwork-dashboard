@@ -228,7 +228,7 @@ class InstallerService {
             if (typeof data !== 'undefined' && data !== '') err += data;
         });
         child.on('close', (code) => {
-            if (code == 0 && err === '') {
+            if (code == 0) {
                 // Everything is well.
                 return out;
             } else {
