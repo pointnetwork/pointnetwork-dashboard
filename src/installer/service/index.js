@@ -74,7 +74,7 @@ class InstallerService {
     async installWSL(testRun = false) {
         if (testRun) {
             const testMsg = 'Hello';
-            const wslTest = await _execAndGetOutput(`wsl echo "${testMsg}"`);
+            const wslTest = await this._execAndGetOutput(`wsl echo "${testMsg}"`);
             // Checking both that wsl binary is present and that it has access to the virtual machine.
             if (which.sync('wsl', {nothrow: true}) != null && wslTest.indexOf(testMsg) > 0) {
                 return true;
