@@ -231,6 +231,8 @@ class InstallerService {
         });
 
         const { stdout, stderr } = await promise;
+
+        return stdout;
     }
 
     async _getHomeSubPath(...paths) {
