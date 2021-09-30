@@ -19,6 +19,7 @@
     <script src="../../../resources/assets/bootstrap-5.1.0.min.js"></script>
     <script src="../../../resources/assets/bip39.browser.js"></script>
     <script src="../../../resources/assets/bootstrap-tagsinput.min.js"></script>
+    <script src="../../../resources/assets/clipboard.min.js"></script>
 </head>
 
 <body>
@@ -50,13 +51,13 @@
                     }
                     .seed {
                         background-color: #1e1a1a;
-                        color: yellow;
+                        color: #c8ff00;
                         text-align: center;
                     }
                     .seed .word {
                         padding: 5px;
                         margin: 5px;
-                        border: 1px solid #87a84d;
+                        border: 1px solid #9ae714;
                         border-radius: 5px;
                         display: inline-block;
 
@@ -83,8 +84,7 @@
 
                 <br>
 
-                <input id="secret-phrase-confirmation" style="width: 100%; height: 3em; color: yellow; text-align: center;" class="stripey-background" value=""
-                       data-role="tagsinput">
+                <textarea id="secret-phrase-confirmation" style="width: 100%; height: 3em; color: yellow; text-align: center;" class="stripey-background"></textarea>
 
                 <div class="buttons">
                     <button class="btn btn-outline-secondary" id="btn-wait-return-back-to-seed" onclick="waitReturnBackToSeed();">&larr; Wait, return back</button>
@@ -129,16 +129,27 @@
         window.api.send("start");
     }
 
+    function normalizePhrase(phrase) {
+        return phrase.toLowerCase().trim().replace("\n", ' ').replace('  ', ' ').replace('  ', ' ');
+    }
+
+    function loginWithPhrase(phrase) {
+        if (!bip39.validateMnemonic(phrase)) throw Error('Entered secret phrase didn\'t pass the validation!');
+        window.api.send("login", { phrase: phrase, firstTime: true });
+    }
+
     function trySecretPhraseConfirm() {
-        var phraseEntered = $('#secret-phrase-confirmation').val().trim();
-        var phraseReal = window.generated_seed.trim();
+        var phraseEntered = normalizePhrase($('#secret-phrase-confirmation').val())
+        var phraseReal = normalizePhrase(window.generated_seed.trim());
         if (phraseReal == '') return alert('Something went wrong. Could not find the originally generated phrase.')
+        if (phraseEntered == '') return alert('You entered an empty secret phrase.')
         // todo: trim
         if (phraseReal === phraseEntered) {
-            return alert('continue')
             // continue
+            loginWithPhrase(phraseEntered);
         } else {
-            return alert('FAILURE');
+            return alert('Nope, this is not the correct secret phrase. Please go back and re-check.');
+            // todo: more explanation. is a word missing? or there's an extra word? which word is wrong?
             // fail
         }
     }
@@ -157,8 +168,12 @@
                 id: 'word-'+i,
                 class: 'word'
             })
-                .text(word)
+                .text(' '+word+' ')
                 .appendTo('#seed');
+
+            $('<span>', {
+
+            }).text(' ').appendTo('#seed');
 
             if (parseInt(i) === parseInt(12/2 - 1)) {
                 $('<br>').appendTo('#seed');
@@ -181,13 +196,20 @@
     }
     function generateSeed() {
         var mnemonic = bip39.generateMnemonic();
-        if (!bip39.validateMnemonic(mnemonic)) throw Error('Freshly generated mnemonic is wrong!');
+        if (!bip39.validateMnemonic(mnemonic)) throw Error('Something is wrong. Freshly generated secret phrase is invalid!');
         return mnemonic;
     }
 
-    // window.api.receive("fatal", (args) => {
-    //     addLog('FATAL ERROR: '+args.e.message);
-    // });
+    window.api.receive("error", (args) => {
+        alert('ERROR: '+args.e.message);
+    });
+    window.api.receive("loggedIn", (args) => {
+        window.api.send("openDashboard");
+        window.close();
+        // close this
+        // start the node
+        // see about first run
+    });
 </script>
 
 </body>

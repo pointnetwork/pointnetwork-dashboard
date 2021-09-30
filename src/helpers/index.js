@@ -9,13 +9,13 @@ const simpleGit = require('simple-git');
 
 const INSTALLER_PATH = "installer-finished";
 
-module.exports = {
-    getOSAndArch: () => {
+class Helpers {
+    getOSAndArch() {
         /*
             Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
          */
         let osAndArch = '';
-        
+
         if (platform == 'darwin') {
             osAndArch = 'mac';
         }
@@ -35,35 +35,35 @@ module.exports = {
                 osAndArch = 'win32';
             }
         }
-        
+
         if (osAndArch == '') {
             throw 'Platform not supported.';
         }
         return osAndArch;
-    },
-    
-    getHTTPorHTTPs: (osAndArch) => {
+    }
+
+    getHTTPorHTTPs(osAndArch) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             return https;
         }
         return http;
-    },
-    
-    fixPath: (osAndArch, pathStr) => {
+    }
+
+    fixPath(osAndArch, pathStr) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             return pathStr.split(path.sep).join(path.posix.sep);
         }
         // linux & mac
         return pathStr;
-    },
-    
-    getPNPath: async (osAndArch) => {
+    }
+
+    async getPNPath(osAndArch) {
         // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
         const homePath = await module.exports.getHomePath(osAndArch);
         return path.join(homePath, '.point', 'src', 'pointnetwork');
-    },
-    
-    getHomePath: async (osAndArch) => {
+    }
+
+    async getHomePath(osAndArch) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             // NOTE: `wsl echo $HOME` doesn't work.
             const cmd = `wsl realpath ~`;
@@ -76,13 +76,30 @@ module.exports = {
         }
 
         return os.homedir();
-    },
+    }
 
-    isDirEmpty: (path) => {
+    async getLiveDirectoryPath() {
+        const homedir = await this.getHomePath();
+        return path.join(homedir, ".point", "live");
+    }
+
+    async getKeyFileName() {
+        return path.join(await this.getLiveDirectoryPath(), "key.json");
+    }
+
+    async isLoggedIn() {
+        return fs.existsSync(await this.getKeyFileName());
+    }
+
+    async logout() {
+        fs.unlinkSync(await helpers.getKeyFileName());
+    }
+
+    isDirEmpty(path) {
         return fs.readdirSync(path).length === 0;
-    },
+    }
 
-    getPointPath: async (osAndArch) => {
+    async getPointPath(osAndArch) {
         const homePath = await module.exports.getHomePath(osAndArch);
         const pointPath = path.join(homePath, '.point/');
 
@@ -91,9 +108,9 @@ module.exports = {
         }
 
         return pointPath;
-    },
-    
-    getPointSrcPath: async (osAndArch) => {
+    }
+
+    async getPointSrcPath(osAndArch) {
         const pointPath = module.exports.getPointPath(osAndArch);
         const pointSrcPath = path.join(pointPath, 'src/');
 
@@ -102,29 +119,31 @@ module.exports = {
         }
 
         return pointSrcPath;
-     },
+    }
 
-    isPNCloned: async (osAndArch) => {
+    async isPNCloned(osAndArch) {
         const git = simpleGit(module.exports.getPointSrcPath(osAndArch));
         const pnPath = await module.exports.getPNPath(osAndArch);
         return fs.existsSync(pnPath);
-    },
+    }
 
-    clonePN: async (pnPath, osAndArch) => {
+    async clonePN(pnPath, osAndArch) {
         const git = simpleGit(module.exports.getPointSrcPath(osAndArch));
         const pnURL = 'https://github.com/pointnetwork/pointnetwork';
 
         await git.clone(pnURL, pnPath, (err) => {if (err) throw err;});
         await git.cwd({ path: pnPath, root: true });
-    },
+    }
 
-    isInstallationDone: async () => {
+    async isInstallationDone() {
         const pointPath = await module.exports.getPointPath();
         return fs.pathExistsSync(path.join(pointPath, INSTALLER_PATH));
-    },
+    }
 
-    setInstallationDone: async () => {
+    async setInstallationDone() {
         const pointPath = await module.exports.getPointPath();
         fs.writeFileSync(path.join(pointPath, INSTALLER_PATH), "");
     }
-};
+}
+
+module.exports = new Helpers;

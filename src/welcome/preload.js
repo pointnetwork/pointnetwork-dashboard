@@ -28,7 +28,9 @@ contextBridge.exposeInMainWorld(
             // whitelist channels
             let validChannels = [
                                     "quit",
-                                    "start"
+                                    "start",
+                                    "login",
+                                    "openDashboard",
                                 ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
@@ -37,6 +39,8 @@ contextBridge.exposeInMainWorld(
         receive: (channel, func) => {
             let validChannels = [
                 "log",
+                "error",
+                "loggedIn",
             ];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 

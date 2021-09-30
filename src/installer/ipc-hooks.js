@@ -7,13 +7,13 @@ export const attach = (ipcMain, win, app) => {
     });
     ipcMain.on("start", async (event, args) => {
         const installerService = new InstallerService(win);
-        try {
-            setImmediate(() => {
+        setImmediate(() => {
+            try {
                 installerService.start();
-            });
-        } catch(e) {
-            installerService.tryToShowError(e);
-            throw e;
-        }
+            } catch(e) {
+                installerService.tryToShowError(e);
+                throw e;
+            }
+        });
     });
 }
