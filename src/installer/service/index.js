@@ -4,6 +4,7 @@ import * as path from "path";
 import helpers, {getOSAndArch} from "../../helpers";
 import docker from "../../docker";
 import Welcome from "../../welcome";
+import Dashboard from "../../dashboard";
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 import * as axios from "axios";
@@ -149,6 +150,8 @@ class InstallerService {
     async done() {
         this._log('👌 Done.');
         await helpers.setInstallationDone();
+        // const dashboard = new Dashboard();
+        // dashboard.run();
         const welcome = new Welcome();
         welcome.run();
         this.win.close();

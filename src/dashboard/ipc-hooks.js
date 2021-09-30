@@ -1,6 +1,6 @@
-import firefox from "./firefox";
-import helpers from "./helpers";
-import docker from "./docker";
+import firefox from "../firefox";
+import helpers from "../helpers";
+import docker from "../docker";
 import {exec} from "child_process";
 import {arch, platform} from "process";
 import path from "path";

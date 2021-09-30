@@ -10,8 +10,8 @@ const fs = require('fs-extra');
 const { exec } = require('child_process');
 const url = require('url');
 const Installer = require('./installer');
+const Dashboard = require('./dashboard');
 const Welcome = require('./welcome');
-const ipcHooks = require('./ipc-hooks');
 const helpers = require('./helpers');
 const firefox = require('./firefox');
 const docker = require('./docker');
@@ -19,26 +19,6 @@ const Tray = require('./tray');
 
 let win;
 let tray = null;
-
-function createWindow () {
-    // Create the browser window.
-    win = new BrowserWindow({
-        width: 1000,
-        height: 500,
-        webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            enableRemoteModule: false,
-            preload: path.join(__dirname, '..', 'src/', 'preload.js')
-        }
-    });
-
-    // and load the index.html of the app.
-    win.loadFile('./src/app/app.html');
-
-    // Open the DevTools.
-    // win.webContents.openDevTools()
-}
 
 function isLoggedIn() {
     return false;
@@ -48,6 +28,8 @@ function isLoggedIn() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
+    tray = Tray.init();
+    
     if (! await helpers.isInstallationDone()) {
         const installer = new Installer();
         installer.run();
@@ -60,39 +42,8 @@ app.whenReady().then(async () => {
     //     return;
     // }
 
-    createWindow();
-
-    app.on('activate', function () {
-        // On macOS it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-
-    tray = Tray.init();
-
-    win.on('minimize',function(event){
-        event.preventDefault();
-        win.hide();
-    });
-
-    win.on('close', function (event) {
-        if(!app.isQuiting){
-            event.preventDefault();
-            win.hide();
-        }
-
-        return false;
-    });
-
-    // Register Cmd+Q on macs
-    if (process.platform === 'darwin') {
-        globalShortcut.register('Command+Q', () => {
-            app.isQuiting = true;
-            app.quit();
-        });
-    }
-
-    ipcHooks.attach(ipcMain, win, app);
+    const dashboard = new Dashboard();
+    dashboard.run();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
