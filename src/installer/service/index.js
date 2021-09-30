@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import helpers, {getOSAndArch} from "../../helpers";
 import docker from "../../docker";
+import Welcome from "../../welcome";
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 import * as axios from "axios";
@@ -21,11 +22,11 @@ class InstallerService {
         this.osAndArch = getOSAndArch();
         
         this.steps = {};
-        if (this.isWindows()) {
-            this.steps = {
-                'Install WSL': this.installWSL,
-            };
-        }
+        // if (this.isWindows()) {
+        //     this.steps = {
+        //         'Install WSL': this.installWSL,
+        //     };
+        // }
         
         Object.assign(this.steps, {
             'Create ~/.point directory': this.makePointDirectory,
@@ -52,7 +53,7 @@ class InstallerService {
                 // await this._exec('sleep 5');
             }
 
-            this.done();
+            await this.done();
         } catch(e) {
             this.tryToShowError(e);
             // throw e;
@@ -145,8 +146,12 @@ class InstallerService {
         await this._clonePointNetworkRepo(testRun, 'pointnetwork');
     }
 
-    done() {
+    async done() {
         this._log('👌 Done.');
+        await helpers.setInstallationDone();
+        const welcome = new Welcome();
+        welcome.run();
+        this.win.close();
     }
 
     tryToShowError(e) {
