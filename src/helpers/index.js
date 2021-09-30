@@ -7,6 +7,8 @@ const { platform, arch } = require('process');
 const exec = util.promisify(require('child_process').exec);
 const simpleGit = require('simple-git');
 
+const INSTALLER_PATH = "installer-finished";
+
 module.exports = {
     getOSAndArch: () => {
         /*
@@ -75,20 +77,26 @@ module.exports = {
 
         return os.homedir();
     },
-    
+
     isDirEmpty: (path) => {
         return fs.readdirSync(path).length === 0;
     },
-    
-    getPointSrcPath: async (osAndArch) => {
-         const homePath = await module.exports.getHomePath(osAndArch);
-        return path.join(homePath, 'pointnetwork', 'pointnetwork');
+
+    getPointPath: async (osAndArch) => {
+        const homePath = await module.exports.getHomePath(osAndArch);
         const pointPath = path.join(homePath, '.point/');
-        const pointSrcPath = path.join(pointPath, 'src/');
 
         if (!fs.existsSync(pointPath)) {
             fs.mkdirSync(pointPath);
         }
+
+        return pointPath;
+    },
+    
+    getPointSrcPath: async (osAndArch) => {
+        const pointPath = module.exports.getPointPath(osAndArch);
+        const pointSrcPath = path.join(pointPath, 'src/');
+
         if (!fs.existsSync(pointSrcPath)) {
             fs.mkdirSync(pointSrcPath);
         }
@@ -109,4 +117,14 @@ module.exports = {
         await git.clone(pnURL, pnPath, (err) => {if (err) throw err;});
         await git.cwd({ path: pnPath, root: true });
     },
+
+    isInstallationDone: async () => {
+        const pointPath = await module.exports.getPointPath();
+        return fs.pathExistsSync(path.join(pointPath, INSTALLER_PATH));
+    },
+
+    setInstallationDone: async () => {
+        const pointPath = await module.exports.getPointPath();
+        fs.writeFileSync(path.join(pointPath, INSTALLER_PATH), "");
+    }
 };
