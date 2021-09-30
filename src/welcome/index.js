@@ -20,7 +20,7 @@ class Welcome {
             // Create the browser window.
             win = new BrowserWindow({
                 width: 1000,
-                height: 400,
+                height: 500,
                 webPreferences: {
                     nodeIntegration: false,
                     contextIsolation: true,
@@ -33,7 +33,7 @@ class Welcome {
             win.loadFile('./src/welcome/app/app.html');
 
             // Open the DevTools.
-            win.webContents.openDevTools()
+            win.webContents.openDevTools();
 
             // Register Cmd+Q on macs
             if (process.platform === 'darwin') {
@@ -42,7 +42,7 @@ class Welcome {
                     app.quit();
                 });
             }
-        }
+        };
 
         // This method will be called when Electron has finished
         // initialization and is ready to create browser windows.
