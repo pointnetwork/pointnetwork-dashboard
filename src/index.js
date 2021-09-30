@@ -17,10 +17,6 @@ const firefox = require('./firefox');
 const docker = require('./docker');
 const Tray = require('./tray');
 
-const INSTALLER_PATH = "~/.point/installer-finished";
-
-console.log('what')
-
 let win;
 let tray = null;
 
@@ -28,7 +24,7 @@ function createWindow () {
     // Create the browser window.
     win = new BrowserWindow({
         width: 1000,
-        height: 400,
+        height: 500,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -44,11 +40,6 @@ function createWindow () {
     // win.webContents.openDevTools()
 }
 
-function hasInstallerFinished() {
-    return false;
-    return (fs.pathExistsSync(INSTALLER_PATH));
-}
-
 function isLoggedIn() {
     return false;
 }
@@ -56,24 +47,18 @@ function isLoggedIn() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-    if (! hasInstallerFinished()) {
+app.whenReady().then(async () => {
+    if (! await helpers.isInstallationDone()) {
         const installer = new Installer();
         installer.run();
         return;
     }
 
-    if (! isLoggedIn()) {
-        const welcome = new Welcome();
-        welcome.run();
-        return;
-    }
-
-    if (! isLoggedIn()) {
-        const welcome = new Welcome();
-        welcome.run();
-        return;
-    }
+    // if (! isLoggedIn()) {
+    //     const welcome = new Welcome();
+    //     welcome.run();
+    //     return;
+    // }
 
     createWindow();
 
