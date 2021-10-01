@@ -5,7 +5,7 @@ const execProm = util.promisify(require('child_process').exec);
 const uname = require('node-uname');
 const sudo = require('sudo-prompt');
 const { http, https } = require('follow-redirects');
-import fs from "fs-extra";
+const fs = require('fs-extra');
 
 module.exports = {
     async getHealthCmd(osAndArch, containerName) {
