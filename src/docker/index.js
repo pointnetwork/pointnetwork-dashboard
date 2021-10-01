@@ -7,6 +7,7 @@ const sudo = require('sudo-prompt');
 const { http, https } = require('follow-redirects');
 const fs = require('fs-extra');
 const { platform, arch } = require('process');
+const which = require('which');
 
 module.exports = {
     async getHealthCmd(osAndArch, containerName) {
