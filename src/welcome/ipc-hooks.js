@@ -37,9 +37,9 @@ export const attach = (ipcMain, win, app) => {
             }
         });
     });
-    ipcMain.on("openDashboard", async (event, args) => {
+    ipcMain.on("mainDecision", async (event, args) => {
         setImmediate(async() => {
-            app.openDashboard();
+            app.mainDecision();
         });
     });
 }

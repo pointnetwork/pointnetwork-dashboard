@@ -17,6 +17,21 @@ const firefox = require('./firefox');
 const docker = require('./docker');
 const Tray = require('./tray');
 
+let win;
+let tray = null;
+
+app.mainDecision = async() => {
+    if (! await helpers.isInstallationDone()) {
+        const installer = new Installer();
+        installer.run();
+    } else if (! await helpers.isLoggedIn()) {
+        const welcome = new Welcome();
+        welcome.run();
+    } else {
+        app.openDashboard();
+    }
+}
+
 app.openDashboard = () => {
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
@@ -36,19 +51,4 @@ app.openDashboard = () => {
     });
 }
 
-// -
-
-let win;
-let tray = null;
-
-setImmediate(async() => {
-    if (! await helpers.isInstallationDone()) {
-        const installer = new Installer();
-        installer.run();
-    } else if (! await helpers.isLoggedIn()) {
-        const welcome = new Welcome();
-        welcome.run();
-    } else {
-        app.openDashboard();
-    }
-})
+setImmediate(app.mainDecision);

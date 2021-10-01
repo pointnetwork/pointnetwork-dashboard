@@ -30,7 +30,7 @@ contextBridge.exposeInMainWorld(
                                     "quit",
                                     "start",
                                     "login",
-                                    "openDashboard",
+                                    "mainDecision",
                                 ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
