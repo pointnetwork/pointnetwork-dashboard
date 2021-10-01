@@ -83,7 +83,7 @@ module.exports = {
         if (osAndArch == 'mac') {
             return 'https://desktop.docker.com/mac/main/amd64/Docker.dmg';
         }
-        if (osAndArch == 'linux') {
+        if (osAndArch == 'linux-x86_64') {
             
         }
         throw "unrecognized platform";
@@ -96,7 +96,7 @@ module.exports = {
         if (osAndArch == 'mac') {
             // return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Darwin-x86_64';
         }
-        if (osAndArch == 'linux') {
+        if (osAndArch == 'linux-x86_64') {
             return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64';
         }
         throw "unrecognized platform";
@@ -109,7 +109,7 @@ module.exports = {
         if (osAndArch == 'mac') {
             return '/Applications';
         }
-        if (osAndArch == 'linux') {
+        if (osAndArch == 'linux-x86_64') {
             // We install via 
         }
         throw "unrecognized platform";
@@ -122,7 +122,7 @@ module.exports = {
         if (osAndArch == 'mac') {
             // It's an installer.
         }
-        if (osAndArch == 'linux') {
+        if (osAndArch == 'linux-x86_64') {
             return '/usr/local/bin';
         }
         throw "unrecognized platform";
@@ -145,7 +145,7 @@ module.exports = {
         }
 
         // TODO: This only works for Debian-based distros.
-        if (osAndArch == 'linux') {
+        if (osAndArch == 'linux-x86_64') {
             sudo.exec('apt-get update');
             sudo.exec('sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release');
             sudo.exec('curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg');
