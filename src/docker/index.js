@@ -2,6 +2,10 @@ const helpers = require('../helpers');
 const path = require('path');
 const util = require('util');
 const execProm = util.promisify(require('child_process').exec);
+const uname = require('node-uname');
+const sudo = require('sudo-prompt');
+const { http, https } = require('follow-redirects');
+import fs from "fs-extra";
 
 module.exports = {
     async getHealthCmd(osAndArch, containerName) {
@@ -27,7 +31,7 @@ module.exports = {
         return false;
     },
 
-    getFileName(osAndArch, version) {
+    getFileName(osAndArch) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             return 'Docker Desktop Installer.exe';
         }
@@ -38,9 +42,10 @@ module.exports = {
         return '';
     },
 
-    unpack(osAndArch, releasePath, browserDir, cb) {
+    unpack(osAndArch, releasePath, browserDir) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
-
+            // Executing installer.
+            sudo.exec(releasePath);
         }
         if (osAndArch == 'mac') {
             dmg.mount(releasePath, (err, dmgPath) => {
@@ -56,20 +61,102 @@ module.exports = {
             return;
         }
         if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
-
+            return;
         }
     },
 
-    getURL(version, osAndArch, language, filename) {
+    unpackCompose(osAndArch, releasePath, browserDir) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
-            return 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=dd-smartbutton&utm_location=module';
+            // Comes with installer.
         }
         if (osAndArch == 'mac') {
-            return 'https://desktop.docker.com/mac/main/amd64/Docker.dmg?utm_source=docker&amp;utm_medium=webreferral&amp;utm_campaign=dd-smartbutton&amp;utm_location=module';
+            // Comes with installer.
+        }
+        if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+            installDir = module.exports.getInstallDirCompose();
+            sudo.exec(`mv `);
+        }
+    },
+
+    getURL(osAndArch) {
+        const u = uname();
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            return 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe';
+        }
+        if (osAndArch == 'mac') {
+            return 'https://desktop.docker.com/mac/main/amd64/Docker.dmg';
         }
         if (osAndArch == 'linux') {
-            return '';
+            
         }
         throw "unrecognized platform";
     },
+
+    getURLCompose(osAndArch) {
+        const u = uname();
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            
+        }
+        if (osAndArch == 'mac') {
+            
+        }
+        if (osAndArch == 'linux') {
+            return `https://github.com/docker/compose/releases/download/1.29.2/docker-compose-${u.sysname}-${u.machine}`;
+        }
+        throw "unrecognized platform";
+    },
+
+    getInstallDir(osAndArch) {
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            // It's an installer exe.
+        }
+        if (osAndArch == 'mac') {
+            return '/Applications';
+        }
+        if (osAndArch == 'linux') {
+            // We install via 
+        }
+        throw "unrecognized platform";
+    },
+
+    getInstallDirCompose(osAndArch) {
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            // It's an installer exe.
+        }
+        if (osAndArch == 'mac') {
+            // It's an installer.
+        }
+        if (osAndArch == 'linux') {
+            return '/usr/local/bin';
+        }
+        throw "unrecognized platform";
+    },
+
+    async install(osAndArch) {
+        if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+            const dockerURL = module.exports.getURL(osAndArch);
+            const sw = getPointSoftwarePath(osAndArch);
+            const filename = module.exports.getFileName(osAndArch);
+            const releasePath = path.join(sw, filename);
+            const dockerRelease = fs.createWriteStream(releasePath);
+
+            await http_s.get(dockerURL, async (response) => {
+                await response.pipe(dockerRelease);
+                dockerRelease.on('finish', () => {
+                    docker.unpack(osAndArch, releasePath, sw);
+                });
+            });
+        }
+
+        // TODO: This only works for Debian-based distros.
+        if (osAndArch == 'linux') {
+            sudo.exec('apt-get update');
+            sudo.exec('sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release');
+            sudo.exec('curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg');
+            sudo.exec('echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null');
+            sudo.exec('apt-get update');
+            sudo.exec('apt-get install docker-ce docker-ce-cli containerd.io');
+        }
+        throw "unrecognized platform";
+    }
 };

@@ -121,6 +121,17 @@ class Helpers {
         return pointSrcPath;
     }
 
+    async getPointSoftwarePath(osAndArch) {
+        const pointPath = module.exports.getPointPath(osAndArch);
+        const pointSWPath = path.join(pointPath, 'software/');
+
+        if (!fs.existsSync(pointSWPath)) {
+            fs.mkdirSync(pointSWPath);
+        }
+
+        return pointSWPath;
+    }
+
     async isPNCloned(osAndArch) {
         const git = simpleGit(module.exports.getPointSrcPath(osAndArch));
         const pnPath = await module.exports.getPNPath(osAndArch);
