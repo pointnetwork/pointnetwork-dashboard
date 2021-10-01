@@ -22,11 +22,7 @@ module.exports = {
     },
 
     async isInstalled() {
-        const cmd = 'docker --version';
-        const result = await execProm(cmd);
-
-        // TODO: Check what's result output if Docker's not installed. Not sure if it's `undefined`.
-        if (result != undefined) {
+        if (which.sync('docker', {nothrow: true}) != null) {
             return true;
         }
         return false;

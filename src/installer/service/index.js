@@ -95,36 +95,34 @@ class InstallerService {
 
     async installDocker(testRun = false) {
         if (testRun) {
-            if (which.sync('docker', {nothrow: true}) != null) {
-                return true;
-            }
-            return false;
+            return docker.isInstalled();
         }
+        docker.install(this.osAndArch);
 
-        if (this.isWindows64()) {
-            const url = "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe";
+        // if (this.isWindows64()) {
+        //     const url = "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe";
 
-        }
+        // }
 
-        const response = await axios.get('https://github.com/docker/compose/releases/latest', {
-            headers: { accept: 'application/json' },
-            data: {}
-        });
-        /**
-         *     data: {
-                  id: 42700380,
-                  tag_name: '1.29.2',
-                  update_url: '/docker/compose/releases/tag/1.29.2',
-                  update_authenticity_token: 'Z0iLO6fLimW0WB3tuZhyBg1j82eJg+6mYCtBAwY7mFs4Wv4BRsgSByzSMj4yBzk3a/6Vzicvrzh1AefJAiGEFQ==',
-                  delete_url: '/docker/compose/releases/tag/1.29.2',
-                  delete_authenticity_token: 'SQoTXN7DrXP2oZIMXQgpJ3ilrg2OvRJZPv4a60wXcjuAk98ceaZ44IFEKvaY6JYHy73Ty8wQCmk2cWwAjVGGfA==',
-                  edit_url: '/docker/compose/releases/edit/1.29.2'
-                }
-         */
-        const latest_tag = response.data.tag_name;
-        this._log('Latest docker/compose release: '+latest_tag); // todo: escape
+        // const response = await axios.get('https://github.com/docker/compose/releases/latest', {
+        //     headers: { accept: 'application/json' },
+        //     data: {}
+        // });
+        // /**
+        //  *     data: {
+        //           id: 42700380,
+        //           tag_name: '1.29.2',
+        //           update_url: '/docker/compose/releases/tag/1.29.2',
+        //           update_authenticity_token: 'Z0iLO6fLimW0WB3tuZhyBg1j82eJg+6mYCtBAwY7mFs4Wv4BRsgSByzSMj4yBzk3a/6Vzicvrzh1AefJAiGEFQ==',
+        //           delete_url: '/docker/compose/releases/tag/1.29.2',
+        //           delete_authenticity_token: 'SQoTXN7DrXP2oZIMXQgpJ3ilrg2OvRJZPv4a60wXcjuAk98ceaZ44IFEKvaY6JYHy73Ty8wQCmk2cWwAjVGGfA==',
+        //           edit_url: '/docker/compose/releases/edit/1.29.2'
+        //         }
+        //  */
+        // const latest_tag = response.data.tag_name;
+        // this._log('Latest docker/compose release: '+latest_tag); // todo: escape
 
-        sudo.exec('curl -L '+this._quote("https://github.com/docker/compose/releases/download/"+latest_tag+"/docker-compose-$(uname -s)-$(uname -m)")+' -o /usr/local/bin/docker-compose');
+        // sudo.exec('curl -L '+this._quote("https://github.com/docker/compose/releases/download/"+latest_tag+"/docker-compose-$(uname -s)-$(uname -m)")+' -o /usr/local/bin/docker-compose');
     }
 
     // TODO: Create `helpers.getDockerComposePath` and use that.
