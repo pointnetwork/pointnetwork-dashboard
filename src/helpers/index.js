@@ -10,6 +10,14 @@ const simpleGit = require('simple-git');
 const INSTALLER_PATH = "installer-finished";
 
 class Helpers {
+    getOS() {
+        return platform.charAt(0).toUpperCase();
+    }
+
+    getArch() {
+        return platform.charAt(0).toUpperCase();
+    }
+    
     getOSAndArch() {
         /*
             Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error

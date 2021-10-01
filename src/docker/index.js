@@ -2,10 +2,11 @@ const helpers = require('../helpers');
 const path = require('path');
 const util = require('util');
 const execProm = util.promisify(require('child_process').exec);
-const uname = require('node-uname');
+// const uname = require('node-uname');
 const sudo = require('sudo-prompt');
 const { http, https } = require('follow-redirects');
 const fs = require('fs-extra');
+const { platform, arch } = require('process');
 
 module.exports = {
     async getHealthCmd(osAndArch, containerName) {
@@ -79,7 +80,6 @@ module.exports = {
     },
 
     getURL(osAndArch) {
-        const u = uname();
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             return 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe';
         }
@@ -93,15 +93,14 @@ module.exports = {
     },
 
     getURLCompose(osAndArch) {
-        const u = uname();
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             
         }
         if (osAndArch == 'mac') {
-            
+            // return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Darwin-x86_64';
         }
         if (osAndArch == 'linux') {
-            return `https://github.com/docker/compose/releases/download/1.29.2/docker-compose-${u.sysname}-${u.machine}`;
+            return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64';
         }
         throw "unrecognized platform";
     },
