@@ -45,7 +45,7 @@
     "sudo-prompt": "^9.2.1",
     "tar-fs": "^2.1.1",
     "unbzip2-stream": "^1.4.3",
-    "webpack": "^5.53.0",
+    "webpack": "^5.56.1",
     "webpack-merge": "^5.8.0",
     "webpack-node-externals": "^3.0.0",
     "which": "^2.0.2"
