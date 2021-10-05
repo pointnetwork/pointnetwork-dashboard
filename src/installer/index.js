@@ -33,7 +33,7 @@ class Installer {
             win.loadFile('./src/installer/app/app.html');
 
             // Open the DevTools.
-            win.webContents.openDevTools();
+            // win.webContents.openDevTools();
 
             // Register Cmd+Q on macs
             if (process.platform === 'darwin') {
