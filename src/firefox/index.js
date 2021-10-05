@@ -7,19 +7,23 @@ const bz2 = require('unbzip2-stream');
 
 const helpers = require('../helpers');
 
-module.exports = {
-    isInstalled() {
-        const browserDir = path.join('.', 'point-browser');
+class Firefox {
+    async getFolderPath(osAndArch) {
+        return path.join(await helpers.getPNPath(osAndArch), 'src', 'point-browser');
+    };
+
+    async isInstalled() {
+        const browserDir = await this.getFolderPath(helpers.getOSAndArch());
 
         if (!fs.existsSync(browserDir)) {
-            fs.mkdirSync(browserDir);
+            fs.mkdirpSync(browserDir);
         }
 
         if (!helpers.isDirEmpty(browserDir)) {
             return true;
         }
         return false;
-    },
+    };
 
     getURL(version, osAndArch, language, filename) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
@@ -27,8 +31,8 @@ module.exports = {
         }
         // linux & mac
         return `http://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`;
-    },
-    
+    };
+
     getFileName(osAndArch, version) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             // TODO: Still unsure about this: we need to decide on the name
@@ -40,7 +44,7 @@ module.exports = {
         }
         // linux & mac
         return `firefox-${version}.tar.bz2`;
-    },
+    };
 
     unpack(osAndArch, releasePath, browserDir, cb) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
@@ -64,18 +68,18 @@ module.exports = {
             // readStream.on('finish', () => {cb();} );
             readStream.on('finish', cb );
         }
-    },
+    };
 
-    getRootPath(osAndArch) {
+    async getRootPath(osAndArch) {
         if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
-            return path.join('..', '..', 'point-browser');
+            return path.join(await this.getFolderPath(osAndArch));
         }
         // linux
-        return path.join('..', '..', 'point-browser', 'firefox');
-    },
+        return path.join(await this.getFolderPath(osAndArch), 'firefox');
+    };
 
-    getAppPath(osAndArch) {
-        const rootPath = this.getRootPath(osAndArch);
+    async getAppPath(osAndArch) {
+        const rootPath = await this.getRootPath(osAndArch);
 
         if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
             let appPath = '';
@@ -88,17 +92,17 @@ module.exports = {
             if (!fs.existsSync(appPath)) {
                 fs.mkdirSync(appPath);
             }
-            
+
             return appPath;
         }
 
         // linux
         return rootPath;
-    },
+    };
 
-    getPrefPath(osAndArch) {
-        const rootPath = this.getRootPath(osAndArch);
-        
+    async getPrefPath(osAndArch) {
+        const rootPath = await this.getRootPath(osAndArch);
+
         if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
             let appPath = '';
             if (osAndArch == 'mac') {
@@ -106,7 +110,7 @@ module.exports = {
             } else {
                 appPath = path.join(rootPath, 'app');
             }
-            
+
             const defaultsPath = path.join(appPath, 'defaults');
             const prefPath = path.join(defaultsPath, 'pref');
 
@@ -119,15 +123,15 @@ module.exports = {
             if (!fs.existsSync(prefPath)) {
                 fs.mkdirSync(prefPath);
             }
-            
+
             return prefPath;
         }
         // linux. all directories already exist.
         return path.join(rootPath, 'defaults', 'pref');
-    },
+    };
 
-    getBinPath(osAndArch) {
-        const rootPath = this.getRootPath(osAndArch);
+    async getBinPath(osAndArch) {
+        const rootPath = await this.getRootPath(osAndArch);
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             return path.join(rootPath, 'point-browser-portable.exe');
         }
@@ -136,9 +140,9 @@ module.exports = {
         }
         // linux
         return path.join(rootPath, 'firefox');
-    },
+    };
 
-    createConfigFiles(osAndArch, pacFile) {
+    async createConfigFiles(osAndArch, pacFile) {
         const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
 pref("general.config.obscure_value", 0);
 `;
@@ -154,41 +158,45 @@ pref('browser.fixup.domainsuffixwhitelist.z', true);
 pref('browser.fixup.domainsuffixwhitelist.point', true);
 pref('network.proxy.autoconfig_url', '${pacFile}');
 `;
-        const prefPath = this.getPrefPath(osAndArch);
-        const appPath = this.getAppPath(osAndArch);
-        
+        const prefPath = await this.getPrefPath(osAndArch);
+        const appPath = await this.getAppPath(osAndArch);
+
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             // Portapps creates `defaults/pref/autonfig.js` for us, same contents.
             //
             // Portapps also creates `portapps.cfg`, which is equivalent to *nix's firefox.cfg.
             // We're just appending our preferences.
             fs.appendFile(path.join(appPath, 'portapps.cfg'),
-                          firefoxCfgContent,
-                          err => {
-                              if (err) {
-                                  console.error(err);
-                                  return;
-                              }
-                          });
+                firefoxCfgContent,
+                err => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                });
         }
         if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686' || osAndArch == 'mac') {
             fs.writeFile(path.join(prefPath, 'autoconfig.js'),
-                         autoconfigContent,
-                         err => {
-                             if (err) {
-                                 console.error(err);
-                                 return;
-                             }
-                         });
+                autoconfigContent,
+                err => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                });
 
             fs.writeFile(path.join(appPath, 'firefox.cfg'),
-                         firefoxCfgContent,
-                         err => {
-                             if (err) {
-                                 console.error(err);
-                                 return;
-                             }
-                         });
+                firefoxCfgContent,
+                err => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                });
         }
     }
-};
+}
+
+var fx = new Firefox();
+
+module.exports = fx;

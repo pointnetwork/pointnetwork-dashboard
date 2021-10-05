@@ -9,7 +9,7 @@ import fs from "fs-extra";
 
 export const attach = (ipcMain, win) => {
     ipcMain.on("firefox-check", async (event, args) => {
-        if (firefox.isInstalled()) {
+        if (await firefox.isInstalled()) {
             win.webContents.send("firefox-checked", true);
             return;
         }
@@ -55,8 +55,8 @@ export const attach = (ipcMain, win) => {
         win.webContents.send("platform-checked", {os: platform, arch: arch});
     });
 
-    ipcMain.on("firefox-run", (event, args) => {
-        const cmd = firefox.getBinPath(helpers.getOSAndArch());
+    ipcMain.on("firefox-run", async(event, args) => {
+        const cmd = await firefox.getBinPath(helpers.getOSAndArch());
         exec(cmd, (error, stdout, stderr) => {
             win.webContents.send("firefox-closed");
             if (error) {
@@ -74,9 +74,9 @@ export const attach = (ipcMain, win) => {
     ipcMain.on("firefox-download", async (event, args) => {
         const language = args.language;
         const version = '93.0b4';
-        const browserDir = path.join('.', 'point-browser');
-        const pacFile = url.pathToFileURL(path.join('..', 'pointnetwork', 'client', 'proxy', 'pac.js'));
         const osAndArch = helpers.getOSAndArch();
+        const browserDir = await firefox.getFolderPath(osAndArch);
+        const pacFile = url.pathToFileURL(path.join(await helpers.getPNPath(osAndArch), 'client', 'proxy', 'pac.js'));
         const filename = firefox.getFileName(osAndArch, version);
         const releasePath = path.join(browserDir, filename);
         const firefoxRelease = fs.createWriteStream(releasePath);
@@ -91,7 +91,7 @@ export const attach = (ipcMain, win) => {
         await http_s.get(firefoxURL, async (response) => {
             await response.pipe(firefoxRelease);
             firefoxRelease.on('finish', () => {
-                let cb = function() {
+                let cb = async function() {
                     win.webContents.send("firefox-installed");
 
                     fs.unlink(releasePath, (err) => {
@@ -102,7 +102,7 @@ export const attach = (ipcMain, win) => {
                         }
                     });
 
-                    firefox.createConfigFiles(osAndArch);
+                    await firefox.createConfigFiles(osAndArch);
                 };
                 firefox.unpack(osAndArch, releasePath, browserDir, cb);
             });
