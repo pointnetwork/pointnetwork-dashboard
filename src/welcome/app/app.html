@@ -204,11 +204,8 @@
         alert('ERROR: '+args.e.message);
     });
     window.api.receive("loggedIn", (args) => {
-        window.api.send("openDashboard");
+        window.api.send("mainDecision");
         window.close();
-        // close this
-        // start the node
-        // see about first run
     });
 </script>
 

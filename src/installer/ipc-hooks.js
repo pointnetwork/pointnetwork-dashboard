@@ -6,7 +6,7 @@ export const attach = (ipcMain, win, app) => {
         process.exit();
     });
     ipcMain.on("start", async (event, args) => {
-        const installerService = new InstallerService(win);
+        const installerService = new InstallerService(win, app);
         setImmediate(() => {
             try {
                 installerService.start();

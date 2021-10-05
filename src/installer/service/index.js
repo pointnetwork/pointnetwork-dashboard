@@ -18,8 +18,9 @@ class InstallerService {
     pointDir = '';
     pointSrcDir = '';
 
-    constructor(win) {
+    constructor(win, app) {
         this.win = win;
+        this.app = app;
         this.osAndArch = getOSAndArch();
         
         this.steps = {};
@@ -148,11 +149,10 @@ class InstallerService {
     async done() {
         this._log('👌 Done.');
         await helpers.setInstallationDone();
-        // const dashboard = new Dashboard();
-        // dashboard.run();
-        const welcome = new Welcome();
-        welcome.run();
-        this.win.close();
+
+        setImmediate(() => {
+            this.app.mainDecision();
+        });
     }
 
     tryToShowError(e) {

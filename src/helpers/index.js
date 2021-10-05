@@ -7,7 +7,7 @@ const { platform, arch } = require('process');
 const exec = util.promisify(require('child_process').exec);
 const simpleGit = require('simple-git');
 
-const INSTALLER_PATH = "installer-finished";
+const INSTALLER_FINISHED_FLAG_PATH = "installer-finished";
 
 class Helpers {    
     getOSAndArch() {
@@ -148,12 +148,12 @@ class Helpers {
 
     async isInstallationDone() {
         const pointPath = await module.exports.getPointPath();
-        return fs.pathExistsSync(path.join(pointPath, INSTALLER_PATH));
+        return fs.pathExistsSync(path.join(pointPath, INSTALLER_FINISHED_FLAG_PATH));
     }
 
     async setInstallationDone() {
         const pointPath = await module.exports.getPointPath();
-        fs.writeFileSync(path.join(pointPath, INSTALLER_PATH), "");
+        fs.writeFileSync(path.join(pointPath, INSTALLER_FINISHED_FLAG_PATH), "");
     }
 }
 

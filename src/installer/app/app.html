@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html style="height: 100%;">
 <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
@@ -18,15 +18,15 @@
     <script src="../../../resources/assets/bootstrap-5.1.0.min.js"></script>
 </head>
 
-<body>
+<body style="height: 100%;">
 
-<div class="container-fluid">
-    <h1>Point Network</h1>
+<div class="container-fluid" style="height: 100%;">
+    <div class="row" style="height: 100%;">
+        <div class="col-12" style="height: 100%;">
 
-    <div class="row">
-        <div class="col-12">
+            <div class="screen screen-intro" style="height: 100%;">
+                <h1>Point Network</h1>
 
-            <div class="screen screen-intro">
                 <p>Welcome to Point Network installer. Please review the components to be installed and click "Start".</p>
 
                 <ul>
@@ -36,7 +36,7 @@
                 </ul>
 
                 <div>
-                    <input type="checkbox" id="accept_terms_checkbox" /> <label for="accept_terms_checkbox">I agree to the Terms of Use for Point Network</label>
+                    <input type="checkbox" id="accept_terms_checkbox" /> <label for="accept_terms_checkbox">I agree to the <a target="_blank" href="https://pointnetwork.io/pages/terms">Terms of Use</a> for Point Network</label>
                 </div>
 
                 <div class="buttons">
@@ -45,12 +45,16 @@
                 </div>
             </div>
 
-            <div class="screen screen-installation-progress">
-                <style>
-                    .log > .log-line { white-space: pre; white-space: pre-line; }
-                </style>
-                <div class="log" id="log" style="padding: 10px; background-color: black; color: white;">
-                </div>
+
+
+            <style>
+                .log > .log-line { white-space: pre; white-space: pre-line; }
+            </style>
+
+            <div class="screen screen-installation-progress" style="display: flex; flex-direction: column; width: 100%; height: 100%;">
+                <h1>Point Network</h1>
+
+                <div class="log" id="log" style="width: 100%; flex-grow: 1; padding: 10px; background-color: black; color: white; overflow-y: scroll; min-height: 0; margin-bottom: 10px;"></div>
             </div>
 
         </div>
@@ -89,6 +93,9 @@
         }).appendTo('#log');
 
         $('#log-line-'+lastLogId).append(x); // adds as text, not html, so we should be safe https://stackoverflow.com/questions/42550909/append-adds-html-as-text
+
+        var log = document.getElementById("log");
+        log.scrollTop = log.scrollHeight;
     }
 
     function colorLastLogLine(color) {
