@@ -152,7 +152,7 @@ pref("general.config.obscure_value", 0);
 pref('network.proxy.type', 2);
 pref('network.proxy.http', 'localhost');
 pref('network.proxy.http_port', 65500);
-pref('browser.startup.homepage', 'about:blank');
+pref('browser.startup.homepage', 'https://point');
 pref('network.proxy.allow_hijacking_localhost', true);
 pref('browser.fixup.domainsuffixwhitelist.z', true);
 pref('browser.fixup.domainsuffixwhitelist.point', true);
