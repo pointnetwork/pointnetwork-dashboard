@@ -9,6 +9,14 @@ const fs = require('fs-extra');
 const { platform, arch } = require('process');
 const which = require('which');
 
+// TODO: Change to class and add as method, then change all instances of `module.exports` to `this.`
+async function getComposePath() {
+    const osAndArch = helpers.getOSAndArch();
+    const pnPath = await helpers.getPNPath(osAndArch);
+    const composePath = helpers.fixPath(osAndArch, path.join(pnPath, 'docker-compose.yaml'));
+    return composePath;
+}
+
 module.exports = {
     async getHealthCmd(osAndArch, containerName) {
         const pnPath = await helpers.getPNPath(helpers.getOSAndArch());
@@ -154,5 +162,48 @@ module.exports = {
             sudo.exec('apt-get install docker-ce docker-ce-cli containerd.io');
         }
         throw "unrecognized platform";
+    },
+
+    async isComposeRunning() {
+        const osAndArch = helpers.getOSAndArch();
+        const composePath = getComposePath();
+        const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${composePath} ps -q)`;
+        
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            return `wsl ${cmd}`;
+        }
+
+        try {
+            await execProm(cmd);
+            return true;
+        } catch(e) {
+            return false;
+        }
+    },
+
+    async startCompose() {
+        const osAndArch = helpers.getOSAndArch();
+        const composePath = getComposePath();
+        const cmd = `docker-compose -f ${composePath} up -d`;
+
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            return `wsl ${cmd}`;
+        }
+
+        await execProm(cmd);
+    },
+
+    async stopCompose() {
+        const osAndArch = helpers.getOSAndArch();
+        const composePath = getComposePath();
+        const cmd = `docker-compose -f ${composePath} down`;
+
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            return `wsl ${cmd}`;
+        }
+
+        console.log('omega4', cmd);
+
+        await execProm(cmd);
     }
 };
