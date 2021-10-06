@@ -227,7 +227,19 @@ echo_welcome() {
       msg "${CMDS[*]}"
       msg
       if ask "Do you want to continue?"; then
+          # Keep sudo priveleges: https://gist.github.com/cowboy/3118588
+          # Ask upfront
+          sudo -v
+
+          # Keep-alive: update existing sudo time stamp if set, otherwise do nothing.
+          # This subprocess will die with the current script exiting
+          while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
           msg
+          msg "Continuing..."
+      else
+          msg "Exiting"
+          exit
       fi
     fi
 }
@@ -301,7 +313,7 @@ run_pn_dashboard() {
     msg "Starting PointNetwork Dashboard"
     SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
     newgrp docker
-    xdg-open $SHORTCUT_FILE
+    xdg-open "$SHORTCUT_FILE"
 }
 
 is_all_installed() {
@@ -353,7 +365,7 @@ install_commands() {
 
 create_desktop_shortcut() {
   SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
-  tee -a $SHORTCUT_FILE <<SHORTCUT >/dev/null
+  tee -a "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
 [Desktop Entry]
 Version=0.1
 Name=Point Network
@@ -364,7 +376,7 @@ Terminal=false
 Type=Application
 Categories=Utility;Application;
 SHORTCUT
-  sudo chmod +x $SHORTCUT_FILE
+  sudo chmod +x "$SHORTCUT_FILE"
 }
 
 ## Welcome message
