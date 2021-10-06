@@ -146,7 +146,7 @@ install_docker() {
       ## This is needed for not needing sudo
       if ! is_docker_group; then
         msg "Creating docker group and adding current user '$USER' to it"
-        sudo groupadd docker
+        sudo groupadd docker || echo "Docker group already exists, skipping"
         sudo usermod -aG docker $USER
         newgrp docker
       else
