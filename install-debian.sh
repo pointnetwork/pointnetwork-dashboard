@@ -19,7 +19,6 @@ export SRC_PN_DIR="$SRC_DIR/pointnetwork"
 export SRC_DASHBOARD_DIR="$SRC_DIR/pointnetwork-dashboard"
 export SOFTWARE_DIR="$POINT_DIR/software"
 export LIVE_DIR="$POINT_DIR/live"
-export SHORTCUT_FILE=$HOME/Desktop/PointNetwork.desktop
 DIRS=("$POINT_DIR" "$SRC_DIR" "$SOFTWARE_DIR" "$LIVE_DIR")
 ## Most major distros support this:
 DISTRO=$(awk -F= '/^ID=/{print $2}' /etc/os-release)
@@ -134,6 +133,16 @@ is_docker_group() {
 	    return 0
     fi
     return 1
+}
+
+get_desktop_shortcut_path() {
+    if is_linux; then
+      echo "$(xdg-user-dir DESKTOP)/PointNetwork.desktop"
+    elif is_mac; then
+      echo "$HOME/PointNetwork.desktop"
+    else
+      fail "Unsupported system"
+    fi
 }
 
 install_docker() {
@@ -287,9 +296,10 @@ run_pn_dashboard() {
     msg "Installing required node.js packages using npm"
     npm install
 
-    # after this line, no other part of the script should be used
+    # after this newgrp line below, no other part of the script should be used
     # https://unix.stackexchange.com/questions/18897/problem-while-running-newgrp-command-in-script
     msg "Starting PointNetwork Dashboard"
+    SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
     newgrp docker
     xdg-open $SHORTCUT_FILE
 }
@@ -342,6 +352,7 @@ install_commands() {
 }
 
 create_desktop_shortcut() {
+  SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
   tee -a $SHORTCUT_FILE <<SHORTCUT >/dev/null
 [Desktop Entry]
 Version=0.1
