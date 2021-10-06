@@ -191,6 +191,8 @@ install_node() {
     then
       msg "nvm is installed. Installing node.js version used by PointNetwork Dashboard"
 
+      install npm
+
       ## Creating directories needed by PointNetwork
       make_pn_dirs
       ## Cloning repositories
