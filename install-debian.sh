@@ -365,18 +365,20 @@ install_commands() {
 
 create_desktop_shortcut() {
   SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
+  START_SCRIPT="$SRC_DASHBOARD_DIR/start.sh"
   tee -a "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
 [Desktop Entry]
 Version=0.1
 Name=Point Network
 Comment=Decentralized Internet
-Exec=cd $SRC_DASHBOARD_DIR && npm start
+Exec="$START_SCRIPT"
 Icon=$SRC_DASHBOARD_DIR/resources/pointlogo_any_bg.png
-Terminal=false
+Terminal=true
 Type=Application
 Categories=Utility;Application;
 SHORTCUT
   sudo chmod +x "$SHORTCUT_FILE"
+  sudo chmod +x "$START_SCRIPT"
 }
 
 ## Welcome message
