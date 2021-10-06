@@ -147,8 +147,8 @@ install_docker() {
       if ! is_docker_group; then
         msg "Creating docker group and adding current user '$USER' to it"
         sudo groupadd docker || echo "Docker group already exists, skipping"
-        sudo usermod -aG docker $USER
-        newgrp docker
+        sudo usermod -aG docker $USER && echo "usermod -aG docker $USER - Done"
+        newgrp docker && echo "newgrp docker - Done"
       else
         msg "is_docker_group returned true, skipping creating docker groups"
       fi
@@ -157,6 +157,7 @@ install_docker() {
     else
       fail "Unsupported system"
     fi
+    echo "Docker installed, continuing"
 }
 
 install_docker_compose() {
