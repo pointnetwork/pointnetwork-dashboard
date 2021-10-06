@@ -180,7 +180,7 @@ install_node() {
       ## Cloning repositories
       clone_pn_dashboard
 
-      cd $SRC_DASHBOARD_DIR || fail "Could not cd into $SRC_DASHBOARD_DIR"
+      cd "$SRC_DASHBOARD_DIR" || fail "Could not cd into $SRC_DASHBOARD_DIR"
       nvm install
       nvm use
     else
@@ -243,7 +243,7 @@ is_pn_installed() {
 }
 
 is_pn_dashboard_installed() {
-    if [[ -d "$SRC_DASHBOARD" ]]; then
+    if [[ -d "$SRC_DASHBOARD_DIR" ]]; then
 	    return 0
     fi
     return 1
