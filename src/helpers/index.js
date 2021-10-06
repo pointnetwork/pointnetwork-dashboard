@@ -63,6 +63,12 @@ class Helpers {
         return path.join(homePath, '.point', 'src', 'pointnetwork');
     }
 
+    async getBrowserFolderPath(osAndArch) {
+        // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
+        const homePath = await module.exports.getHomePath(osAndArch);
+        return path.join(homePath, '.point', 'src', 'point-browser');
+    }
+
     async getHomePath(osAndArch) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             // NOTE: `wsl echo $HOME` doesn't work.

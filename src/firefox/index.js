@@ -9,7 +9,7 @@ const helpers = require('../helpers');
 
 class Firefox {
     async getFolderPath(osAndArch) {
-        return path.join(await helpers.getPNPath(osAndArch), 'src', 'point-browser');
+        return await helpers.getBrowserFolderPath(osAndArch);
     };
 
     async isInstalled() {

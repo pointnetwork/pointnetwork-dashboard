@@ -4,4 +4,5 @@ git pull
 cd $HOME/.point/src/pointnetwork-dashboard || exit 1
 git pull
 nvm use
+npm i
 npm start

@@ -325,7 +325,7 @@ run_pn_dashboard() {
     gio set $SHORTCUT_FILE metadata::trusted true
     sudo chmod +x "$SHORTCUT_FILE"
 
-    nohup "$SRC_DASHBOARD_DIR/start.sh" &
+    nohup "$SRC_DASHBOARD_DIR/start.sh" </dev/null >/dev/null 2>&1 &
 
     msg "Done! Launching Dashboard..."
 }
