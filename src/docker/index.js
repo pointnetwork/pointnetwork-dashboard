@@ -202,8 +202,6 @@ module.exports = {
             return `wsl ${cmd}`;
         }
 
-        console.log('omega4', cmd);
-
         await execProm(cmd);
     }
 };

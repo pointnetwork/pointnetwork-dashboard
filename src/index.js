@@ -28,6 +28,9 @@ app.mainDecision = async() => {
         const welcome = new Welcome();
         welcome.run();
     } else {
+        if (!docker.isComposeRunning()) {
+            docker.startCompose();
+        }
         app.openDashboard();
     }
 }
@@ -47,6 +50,7 @@ app.openDashboard = () => {
     // for applications and their menu bar to stay active until the user quits
     // explicitly with Cmd + Q.
     app.on('window-all-closed', function () {
+        docker.stopCompose();
         if (platform !== 'darwin') app.quit();
     });
 }
