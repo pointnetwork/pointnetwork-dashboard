@@ -320,6 +320,11 @@ run_pn_dashboard() {
     msg "Starting PointNetwork Dashboard"
     SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
     newgrp docker
+
+    sudo chmod -x "$SHORTCUT_FILE"
+    gio set $SHORTCUT_FILE metadata::trusted true
+    sudo chmod +x "$SHORTCUT_FILE"
+
     xdg-open "$SHORTCUT_FILE"
 }
 
@@ -384,8 +389,10 @@ Terminal=true
 Type=Application
 Categories=Utility;Application;
 SHORTCUT
+  sudo chmod -x "$SHORTCUT_FILE"
   gio set $SHORTCUT_FILE metadata::trusted true
   sudo chmod +x "$SHORTCUT_FILE"
+  sudo chmod -x "START_SCRIPT"
   gio set $START_SCRIPT metadata::trusted true
   sudo chmod +x "$START_SCRIPT"
 }
