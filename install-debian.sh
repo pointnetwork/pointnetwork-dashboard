@@ -19,6 +19,7 @@ export SRC_PN_DIR="$SRC_DIR/pointnetwork"
 export SRC_DASHBOARD_DIR="$SRC_DIR/pointnetwork-dashboard"
 export SOFTWARE_DIR="$POINT_DIR/software"
 export LIVE_DIR="$POINT_DIR/live"
+export SHORTCUT_FILE=$HOME/Desktop/PointNetwork.desktop
 DIRS=("$POINT_DIR" "$SRC_DIR" "$SOFTWARE_DIR" "$LIVE_DIR")
 ## Most major distros support this:
 DISTRO=$(awk -F= '/^ID=/{print $2}' /etc/os-release)
@@ -285,8 +286,12 @@ run_pn_dashboard() {
     nvm use
     msg "Installing required node.js packages using npm"
     npm install
+
+    # after this line, no other part of the script should be used
+    # https://unix.stackexchange.com/questions/18897/problem-while-running-newgrp-command-in-script
     msg "Starting PointNetwork Dashboard"
-    npm start
+    newgrp docker
+    xdg-open $SHORTCUT_FILE
 }
 
 is_all_installed() {
@@ -336,6 +341,21 @@ install_commands() {
     done
 }
 
+create_desktop_shortcut() {
+  tee -a $SHORTCUT_FILE <<SHORTCUT >/dev/null
+[Desktop Entry]
+Version=0.1
+Name=Point Network
+Comment=Decentralized Internet
+Exec=cd $SRC_DASHBOARD_DIR && npm start
+Icon=$SRC_DASHBOARD_DIR/resources/pointlogo_any_bg.png
+Terminal=false
+Type=Application
+Categories=Utility;Application;
+SHORTCUT
+  sudo chmod +x $SHORTCUT_FILE
+}
+
 ## Welcome message
 echo_welcome
 
@@ -363,6 +383,9 @@ update_pn_dashboard
 ## Checking first if everything's already installed.
 ## In this case we can just update and run the dashboard.
 is_all_installed
+
+# Create desktop shortcut
+create_desktop_shortcut
 
 # Start dashboard
 #if ask "Do you want to run PointNetwork Dashboard?"; then
