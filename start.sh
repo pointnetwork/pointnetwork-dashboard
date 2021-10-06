@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-cd $SRC_DASHBOARD_DIR
+cd $HOME/.point/src/pointnetwork-dashboard
 npm start
