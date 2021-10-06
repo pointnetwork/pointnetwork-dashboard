@@ -136,10 +136,11 @@ is_docker_group() {
 }
 
 get_desktop_shortcut_path() {
+    DESKTOP_SHORTCUT_FILENAME=Point.desktop
     if is_linux; then
-      echo "$(xdg-user-dir DESKTOP)/PointNetwork.desktop"
+      echo "$(xdg-user-dir DESKTOP)/$DESKTOP_SHORTCUT_FILENAME"
     elif is_mac; then
-      echo "$HOME/PointNetwork.desktop"
+      echo "$HOME/Desktop/$DESKTOP_SHORTCUT_FILENAME"
     else
       fail "Unsupported system"
     fi
@@ -210,6 +211,9 @@ install_node() {
 try_source_nvm() {
     if [[ -f $HOME/.nvm/nvm.sh ]]; then
 	    source $HOME/.nvm/nvm.sh
+    fi
+    if [[ -f $HOME/.bashrc ]]; then
+	    source $HOME/.bashrc
     fi
 }
 
@@ -379,7 +383,9 @@ Terminal=true
 Type=Application
 Categories=Utility;Application;
 SHORTCUT
+  gio set $SHORTCUT_FILE metadata::trusted true
   sudo chmod +x "$SHORTCUT_FILE"
+  gio set $START_SCRIPT metadata::trusted true
   sudo chmod +x "$START_SCRIPT"
 }
 
