@@ -394,9 +394,6 @@ SHORTCUT
   sudo chmod -x "$SHORTCUT_FILE"
   gio set $SHORTCUT_FILE metadata::trusted true
   sudo chmod +x "$SHORTCUT_FILE"
-  sudo chmod -x "START_SCRIPT"
-  gio set $START_SCRIPT metadata::trusted true
-  sudo chmod +x "$START_SCRIPT"
 }
 
 ## Welcome message
