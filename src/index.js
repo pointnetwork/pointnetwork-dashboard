@@ -21,10 +21,11 @@ let win;
 let tray = null;
 
 app.mainDecision = async() => {
-    if (! await helpers.isInstallationDone()) {
-        const installer = new Installer();
-        installer.run();
-    } else if (! await helpers.isLoggedIn()) {
+    // if (! await helpers.isInstallationDone()) {
+    //     const installer = new Installer();
+    //     installer.run();
+    // } else
+    if (! await helpers.isLoggedIn()) {
         const welcome = new Welcome();
         welcome.run();
     } else {

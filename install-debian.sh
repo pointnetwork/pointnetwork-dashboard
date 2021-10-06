@@ -325,7 +325,9 @@ run_pn_dashboard() {
     gio set $SHORTCUT_FILE metadata::trusted true
     sudo chmod +x "$SHORTCUT_FILE"
 
-    xdg-open "$SHORTCUT_FILE"
+    nohup "$SRC_DASHBOARD_DIR/start.sh" &
+
+    msg "Done! Launching Dashboard..."
 }
 
 is_all_installed() {
@@ -381,7 +383,7 @@ create_desktop_shortcut() {
   tee -a "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
 [Desktop Entry]
 Version=0.1
-Name=Point Network
+Name=Point
 Comment=Decentralized Internet
 Exec="$START_SCRIPT"
 Icon=$SRC_DASHBOARD_DIR/resources/pointlogo_any_bg.png
