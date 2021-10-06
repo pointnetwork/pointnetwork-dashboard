@@ -201,7 +201,7 @@ install_node() {
       nvm use
     else
       msg "nvm is not installed. Installing via package manager."
-      install nodejs
+      install nodejs npm
     fi
 }
 
