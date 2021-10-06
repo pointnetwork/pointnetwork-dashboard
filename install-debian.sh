@@ -9,6 +9,7 @@
 ###############
 
 RED='\033[0;31m'
+CYAN='\u001b[36m'
 NC='\033[0m' # No color.
 
 # Make sure 'nvm' comes first than 'node'.
@@ -100,7 +101,7 @@ ask() {
 }
 
 msg() {
-    echo -e "${RED}>>>${NC} $1"
+    echo -e "${CYAN}>>>${NC} $1"
 }
 
 is_all_cmds_installed() {
