@@ -144,11 +144,15 @@ install_docker() {
       sudo apt-get update
       sudo apt-get --assume-yes install docker-ce docker-ce-cli containerd.io
       ## This is needed for not needing sudo
+      echo $(getent group docker)
+      echo "User: $USER"
       if ! is_docker_group; then
         msg "Creating docker group and adding current user '$USER' to it"
         sudo groupadd docker
         sudo usermod -aG docker $USER
         newgrp docker
+      else
+        msg "is_docker_group returned true, skipping creating docker groups"
       fi
     elif is_mac; then
       echo ">>> Warning: Docker installation is not implemented yet in mac, skipping <<<" # TODO
