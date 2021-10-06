@@ -117,9 +117,9 @@ is_all_cmds_installed() {
 install() {
     msg "Installing $1"
     if is_linux; then
-      sudo apt-get --assume-yes install $1
+      sudo apt-get --assume-yes install $1 || fail "apt-get install $1 failed"
     elif is_mac; then
-      brew install $1
+      brew install $1 || fail "brew install $1 failed"
     else
       fail "Unsupported system"
     fi
