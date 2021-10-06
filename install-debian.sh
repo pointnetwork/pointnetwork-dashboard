@@ -129,7 +129,7 @@ is_docker_group() {
     # getent group docker when installed yields: docker:x:997:username
     # getent after the script is run but not finalized yields: docker:x:997:username
     # yields empty when not installed
-    if [ $(getent group docker) ]; then
+    if [[ $(getent group docker) && "$(getent group docker)" =~ $USER ]]; then
 	    return 0
     fi
     return 1
@@ -144,8 +144,6 @@ install_docker() {
       sudo apt-get update
       sudo apt-get --assume-yes install docker-ce docker-ce-cli containerd.io
       ## This is needed for not needing sudo
-      echo $(getent group docker)
-      echo "User: $USER"
       if ! is_docker_group; then
         msg "Creating docker group and adding current user '$USER' to it"
         sudo groupadd docker
