@@ -365,7 +365,7 @@ update_pn_dashboard
 is_all_installed
 
 # Start dashboard
-if ask "Do you want to run PointNetwork Dashboard?"; then
-    msg
-    run_pn_dashboard
-fi
+#if ask "Do you want to run PointNetwork Dashboard?"; then
+#    msg
+run_pn_dashboard
+#fi
