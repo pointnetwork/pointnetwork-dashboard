@@ -19,14 +19,15 @@ If you're on Windows, please set the execution policy to
 RemoteSigned -Scope CurrentUser` and then run the Windows installation
 script.
 
-| Step               | Debian/Ubuntu       | Windows               | MacOs    |
-|--------------------|---------------------|-----------------------|----------|
-| Name of the script | `install-debian.sh` | `install-windows.ps1` |          |
-| Install commands   | &#9989;             | &#9989;               | &#10060; |
-| Create directories | &#9989;             | &#10060;              | &#10060; |
-| Clone repositories | &#9989;             | &#10060;              | &#10060; |
-| Run the dashboard  | &#9989;             | &#10060;              | &#10060; |
-| Install Firefox    | &#10060;            | &#10060;              | &#10060; |
+| Step               | Debian/Ubuntu       | Windows               | MacOs            |
+|--------------------|---------------------|-----------------------|------------------|
+| Name of the script | `install-debian.sh` | `install-windows.ps1` | `install-mac.sh` |
+| Install commands   | &#9989;             | &#9989;               | &#10060;         |
+| Create directories | &#9989;             | &#10060;              | &#9989;          |
+| Clone repositories | &#9989;             | &#10060;              | &#9989;          |
+| Desktop Link       | &#10060;            | &#10060;              | &#10060;         |
+| Run the dashboard  | &#9989;             | &#10060;              | &#9989;          |
+| Install Firefox    | &#10060;            | &#10060;              | &#10060;         |
 
 ## Manual Installation
 
