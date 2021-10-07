@@ -166,10 +166,12 @@ install_docker() {
       sudo apt-get --assume-yes install docker-ce docker-ce-cli containerd.io
       ## This is needed for not needing sudo
       if ! is_docker_group; then
-        msg "Creating docker group and adding current user '$USER' to it"
-        sudo groupadd docker || echo "Docker group already exists, skipping"
-        sudo usermod -aG docker $USER && echo "usermod -aG docker $USER - Done"
+#        msg "Creating docker group and adding current user '$USER' to it"
+#        sudo groupadd docker || echo "Docker group already exists, skipping"
+#        sudo usermod -aG docker $USER && echo "usermod -aG docker $USER - Done"
         #newgrp docker && echo "newgrp docker - Done" # Don't uncomment - throw the whole script off! No need to log into that group now
+        # we'll be running it from sudo
+        echo
       else
         msg "is_docker_group returned true, skipping creating docker groups"
       fi
