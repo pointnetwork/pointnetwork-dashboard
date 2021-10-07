@@ -362,11 +362,33 @@ maybe_update_package_manager() {
             fail "There was an error while trying to update list of available packages via apt-get."
         fi
       elif is_mac; then
+        if ! is_brew_installed; then
+          install_brew
+        fi
         if ! brew update ; then
             fail "There was an error while trying to update list of available packages via brew."
         fi
       fi
     fi
+}
+
+is_brew_installed() {
+  if brew -v; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+install_brew() {
+  msg "Installing brew..."
+  # https://brew.sh/
+  # https://stackoverflow.com/questions/24426424/unattended-no-prompt-homebrew-installation-using-expect
+  URL_BREW='https://raw.githubusercontent.com/Homebrew/install/master/install'
+
+  echo -n '- Installing brew ... '
+  echo | /usr/bin/ruby -e "$(curl -fsSL $URL_BREW)"
+  if [ $? -eq 0 ]; then msg 'OK'; else fail 'Error installing brew'; fi
 }
 
 install_commands() {
