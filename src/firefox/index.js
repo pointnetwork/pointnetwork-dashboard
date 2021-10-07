@@ -95,7 +95,7 @@ class Firefox {
         const flags = "--profile "+profile_path;
         const webext_binary = "$HOME/.point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext";
         const ext_path = "$HOME/.point/src/pointsdk/dist/prod"; // should contain manifest.json
-        const webext = `${webext_binary} run --firefox="${cmd}" --firefox-profile ${profile_path} --keep-profile-changes --source-dir dist/prod --url https://point`;
+        const webext = `${webext_binary} run --firefox="${cmd}" --firefox-profile ${profile_path} --keep-profile-changes --source-dir ${ext_path} --url https://point`;
 
         exec(webext, (error, stdout, stderr) => {
             // win.webContents.send("firefox-closed");
