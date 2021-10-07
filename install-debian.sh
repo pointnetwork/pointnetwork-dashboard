@@ -475,7 +475,7 @@ create_aliases() {
 cd $SRC_PN_DIR
 git checkout feature/znet
 git pull
-\$CMD="npm run start:znet"
+CMD="npm run start:znet"
 if [[ $(uname) == 'Darwin' ]]; then
   bash -c \$CMD'
 else
@@ -485,7 +485,7 @@ FILE
     sudo tee "/usr/bin/point-down" <<FILE >/dev/null
 #!/bin/bash
 cd $SRC_PN_DIR
-\$CMD="npm run stop:znet"
+CMD="npm run stop:znet"
 if [[ $(uname) == 'Darwin' ]]; then
   bash -c \$CMD'
 else
