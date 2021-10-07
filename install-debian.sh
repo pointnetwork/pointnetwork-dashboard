@@ -454,12 +454,12 @@ create_aliases() {
     sudo tee "/usr/bin/point-up" <<FILE >/dev/null
 #!/bin/bash
 cd $SRC_PN_DIR
-sudo docker-compose -f up
+sudo npm run start:znet
 FILE
     sudo tee "/usr/bin/point-down" <<FILE >/dev/null
 #!/bin/bash
 cd $SRC_PN_DIR
-sudo docker-compose down
+sudo npm run stop:znet
 FILE
     sudo tee "/usr/bin/point-start" <<FILE >/dev/null
 #!/bin/bash
