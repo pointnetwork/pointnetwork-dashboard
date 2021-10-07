@@ -174,7 +174,9 @@ install_docker() {
         msg "is_docker_group returned true, skipping creating docker groups"
       fi
     elif is_mac; then
-      echo ">>> Warning: Docker installation is not implemented yet in mac, skipping <<<" # TODO
+      brew install homebrew/cask/docker || fail "Failed to install homebrew/cask/docker"
+      msg "Docker installed, starting..."
+      open -a Docker
     else
       fail "Unsupported system"
     fi
@@ -182,9 +184,10 @@ install_docker() {
 }
 
 install_docker_compose() {
-    msg "Installing docker-compose"
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
+    msg "Skipping docker-compose, as it is part of the docker installation"
+#    msg "Installing docker-compose"
+#    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+#    sudo chmod +x /usr/local/bin/docker-compose
 }
 
 install_nvm() {
