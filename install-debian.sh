@@ -9,6 +9,7 @@
 ## Constants ##
 ###############
 
+export CLICOLOR=1
 RED='\033[0;31m'
 CYAN='\u001b[36m'
 NC='\033[0m' # No color.
