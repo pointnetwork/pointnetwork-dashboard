@@ -87,6 +87,8 @@ ask() {
         default=''
     fi
 
+    msg
+
     while true; do
 
         # Ask the question (not using "read -p" as it uses stderr not stdout)
@@ -384,10 +386,9 @@ install_brew() {
   msg "Installing brew..."
   # https://brew.sh/
   # https://stackoverflow.com/questions/24426424/unattended-no-prompt-homebrew-installation-using-expect
-  URL_BREW='https://raw.githubusercontent.com/Homebrew/install/master/install'
+  URL_BREW='https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh'
+  echo | /bin/bash -c "$(curl -fsSL $URL_BREW)"
 
-  echo -n '- Installing brew ... '
-  echo | /usr/bin/ruby -e "$(curl -fsSL $URL_BREW)"
   if [ $? -eq 0 ]; then msg 'OK'; else fail 'Error installing brew'; fi
 }
 
