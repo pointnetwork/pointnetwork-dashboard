@@ -250,8 +250,6 @@ echo_welcome() {
       msg
       msg "By continuing, you agree to Terms of Use for Point Network (https://pointnetwork.io/pages/terms)"
       msg
-      msg "OS detected: OSTYPE=[$OSTYPE] PNOS=[$PN_OS]"
-      msg
       msg "The commands that this script will install are:"
       msg
       msg "${CMDS[*]}"
@@ -267,6 +265,8 @@ echo_welcome() {
           # This subprocess will die with the current script exiting
           while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
+          msg
+          msg "OS detected: OSTYPE=[$OSTYPE] PNOS=[$PN_OS]"
           msg
           msg "Continuing..."
       else
@@ -329,6 +329,10 @@ clone_pn_dashboard() {
       git clone https://github.com/pointnetwork/pointnetwork-dashboard "$SRC_DASHBOARD_DIR"
     fi
     cd "$SRC_DASHBOARD_DIR"
+}
+
+copy_browser_profile() {
+  cp -r "$SRC_DASHBOARD_DIR/liveprofile" "$LIVE_DIR/profile"
 }
 
 run_pn_dashboard() {
@@ -505,6 +509,7 @@ make_pn_dirs
 ## Cloning repositories
 clone_pn
 clone_pn_dashboard
+copy_browser_profile
 
 ## Update code just in case
 update_pn

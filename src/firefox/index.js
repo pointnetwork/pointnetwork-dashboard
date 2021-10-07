@@ -91,7 +91,8 @@ class Firefox {
 
     async launch() {
         const cmd = await this.getBinPath(helpers.getOSAndArch());
-        exec(cmd, (error, stdout, stderr) => {
+        const flags = "-p $HOME/.point/live/profile";
+        exec(cmd + " " + flags, (error, stdout, stderr) => {
             // win.webContents.send("firefox-closed");
             if (error) {
                 console.log(`error: ${error.message}`);
@@ -211,7 +212,7 @@ pref("general.config.obscure_value", 0);
 // pref('network.proxy.type', 1);
 pref('network.proxy.type', 2);
 pref('network.proxy.http', 'localhost');
-pref('network.proxy.http_port', 65500);
+pref('network.proxy.http_port', 8666);
 pref('browser.startup.homepage', 'https://point');
 pref('startup.homepage_welcome_url', 'https://point/welcome');
 pref('startup.homepage_welcome_url.additional', '');

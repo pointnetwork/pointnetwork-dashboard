@@ -58,12 +58,10 @@ cd $HOME/.point/src/pointnetwork || exit 1
 git pull
 cd $HOME/.point/src/pointnetwork-dashboard || exit 1
 git pull
-nvm use > /dev/null 2>&1
+nvm use
 npm i > /dev/null 2>&1
 
-if is_linux; then
-  echo "Point Dashboard needs sudo in order to access docker containers on Linux. Please enter below, or Ctrl-C for exit:"
-  npm start
-else
-  npm start
-fi
+#if is_linux; then
+#echo "Point Dashboard needs sudo in order to access docker containers on Linux. Please enter below, or Ctrl-C for exit:"
+#sudo npm start
+npm start
