@@ -56,93 +56,15 @@ export const attach = (ipcMain, win) => {
     });
 
     ipcMain.on("firefox-run", async(event, args) => {
-        const cmd = await firefox.getBinPath(helpers.getOSAndArch());
-        exec(cmd, (error, stdout, stderr) => {
-            win.webContents.send("firefox-closed");
-            if (error) {
-                console.log(`error: ${error.message}`);
-                return;
-            }
-            if (stderr) {
-                console.log(`stderr: ${stderr}`);
-                return;
-            }
-            console.log(`stdout: ${stdout}`);
-        });
+        await firefox.launch();
     });
 
     ipcMain.on("firefox-download", async (event, args) => {
-        const language = args.language;
-        const version = '93.0b4';
-        const osAndArch = helpers.getOSAndArch();
-        const browserDir = await firefox.getFolderPath(osAndArch);
-        const pacFile = url.pathToFileURL(path.join(await helpers.getPNPath(osAndArch), 'client', 'proxy', 'pac.js'));
-        const filename = firefox.getFileName(osAndArch, version);
-        const releasePath = path.join(browserDir, filename);
-        const firefoxRelease = fs.createWriteStream(releasePath);
-        const firefoxURL = firefox.getURL(version, osAndArch, language, filename);
-
-        if (!fs.existsSync(browserDir)){
-            fs.mkdirSync(browserDir);
-        }
-
-        const http_s = helpers.getHTTPorHTTPs(osAndArch);
-
-        await http_s.get(firefoxURL, async (response) => {
-            await response.pipe(firefoxRelease);
-            firefoxRelease.on('finish', () => {
-                let cb = async function() {
-                    win.webContents.send("firefox-installed");
-
-                    fs.unlink(releasePath, (err) => {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            console.log(`\nDeleted file: ${releasePath}`);
-                        }
-                    });
-
-                    await firefox.createConfigFiles(osAndArch, pacFile);
-                };
-                firefox.unpack(osAndArch, releasePath, browserDir, cb);
-            });
-        });
+        await firefox.download();
     });
 
     ipcMain.on("docker-download", async (event, args) => {
-        const language = args.language;
-        const dockerDir = path.join('.', 'docker');
-        const osAndArch = helpers.getOSAndArch();
-        const filename = docker.getFileName(osAndArch, version);
-        const releasePath = path.join(dockerDir, filename);
-        const dockerRelease = fs.createWriteStream(releasePath);
-        const dockerURL = docker.getURL(version, osAndArch, language, filename);
-
-        if (!fs.existsSync(dockerDir)){
-            fs.mkdirSync(dockerDir);
-        }
-
-        const http_s = helpers.getHTTPorHTTPs(osAndArch);
-
-        await http_s.get(dockerURL, async (response) => {
-            await response.pipe(dockerRelease);
-            dockerRelease.on('finish', () => {
-                let cb = function() {
-                    win.webContents.send("docker-installed");
-
-                    fs.unlink(releasePath, (err) => {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            console.log(`\nDeleted file: ${releasePath}`);
-                        }
-                    });
-
-                    docker.createConfigFiles(osAndArch);
-                };
-                docker.unpack(osAndArch, releasePath, dockerDir, cb);
-            });
-        });
+        await docker.download();
     });
 
     ipcMain.on("docker-check-installed", async (event, args) => {

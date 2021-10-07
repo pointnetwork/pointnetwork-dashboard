@@ -2,7 +2,8 @@
 
 # Use this command to run Point Installer:
 #
-# wget -qO- pointer.sh | wget
+# Linux: wget -qO- pointer.sh | wget
+# Mac: curl -sL pointer.sh | bash -s
 
 ###############
 ## Constants ##
@@ -228,6 +229,8 @@ echo_welcome() {
       msg "and clones all the required PointNetwork repositories inside $HOME/.point/src."
       msg
       msg "By continuing, you agree to Terms of Use for Point Network (https://pointnetwork.io/pages/terms)"
+      msg
+      msg "OS detected: OSTYPE=[$OSTYPE] PNOS=[$PN_OS]"
       msg
       msg "The commands that this script will install are:"
       msg

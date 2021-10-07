@@ -6,6 +6,7 @@ const tarfs = require('tar-fs');
 const bz2 = require('unbzip2-stream');
 
 const helpers = require('../helpers');
+const {exec} = require("child_process");
 
 class Firefox {
     async getFolderPath(osAndArch) {
@@ -46,6 +47,62 @@ class Firefox {
         return `firefox-${version}.tar.bz2`;
     };
 
+    async download() {
+        const language = args.language;
+        const version = '93.0b4';
+        const osAndArch = helpers.getOSAndArch();
+        const browserDir = await this.getFolderPath(osAndArch);
+        const pacFile = url.pathToFileURL(path.join(await helpers.getPNPath(osAndArch), 'client', 'proxy', 'pac.js'));
+        const filename = this.getFileName(osAndArch, version);
+        const releasePath = path.join(browserDir, filename);
+        const firefoxRelease = fs.createWriteStream(releasePath);
+        const firefoxURL = this.getURL(version, osAndArch, language, filename);
+
+        if (!fs.existsSync(browserDir)){
+            fs.mkdirSync(browserDir);
+        }
+
+        const http_s = helpers.getHTTPorHTTPs(osAndArch);
+
+        return await http_s.get(firefoxURL, async (response) => {
+            await response.pipe(firefoxRelease);
+
+            return await new Promise(async(resolve, reject) => {
+                firefoxRelease.on('finish', () => {
+                    let cb = async() => {
+                        fs.unlink(releasePath, (err) => {
+                            if (err) {
+                                return reject(err);
+                            } else {
+                                console.log(`\nDeleted file: ${releasePath}`);
+                            }
+                        });
+
+                        await this.createConfigFiles(osAndArch, pacFile);
+
+                        return resolve(true);
+                    };
+                    this.unpack(osAndArch, releasePath, browserDir, cb);
+                });
+            })
+        });
+    }
+
+    async launch() {
+        const cmd = await this.getBinPath(helpers.getOSAndArch());
+        exec(cmd, (error, stdout, stderr) => {
+            // win.webContents.send("firefox-closed");
+            if (error) {
+                console.log(`error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                return;
+            }
+        });
+    }
+    
     unpack(osAndArch, releasePath, browserDir, cb) {
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             _7z.unpack(releasePath, browserDir, (err) => { if (err) throw err; cb();});

@@ -29,6 +29,42 @@ module.exports = {
         }
         return cmd;
     },
+    
+    async download() {
+        const language = args.language;
+        const dockerDir = path.join('.', 'docker');
+        const osAndArch = helpers.getOSAndArch();
+        const filename = module.exports.getFileName(osAndArch, version);
+        const releasePath = path.join(dockerDir, filename);
+        const dockerRelease = fs.createWriteStream(releasePath);
+        const dockerURL = module.exports.getURL(version, osAndArch, language, filename);
+
+        if (!fs.existsSync(dockerDir)){
+            fs.mkdirSync(dockerDir);
+        }
+
+        const http_s = helpers.getHTTPorHTTPs(osAndArch);
+
+        await http_s.get(dockerURL, async (response) => {
+            await response.pipe(dockerRelease);
+            dockerRelease.on('finish', () => {
+                let cb = function() {
+                    win.webContents.send("docker-installed");
+
+                    fs.unlink(releasePath, (err) => {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(`\nDeleted file: ${releasePath}`);
+                        }
+                    });
+
+                    module.exports.createConfigFiles(osAndArch);
+                };
+                module.exports.unpack(osAndArch, releasePath, dockerDir, cb);
+            });
+        })
+    },
 
     async isInstalled() {
         if (which.sync('docker', {nothrow: true}) != null) {
