@@ -434,7 +434,7 @@ create_desktop_shortcut() {
 	rm $SHORTCUT_FILE
     fi
     START_SCRIPT="$SRC_DASHBOARD_DIR/start.sh"
-    tee -a "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
+    tee "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
 [Desktop Entry]
 Version=0.1
 Name=Point
@@ -448,6 +448,28 @@ SHORTCUT
     sudo chmod -x "$SHORTCUT_FILE"
     gio set $SHORTCUT_FILE metadata::trusted true
     sudo chmod +x "$SHORTCUT_FILE"
+}
+
+create_aliases() {
+    sudo tee "/usr/bin/point-up" <<FILE >/dev/null
+#!/bin/bash
+cd $SRC_PN_DIR
+sudo docker-compose -f up
+FILE
+    sudo tee "/usr/bin/point-down" <<FILE >/dev/null
+#!/bin/bash
+cd $SRC_PN_DIR
+sudo docker-compose down
+FILE
+    sudo tee "/usr/bin/point-start" <<FILE >/dev/null
+#!/bin/bash
+cd $SRC_DASHBOARD_DIR
+./start.sh
+FILE
+
+    sudo chmod +x "/usr/bin/point-up"
+    sudo chmod +x "/usr/bin/point-down"
+    sudo chmod +x "/usr/bin/point-start"
 }
 
 ## Welcome message
@@ -480,6 +502,7 @@ is_all_installed
 
 # Create desktop shortcut
 create_desktop_shortcut
+create_aliases
 
 # Start dashboard
 #if ask "Do you want to run PointNetwork Dashboard?"; then
