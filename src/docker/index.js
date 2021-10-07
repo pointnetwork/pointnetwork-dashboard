@@ -202,7 +202,7 @@ module.exports = {
 
     async isComposeRunning() {
         const osAndArch = helpers.getOSAndArch();
-        const composePath = getComposePath();
+        const composePath = await getComposePath();
         const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${composePath} ps -q)`;
         
         if (osAndArch == 'win32' || osAndArch == 'win64') {
