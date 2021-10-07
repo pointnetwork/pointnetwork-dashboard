@@ -378,9 +378,12 @@ install_commands() {
 }
 
 create_desktop_shortcut() {
-  SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
-  START_SCRIPT="$SRC_DASHBOARD_DIR/start.sh"
-  tee -a "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
+    SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
+    if [[ -f $SHORTCUT_FILE ]]; then
+	rm $SHORTCUT_FILE
+    fi
+    START_SCRIPT="$SRC_DASHBOARD_DIR/start.sh"
+    tee -a "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
 [Desktop Entry]
 Version=0.1
 Name=Point
@@ -391,9 +394,9 @@ Terminal=true
 Type=Application
 Categories=Utility;Application;
 SHORTCUT
-  sudo chmod -x "$SHORTCUT_FILE"
-  gio set $SHORTCUT_FILE metadata::trusted true
-  sudo chmod +x "$SHORTCUT_FILE"
+    sudo chmod -x "$SHORTCUT_FILE"
+    gio set $SHORTCUT_FILE metadata::trusted true
+    sudo chmod +x "$SHORTCUT_FILE"
 }
 
 ## Welcome message
