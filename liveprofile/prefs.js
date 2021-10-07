@@ -153,3 +153,4 @@ user_pref("toolkit.startup.last_success", 1633622816);
 user_pref("toolkit.telemetry.pioneer-new-studies-available", true);
 user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);
 user_pref("trailhead.firstrun.didSeeAboutWelcome", true);
+user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
