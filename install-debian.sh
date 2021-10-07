@@ -179,7 +179,7 @@ install_docker() {
       brew install homebrew/cask/docker || fail "Failed to install homebrew/cask/docker"
       msg "Docker installed, starting..."
       xattr -d -r com.apple.quarantine /Applications/Docker.app
-      open -a -g -W /Applications/Docker.app
+      open -g -W -a /Applications/Docker.app
     else
       fail "Unsupported system"
     fi
