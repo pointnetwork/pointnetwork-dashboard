@@ -22,8 +22,6 @@ export SRC_DASHBOARD_DIR="$SRC_DIR/pointnetwork-dashboard"
 export SOFTWARE_DIR="$POINT_DIR/software"
 export LIVE_DIR="$POINT_DIR/live"
 DIRS=("$POINT_DIR" "$SRC_DIR" "$SOFTWARE_DIR" "$LIVE_DIR")
-## Most major distros support this:
-DISTRO=$(awk -F= '/^ID=/{print $2}' /etc/os-release)
 
 fail() {
   printf '%s\n' "$1" >&2  ## Send message to stderr. Exclude >&2 if you don't want it that way.
@@ -60,6 +58,15 @@ is_linux() {
     return 1
   fi
 }
+
+## Most major distros support this:
+if is_linux; then
+  DISTRO=$(awk -F= '/^ID=/{print $2}' /etc/os-release)
+elif is_mac; then
+  DISTRO=MAC
+else
+  DISTRO=UNKNOWN
+fi
 
 ###############
 ## Functions ##
