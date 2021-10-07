@@ -219,7 +219,7 @@ module.exports = {
 
     async startCompose() {
         const osAndArch = helpers.getOSAndArch();
-        const composePath = getComposePath();
+        const composePath = await getComposePath();
         const cmd = `docker-compose -f ${composePath} up -d`;
 
         if (osAndArch == 'win32' || osAndArch == 'win64') {
@@ -231,7 +231,7 @@ module.exports = {
 
     async stopCompose() {
         const osAndArch = helpers.getOSAndArch();
-        const composePath = getComposePath();
+        const composePath = await getComposePath();
         const cmd = `docker-compose -f ${composePath} down`;
 
         if (osAndArch == 'win32' || osAndArch == 'win64') {
