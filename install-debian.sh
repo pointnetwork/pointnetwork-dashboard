@@ -454,6 +454,8 @@ create_aliases() {
     sudo tee "/usr/bin/point-up" <<FILE >/dev/null
 #!/bin/bash
 cd $SRC_PN_DIR
+git checkout feature/znet
+git pull
 sudo npm run start:znet
 FILE
     sudo tee "/usr/bin/point-down" <<FILE >/dev/null
@@ -464,6 +466,7 @@ FILE
     sudo tee "/usr/bin/point-start" <<FILE >/dev/null
 #!/bin/bash
 cd $SRC_DASHBOARD_DIR
+git pull
 ./start.sh
 FILE
 
