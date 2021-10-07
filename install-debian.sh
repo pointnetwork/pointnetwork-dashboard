@@ -87,8 +87,6 @@ ask() {
         default=''
     fi
 
-    msg
-
     while true; do
 
         # Ask the question (not using "read -p" as it uses stderr not stdout)
@@ -247,6 +245,8 @@ echo_welcome() {
       msg "${CMDS[*]}"
       msg
       if ask "Do you want to continue?"; then
+          msg # separate sudo password ask from current ask with one line
+
           # Keep sudo priveleges: https://gist.github.com/cowboy/3118588
           # Ask upfront
           sudo -v
