@@ -1,7 +1,31 @@
 const helpers = require('../helpers');
 const path = require('path');
 const util = require('util');
-const execProm = util.promisify(require('child_process').exec);
+const _ = require('lodash');
+const execPromBeforeWrapper = util.promisify(require('child_process').exec);
+const execProm = async(cmd) => {
+    if (_.startsWith(cmd, 'sudo ')) {
+        return await new Promise((resolve, reject) => {
+            try {
+                const sudo = require('sudo-prompt');
+                var cb = (error, stdout, stderr) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        console.log(stdout);
+                        console.error(stderr);
+                    }
+                    resolve(true);
+                }
+                sudo.exec(cmd, {}, cb);
+            } catch(e) {
+                reject(e);
+            }
+        });
+    } else {
+        return await execPromBeforeWrapper(cmd);
+    }
+};
 // const uname = require('node-uname');
 const sudo = require('sudo-prompt');
 const { http, https } = require('follow-redirects');
@@ -224,6 +248,10 @@ module.exports = {
 
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             return `wsl ${cmd}`;
+        }
+
+        if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+            return `sudo ${cmd}`
         }
 
         await execProm(cmd);

@@ -343,7 +343,7 @@ run_pn_dashboard() {
     # https://unix.stackexchange.com/questions/18897/problem-while-running-newgrp-command-in-script
     msg "Starting PointNetwork Dashboard"
     SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
-    newgrp docker
+#    newgrp docker
 
     sudo chmod -x "$SHORTCUT_FILE"
     gio set $SHORTCUT_FILE metadata::trusted true
