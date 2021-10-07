@@ -180,14 +180,20 @@ install_docker() {
     else
       fail "Unsupported system"
     fi
-    echo "Docker installed, continuing"
+    msg "Docker installed, continuing"
 }
 
 install_docker_compose() {
-    msg "Skipping docker-compose, as it is part of the docker installation"
-#    msg "Installing docker-compose"
-#    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-#    sudo chmod +x /usr/local/bin/docker-compose
+  if is_linux; then
+    msg "Installing docker-compose"
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+  elif is_mac; then
+    msg "Skipping docker-compose, should be installed automatically with docker"
+  else
+    fail "Unsupported system"
+  fi
+  msg "Docker-compose installed, continuing"
 }
 
 install_nvm() {
