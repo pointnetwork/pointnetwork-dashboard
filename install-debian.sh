@@ -178,7 +178,8 @@ install_docker() {
     elif is_mac; then
       brew install homebrew/cask/docker || fail "Failed to install homebrew/cask/docker"
       msg "Docker installed, starting..."
-      open -a Docker
+      xattr -d -r com.apple.quarantine /Applications/Docker.app
+      open -a -g -W /Applications/Docker.app
     else
       fail "Unsupported system"
     fi
@@ -456,12 +457,22 @@ create_aliases() {
 cd $SRC_PN_DIR
 git checkout feature/znet
 git pull
-sudo npm run start:znet
+\$CMD="npm run start:znet"
+if [[ $(uname) == 'Darwin' ]]; then
+  bash -c \$CMD'
+else
+  sudo bash -c \$CMD
+fi
 FILE
     sudo tee "/usr/bin/point-down" <<FILE >/dev/null
 #!/bin/bash
 cd $SRC_PN_DIR
-sudo npm run stop:znet
+\$CMD="npm run stop:znet"
+if [[ $(uname) == 'Darwin' ]]; then
+  bash -c \$CMD'
+else
+  sudo bash -c \$CMD
+fi
 FILE
     sudo tee "/usr/bin/point-start" <<FILE >/dev/null
 #!/bin/bash
