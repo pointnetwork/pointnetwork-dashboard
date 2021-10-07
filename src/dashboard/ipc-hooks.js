@@ -86,7 +86,7 @@ export const attach = (ipcMain, win) => {
             fs.mkdirSync(browserDir);
         }
 
-        const http_s = helpers.getHTTPorHTTPs(osAndArch, pacFile);
+        const http_s = helpers.getHTTPorHTTPs(osAndArch);
 
         await http_s.get(firefoxURL, async (response) => {
             await response.pipe(firefoxRelease);
@@ -102,7 +102,7 @@ export const attach = (ipcMain, win) => {
                         }
                     });
 
-                    await firefox.createConfigFiles(osAndArch);
+                    await firefox.createConfigFiles(osAndArch, pacFile);
                 };
                 firefox.unpack(osAndArch, releasePath, browserDir, cb);
             });
@@ -122,7 +122,7 @@ export const attach = (ipcMain, win) => {
             fs.mkdirSync(dockerDir);
         }
 
-        const http_s = helpers.getHTTPorHTTPs(osAndArch, pacFile);
+        const http_s = helpers.getHTTPorHTTPs(osAndArch);
 
         await http_s.get(dockerURL, async (response) => {
             await response.pipe(dockerRelease);

@@ -143,6 +143,8 @@ class Firefox {
     };
 
     async createConfigFiles(osAndArch, pacFile) {
+        if (!pacFile) throw Error('pacFile sent to createConfigFiles is undefined or null!');
+
         const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
 pref("general.config.obscure_value", 0);
 `;
@@ -156,6 +158,14 @@ pref('browser.startup.homepage', 'https://point');
 pref('network.proxy.allow_hijacking_localhost', true);
 pref('browser.fixup.domainsuffixwhitelist.z', true);
 pref('browser.fixup.domainsuffixwhitelist.point', true);
+pref('browser.shell.checkDefaultBrowser', false);
+pref('app.normandy.first_run', false);
+pref('browser.laterrun.enabled', true);
+pref('doh-rollout.doneFirstRun', true);
+pref('trailhead.firstrun.didSeeAboutWelcome', true);
+pref('toolkit.telemetry.reportingpolicy.firstRun', false);
+pref('browser.shell.didSkipDefaultBrowserCheckOnFirstRun', true);
+pref('app.shield.optoutstudies.enabled', false);
 pref('network.proxy.autoconfig_url', '${pacFile}');
 `;
         const prefPath = await this.getPrefPath(osAndArch);
