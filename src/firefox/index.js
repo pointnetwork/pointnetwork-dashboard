@@ -48,7 +48,7 @@ class Firefox {
     };
 
     async download() {
-        const language = args.language;
+        const language = 'en-US';
         const version = '93.0b4';
         const osAndArch = helpers.getOSAndArch();
         const browserDir = await this.getFolderPath(osAndArch);
