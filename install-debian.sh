@@ -341,7 +341,7 @@ clone_pn_dashboard() {
 clone_pn_sdk() {
     if ! is_pn_sdk_installed; then
       msg "Cloning PointSDK";
-      git clone https://github.com/pointnetwork/pointsdk "$SRC_DASHBOARD_DIR"
+      git clone https://github.com/pointnetwork/pointsdk "$SRC_DIR/pointsdk"
     fi
 }
 
