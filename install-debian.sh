@@ -309,11 +309,11 @@ clone_pn_dashboard() {
 run_pn_dashboard() {
     cd "$SRC_DASHBOARD_DIR"
     msg "Installing required node.js version"
-    nvm install
+    nvm install > /dev/null 2>&1
     msg "Changing to required node.js version"
-    nvm use
+    nvm use > /dev/null 2>&1
     msg "Installing required node.js packages using npm"
-    npm install
+    npm install > /dev/null 2>&1
 
     # after this newgrp line below, no other part of the script should be used
     # https://unix.stackexchange.com/questions/18897/problem-while-running-newgrp-command-in-script
