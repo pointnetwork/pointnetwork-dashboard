@@ -91,8 +91,13 @@ class Firefox {
 
     async launch() {
         const cmd = await this.getBinPath(helpers.getOSAndArch());
-        const flags = "--profile $HOME/.point/live/profile";
-        exec(cmd + " " + flags, (error, stdout, stderr) => {
+        const profile_path = "$HOME/.point/live/profile";
+        const flags = "--profile "+profile_path;
+        const webext_binary = "$HOME/.point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext";
+        const ext_path = "$HOME/.point/src/pointsdk/dist/prod"; // should contain manifest.json
+        const webext = `${webext_binary} run --firefox="${cmd}" --firefox-profile ${profile_path} --keep-profile-changes --source-dir dist/prod --url https://point`;
+
+        exec(webext, (error, stdout, stderr) => {
             // win.webContents.send("firefox-closed");
             if (error) {
                 console.log(`error: ${error.message}`);

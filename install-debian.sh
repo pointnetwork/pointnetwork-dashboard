@@ -309,6 +309,13 @@ is_pn_dashboard_installed() {
     return 1
 }
 
+is_pn_sdk_installed() {
+    if [[ -d "$SRC_DIR/pointsdk" ]]; then
+	    return 0
+    fi
+    return 1
+}
+
 is_all_pn_installed() {
     if is_pn_installed && is_pn_dashboard_installed; then
     	return 0
@@ -329,6 +336,13 @@ clone_pn_dashboard() {
       git clone https://github.com/pointnetwork/pointnetwork-dashboard "$SRC_DASHBOARD_DIR"
     fi
     cd "$SRC_DASHBOARD_DIR"
+}
+
+clone_pn_sdk() {
+    if ! is_pn_sdk_installed; then
+      msg "Cloning PointSDK";
+      git clone https://github.com/pointnetwork/pointsdk "$SRC_DASHBOARD_DIR"
+    fi
 }
 
 copy_browser_profile() {
@@ -509,6 +523,7 @@ make_pn_dirs
 ## Cloning repositories
 clone_pn
 clone_pn_dashboard
+clone_pn_sdk
 copy_browser_profile
 
 ## Update code just in case
