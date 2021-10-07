@@ -477,9 +477,9 @@ git checkout feature/znet
 git pull
 CMD="npm run start:znet"
 if [[ $(uname) == 'Darwin' ]]; then
-  bash -c \$CMD
+  bash -c "\$CMD"
 else
-  sudo bash -c \$CMD
+  sudo bash -c "\$CMD"
 fi
 FILE
     sudo tee "/usr/bin/point-down" <<FILE >/dev/null
@@ -487,9 +487,9 @@ FILE
 cd $SRC_PN_DIR
 CMD="npm run stop:znet"
 if [[ $(uname) == 'Darwin' ]]; then
-  bash -c \$CMD
+  bash -c "\$CMD"
 else
-  sudo bash -c \$CMD
+  sudo bash -c "\$CMD"
 fi
 FILE
     sudo tee "/usr/bin/point-start" <<FILE >/dev/null
