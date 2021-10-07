@@ -349,8 +349,14 @@ maybe_update_package_manager() {
     then
       msg "Updating list of available packages in package manager."
       msg
-      if ! sudo apt-get update ; then
-          fail "There was an error while trying to update list of available packages."
+      if is_linux; then
+        if ! sudo apt-get update ; then
+            fail "There was an error while trying to update list of available packages via apt-get."
+        fi
+      elif is_mac; then
+        if ! brew update ; then
+            fail "There was an error while trying to update list of available packages via brew."
+        fi
       fi
     fi
 }
