@@ -354,7 +354,8 @@
 	 }
 
 	 newComponent('firefox', 'Firefox Point Browser', '<i class="small-icon icon fab checking fa-firefox-browser fa-fw"></i>');
-	 newComponent('docker-provider', 'Storage Provider', '<i class="small-icon icon fab checking fa-docker fa-fw"></i>');
+	 newComponent('docker-visitor', 'Point Node', '<i class="small-icon icon fab checking fa-docker"></i>');
+	 // newComponent('docker-provider', 'Storage Provider', '<i class="small-icon icon fab checking fa-docker fa-fw"></i>');
 	 // newComponent('docker-contracts', 'Contract Deployer', '<i class="small-icon icon fab checking fa-docker fa-fw"></i>');
 	 /* newComponent('docker-pgadmin', 'pgAdmin', '<i class="small-icon icon fab checking fa-docker"></i>');
 	    newComponent('docker-database', 'Postgres', '<i class="small-icon icon fab checking fa-docker"></i>');
@@ -365,14 +366,14 @@
 	    newComponent('wallet', 'POINT Wallet', '<i class="small-icon icon fas fab checking fa-wallet"></i>');
 	    newComponent('notifications', 'Notifications', '<i class="small-icon icon fas fab checking fa-bell"></i>'); */
 
-	 dockerInit('#docker-provider');
+	 // dockerInit('#docker-provider');
 	 /* dockerInit('#docker-contracts');
 	    dockerInit('#docker-pgadmin');
 	    dockerInit('#docker-database');
 	    dockerInit('#docker-blockchain');
-	    dockerInit('#docker-owner');
-	    dockerInit('#docker-visitor'); */
-	 addIconAction('#docker-provider', () => dockerHealth('#docker-provider'));
+	    dockerInit('#docker-owner'); */
+	 dockerInit('#docker-visitor');
+	 addIconAction('#docker-visitor', () => dockerHealth('#docker-visitor'));
 	 firefoxCheck();
 
 	 // Running once before loop.
