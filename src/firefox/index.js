@@ -91,7 +91,7 @@ class Firefox {
 
     async launch() {
         const cmd = await this.getBinPath(helpers.getOSAndArch());
-        const flags = "-p $HOME/.point/live/profile";
+        const flags = "--profile $HOME/.point/live/profile";
         exec(cmd + " " + flags, (error, stdout, stderr) => {
             // win.webContents.send("firefox-closed");
             if (error) {
