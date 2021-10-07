@@ -4,6 +4,7 @@ const _7z = require('7zip-min');
 const dmg = require('dmg');
 const tarfs = require('tar-fs');
 const bz2 = require('unbzip2-stream');
+const url = require('url');
 
 const helpers = require('../helpers');
 const {exec} = require("child_process");
