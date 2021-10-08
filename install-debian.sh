@@ -475,7 +475,7 @@ create_aliases() {
 cd $SRC_PN_DIR
 git checkout feature/znet
 git pull
-POINT_KEYSTORE=$POINT_DIR/keystore CMD="npm run start:znet"
+CMD="export POINT_KEYSTORE=$POINT_DIR/keystore; docker-compose up -d"
 if [[ $(uname) == 'Darwin' ]]; then
   bash -c "\$CMD"
 else
