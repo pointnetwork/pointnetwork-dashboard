@@ -6,8 +6,17 @@ import {arch, platform} from "process";
 import path from "path";
 import url from "url";
 import fs from "fs-extra";
+const { http } = require('follow-redirects');
 
 export const attach = (ipcMain, win) => {
+    ipcMain.on("point-node-check", async (event, args) => {
+        http.get("http://localhost:2468/v1/api/status/ping", (res) => {
+            win.webContents.send("point-node-checked", true);
+        }).on('error', err => {
+            win.webContents.send("point-node-checked", false);
+        });
+    });
+
     ipcMain.on("firefox-check", async (event, args) => {
         if (await firefox.isInstalled()) {
             win.webContents.send("firefox-checked", true);

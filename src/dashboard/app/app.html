@@ -14,6 +14,7 @@
 <body>
 	<div class="container">
 	    <div id="app" class="row">
+		<div id="msg" class="alert alert-warning center-text no-display"></div>
 	    </div>
 	</div>
 
@@ -26,7 +27,7 @@
 	<script src="../../../src/misc/languages.js"></script>
 	<script>
 	 const dockerName = {
-	     "#docker-provider": "storage_provider",
+	     "#docker-point-node": "point_node",
 	     /* "#docker-contracts": "contract_deployer",
 		"#docker-pgadmin": "pgadmin",
 		"#docker-database": "database",
@@ -34,10 +35,12 @@
 		"#docker-owner": "website_owner",
 		"#docker-visitor": "website_visitor", */
 	 }
+	 let isFirefoxInstalled = false;
+	 let isPointNodeRunning = false;
 
 	 function newComponent(id, title, icon) {
 	     const component = `
-                <div class="col-md-6 p-1" id="${id}-container" class="collapsed">
+                <div class="col-md-12 p-1" id="${id}-container" class="collapsed">
 		    <div class="card p-1">
 			<div class="close right-text"></div>
 			<div id="${id}" class="d-flex flex-row">
@@ -47,7 +50,6 @@
                                 <div class="d-flex justify-content-between menu-extra">
 
 				    <span class="title">${icon} ${title} <span class="status text-black-50">Checking</span></span>
-				    <div><span class="text-primary logs">View logs&nbsp;<i class="fa fa-angle-right"></i></span></div>
 				</div>
 			    </div>
 			</div>
@@ -176,17 +178,59 @@
 	     window.api.send("firefox-run");
 	     $('#firefox .status').html('Running');
 	 }
+
+	 function isAllReady() {
+	     return isFirefoxInstalled && isPointNodeRunning;
+	 }
+
+	 function pointNodeCheck() {
+	     $('#docker-point-node .status').html('Checking');
+	     window.api.send("point-node-check");
+	 }
+	 
+	 window.api.receive("point-node-checked", (isRunning) => {
+	     if (isRunning) {
+		 isPointNodeRunning = true;
+		 addIconPassStatus('#docker-point-node .icon');
+		 $('#docker-point-node .status').html('Ready');
+		 
+		 addIconAction('#firefox', firefoxRun);
+		 $('#firefox .status').html('Ready');
+
+		 $('#msg').addClass('no-display');
+		 if (isAllReady) {
+		     // If Point Node and Firefox are good, then immediately run Firefox.
+		     firefoxRun();
+		 }
+		 return;
+	     }
+	     addIconFailStatus('#docker-point-node .icon', 'fail');
+	     $('#docker-point-node .status').html('Not running');
+	     $('#msg').removeClass('no-display');
+	     $('#msg').html('Point Node is not running, please run <code>point-up</code> in a terminal');
+
+	     addIconFailStatus('#firefox .icon', 'fail');
+	     $('#firefox .icon').unbind('click');
+	     $('#firefox .status').html('Point Node not running');
+	 });
 	 
 	 window.api.receive("firefox-checked", (isInstalled) => {
 	     if (isInstalled) {
 		 addIconPassStatus('#firefox .icon');
 		 addIconAction('#firefox', firefoxRun);
 		 setStatus('#firefox', 'Ready');
+		 isFirefoxInstalled = true;
+		 if (isAllReady) {
+		     // If Point Node and Firefox are good, then immediately run Firefox.
+		     firefoxRun();
+		 }
 		 return;
 	     }
 	     addIconFailStatus('#firefox .icon', 'fail');
 	     addIconAction('#firefox', firefoxInstallation);
 	     $('#firefox .status').html('Not installed');
+	     // If it's not installed, immediately start downloading and configuring.
+	     firefoxInstall();
 	 });
 
 	 window.api.receive("platform-checked", (platform) => {
@@ -338,10 +382,10 @@
 	     });
 	 }
 
-	 /* TODO: Change to something else. Currently you would need to be forced to click on #docker-provider icon */
+	 /* TODO: Change to something else. Currently you would need to be forced to click on #docker-point-node icon */
 	 function dockerInstall() {
-	     addIconCheckingStatus('#docker-provider .icon');
-	     $('#docker-provider .status').html('Installing');
+	     addIconCheckingStatus('#docker-point-node .icon');
+	     $('#docker-point-node .status').html('Installing');
 	     window.api.send("docker-download", {language: language});
 	 }
 
@@ -354,7 +398,7 @@
 	 }
 
 	 newComponent('firefox', 'Firefox Point Browser', '<i class="small-icon icon fab checking fa-firefox-browser fa-fw"></i>');
-	 newComponent('docker-visitor', 'Point Node', '<i class="small-icon icon fab checking fa-docker"></i>');
+	 newComponent('docker-point-node', 'Point Node', '<i class="small-icon icon fab checking fa-docker"></i>');
 	 // newComponent('docker-provider', 'Storage Provider', '<i class="small-icon icon fab checking fa-docker fa-fw"></i>');
 	 // newComponent('docker-contracts', 'Contract Deployer', '<i class="small-icon icon fab checking fa-docker fa-fw"></i>');
 	 /* newComponent('docker-pgadmin', 'pgAdmin', '<i class="small-icon icon fab checking fa-docker"></i>');
@@ -366,7 +410,7 @@
 	    newComponent('wallet', 'POINT Wallet', '<i class="small-icon icon fas fab checking fa-wallet"></i>');
 	    newComponent('notifications', 'Notifications', '<i class="small-icon icon fas fab checking fa-bell"></i>'); */
 
-	 // dockerInit('#docker-provider');
+	 // dockerInit('#docker-point-node');
 	 /* dockerInit('#docker-contracts');
 	    dockerInit('#docker-pgadmin');
 	    dockerInit('#docker-database');
@@ -377,10 +421,12 @@
 	 firefoxCheck();
 
 	 // Running once before loop.
-	 dockerHealthAll();
+	 // dockerHealthAll();
+	 pointNodeCheck();
 	 setInterval(function() {
-	     dockerHealthAll();
-	 }, 60 * 1000); // 60 * 1000 milsec
+	     // dockerHealthAll();
+	     pointNodeCheck();
+	 }, 3 * 1000); // 60 * 1000 milsec
 	 
 	</script>
     </body>

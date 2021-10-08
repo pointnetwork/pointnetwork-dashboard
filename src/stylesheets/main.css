@@ -17,7 +17,7 @@ body {
 
 .title {
     height: 100%;
-    font-size: 11pt;
+    font-size: 13pt;
 }
 .big-title {
     font-size: 13pt;
@@ -33,18 +33,18 @@ body {
 }
 
 .icon {
-    width: 60px;
+    width: 200px;
     text-align: center;
     vertical-align: middle;
 }
 
 .big-icon {
-    font-size: 70px;
+    font-size: 150px;
     margin: 5px 25px 20px 15px;
     text-align: center;
 }
 .small-icon {
-    font-size: 30px;
+    font-size: 100px;
     /* margin: 5px 20px 0 10px; */
 }
 
@@ -71,13 +71,13 @@ body {
        height: 40pt; */
 }
 .menu-extra title {
-    font-size: 13px
+    font-size: 16px
 }
 .menu-extra status {
-    font-size: 12px
+    font-size: 15px
 }
 .big-status {
-    font-size: 12px
+    font-size: 15px
 }
 
 .col-md-4 {
@@ -98,4 +98,9 @@ li {
 li:before {
     font-size: 30pt;
     padding-right: 5px;
+}
+
+#msg {
+    font-weight: bold;
+    font-size: 18pt;
 }
