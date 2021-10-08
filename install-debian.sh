@@ -21,7 +21,7 @@ export SRC_DIR="$POINT_DIR/src"
 export SRC_PN_DIR="$SRC_DIR/pointnetwork"
 export SRC_DASHBOARD_DIR="$SRC_DIR/pointnetwork-dashboard"
 export SOFTWARE_DIR="$POINT_DIR/software"
-export LIVE_DIR="$POINT_DIR/live"
+export LIVE_DIR="$POINT_DIR/keystore"
 DIRS=("$POINT_DIR" "$SRC_DIR" "$SOFTWARE_DIR" "$LIVE_DIR")
 
 fail() {
@@ -475,7 +475,7 @@ create_aliases() {
 cd $SRC_PN_DIR
 git checkout feature/znet
 git pull
-CMD="npm run start:znet"
+POINT_KEYSTORE=$POINT_DIR/keystore CMD="npm run start:znet"
 if [[ $(uname) == 'Darwin' ]]; then
   bash -c "\$CMD"
 else

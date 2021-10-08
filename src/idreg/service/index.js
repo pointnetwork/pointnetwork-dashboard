@@ -21,7 +21,7 @@ class IdRegService {
     async login(phrase, firstTime = false) {
         // if (!bip39.validateMnemonic(phrase)) throw Error('Entered secret phrase didn\'t pass the validation!');
         //
-        // if (await helpers.isLoggedIn()) throw Error("Already logged in (~/.point/live/key.json already exists). You need to log out first.");
+        // if (await helpers.isLoggedIn()) throw Error("Already logged in (~/.point/keystore/key.json already exists). You need to log out first.");
         //
         // if (!fs.existsSync(await helpers.getLiveDirectoryPath())) {
         //     fs.mkdirSync(await helpers.getLiveDirectoryPath());

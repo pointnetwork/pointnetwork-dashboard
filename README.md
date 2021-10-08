@@ -39,7 +39,7 @@ script.
    1. `mkdir $HOME/.point`
    1. `mkdir $HOME/.point/src`
    1. `mkdir $HOME/.point/software`
-   1. `mkdir $HOME/.point/live`
+   1. `mkdir $HOME/.point/keystore`
 1. `git clone` the following repositories:
    1. `git clone https://github.com/pointnetwork/pointnetwork-dashboard.git $HOME/.point/src/pointnetwork-dashboard`
    1. `git clone https://github.com/pointnetwork/pointnetwork.git $HOME/.point/src/pointnetwork`
