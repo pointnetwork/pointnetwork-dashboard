@@ -86,7 +86,7 @@ class Helpers {
 
     async getLiveDirectoryPath() {
         const homedir = await this.getHomePath();
-        return path.join(homedir, ".point", "live");
+        return path.join(homedir, ".point", "keystore");
     }
 
     async getKeyFileName() {

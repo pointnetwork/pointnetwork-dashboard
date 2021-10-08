@@ -91,7 +91,7 @@ class Firefox {
 
     async launch() {
         const cmd = await this.getBinPath(helpers.getOSAndArch());
-        const profile_path = "$HOME/.point/live/profile";
+        const profile_path = "$HOME/.point/keystore/profile";
         const flags = "--profile "+profile_path;
         const webext_binary = "$HOME/.point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext";
         const ext_path = "$HOME/.point/src/pointsdk/dist/prod"; // should contain manifest.json
