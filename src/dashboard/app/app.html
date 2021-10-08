@@ -198,9 +198,11 @@
 		 $('#firefox .status').html('Ready');
 
 		 $('#msg').addClass('no-display');
-		 if (isAllReady) {
+		 if (isAllReady && !window.firefox_auto_started) {
 		     // If Point Node and Firefox are good, then immediately run Firefox.
-		     firefoxRun();
+			 // But only one time
+			 window.firefox_auto_started = true;
+			 firefoxRun();
 		 }
 		 return;
 	     }
