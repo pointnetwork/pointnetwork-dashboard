@@ -505,7 +505,7 @@ FILE
 }
 
 download_docker_images() {
-  echo "$(cd $SRC_PN_DIR || exit 1; docker-compose pull)"
+  sudo bash -c "cd $SRC_PN_DIR || exit 1; docker-compose pull"
 }
 
 ## Welcome message
