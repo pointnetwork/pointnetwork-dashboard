@@ -234,6 +234,7 @@ pref('toolkit.telemetry.reportingpolicy.firstRun', false);
 pref('browser.shell.didSkipDefaultBrowserCheckOnFirstRun', true);
 pref('app.shield.optoutstudies.enabled', false);
 pref('network.proxy.autoconfig_url', '${pacFile}');
+pref('network.captive-portal-service.enabled', false);
 `;
         const prefPath = await this.getPrefPath(osAndArch);
         const appPath = await this.getAppPath(osAndArch);
