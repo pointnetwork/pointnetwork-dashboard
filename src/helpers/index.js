@@ -92,6 +92,9 @@ class Helpers {
     async getKeyFileName() {
         return path.join(await this.getLiveDirectoryPath(), "key.json");
     }
+    async getArweaveKeyFileName() {
+        return path.join(await this.getLiveDirectoryPath(), "arweave.json");
+    }
 
     async isLoggedIn() {
         return fs.existsSync(await this.getKeyFileName());
@@ -99,6 +102,7 @@ class Helpers {
 
     async logout() {
         fs.unlinkSync(await helpers.getKeyFileName());
+        fs.unlinkSync(await helpers.getArweaveKeyFileName());
     }
 
     isDirEmpty(path) {

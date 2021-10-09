@@ -504,6 +504,10 @@ FILE
     sudo chmod +x "/usr/bin/point-start"
 }
 
+download_docker_images() {
+  echo "$(cd $SRC_PN_DIR || exit 1; docker-compose pull)"
+}
+
 ## Welcome message
 echo_welcome
 
@@ -537,6 +541,8 @@ is_all_installed
 # Create desktop shortcut
 create_desktop_shortcut
 create_aliases
+
+download_docker_images
 
 # Start dashboard
 #if ask "Do you want to run PointNetwork Dashboard?"; then

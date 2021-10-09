@@ -7,6 +7,7 @@ const exec = util.promisify(require('child_process').exec);
 import * as axios from "axios";
 const sudo = require('sudo-prompt');
 const bip39 = require('bip39');
+const { getKeyFromMnemonic } = require('arweave-mnemonic-keys');
 
 class WelcomeService {
 
@@ -29,6 +30,12 @@ class WelcomeService {
 
         const contents = JSON.stringify({ phrase: phrase });
         fs.writeFileSync(await helpers.getKeyFileName(), contents);
+
+        // arweave
+        let arKey = getKeyFromMnemonic(phrase);
+        fs.writeFileSync(await helpers.getArweaveKeyFileName(), JSON.stringify(arKey));
+
+        // done
 
         this.win.webContents.send("loggedIn");
 
