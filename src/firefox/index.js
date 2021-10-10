@@ -8,6 +8,7 @@ const url = require('url');
 
 const helpers = require('../helpers');
 const {exec} = require("child_process");
+const { https } = require('follow-redirects');
 
 class Firefox {
     async getFolderPath(osAndArch) {
@@ -63,9 +64,7 @@ class Firefox {
             fs.mkdirSync(browserDir);
         }
 
-        const http_s = helpers.getHTTPorHTTPs(osAndArch);
-
-        return await http_s.get(firefoxURL, async (response) => {
+        return await https.get(firefoxURL, async (response) => {
             await response.pipe(firefoxRelease);
 
             return await new Promise(async(resolve, reject) => {
