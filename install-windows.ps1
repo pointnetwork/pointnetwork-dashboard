@@ -7,7 +7,7 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 # $CMDS = @('choco', 'git', 'wget', 'curl', 'wsl', 'nvm', 'node', 'docker', 'docker-compose')
 # Without WSL:
-$CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker', 'docker-compose')
+$CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker')
 $POINT_DIR="$HOME\.point"
 $SRC_DIR="$POINT_DIR\src"
 $SRC_PN_DIR="$SRC_DIR\pointnetwork"
@@ -136,8 +136,6 @@ function Create-Directory($path) {
 function Create-Directories() {
     Create-Directory($POINT_DIR)
     Create-Directory($SRC_DIR)
-    Create-Directory($SRC_PN_DIR)
-    Create-Directory($SRC_DASHBOARD_DIR)
     Create-Directory($SOFTWARE_DIR)
     Create-Directory($LIVE_DIR)
 }
