@@ -83,8 +83,11 @@ function Install-WSL() {
 }
 
 function Install-Docker() {
+    If(!(test-path $SOFTWARE_DIR\Docker.exe)) {
+	Msg("Downloading Docker")
+	Invoke-WebRequest "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe" -OutFile $SOFTWARE_DIR\Docker.exe
+    }
     Msg("Installing Docker")
-    Invoke-WebRequest "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe" -OutFile $SOFTWARE_DIR\Docker.exe
     & $SOFTWARE_DIR/Docker.exe
 }
 
