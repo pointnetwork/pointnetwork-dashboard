@@ -5,15 +5,19 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
   Break
 }
 
-$CMDS = @('choco', 'git', 'wget', 'curl', 'wsl', 'nvm', 'node', 'docker', 'docker-compose')
+# $CMDS = @('choco', 'git', 'wget', 'curl', 'wsl', 'nvm', 'node', 'docker', 'docker-compose')
+# Without WSL:
+$CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker', 'docker-compose')
 $POINT_DIR="$HOME\.point"
 $SRC_DIR="$POINT_DIR\src"
 $SRC_PN_DIR="$SRC_DIR\pointnetwork"
 $SRC_DASHBOARD_DIR="$SRC_DIR\pointnetwork-dashboard"
 $SRC_SDK_DIR="$SRC_DIR\pointsdk"
 $SOFTWARE_DIR="$POINT_DIR\software"
-$LIVE_DIR="$POINT_DIR\live"
+$LIVE_DIR="$POINT_DIR\keystore"
 $NODE_VERSION="v14.18.0"
+
+# choco install nodejs --version 14.18.0
 
 function Msg($msg) {
     Write-Host ">>> " -ForegroundColor Red -NoNewline
@@ -80,7 +84,7 @@ function Install-WSL() {
 
 function Install-Docker() {
     Msg("Installing Docker")
-    # Invoke-WebRequest "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe" -OutFile $SOFTWARE_DIR\Docker.exe
+    Invoke-WebRequest "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe" -OutFile $SOFTWARE_DIR\Docker.exe
     & $SOFTWARE_DIR/Docker.exe
 }
 
@@ -104,6 +108,13 @@ function Install-Commands() {
 	    }
 	    'docker' {
 		Install-Docker
+	    }
+	    'nvm' {
+		Install-NVM
+	    }
+	    'node' {
+		# This gets handled inside `Run-Dashboard`, so do nothing.
+		# Install-Node
 	    }
 	    default {
 		choco install $cmd
@@ -205,6 +216,18 @@ function Copy-BrowserProfile() {
 	Copy-Item -Path $SRC_DASHBOARD_DIR/liveprofile -Recurse -Destination $LIVE_DIR/profile -Container
     }
 }
+
+function Install-NVM() {
+    Msg("Installing nvm")
+    Invoke-WebRequest "https://github.com/coreybutler/nvm-windows/releases/download/1.1.8/nvm-setup.zip" -OutFile $SOFTWARE_DIR\nvm-setup.zip
+    Expand-Archive -LiteralPath $SOFTWARE_DIR\nvm-setup.zip -DestinationPath $SOFTWARE_DIR
+    & $SOFTWARE_DIR/nvm-setup.exe
+}
+
+# function Install-Node() {
+#     cd $SRC_DASHBOARD_DIR
+#     nvm install $NODE_VERSION
+# }
 
 function Run-Dashboard() {
     cd $SRC_DASHBOARD_DIR
