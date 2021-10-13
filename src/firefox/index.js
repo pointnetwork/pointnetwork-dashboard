@@ -235,6 +235,7 @@ pref('app.shield.optoutstudies.enabled', false);
 pref('network.proxy.autoconfig_url', '${pacFile}');
 pref('security.enterprise_roots.enabled', true);
 pref('network.captive-portal-service.enabled', false);
+pref('browser.tabs.drawInTitleBar', true);
 `;
         const prefPath = await this.getPrefPath(osAndArch);
         const appPath = await this.getAppPath(osAndArch);
