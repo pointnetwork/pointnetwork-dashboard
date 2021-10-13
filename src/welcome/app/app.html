@@ -72,7 +72,7 @@
 
                 <br>
                 <br>
-                <a href="#">I already have the secret phrase &mdash; Log in</a>
+                <a href="#" onclick="showLogin()">I already have the secret phrase &mdash; <strong>Log in</strong></a>
 
                 <div class="buttons">
                     <button class="btn btn-primary" id="btn-start" onclick="start();" disabled>Start</button>
@@ -92,6 +92,19 @@
                 </div>
             </div>
 
+            <div class="screen screen-login">
+                Please enter the secret phrase to log in:
+
+                <br>
+
+                <textarea id="secret-phrase-login" style="width: 100%; height: 3em; color: yellow; text-align: center;" class="stripey-background"></textarea>
+
+                <div class="buttons">
+                    <button class="btn btn-outline-secondary" id="btn-wait-return-back-to-welcome" onclick="waitReturnBackToWelcome();">&larr; Return back</button>
+                    <button class="btn btn-primary" id="btn-login-confirm" onclick="tryLogin();">Log In</button>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -100,6 +113,10 @@
     function showScreen(screen) {
         $('.screen').hide();
         $('.screen-'+screen).show();
+    }
+
+    function showLogin() {
+        showScreen('login');
     }
 
     $(function() {
@@ -133,27 +150,35 @@
         return phrase.toLowerCase().trim().replace("\n", ' ').replace('  ', ' ').replace('  ', ' ');
     }
 
-    function loginWithPhrase(phrase) {
+    function logInWithPhrase(phrase) {
+        phrase = normalizePhrase(phrase)
+        if (phrase == '') return alert('You entered an empty secret phrase.')
+        // todo: trim
         if (!bip39.validateMnemonic(phrase)) throw Error('Entered secret phrase didn\'t pass the validation!');
         window.api.send("login", { phrase: phrase, firstTime: true });
     }
-
     function trySecretPhraseConfirm() {
-        var phraseEntered = normalizePhrase($('#secret-phrase-confirmation').val())
+        var phraseEntered = normalizePhrase(phrase)
         var phraseReal = normalizePhrase(window.generated_seed.trim());
         if (phraseReal == '') return alert('Something went wrong. Could not find the originally generated phrase.')
-        if (phraseEntered == '') return alert('You entered an empty secret phrase.')
-        // todo: trim
         if (phraseReal === phraseEntered) {
             // continue
-            loginWithPhrase(phraseEntered);
+            return logInWithPhrase(phraseEntered);
         } else {
             return alert('Nope, this is not the correct secret phrase. Please go back and re-check.');
             // todo: more explanation. is a word missing? or there's an extra word? which word is wrong?
             // fail
         }
     }
+    function tryLogin() {
+        return logInWithPhrase($('#secret-phrase-login').val());
+    }
+
     function waitReturnBackToSeed() {
+        $('#secret-phrase-confirmation').val('');
+        showScreen('intro');
+    }
+    function waitReturnBackToWelcome() {
         $('#secret-phrase-confirmation').val('');
         showScreen('intro');
     }
