@@ -1,5 +1,7 @@
 # Point Network Alpha Testing Guide
 
+![alpha screenshot](resources/alpha_screenshot.png)
+
 ## Notes
 
 - This is experimental alpha software! If you can and know how, better test it on a virtual machine first (fresh Ubuntu is recommended). If you are not tech-savvy, maybe wait for others to try it out first and see how it goes
