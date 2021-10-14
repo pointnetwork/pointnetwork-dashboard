@@ -28,14 +28,15 @@
 1. Open a PowerShell terminal
 2. Download installation script: `Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1`
 3. Set execution policy to RemoteSigned: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser;`
-4. Run the script: `./install-windows.ps1`
-5. The script will ask you to restart your computer.
-6. After restarting, if you didn't have WSL before, WSL will be configured
+   * No need to worry about the warning that will be shown, for more details see here: https://stackoverflow.com/questions/64511176/security-risks-of-set-executionpolicy-executionpolicy-remotesigned
+5. Run the script: `./install-windows.ps1`
+6. The script will ask you to restart your computer.
+7. After restarting, if you didn't have WSL before, WSL will be configured
    1. Wait until WSL finishes configuring Ubuntu
    1. Set up your credentials (username and password) in the WSL terminal that is already open
-7. If you didn't have Docker before, please accept Docker's Terms of Service
-8. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
-9. Continue to "After Installation" section
+8. If you didn't have Docker before, please accept Docker's Terms of Service
+9. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
+10. Continue to "After Installation" section
 
 ## After Installation
 
