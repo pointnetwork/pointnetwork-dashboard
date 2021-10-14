@@ -16,7 +16,7 @@ NC='\033[0m' # No color.
 
 # Make sure 'nvm' comes first than 'node'.
 CMDS=('git' 'wget' 'curl' 'nvm' 'node' 'docker' 'docker-compose')
-export BRANCH="feature/znet"
+export BRANCH="master"
 export POINT_DIR="$HOME/.point"
 export SRC_DIR="$POINT_DIR/src"
 export SRC_PN_DIR="$SRC_DIR/pointnetwork"
