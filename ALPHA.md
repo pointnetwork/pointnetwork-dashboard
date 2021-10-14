@@ -1,6 +1,6 @@
 # Point Network Alpha Testing Guide
 
-![alpha screenshot](resources/alpha_screenshot.png)
+![alpha screenshot](resources/alpha_screenshot_2.png)
 
 ## Notes
 
