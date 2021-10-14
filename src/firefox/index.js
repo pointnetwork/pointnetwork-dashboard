@@ -199,7 +199,7 @@ class Firefox {
             return path.join(rootPath, 'point-browser-portable.exe');
         }
         if (osAndArch == 'mac') {
-            return `open ${path.join(rootPath, 'Firefox.app')}`;
+            return `${path.join(rootPath, 'Firefox.app')}`;
         }
         // linux
         return path.join(rootPath, 'firefox');
