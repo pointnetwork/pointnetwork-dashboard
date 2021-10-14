@@ -3,6 +3,10 @@
 ### Linux
 
 1. Run `wget -qO- pointer.sh | bash` in the terminal, wait until completion
+1. PointNetwork Dashboard will run after the script completes
+1. In a terminal, run `point-up` to start Point Node
+1. Wait until the icons on the dashboard turn green
+1. PointBrowser will launch and you're ready to go!
 
 ### Mac OS
 
