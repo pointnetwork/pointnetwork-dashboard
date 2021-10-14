@@ -1,10 +1,5 @@
 # Point Network Alpha Testing Guide
 
-## Prerequisites
-
-1. `wget` for Linux
-1. `curl` for Mac OS
-
 ### Linux
 
 1. Run `wget -qO- pointer.sh | bash` in the terminal, wait until completion
