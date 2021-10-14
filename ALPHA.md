@@ -20,8 +20,7 @@
 ### Mac OS
 
 1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion
-2. Please continue below to 'After Installation' phase
-3. Continue to "After Installation" section
+2. Continue to "After Installation" section
 
 ### Windows 10 and 11
 
