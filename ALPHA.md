@@ -16,12 +16,14 @@
 2. PointNetwork Dashboard will run after the script completes
 3. In a terminal, run `point-up` to start Point Node
 4. Wait until the icons on the dashboard turn green
+   * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
 5. PointBrowser will launch and you're ready to go!
 6. Continue to "After Installation" section
 
 ### Mac OS
 
-1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion
+1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion, restart the script when Docker is installed
+   * When dashboard opens and lights up green: sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
 2. Continue to "After Installation" section
 
 ### Windows 10 and 11
@@ -37,6 +39,7 @@
    1. Set up your credentials (username and password) in the WSL terminal that is already open
 8. If you didn't have Docker before, please accept Docker's Terms of Service
 9. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
+   * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
 10. Continue to "After Installation" section
 
 ## After Installation
