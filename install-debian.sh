@@ -130,7 +130,7 @@ install() {
     if is_linux; then
       sudo apt-get --assume-yes install $1 || fail "apt-get install $1 failed"
     elif is_mac; then
-      brew install $1 || fail "brew install $1 failed"
+      brew install $1 # || fail "brew install $1 failed"
     else
       fail "Unsupported system"
     fi
