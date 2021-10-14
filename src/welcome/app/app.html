@@ -158,6 +158,7 @@
         window.api.send("login", { phrase: phrase, firstTime: true });
     }
     function trySecretPhraseConfirm() {
+        var phrase = $('#secret-phrase-confirmation').val();
         var phraseEntered = normalizePhrase(phrase)
         var phraseReal = normalizePhrase(window.generated_seed.trim());
         if (phraseReal == '') return alert('Something went wrong. Could not find the originally generated phrase.')
