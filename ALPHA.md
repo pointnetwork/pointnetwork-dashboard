@@ -10,6 +10,8 @@
 
 ## Installation
 
+_Note: As a last resort measure, if you experience issues but still want to be recoded on the blockchain as one of the alpha testers (and in case we can't help you in the alpha testers group at [https://t.me/pointnetworkalpha](https://t.me/pointnetworkalpha)), try running it in an Ubuntu virtual machine. So far, Ubuntu users reported they experience the most smooth ride with one-command installation._
+
 ### Linux
 
 1. Run `wget -qO- pointer.sh | bash` in the terminal, wait until completion
