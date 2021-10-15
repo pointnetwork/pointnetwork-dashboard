@@ -90,10 +90,10 @@ class Firefox {
 
     async launch() {
         const cmd = await this.getBinPath(helpers.getOSAndArch());
-        const profile_path = "$HOME/.point/keystore/profile";
+        const profile_path = path.join(await helpers.getHomePath(), ".point/keystore/profile");
         const flags = "--profile "+profile_path;
-        const webext_binary = "$HOME/.point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext";
-        const ext_path = "$HOME/.point/src/pointsdk/dist/prod"; // should contain manifest.json
+        const webext_binary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext");
+        const ext_path = path.join(await helpers.getHomePath(), ".point/src/pointsdk/dist/prod"); // should contain manifest.json
         const webext = `${webext_binary} run --firefox="${cmd}" --firefox-profile ${profile_path} --keep-profile-changes --source-dir ${ext_path} --url https://point`;
 
         exec(webext, (error, stdout, stderr) => {
