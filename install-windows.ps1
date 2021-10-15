@@ -315,11 +315,11 @@ function Echo-Welcome {
     Msg("")
 }
 
-if (Ask "Do you want to continue?") {
-    Msg "Yes"
-} else {
-    Msg "No"
-}
+# if (Ask "Do you want to continue?") {
+#     Msg "Yes"
+# } else {
+#     Msg "No"
+# }
 
 Echo-Welcome
 Create-Directories
@@ -333,5 +333,3 @@ Test-AllInstalled
 # Create-Aliases # TODO
 Set-PointOnWSL
 Run-Dashboard
-
-# Install-PointNetwork
