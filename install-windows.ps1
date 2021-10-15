@@ -1,13 +1,14 @@
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
 {  
-  $arguments = "& '" +$myinvocation.mycommand.definition + "'"
-  Start-Process powershell -Verb runAs -ArgumentList $arguments
-  Break
+    $arguments = "& '" +$myinvocation.mycommand.definition + "'"
+    Start-Process powershell -Verb runAs -ArgumentList $arguments
+    Break
 }
 
 $CMDS = @('choco', 'git', 'wget', 'curl', 'wsl', 'nvm', 'node', 'docker')
 # Without WSL:
 # $CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker')
+$BRANCH="master"
 $POINT_DIR="$HOME\.point"
 $SRC_DIR="$POINT_DIR\src"
 $SRC_PN_DIR="$SRC_DIR\pointnetwork"
@@ -16,6 +17,7 @@ $SRC_SDK_DIR="$SRC_DIR\pointsdk"
 $SOFTWARE_DIR="$POINT_DIR\software"
 $LIVE_DIR="$POINT_DIR\keystore"
 $NODE_VERSION="v14.18.0"
+$RESTARTED="$POINT_DIR/restarted"
 
 # choco install nodejs --version 14.18.0
 
@@ -31,6 +33,7 @@ function Ask($msg) {
 
     $msg = Msg($msg)
     
+
     $decision = $Host.UI.PromptForChoice("", $msg, $choices, 1)
 
     return $decision -eq 0
@@ -49,6 +52,7 @@ function Test-Command($cmd) {
 	'wsl' {
 	    if(-Not(Test-WSLInstalled)) {
 		return $false
+
 	    }
 	}
 	default {
@@ -116,6 +120,8 @@ function Install-Commands() {
 		Install-NVM
 	    }
 	    'node' {
+
+
 		# This gets handled inside `Run-Dashboard`, so do nothing.
 		# Install-Node
 	    }
@@ -196,6 +202,7 @@ function Clone-Repositories() {
     }
 }
 
+
 function Update-Repositories() {
     if(Test-PNRepo) {
 	Msg("Updating PointNetwork")
@@ -247,12 +254,50 @@ function Create-Shortcut() {
     $WScriptShell = New-Object -ComObject WScript.Shell
     $shortcutLocation = "$HOME/Desktop/Point.lnk"
     $shortcut = $WScriptShell.CreateShortcut($ShortcutLocation)
-    # $shortcut.IconLocation="$SRC_DASHBOARD_DIR\resources\pointlogo_any_bg.png"
     $shortcut.IconLocation="$SRC_DASHBOARD_DIR\resources\pointlogo_any_bg.ico"
     $shortcut.TargetPath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
-    $shortcut.Arguments = "-command & `"$startScript`""
+    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$startScript`""
     $shortcut.Save()
 }
+
+function Set-Restarted() {
+    Out-File -FilePath $RESTARTED
+}
+
+
+function Test-Restarted() {
+    If(test-path $RESTARTED) {
+	return $true
+    }
+    return $false
+}
+
+function Restart-PopUp() {
+    if(Test-Restarted) {
+	return
+    }
+    Add-Type -AssemblyName PresentationCore,PresentationFramework
+    $msgBody = "It is necessary to *RESTART* your system. Do you want to restart now?"
+    $msgTitle = "System Restart Required"
+    $msgButton = "YesNo"
+    $msgImage = 'Question'
+    $Result = [System.Windows.MessageBox]::Show($msgBody,$msgTitle,$msgButton,$msgImage)
+    if($Result -Eq "Yes") {
+	Set-Restarted
+	Restart-Computer -Wait
+    }
+}
+
+function Set-PointOnWSL() {
+    $windowsHome = wsl wslpath "$(wslvar USERPROFILE)"
+    wsl cp -r "$windowsHome/.point" ~
+    wsl rm -rf ~/.point/src/*
+    wsl git clone https://github.com/pointnetwork/pointnetwork $SRC_PN_DIR
+    cd $SRC_PN_DIR
+    git checkout $BRANCH
+}
+
+
 
 function Echo-Welcome {
     Msg("")
@@ -263,10 +308,17 @@ function Echo-Welcome {
     Msg("installs some commands using Chocolatey, if not already present,")
     Msg("and clones all the required PointNetwork repositories inside $HOME\.point/src.")
     Msg("")
-    Msg "The commands that this script will install are:"
+    Msg("The commands that this script will install are:")
     Msg("")
+
     Msg($CMDS)
     Msg("")
+}
+
+if (Ask "Do you want to continue?") {
+    Msg "Yes"
+} else {
+    Msg "No"
 }
 
 Echo-Welcome
@@ -276,11 +328,10 @@ Create-Shortcut
 Copy-BrowserProfile
 Update-Repositories
 Install-Commands
+Restart-PopUp
 Test-AllInstalled
 # Create-Aliases # TODO
+Set-PointOnWSL
 Run-Dashboard
-# if (Ask "Do you want to continue?") {
-#     Msg "Yes"
-# } else {
-#     Msg "No"
-# }
+
+# Install-PointNetwork
