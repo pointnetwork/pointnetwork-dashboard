@@ -448,10 +448,10 @@ install_commands() {
     done
 }
 
-create_desktop_shortcut() {
+create_linux_desktop_shortcut() {
     SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
     if [[ -f $SHORTCUT_FILE ]]; then
-	rm $SHORTCUT_FILE
+  rm $SHORTCUT_FILE
     fi
     START_SCRIPT="$SRC_DASHBOARD_DIR/start.sh"
     tee "$SHORTCUT_FILE" <<SHORTCUT >/dev/null
@@ -468,6 +468,40 @@ SHORTCUT
     sudo chmod -x "$SHORTCUT_FILE"
     gio set $SHORTCUT_FILE metadata::trusted true
     sudo chmod +x "$SHORTCUT_FILE"
+}
+
+create_mac_shortcut() {
+    mkdir -p ~/Applications/Point.app/Contents/Resources
+    mkdir -p ~/Applications/Point.app/Contents/MacOS
+    cp "$SRC_DASHBOARD_DIR/start.sh" ~/Applications/Point.app/Contents/MacOS/run.sh
+    cp  "$SRC_DASHBOARD_DIR/resources/pointlogo_any_bg.png" ~/Applications/Point.app/Contents/Resources/iconfile.icns
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+	<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+	<plist version=\"1.0\">
+	<dict>
+		<key>CFBundleExecutable</key>
+		<string>run.sh</string>
+		<key>CFBundleIconFile</key>
+		<string>iconfile.icns</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>1.0</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleVersion</key>
+		<string>1.0</string>
+	</dict>
+	</plist>
+" > ~/Applications/Point.app/Contents/Info.plist
+}
+
+create_desktop_shortcut() {
+    if is_linux; then
+        create_linux_desktop_shortcut
+    elif is_mac; then
+        create_mac_shortcut
+    fi
 }
 
 create_aliases() {
