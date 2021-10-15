@@ -180,7 +180,7 @@ install_docker() {
       brew install homebrew/cask/docker || fail "Failed to install homebrew/cask/docker"
       msg "Docker installed, starting..."
       xattr -d -r com.apple.quarantine /Applications/Docker.app
-      open -g -W -a /Applications/Docker.app
+      open -g -a /Applications/Docker.app
     else
       fail "Unsupported system"
     fi
@@ -546,7 +546,4 @@ create_aliases
 download_docker_images
 
 # Start dashboard
-#if ask "Do you want to run PointNetwork Dashboard?"; then
-#    msg
 run_pn_dashboard
-#fi
