@@ -287,7 +287,7 @@ function Restart-PopUp() {
 }
 
 function Set-PointOnWSL() {
-    $windowsHome = wsl wslpath "$(wslvar USERPROFILE)"
+    $windowsHome = wsl wslpath "$(wsl wslvar USERPROFILE)"
     wsl cp -r "$windowsHome/.point" ~
     wsl rm -rf ~/.point/src/*
     wsl git clone https://github.com/pointnetwork/pointnetwork $SRC_PN_DIR
