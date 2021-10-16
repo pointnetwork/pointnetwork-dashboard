@@ -291,8 +291,8 @@ function Set-PointOnWSL() {
     wsl cp -r "$windowsHome/.point" ~
     wsl rm -rf ~/.point/src/*
     wsl git clone https://github.com/pointnetwork/pointnetwork $SRC_PN_DIR
-    cd $SRC_PN_DIR
-    git checkout $BRANCH
+    wsl cd $SRC_PN_DIR ; git checkout $BRANCH
+    wsl ln -s "$windowsHome/.point/keystore/key.json" $SRC_PN_DIR/keystore/key.json
 }
 
 
