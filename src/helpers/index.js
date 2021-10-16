@@ -65,7 +65,10 @@ class Helpers {
 
     async getBrowserFolderPath(osAndArch) {
         // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
-        const homePath = await module.exports.getHomePath(osAndArch);
+        // const homePath = await module.exports.getHomePath(osAndArch);
+        // We don't want to use `getHomePath` because we don't want to install
+        // the browser inside WSL.
+        const homePath = os.homedir();
         return path.join(homePath, '.point', 'src', 'point-browser');
     }
 
