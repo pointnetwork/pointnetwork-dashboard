@@ -29,18 +29,16 @@
 ### Windows 10 and 11
 
 1. Open a PowerShell terminal
-2. Download installation script: `Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1`
-3. Set execution policy to RemoteSigned: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser;`
+2. Run this in the PowerShell terminal: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser ; Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1; ./install-windows.ps1`
    * No need to worry about the warning that will be shown, for more details see here: https://stackoverflow.com/questions/64511176/security-risks-of-set-executionpolicy-executionpolicy-remotesigned
-5. Run the script: `./install-windows.ps1`
-6. The script will ask you to restart your computer.
-7. After restarting, if you didn't have WSL before, WSL will be configured
+3. The script will ask you to restart your computer.
+4. After restarting, if you didn't have WSL before, WSL will be configured
    1. Wait until WSL finishes configuring Ubuntu
    1. Set up your credentials (username and password) in the WSL terminal that is already open
-8. If you didn't have Docker before, please accept Docker's Terms of Service
-9. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
+5. If you didn't have Docker before, please accept Docker's Terms of Service
+6. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
    * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
-10. Continue to "After Installation" section
+7. Continue to "After Installation" section
 
 ## After Installation
 
