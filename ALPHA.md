@@ -30,6 +30,8 @@ _Note: As a last resort measure, if you experience issues but still want to be r
 
 ### Windows 10 and 11
 
+#### NOTE: You're sometimes going to get some error messages about missing commands. This is expected. Only report errors that stop the installation process from continuing.
+
 1. Open a PowerShell terminal
 2. Run this in the PowerShell terminal: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser ; Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1; ./install-windows.ps1`
    * No need to worry about the warning that will be shown, for more details see here: https://stackoverflow.com/questions/64511176/security-risks-of-set-executionpolicy-executionpolicy-remotesigned
