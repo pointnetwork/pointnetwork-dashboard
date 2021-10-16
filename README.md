@@ -1,5 +1,11 @@
 # PointNetwork Dashboard
 
+## Alpha Tests
+
+Alpha testers! This is not the right file if you want to do the alpha test.
+
+Please head to [ALPHA.md](ALPHA.md)
+
 ## Introduction
 
 PointNetwork Dashboard serves the purpose of installing, configuring
