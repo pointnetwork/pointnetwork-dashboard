@@ -288,14 +288,14 @@ function Restart-PopUp() {
 
 function Set-PointOnWSL() {
     $windowsHome = wsl wslpath "$(wsl wslvar USERPROFILE)"
-    wsl cp -r "$windowsHome/.point" ~
-    wsl rm -rf ~/.point/src/*
-    wsl git clone https://github.com/pointnetwork/pointnetwork $SRC_PN_DIR
-    wsl cd $SRC_PN_DIR ; git checkout $BRANCH
-    wsl ln -s "$windowsHome/.point/keystore/key.json" $SRC_PN_DIR/keystore/key.json
+    wsl rm -rf ~/.point
+    wsl mkdir -p ~/.point/keystore
+    wsl mkdir -p ~/.point/src
+    wsl git clone https://github.com/pointnetwork/pointnetwork ~/.point/src/pointnetwork
+    wsl printf "{}" ^> ~/.point/keystore/arweave.json
+    wsl cd ~/.point/src/pointnetwork
+    wsl ln -s "$windowsHome/.point/keystore/key.json" ~/.point/keystore/key.json
 }
-
-
 
 function Echo-Welcome {
     Msg("")
