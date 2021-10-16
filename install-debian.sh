@@ -471,11 +471,11 @@ SHORTCUT
 }
 
 create_mac_shortcut() {
-    mkdir -p ~/Applications/Point.app/Contents/Resources
-    mkdir -p ~/Applications/Point.app/Contents/MacOS
-    cp "$SRC_DASHBOARD_DIR/start.sh" ~/Applications/Point.app/Contents/MacOS/run.sh
-    cp  "$SRC_DASHBOARD_DIR/resources/pointlogo_any_bg.png" ~/Applications/Point.app/Contents/Resources/iconfile.icns
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+    sudo mkdir -p /Applications/Point.app/Contents/Resources
+    sudo mkdir -p /Applications/Point.app/Contents/MacOS
+    sudo cp "$SRC_DASHBOARD_DIR/start.sh" /Applications/Point.app/Contents/MacOS/run.sh
+    sudo cp  "$SRC_DASHBOARD_DIR/resources/pointlogo_any_bg.png" /Applications/Point.app/Contents/Resources/iconfile.icns
+    sudo echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 	<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
 	<plist version=\"1.0\">
 	<dict>
@@ -493,7 +493,7 @@ create_mac_shortcut() {
 		<string>1.0</string>
 	</dict>
 	</plist>
-" > ~/Applications/Point.app/Contents/Info.plist
+" > /Applications/Point.app/Contents/Info.plist
 }
 
 create_desktop_shortcut() {
