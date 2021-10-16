@@ -323,11 +323,11 @@ function Echo-Welcome {
 
 Echo-Welcome
 Create-Directories
+Install-Commands
 Clone-Repositories
 Create-Shortcut
 Copy-BrowserProfile
 Update-Repositories
-Install-Commands
 Restart-PopUp
 Test-AllInstalled
 # Create-Aliases # TODO
