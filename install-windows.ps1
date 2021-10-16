@@ -5,7 +5,7 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Break
 }
 
-$CMDS = @('choco', 'git', 'wget', 'curl', 'wsl', 'nvm', 'node', 'docker')
+$CMDS = @('choco', 'git', 'wget', 'curl', 'wsl', 'nvm', 'docker')
 # Without WSL:
 # $CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker')
 $BRANCH="master"
@@ -119,12 +119,12 @@ function Install-Commands() {
 	    'nvm' {
 		Install-NVM
 	    }
-	    'node' {
+	    # 'node' {
 
 
-		# This gets handled inside `Run-Dashboard`, so do nothing.
-		# Install-Node
-	    }
+	    # 	# This gets handled inside `Run-Dashboard`, so do nothing.
+	    # 	# Install-Node
+	    # }
 	    default {
 		choco install $cmd
 	    }
@@ -232,12 +232,7 @@ function Install-NVM() {
     & $SOFTWARE_DIR/nvm-setup.exe
 }
 
-# function Install-Node() {
-#     cd $SRC_DASHBOARD_DIR
-#     nvm install $NODE_VERSION
-# }
-
-function Run-Dashboard() {
+function Install-Node() {
     cd $SRC_DASHBOARD_DIR
     Msg("Installing required node.js version")
     nvm install $NODE_VERSION | out-null
@@ -245,6 +240,9 @@ function Run-Dashboard() {
     nvm use | out-null
     Msg("Installing required node.js packages using npm")
     npm install | out-null
+}
+
+function Run-Dashboard() {
     Msg("Starting PointNetwork Dashboard")
     npm start
 }
@@ -325,6 +323,7 @@ Echo-Welcome
 Create-Directories
 Install-Commands
 Clone-Repositories
+Install-Node
 Create-Shortcut
 Copy-BrowserProfile
 Update-Repositories
