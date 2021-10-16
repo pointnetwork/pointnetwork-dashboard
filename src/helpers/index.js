@@ -65,24 +65,21 @@ class Helpers {
 
     async getBrowserFolderPath(osAndArch) {
         // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
-        // const homePath = await module.exports.getHomePath(osAndArch);
-        // We don't want to use `getHomePath` because we don't want to install
-        // the browser inside WSL.
-        const homePath = os.homedir();
+        const homePath = await module.exports.getHomePath(osAndArch);
         return path.join(homePath, '.point', 'src', 'point-browser');
     }
 
     async getHomePath(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
-            // NOTE: `wsl echo $HOME` doesn't work.
-            const cmd = `wsl realpath ~`;
-            try {
-                const result = await exec(cmd);
-                return result.stdout.trim();
-            } catch(ex) {
-                throw ex;
-            }
-        }
+        // if (osAndArch == 'win32' || osAndArch == 'win64') {
+        //     // NOTE: `wsl echo $HOME` doesn't work.
+        //     const cmd = `wsl realpath ~`;
+        //     try {
+        //         const result = await exec(cmd);
+        //         return result.stdout.trim();
+        //     } catch(ex) {
+        //         throw ex;
+        //     }
+        // }
 
         return os.homedir();
     }
