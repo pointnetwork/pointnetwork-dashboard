@@ -26,6 +26,7 @@ _Note: As a last resort measure, if you experience issues but still want to be r
 
 1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion, restart the script when Docker is installed
    * When dashboard opens and lights up green: sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
+2. A `Point.app` should have been created inside `/Applications`. You can use this app to run the dashboard.
 2. Continue to "After Installation" section
 
 ### Windows 10 and 11
@@ -42,7 +43,9 @@ _Note: As a last resort measure, if you experience issues but still want to be r
 5. If you didn't have Docker before, please accept Docker's Terms of Service
 6. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
    * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
-7. Continue to "After Installation" section
+7. Set up our Docker containers by running this command in a PowerShell terminal: `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml up -d`
+  1. If you ever wish to stop the containers, you can run `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml down -v`
+8. Continue to "After Installation" section
 
 ## After Installation
 
