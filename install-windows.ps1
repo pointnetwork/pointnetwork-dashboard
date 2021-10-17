@@ -232,6 +232,10 @@ function Install-NVM() {
     & $SOFTWARE_DIR/nvm-setup.exe
 }
 
+function Install-WebExt() {
+    npm install --global web-ext
+}
+
 function Install-Node() {
     cd $SRC_DASHBOARD_DIR
     Msg("Installing required node.js version")
@@ -324,6 +328,7 @@ Create-Directories
 Install-Commands
 Clone-Repositories
 Install-Node
+Install-WebExt
 Create-Shortcut
 Copy-BrowserProfile
 Update-Repositories
