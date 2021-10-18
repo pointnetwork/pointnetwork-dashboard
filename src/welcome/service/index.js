@@ -128,12 +128,13 @@ class WelcomeService {
             return true;
         }
 
-        tryToShowError(e)
-        {
-            this.win.webContents.send("error", {e});
-        }
-
     }
+
+    tryToShowError(e)
+    {
+        this.win.webContents.send("error", {e});
+    }
+
 }
 
 export default WelcomeService;
