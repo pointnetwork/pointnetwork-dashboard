@@ -24,10 +24,12 @@ _Note: As a last resort measure, if you experience issues but still want to be r
 
 ### Mac OS
 
-1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion, restart the script when Docker is installed
+1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion
+2. When Docker opens, accept the Terms
+3. Run the script again: `curl -sL pointer.sh | bash -s`, and wait until completion
    * When dashboard opens and lights up green: sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
-2. A `Point.app` should have been created inside `/Applications`. You can use this app to run the dashboard.
-2. Continue to "After Installation" section
+4. A `Point.app` should have been created inside `/Applications`. You can use this app to run the dashboard.
+5. Continue to "After Installation" section
 
 ### Windows 10 and 11
 
