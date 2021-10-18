@@ -286,7 +286,7 @@ function Restart-PopUp() {
     $Result = [System.Windows.MessageBox]::Show($msgBody,$msgTitle,$msgButton,$msgImage)
     if($Result -Eq "Yes") {
 	Set-Restarted
-	Restart-Computer -Wait
+	Restart-Computer
     }
 }
 
