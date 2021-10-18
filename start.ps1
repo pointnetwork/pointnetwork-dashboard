@@ -6,10 +6,12 @@ if(!(test-path $PN_DIR) -or !(test-path $DASH_DIR)) {
     exit 1
 }
 
+wsl --set-default ubuntu
+
 cd $PN_DIR
 git pull
 cd $DASH_DIR
 git pull
-nvm use $NODE_VER
+# nvm use $NODE_VER
 npm i
 npm start

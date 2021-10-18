@@ -250,6 +250,7 @@ function Install-Node() {
 
 function Run-Dashboard() {
     Msg("Starting PointNetwork Dashboard")
+    wsl --set-default ubuntu
     npm start
 }
 
@@ -293,6 +294,7 @@ function Restart-PopUp() {
 }
 
 function Set-PointOnWSL() {
+    wsl --set-default ubuntu
     $windowsHome = wsl wslpath "$(wsl wslvar USERPROFILE)"
     wsl rm -rf ~/.point
     wsl mkdir -p ~/.point/keystore
