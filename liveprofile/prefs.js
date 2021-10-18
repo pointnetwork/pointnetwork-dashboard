@@ -154,3 +154,27 @@ user_pref("toolkit.telemetry.pioneer-new-studies-available", true);
 user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);
 user_pref("trailhead.firstrun.didSeeAboutWelcome", true);
 user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+
+
+
+user_pref('network.proxy.type', 2);
+user_pref('network.proxy.http', 'localhost');
+user_pref('network.proxy.http_port', 8666);
+user_pref('browser.startup.homepage', 'https://point');
+user_pref('startup.homepage_welcome_url', 'https://point/welcome');
+user_pref('startup.homepage_welcome_url.additional', '');
+user_pref('startup.homepage_override_url', '');
+user_pref('network.proxy.allow_hijacking_localhost', true);
+user_pref('browser.fixup.domainsuffixwhitelist.z', true);
+user_pref('browser.fixup.domainsuffixwhitelist.point', true);
+user_pref('browser.shell.checkDefaultBrowser', false);
+user_pref('app.normandy.first_run', false);
+user_pref('browser.laterrun.enabled', true);
+user_pref('doh-rollout.doneFirstRun', true);
+user_pref('trailhead.firstrun.didSeeAboutWelcome', true);
+user_pref('toolkit.telemetry.reportingpolicy.firstRun', false);
+user_pref('browser.shell.didSkipDefaultBrowserCheckOnFirstRun', true);
+user_pref('app.shield.optoutstudies.enabled', false);
+user_pref('security.enterprise_roots.enabled', true);
+user_pref('network.captive-portal-service.enabled', false);
+user_pref('browser.tabs.drawInTitlebar', true);
