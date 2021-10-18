@@ -36,21 +36,23 @@ _Note: As a last resort measure, if you experience issues but still want to be r
 #### Note: You're going to see a lot of red error messages about missing commands. This is expected. Only report errors that stop the installation process from continuing.
 #### Note: Docker and WSL require reboots on Windows. Save your work first.
 
+When you are asked to open PowerShell, open PowerShell (not PowerShell ISE, not PowerShell x86, just PowerShell)
+
 1. Install Docker if you don't have it already: https://docs.docker.com/desktop/windows/install/
    * It will ask you to reboot. Also, you need to accept the terms, and skip the tutorial
-2. Install WSL2 by running in a terminal: `wsl --install -d Ubuntu`
-3. Open a PowerShell terminal (not PowerShell ISE, not PowerShell x86, just PowerShell)
-4. Run this in the PowerShell terminal: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser ; Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1; ./install-windows.ps1`
+2. Install WSL2 by running in PowerShell __running as an administrator__: `wsl --set-default-version 2` and then `wsl --install -d Ubuntu`
+   1. aka.ms/wsl2kernel
+3. Run this in the normal PowerShell terminal: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser ; Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1; ./install-windows.ps1`
    * No need to worry about the warning that will be shown, for more details see here: https://stackoverflow.com/questions/64511176/security-risks-of-set-executionpolicy-executionpolicy-remotesigned
-5. The script will ask you to restart your computer.
-6. After restarting, if you didn't have WSL before, WSL will be configured
+4. The script will ask you to restart your computer.
+5. After restarting, if you didn't have WSL before, WSL will be configured
    1. Wait until WSL finishes configuring Ubuntu
    1. Set up your credentials (username and password) in the WSL terminal that is already open
-7. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
+6. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
    * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
-8. Set up our Docker containers by running this command in a PowerShell terminal: `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml up -d`
-9. If you ever wish to stop the containers, you can run `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml down -v`
-10. Continue to "After Installation" section
+7. Set up our Docker containers by running this command in a PowerShell terminal: `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml up -d`
+8. If you ever wish to stop the containers, you can run `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml down -v`
+9. Continue to "After Installation" section
 
 ## After Installation
 

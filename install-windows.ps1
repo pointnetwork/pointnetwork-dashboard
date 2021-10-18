@@ -85,7 +85,7 @@ function Install-Chocolatey() {
 }
 
 function Install-WSL() {
-    wsl --install
+    wsl --install -d Ubuntu
 }
 
 function Install-Docker() {
