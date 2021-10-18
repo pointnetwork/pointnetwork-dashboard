@@ -24,28 +24,31 @@ _Note: As a last resort measure, if you experience issues but still want to be r
 
 ### Mac OS
 
-1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion, restart the script when Docker is installed
+1. Run `curl -sL pointer.sh | bash -s` in Terminal, wait until completion
+2. When Docker opens, accept the Terms
+3. Run the script again: `curl -sL pointer.sh | bash -s`, and wait until completion
    * When dashboard opens and lights up green: sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
-2. A `Point.app` should have been created inside `/Applications`. You can use this app to run the dashboard.
-2. Continue to "After Installation" section
+4. A `Point.app` should have been created inside `/Applications`. You can use this app to run the dashboard.
+5. Continue to "After Installation" section
 
 ### Windows 10 and 11
 
 #### NOTE: You're sometimes going to get some error messages about missing commands. This is expected. Only report errors that stop the installation process from continuing.
 
-1. Open a PowerShell terminal
-2. Run this in the PowerShell terminal: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser ; Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1; ./install-windows.ps1`
+1. Install Docker if you don't have it already: https://docs.docker.com/desktop/windows/install/
+   * It will ask you to reboot. Also, you need to accept the terms, and skip the tutorial.
+2. Open a PowerShell terminal (not PowerShell ISE, not PowerShell x86, just PowerShell)
+3. Run this in the PowerShell terminal: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser ; Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1; ./install-windows.ps1`
    * No need to worry about the warning that will be shown, for more details see here: https://stackoverflow.com/questions/64511176/security-risks-of-set-executionpolicy-executionpolicy-remotesigned
-3. The script will ask you to restart your computer.
-4. After restarting, if you didn't have WSL before, WSL will be configured
+4. The script will ask you to restart your computer.
+5. After restarting, if you didn't have WSL before, WSL will be configured
    1. Wait until WSL finishes configuring Ubuntu
    1. Set up your credentials (username and password) in the WSL terminal that is already open
-5. If you didn't have Docker before, please accept Docker's Terms of Service
 6. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
    * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
 7. Set up our Docker containers by running this command in a PowerShell terminal: `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml up -d`
-  1. If you ever wish to stop the containers, you can run `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml down -v`
-8. Continue to "After Installation" section
+8. If you ever wish to stop the containers, you can run `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml down -v`
+9. Continue to "After Installation" section
 
 ## After Installation
 

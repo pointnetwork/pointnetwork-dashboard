@@ -75,11 +75,13 @@ function Test-AllCommandsExist() {
 
 function Install($cmd) {
     Msg "Installing $cmd"
-    choco install $cmd --yes
+    choco feature enable -n allowGlobalConfirmation
+    choco install $cmd --yes -y
 }
 
 function Install-Chocolatey() {
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+    choco feature enable -n allowGlobalConfirmation
 }
 
 function Install-WSL() {
