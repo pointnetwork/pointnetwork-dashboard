@@ -335,6 +335,9 @@ clone_pn_dashboard() {
     if ! is_pn_dashboard_installed; then
       msg "Cloning PointNetwork Dashboard";
       git clone https://github.com/pointnetwork/pointnetwork-dashboard "$SRC_DASHBOARD_DIR"
+      cd "$SRC_DASHBOARD_DIR"
+      nvm use
+      npm install
     fi
     cd "$SRC_DASHBOARD_DIR"
 }
