@@ -105,7 +105,7 @@ class Firefox {
 	if (osAndArch == 'win32' || osAndArch == 'win64') {
 		webext = `"${webext_binary}" run "--firefox=${cmd}" "--firefox-profile=${profile_path}" --keep-profile-changes "--source-dir=${ext_path}" --url https://point`;
 	} else {
-		webext = `"${webext_binary}" run "--firefox=${cmd}" "--firefox-profile=${profile_path}" --keep-profile-changes "--source-dir=${ext_path}" --url https://point`;
+		webext = `${webext_binary} run --firefox="${cmd}" --firefox-profile ${profile_path} --keep-profile-changes --source-dir ${ext_path} --url https://point`;
 	}
 
         exec(webext, (error, stdout, stderr) => {
