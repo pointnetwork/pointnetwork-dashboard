@@ -75,7 +75,8 @@ function Test-AllCommandsExist() {
 
 function Install($cmd) {
     Msg "Installing $cmd"
-    choco install $cmd --yes
+    choco feature enable -n allowGlobalConfirmation
+    choco install $cmd --yes -y
 }
 
 function Install-Chocolatey() {
