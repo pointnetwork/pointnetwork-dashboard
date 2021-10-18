@@ -46,87 +46,81 @@ class WelcomeService {
             const keyjson = 'wsl.exe cp "$(wsl.exe wslpath $(wsl.exe wslvar USERPROFILE))/.point/keystore/key.json" ~/.point/keystore/key.json';
             const arjson = 'wsl.exe cp "$(wsl.exe wslpath $(wsl.exe wslvar USERPROFILE))/.point/keystore/key.json" ~/.point/keystore/key.json';
 
-            console.log({keyjson, arjson});
-            console.log({wslvar});
+            await new Promise((resolve, reject) => {
+                try {
+                    console.log({keyjson, arjson});
+                    console.log({wslvar});
 
-            // key.json
-            exec(wslvar, (error, wslvarRes, stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    return;
-                }
-                wslvarRes = wslvarRes.trim();
-                const wslPath = `wsl.exe wslpath "${wslvarRes}"`;
-                console.log({wslPath});
-
-                exec(wslPath, (error, wslPathRes, stderr) => {
-                    if (error) {
-                        console.log(`error: ${error.message}`);
-                        return;
-                    }
-                    if (stderr) {
-                        console.log(`stderr: ${stderr}`);
-                        return;
-                    }
-                    wslPathRes = wslPathRes.trim();
-                    const wslCP = `wsl.exe cp "${wslPathRes}/.point/keystore/key.json" ~/.point/keystore/`;
-
-                    console.log({wslPathRes});
-                    console.log({wslCP});
-
-                    exec(wslCP, (error, wslCPRes, stderr) => {
+                    // key.json
+                    exec(wslvar, (error, wslvarRes, stderr) => {
                         if (error) {
                             console.log(`error: ${error.message}`);
-                            return;
+                            return reject(error);
                         }
                         if (stderr) {
                             console.log(`stderr: ${stderr}`);
-                            return;
+                            return reject(new Error(stderr));
                         }
+                        wslvarRes = wslvarRes.trim();
+                        const wslPath = `wsl.exe wslpath "${wslvarRes}"`;
+                        console.log({wslPath});
 
-                        console.log({wslPathRes});
-                        const wslCP2 = `wsl.exe cp "${wslPathRes}/.point/keystore/arweave.json" ~/.point/keystore/`;
-
-                        console.log({wslCP2});
-
-                        exec(wslCP2, (error, wslCP2Res, stderr) => {
+                        exec(wslPath, (error, wslPathRes, stderr) => {
                             if (error) {
                                 console.log(`error: ${error.message}`);
-                                return;
+                                return reject(error);
                             }
                             if (stderr) {
                                 console.log(`stderr: ${stderr}`);
-                                return;
+                                return reject(new Error(stderr));
                             }
-                            console.log({wslCP2Res});
+                            wslPathRes = wslPathRes.trim();
+                            const wslCP = `wsl.exe cp "${wslPathRes}/.point/keystore/key.json" ~/.point/keystore/`;
+
+                            console.log({wslPathRes});
+                            console.log({wslCP});
+
+                            exec(wslCP, (error, wslCPRes, stderr) => {
+                                if (error) {
+                                    console.log(`error: ${error.message}`);
+                                    return reject(error);
+                                }
+                                if (stderr) {
+                                    console.log(`stderr: ${stderr}`);
+                                    return reject(new Error(stderr));
+                                }
+
+                                console.log({wslPathRes});
+                                const wslCP2 = `wsl.exe cp "${wslPathRes}/.point/keystore/arweave.json" ~/.point/keystore/`;
+
+                                console.log({wslCP2});
+
+                                exec(wslCP2, (error, wslCP2Res, stderr) => {
+                                    if (error) {
+                                        console.log(`error: ${error.message}`);
+                                        return reject(error);
+                                    }
+                                    if (stderr) {
+                                        console.log(`stderr: ${stderr}`);
+                                        return reject(new Error(stderr));
+                                    }
+                                    console.log({wslCP2Res});
+
+                                    resolve();
+                                });
+
+                            });
                         });
-
                     });
-                });
-
-                // arweave.json
-                /* exec(arjson, (error, stdout, stderr) => {
-                    if (error) {
-                        console.log(`error: ${error.message}`);
-                        return;
-                    }
-                    if (stderr) {
-                        console.log(`stderr: ${stderr}`);
-                        return;
-                    }
-
-                });
-            */
-            });
-
-            this.win.webContents.send("loggedIn");
-
-            return true;
+                } catch(e) {
+                    reject(e);
+                }
+            })
         }
+
+        this.win.webContents.send("loggedIn");
+
+        return true;
 
     }
 
