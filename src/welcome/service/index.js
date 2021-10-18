@@ -2,12 +2,14 @@ import * as fsExtra from "fs-extra";
 import * as fs from "fs";
 import * as path from "path";
 import helpers, {getOSAndArch} from "../../helpers";
+
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 import * as axios from "axios";
+
 const sudo = require('sudo-prompt');
 const bip39 = require('bip39');
-const { getKeyFromMnemonic } = require('arweave-mnemonic-keys');
+const {getKeyFromMnemonic} = require('arweave-mnemonic-keys');
 
 class WelcomeService {
 
@@ -28,7 +30,7 @@ class WelcomeService {
             fs.mkdirSync(await helpers.getLiveDirectoryPath());
         }
 
-        const contents = JSON.stringify({ phrase: phrase });
+        const contents = JSON.stringify({phrase: phrase});
         fs.writeFileSync(await helpers.getKeyFileName(), contents);
 
         // arweave
@@ -36,16 +38,16 @@ class WelcomeService {
         fs.writeFileSync(await helpers.getArweaveKeyFileName(), JSON.stringify(arKey));
 
         // done
-	const osAndArch = helpers.getOSAndArch();
+        const osAndArch = helpers.getOSAndArch();
         if (osAndArch == 'win32' || osAndArch == 'win64') {
             // const keyjson = '"C:\\Windows\\system32\\wsl.exe" cp "$("C:\\Windows\\system32\\wsl.exe" wslpath $("C:\\Windows\\system32\\wsl.exe" wslvar USERPROFILE))/.point/keystore/key.json" .';
             // const arjson = '"C:\\Windows\\system32\\wsl.exe" cp "$("C:\\Windows\\system32\\wsl.exe" wslpath $("C:\\Windows\\system32\\wsl.exe" wslvar USERPROFILE))/.point/keystore/arweave.json" .';
-		const wslvar = 'wsl.exe wslvar USERPROFILE';
-		const keyjson = 'wsl.exe cp "$(wsl.exe wslpath $(wsl.exe wslvar USERPROFILE))/.point/keystore/key.json" ~/.point/keystore/key.json';
+            const wslvar = 'wsl.exe wslvar USERPROFILE';
+            const keyjson = 'wsl.exe cp "$(wsl.exe wslpath $(wsl.exe wslvar USERPROFILE))/.point/keystore/key.json" ~/.point/keystore/key.json';
             const arjson = 'wsl.exe cp "$(wsl.exe wslpath $(wsl.exe wslvar USERPROFILE))/.point/keystore/key.json" ~/.point/keystore/key.json';
 
-		console.log({keyjson, arjson});
-		console.log({wslvar});
+            console.log({keyjson, arjson});
+            console.log({wslvar});
 
             // key.json
             exec(wslvar, (error, wslvarRes, stderr) => {
@@ -57,62 +59,64 @@ class WelcomeService {
                     console.log(`stderr: ${stderr}`);
                     return;
                 }
-		wslvarRes = wslvarRes.trim();
-		const wslPath = `wsl.exe wslpath "${wslvarRes}"`;
-		console.log({wslPath});
-	
-		exec(wslPath, (error, wslPathRes, stderr) => {
-               	if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    return;
-                }
-		wslPathRes = wslPathRes.trim();
-		const wslCP = `wsl.exe cp "${wslPathRes}/.point/keystore/*.json" ~/.point/keystore/`;
+                wslvarRes = wslvarRes.trim();
+                const wslPath = `wsl.exe wslpath "${wslvarRes}"`;
+                console.log({wslPath});
 
-		console.log({wslPathRes});
-		console.log({wslCP});
+                exec(wslPath, (error, wslPathRes, stderr) => {
+                    if (error) {
+                        console.log(`error: ${error.message}`);
+                        return;
+                    }
+                    if (stderr) {
+                        console.log(`stderr: ${stderr}`);
+                        return;
+                    }
+                    wslPathRes = wslPathRes.trim();
+                    const wslCP = `wsl.exe cp "${wslPathRes}/.point/keystore/*.json" ~/.point/keystore/`;
 
-		exec(wslCP, (error, wslCPRes, stderr) => {
-               	if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    return;
-                }
-		console.log({wslCPRes});
-            	});
+                    console.log({wslPathRes});
+                    console.log({wslCP});
+
+                    exec(wslCP, (error, wslCPRes, stderr) => {
+                        if (error) {
+                            console.log(`error: ${error.message}`);
+                            return;
+                        }
+                        if (stderr) {
+                            console.log(`stderr: ${stderr}`);
+                            return;
+                        }
+                        console.log({wslCPRes});
+                    });
+                });
+
+                // arweave.json
+                /* exec(arjson, (error, stdout, stderr) => {
+                    if (error) {
+                        console.log(`error: ${error.message}`);
+                        return;
+                    }
+                    if (stderr) {
+                        console.log(`stderr: ${stderr}`);
+                        return;
+                    }
+
+                });
+            */
             });
 
-            // arweave.json
-            /* exec(arjson, (error, stdout, stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    return;
-                }
-		
-            });
-		*/
+            this.win.webContents.send("loggedIn");
+
+            return true;
         }
 
-        this.win.webContents.send("loggedIn");
+        tryToShowError(e)
+        {
+            this.win.webContents.send("error", {e});
+        }
 
-        return true;
     }
-
-    tryToShowError(e) {
-        this.win.webContents.send("error", { e });
-    }
-
 }
 
 export default WelcomeService;
