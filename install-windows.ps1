@@ -231,7 +231,7 @@ function Install-NVM() {
     Msg("Installing nvm")
     Invoke-WebRequest "https://github.com/coreybutler/nvm-windows/releases/download/1.1.8/nvm-setup.zip" -OutFile $SOFTWARE_DIR\nvm-setup.zip
     Expand-Archive -LiteralPath $SOFTWARE_DIR\nvm-setup.zip -DestinationPath $SOFTWARE_DIR
-    & $SOFTWARE_DIR/nvm-setup.exe
+    & $SOFTWARE_DIR/nvm-setup.exe /SILENT /SUPPRESSMSGBOXES
 }
 
 function Install-WebExt() {
