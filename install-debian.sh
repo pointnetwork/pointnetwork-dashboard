@@ -559,8 +559,12 @@ maybe_update_package_manager
 ## Installing necessary commands, if missing.
 install_commands
 
+echo "Commands installed, make_pn_dirs next"
+
 ## Creating directories needed by PointNetwork
 make_pn_dirs
+
+echo "make_pn_dirs done, clone_pn next"
 
 ## Cloning repositories
 clone_pn
