@@ -33,11 +33,12 @@ _Note: As a last resort measure, if you experience issues but still want to be r
 
 ### Windows 10 and 11
 
-#### NOTE: You're sometimes going to get some error messages about missing commands. This is expected. Only report errors that stop the installation process from continuing.
+#### Note: You're going to see a lot of red error messages about missing commands. This is expected. Only report errors that stop the installation process from continuing.
+#### Note: Docker and WSL require reboots on Windows. Save your work first.
 
 1. Install Docker if you don't have it already: https://docs.docker.com/desktop/windows/install/
    * It will ask you to reboot. Also, you need to accept the terms, and skip the tutorial
-2. Install WSL2 by running in a terminal: `wsl --install`
+2. Install WSL2 by running in a terminal: `wsl --install -d Ubuntu`
 3. Open a PowerShell terminal (not PowerShell ISE, not PowerShell x86, just PowerShell)
 4. Run this in the PowerShell terminal: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser ; Invoke-WebRequest -Uri https://raw.githubusercontent.com/pointnetwork/pointnetwork-dashboard/main/install-windows.ps1 -OutFile ./install-windows.ps1; ./install-windows.ps1`
    * No need to worry about the warning that will be shown, for more details see here: https://stackoverflow.com/questions/64511176/security-risks-of-set-executionpolicy-executionpolicy-remotesigned
