@@ -10,6 +10,8 @@ const helpers = require('../helpers');
 const {exec} = require("child_process");
 const { https } = require('follow-redirects');
 
+const FIREFOX_RAN_ONCE = "firefox-ran-once";
+
 class Firefox {
     async getFolderPath(osAndArch) {
         return await helpers.getBrowserFolderPath(osAndArch);
@@ -285,6 +287,16 @@ pref('browser.tabs.drawInTitlebar', true);
                     }
                 });
         }
+    };
+
+    async isFirefoxRanOnce() {
+        const pointPath = await module.exports.getPointPath();
+        return fs.pathExistsSync(path.join(pointPath, INSTALLER_FINISHED_FLAG_PATH));
+    }
+
+    async setFirefoxRanOnce() {
+        const pointPath = await module.exports.getPointPath();
+        fs.writeFileSync(path.join(pointPath, INSTALLER_FINISHED_FLAG_PATH), "");
     }
 }
 
