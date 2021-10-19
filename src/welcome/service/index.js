@@ -75,7 +75,7 @@ class WelcomeService {
                                 return reject(new Error(stderr));
                             }
                             wslPathRes = wslPathRes.trim();
-                            const wslCP = `wsl.exe cp "${wslPathRes}/.point/keystore/key.json" ~/.point/keystore/`;
+                            const wslCP = `wsl.exe cp -f "${wslPathRes}/.point/keystore/key.json" ~/.point/keystore/`;
 
                             console.log({wslPathRes});
                             console.log({wslCP});
@@ -91,7 +91,7 @@ class WelcomeService {
                                 }
 
                                 console.log({wslPathRes});
-                                const wslCP2 = `wsl.exe cp "${wslPathRes}/.point/keystore/arweave.json" ~/.point/keystore/`;
+                                const wslCP2 = `wsl.exe cp -f "${wslPathRes}/.point/keystore/arweave.json" ~/.point/keystore/`;
 
                                 console.log({wslCP2});
 
