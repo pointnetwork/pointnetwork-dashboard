@@ -43,7 +43,7 @@ function Test-WSLInstalled() {
     # The command `wsl` is present in all new Windows versions.
     # We need to test if a Linux Subsystem has been installed.
     # To do this, we can check if `wslconfig` is present in the system.
-    return $(If (Get-Command wslconfig) {$true} Else {$false})
+    return $(If (Get-Command wslconfig -errorAction SilentlyContinue) {$true} Else {$false})
 }
 
 function Test-Command($cmd) {
@@ -56,7 +56,7 @@ function Test-Command($cmd) {
 	    }
 	}
 	default {
-	    if(-Not(Get-Command $cmd)) {
+	    if(-Not(Get-Command $cmd -errorAction SilentlyContinue)) {
 		return $false
 	    }
 	}
