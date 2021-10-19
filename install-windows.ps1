@@ -300,9 +300,9 @@ function Set-PointOnWSL() {
     wsl mkdir -p ~/.point/keystore
     wsl mkdir -p ~/.point/src
     wsl git clone https://github.com/pointnetwork/pointnetwork ~/.point/src/pointnetwork
-    wsl printf "{}" ^> ~/.point/keystore/arweave.json
-    wsl cd ~/.point/src/pointnetwork
-    wsl ln -s "$windowsHome/.point/keystore/key.json" ~/.point/keystore/key.json
+    # wsl printf "{}" ^> ~/.point/keystore/arweave.json
+    # wsl cd ~/.point/src/pointnetwork
+    # wsl ln -s "$windowsHome/.point/keystore/key.json" ~/.point/keystore/key.json
 }
 
 function Echo-Welcome {
