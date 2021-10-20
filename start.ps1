@@ -7,6 +7,7 @@ if(!(test-path $PN_DIR) -or !(test-path $DASH_DIR)) {
 }
 
 wsl --set-default ubuntu
+wsl git --git-dir="$(wsl echo ~)/.point/src/pointnetwork/.git" pull
 
 cd $PN_DIR
 git pull
