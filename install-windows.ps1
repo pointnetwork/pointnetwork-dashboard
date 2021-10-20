@@ -5,7 +5,7 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Break
 }
 
-$CMDS = @('choco', 'git', 'wget', 'curl', 'wsl', 'nvm', 'docker')
+$CMDS = @('choco', 'git', 'wget', 'curl', 'python', 'wsl', 'nvm', 'docker')
 # Without WSL:
 # $CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker')
 $BRANCH="master"
