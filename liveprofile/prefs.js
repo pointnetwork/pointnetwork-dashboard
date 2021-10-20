@@ -157,7 +157,7 @@ user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
 
 
 
-user_pref('network.proxy.type', 2);
+user_pref('network.proxy.type', 1);
 user_pref('network.proxy.http', 'localhost');
 user_pref('network.proxy.http_port', 8666);
 user_pref('browser.startup.homepage', 'https://point');
