@@ -222,13 +222,19 @@ class Firefox {
     async createConfigFiles(osAndArch, pacFile) {
         if (!pacFile) throw Error('pacFile sent to createConfigFiles is undefined or null!');
 
+        let networkProxyType = '';
+        if (osAndArch == 'win32' || osAndArch == 'win64') {
+            networkProxyType = '1';
+        }
+        networkProxyType = '2';
+
         const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
 pref("general.config.obscure_value", 0);
 `;
         const firefoxCfgContent = `
 // IMPORTANT: Start your code on the 2nd line
 // pref('network.proxy.type', 1);
-pref('network.proxy.type', 2);
+pref('network.proxy.type', ${networkProxyType});
 pref('network.proxy.http', 'localhost');
 pref('network.proxy.http_port', 8666);
 pref('browser.startup.homepage', 'https://point');
