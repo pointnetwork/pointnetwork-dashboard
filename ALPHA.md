@@ -48,10 +48,12 @@ When you are asked to open PowerShell, open PowerShell (not PowerShell ISE, not 
 5. After restarting, if you didn't have WSL before, WSL will be configured
    1. Wait until WSL finishes configuring Ubuntu
    1. Set up your credentials (username and password) in the WSL terminal that is already open
-6. Run again the script to open the Point Network Dashboard: `./install-windows.ps1`
-   * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
+6. Run again the script to open the Point Network Dashboard: `./install-windows.ps1` to register a new secret phrase..
 7. Set up our Docker containers by running this command in a PowerShell terminal: `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml up -d`
-8. If you ever wish to stop the containers, you can run `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml down -v`
+   * If Windows asks about "Allow Docker Desktop Backend to communicate on these networks", click on "Allow access".
+   * If you ever wish to stop the containers, you can run `wsl docker-compose -f ~/.point/src/pointnetwork/docker-compose.yaml down -v`
+8. Wait until the icons on the dashboard turn green and click on Firefox to start.
+   * Sometimes it takes time for the browser to download. In that case, if the browser doesn't launch automatically, you can click the browser icon from time to time.
 9. Continue to "After Installation" section
 
 ## After Installation
