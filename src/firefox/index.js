@@ -18,13 +18,17 @@ class Firefox {
     };
 
     async isInstalled() {
-        const browserDir = await this.getFolderPath(helpers.getOSAndArch());
+        const osAndArch = helpers.getOSAndArch();
+        const binPath = await this.getBinPath(osAndArch);
 
+        // TODO: Move this dir creation somewhere else.
+        const browserDir = await this.getFolderPath(osAndArch);
         if (!fs.existsSync(browserDir)) {
             fs.mkdirpSync(browserDir);
         }
+        //////
 
-        if (!helpers.isDirEmpty(browserDir)) {
+        if (fs.existsSync(binPath)) {
             return true;
         }
         return false;
