@@ -335,11 +335,11 @@ Echo-Welcome
 Create-Directories
 Install-Commands
 Clone-Repositories
-Install-Node
 Create-Shortcut
 Copy-BrowserProfile
 Update-Repositories
 Restart-PopUp
+Install-Node
 Install-WebExt
 Test-AllInstalled
 # Create-Aliases # TODO
