@@ -66,7 +66,11 @@ class Helpers {
     async getBrowserFolderPath(osAndArch) {
         // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
         const homePath = await module.exports.getHomePath(osAndArch);
-        return path.join(homePath, '.point', 'src', 'point-browser');
+        const browserDir = path.join(homePath, '.point', 'src', 'point-browser');
+        if (!fs.existsSync(browserDir)) {
+            fs.mkdirpSync(browserDir);
+        }
+        return browserDir;
     }
 
     async getHomePath(osAndArch) {
