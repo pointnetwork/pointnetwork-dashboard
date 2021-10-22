@@ -336,11 +336,11 @@ Create-Directories
 Install-Commands
 Clone-Repositories
 Install-Node
-Install-WebExt
 Create-Shortcut
 Copy-BrowserProfile
 Update-Repositories
 Restart-PopUp
+Install-WebExt
 Test-AllInstalled
 # Create-Aliases # TODO
 Set-PointOnWSL
