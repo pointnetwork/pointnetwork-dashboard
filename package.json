@@ -33,7 +33,7 @@
     "@babel/core": "^7.15.5",
     "arweave-mnemonic-keys": "0.0.9",
     "axios": "^0.21.4",
-    "babel-loader": "^8.2.2",
+    "babel-loader": "^8.2.3",
     "bip39": "^3.0.4",
     "child_process": "^1.0.2",
     "dmg": "^0.1.0",
