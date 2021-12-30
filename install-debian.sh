@@ -15,7 +15,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No color.
 
 # Make sure 'nvm' comes first than 'node'.
-CMDS=('git' 'wget' 'curl' 'nvm' 'node' 'docker' 'docker-compose')
+CMDS=('git' 'wget' 'curl' 'nvm' 'node')
 export BRANCH="master"
 export POINT_DIR="$HOME/.point"
 export SRC_DIR="$POINT_DIR/src"
@@ -136,16 +136,6 @@ install() {
     fi
 }
 
-is_docker_group() {
-    # getent group docker when installed yields: docker:x:997:username
-    # getent after the script is run but not finalized yields: docker:x:997:username
-    # yields empty when not installed
-    if [[ $(getent group docker) && "$(getent group docker)" =~ $USER ]]; then
-	    return 0
-    fi
-    return 1
-}
-
 get_desktop_shortcut_path() {
     DESKTOP_SHORTCUT_FILENAME=Point.desktop
     if is_linux; then
@@ -155,49 +145,6 @@ get_desktop_shortcut_path() {
     else
       fail "Unsupported system"
     fi
-}
-
-install_docker() {
-    msg "Installing docker"
-    if is_linux; then
-      sudo apt-get --assume-yes install apt-transport-https ca-certificates gnupg lsb-release
-      sudo curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-      echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$DISTRO $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      sudo apt-get update
-      sudo apt-get --assume-yes install docker-ce docker-ce-cli containerd.io
-      ## This is needed for not needing sudo
-      if ! is_docker_group; then
-#        msg "Creating docker group and adding current user '$USER' to it"
-#        sudo groupadd docker || echo "Docker group already exists, skipping"
-#        sudo usermod -aG docker $USER && echo "usermod -aG docker $USER - Done"
-        #newgrp docker && echo "newgrp docker - Done" # Don't uncomment - throw the whole script off! No need to log into that group now
-        # we'll be running it from sudo
-        echo
-      else
-        msg "is_docker_group returned true, skipping creating docker groups"
-      fi
-    elif is_mac; then
-      brew install homebrew/cask/docker || fail "Failed to install homebrew/cask/docker"
-      msg "Docker installed, starting..."
-      xattr -d -r com.apple.quarantine /Applications/Docker.app
-      open -g -a /Applications/Docker.app
-    else
-      fail "Unsupported system"
-    fi
-    msg "Docker installed, continuing"
-}
-
-install_docker_compose() {
-  if is_linux; then
-    msg "Installing docker-compose"
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-  elif is_mac; then
-    msg "Skipping docker-compose, should be installed automatically with docker"
-  else
-    fail "Unsupported system"
-  fi
-  msg "Docker-compose installed, continuing"
 }
 
 install_nvm() {
@@ -366,7 +313,6 @@ run_pn_dashboard() {
     # https://unix.stackexchange.com/questions/18897/problem-while-running-newgrp-command-in-script
     msg "Starting PointNetwork Dashboard"
     SHORTCUT_FILE=$(get_desktop_shortcut_path) || fail "get_desktop_shortcut_path failed"
-#    newgrp docker
 
     sudo chmod -x "$SHORTCUT_FILE"
     gio set $SHORTCUT_FILE metadata::trusted true
@@ -436,12 +382,6 @@ install_commands() {
                 ;;
             "node")
                 install_node
-                ;;
-            "docker")
-                install_docker
-                ;;
-            "docker-compose")
-                install_docker_compose
                 ;;
             *)
                 install $cmd
@@ -545,10 +485,6 @@ FILE
     sudo chmod +x "/usr/bin/point-start"
 }
 
-download_docker_images() {
-  sudo bash -c "cd $SRC_PN_DIR || exit 1; git checkout $BRANCH; docker-compose pull"
-}
-
 ## Welcome message
 echo_welcome
 
@@ -586,8 +522,6 @@ is_all_installed
 # Create desktop shortcut
 create_desktop_shortcut
 create_aliases
-
-download_docker_images
 
 # Start dashboard
 run_pn_dashboard

@@ -5,9 +5,7 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Break
 }
 
-$CMDS = @('choco', 'git', 'wget', 'curl', 'python', 'wsl', 'nvm', 'docker')
-# Without WSL:
-# $CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker')
+$CMDS = @('choco', 'git', 'nvm')
 $BRANCH="master"
 $POINT_DIR="$HOME\.point"
 $SRC_DIR="$POINT_DIR\src"
@@ -39,22 +37,11 @@ function Ask($msg) {
     return $decision -eq 0
 }
 
-function Test-WSLInstalled() {
-    # The command `wsl` is present in all new Windows versions.
-    # We need to test if a Linux Subsystem has been installed.
-    # To do this, we can check if `wslconfig` is present in the system.
-    return $(If (Get-Command wslconfig -errorAction SilentlyContinue) {$true} Else {$false})
-}
-
 function Test-Command($cmd) {
     switch ($cmd)
     {
-	'wsl' {
-	    if(-Not(Test-WSLInstalled)) {
-		return $false
-
-	    }
-	}
+        # We were also checking for 'wsl'.
+        # Leaving switch statement in case we want more commands later.
 	default {
 	    if(-Not(Get-Command $cmd -errorAction SilentlyContinue)) {
 		return $false
@@ -84,23 +71,6 @@ function Install-Chocolatey() {
     choco feature enable -n allowGlobalConfirmation
 }
 
-function Install-WSL() {
-    wsl --install -d Ubuntu
-}
-
-function Install-Docker() {
-    If(!(test-path $SOFTWARE_DIR\Docker.exe)) {
-	Msg("Downloading Docker")
-	Invoke-WebRequest "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe" -OutFile $SOFTWARE_DIR\Docker.exe
-    }
-    Msg("Installing Docker")
-    & $SOFTWARE_DIR/Docker.exe install --quiet --norestart | Out-Null
-}
-
-function Remove-Docker() {
-    Remove-Item $SOFTWARE_DIR/Docker.exe
-}
-
 function Install-Commands() {
     foreach ($cmd in $CMDS) {
 	if (Test-Command($cmd)) {
@@ -109,24 +79,12 @@ function Install-Commands() {
 	}
 	switch ($cmd)
 	{
-	    'wsl' {
-		Install-WSL
-	    }
 	    'choco' {
 		Install-Chocolatey
-	    }
-	    'docker' {
-		Install-Docker
 	    }
 	    'nvm' {
 		Install-NVM
 	    }
-	    # 'node' {
-
-
-	    # 	# This gets handled inside `Run-Dashboard`, so do nothing.
-	    # 	# Install-Node
-	    # }
 	    default {
 		choco install $cmd
 	    }
@@ -254,7 +212,6 @@ function Install-Node() {
 
 function Run-Dashboard() {
     Msg("Starting PointNetwork Dashboard")
-    wsl --set-default ubuntu
     npm start
 }
 
@@ -297,18 +254,6 @@ function Restart-PopUp() {
     }
 }
 
-function Set-PointOnWSL() {
-    wsl --set-default ubuntu
-    $windowsHome = wsl wslpath "$(wsl wslvar USERPROFILE)"
-    wsl rm -rf ~/.point
-    wsl mkdir -p ~/.point/keystore
-    wsl mkdir -p ~/.point/src
-    wsl git clone https://github.com/pointnetwork/pointnetwork ~/.point/src/pointnetwork
-    # wsl printf "{}" ^> ~/.point/keystore/arweave.json
-    # wsl cd ~/.point/src/pointnetwork
-    # wsl ln -s "$windowsHome/.point/keystore/key.json" ~/.point/keystore/key.json
-}
-
 function Echo-Welcome {
     Msg("")
     Msg("Welcome to PointNetwork Installer")
@@ -343,5 +288,4 @@ Install-Node
 Install-WebExt
 Test-AllInstalled
 # Create-Aliases # TODO
-Set-PointOnWSL
 Run-Dashboard
