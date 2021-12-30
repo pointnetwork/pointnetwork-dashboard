@@ -1,13 +1,4 @@
-// import firefox from "./firefox";
-// import helpers from "./helpers";
-// import docker from "./docker";
-// import {exec} from "child_process";
-// import {arch, platform} from "process";
-// import path from "path";
-// import url from "url";
-// import fs from "fs-extra";
 const WelcomeService = require('./service').default;
-
 
 export const attach = (ipcMain, win, app) => {
     let welcomeService = new WelcomeService(win)

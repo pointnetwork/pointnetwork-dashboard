@@ -14,7 +14,7 @@ const Dashboard = require('./dashboard');
 const Welcome = require('./welcome');
 const helpers = require('./helpers');
 const firefox = require('./firefox');
-const docker = require('./docker');
+const pointnode = require('./pointnode');
 const Tray = require('./tray');
 
 let win;
@@ -33,8 +33,8 @@ app.mainDecision = async() => {
         const welcome = new Welcome();
         welcome.run();
     } else {
-        if (! await docker.isComposeRunning()) {
-            await docker.startCompose();
+        if (! await pointnode.isNodeRunning()) {
+            await pointnode.startNode();
         }
         if (! await firefox.isInstalled()) {
             await firefox.download();
@@ -58,7 +58,7 @@ app.openDashboard = () => {
     // for applications and their menu bar to stay active until the user quits
     // explicitly with Cmd + Q.
     app.on('window-all-closed', function () {
-        docker.stopCompose();
+        pointnode.stopNode();
         if (platform !== 'darwin') app.quit();
     });
 }

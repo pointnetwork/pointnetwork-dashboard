@@ -9,7 +9,7 @@ const simpleGit = require('simple-git');
 
 const INSTALLER_FINISHED_FLAG_PATH = "installer-finished";
 
-class Helpers {    
+class Helpers {
     getOSAndArch() {
         /*
             Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
@@ -74,17 +74,6 @@ class Helpers {
     }
 
     async getHomePath(osAndArch) {
-        // if (osAndArch == 'win32' || osAndArch == 'win64') {
-        //     // NOTE: `wsl echo $HOME` doesn't work.
-        //     const cmd = `wsl realpath ~`;
-        //     try {
-        //         const result = await exec(cmd);
-        //         return result.stdout.trim();
-        //     } catch(ex) {
-        //         throw ex;
-        //     }
-        // }
-
         return os.homedir();
     }
 
