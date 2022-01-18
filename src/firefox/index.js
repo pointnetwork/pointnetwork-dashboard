@@ -19,6 +19,7 @@ class Firefox {
 
     async isInstalled() {
         const osAndArch = helpers.getOSAndArch();
+        
         const binPath = await this.getBinPath(osAndArch);
         if (fs.existsSync(binPath)) {
             return true;
