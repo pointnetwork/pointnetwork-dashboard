@@ -66,7 +66,7 @@ class Firefox {
             await response.pipe(firefoxRelease);
 
             return await new Promise(async(resolve, reject) => {
-                    firefoxRelease.on('finish', () => {
+                firefoxRelease.on('finish', () => {
                     let cb = async() => {
                         fs.unlink(releasePath, (err) => {
                             if (err) {
