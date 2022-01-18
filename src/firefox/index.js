@@ -19,7 +19,6 @@ class Firefox {
 
     async isInstalled() {
         const osAndArch = helpers.getOSAndArch();
-        
         const binPath = await this.getBinPath(osAndArch);
         if (fs.existsSync(binPath)) {
             return true;
@@ -50,7 +49,7 @@ class Firefox {
 
     async download() {
         const language = 'en-US';
-        const version = '93.0b4';
+        const version = await this.getLastVersionFirefox();
         const osAndArch = helpers.getOSAndArch();
         const browserDir = await this.getFolderPath(osAndArch);
         const pacFile = url.pathToFileURL(path.join(await helpers.getPNPath(osAndArch), 'client', 'proxy', 'pac.js'));
@@ -67,7 +66,7 @@ class Firefox {
             await response.pipe(firefoxRelease);
 
             return await new Promise(async(resolve, reject) => {
-                firefoxRelease.on('finish', () => {
+                    firefoxRelease.on('finish', () => {
                     let cb = async() => {
                         fs.unlink(releasePath, (err) => {
                             if (err) {
@@ -300,6 +299,28 @@ pref('browser.tabs.drawInTitlebar', true);
     async setFirefoxRanOnce() {
         const pointPath = await module.exports.getPointPath();
         fs.writeFileSync(path.join(pointPath, INSTALLER_FINISHED_FLAG_PATH), "");
+    }
+
+    async getLastVersionFirefox(){
+        const url = "https://product-details.mozilla.org/1.0/firefox_versions.json";
+
+        return new Promise((resolve) => {
+            https.get(url, res => {
+                let data= "";
+    
+                res.on('data', chunk => { data += chunk }) 
+    
+                res.on('end', () => {
+                    try {
+                        let json = JSON.parse(data);
+                        resolve(json.LATEST_FIREFOX_VERSION);
+                    } catch (error) {
+                        console.error(error.message);
+                    };
+    
+                })
+            }) 
+        })
     }
 }
 
