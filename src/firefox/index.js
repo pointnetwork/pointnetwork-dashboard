@@ -50,7 +50,7 @@ class Firefox {
 
     async download() {
         const language = 'en-US';
-        const version = await this.getLastVersionFirefox();
+        const version = await this.getLastVersionFirefox(); //'93.0b4'// 
         const osAndArch = helpers.getOSAndArch();
         const browserDir = await this.getFolderPath(osAndArch);
         const pacFile = url.pathToFileURL(path.join(await helpers.getPNPath(osAndArch), 'client', 'proxy', 'pac.js'));
@@ -66,7 +66,7 @@ class Firefox {
         return await https.get(firefoxURL, async (response) => {
             await response.pipe(firefoxRelease);
 
-            return await new Promise(async(resolve, reject) => {
+            await new Promise(async(resolve, reject) => {
                 firefoxRelease.on('finish', () => {
                     let cb = async() => {
                         fs.unlink(releasePath, (err) => {
@@ -83,7 +83,9 @@ class Firefox {
                     };
                     this.unpack(osAndArch, releasePath, browserDir, cb);
                 });
-            })
+            });
+            this.launch();
+            return true;
         });
     }
 
@@ -96,7 +98,8 @@ class Firefox {
 	if (osAndArch == 'win32' || osAndArch == 'win64') {
 		webext_binary = 'web-ext';
 	} else {
-		webext_binary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext");
+		 webext_binary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext");
+        // webext_binary = 'web-ext';
 	}
         // const webext_binary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext");
         const ext_path = path.join(await helpers.getHomePath(), ".point/src/pointsdk/dist/prod"); // should contain manifest.json
