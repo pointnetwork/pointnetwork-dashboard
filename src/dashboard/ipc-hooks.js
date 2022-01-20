@@ -69,7 +69,7 @@ export const attach = (ipcMain, win) => {
     });
 
     ipcMain.on("firefox-download", async (event, args) => {
-        await firefox.download();
+        await firefox.download(win);
     });
 
     ipcMain.on("docker-download", async (event, args) => {

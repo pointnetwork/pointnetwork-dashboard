@@ -36,9 +36,6 @@ app.mainDecision = async() => {
         if (! await docker.isComposeRunning()) {
             await docker.startCompose();
         }
-        if (! await firefox.isInstalled()) {
-            await firefox.download();
-        }
         app.openDashboard();
     }
 }

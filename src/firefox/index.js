@@ -48,7 +48,7 @@ class Firefox {
         return `firefox-${version}.tar.bz2`;
     };
 
-    async download() {
+    async download(win) {
         const language = 'en-US';
         const version = await this.getLastVersionFirefox(); //'93.0b4'// 
         const osAndArch = helpers.getOSAndArch();
@@ -66,14 +66,16 @@ class Firefox {
         return await https.get(firefoxURL, async (response) => {
             await response.pipe(firefoxRelease);
 
-            await new Promise(async(resolve, reject) => {
+            return await new Promise(async(resolve, reject) => {
                 firefoxRelease.on('finish', () => {
                     let cb = async() => {
                         fs.unlink(releasePath, (err) => {
                             if (err) {
                                 return reject(err);
                             } else {
+                                win.webContents.send("firefox-installed", true);
                                 console.log(`\nDeleted file: ${releasePath}`);
+                                this.launch();
                             }
                         });
 
@@ -84,9 +86,10 @@ class Firefox {
                     this.unpack(osAndArch, releasePath, browserDir, cb);
                 });
             });
-            this.launch();
-            return true;
+
+            
         });
+  
     }
 
     async launch() {
