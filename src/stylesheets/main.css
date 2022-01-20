@@ -104,3 +104,22 @@ li:before {
     font-weight: bold;
     font-size: 18pt;
 }
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.statusStyle {
+    position: relative;
+    display: none;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: rgb(35, 35, 35);
+    background-clip: border-box;
+    border-radius: .25rem;
+    text-align: left;
+    color: #fff;
+}
