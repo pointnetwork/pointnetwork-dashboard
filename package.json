@@ -29,7 +29,7 @@
     "electron": "^16.0.7"
   },
   "dependencies": {
-    "7zip-min": "^1.4.0",
+    "7zip-min": "^1.4.1",
     "@babel/core": "^7.16.10",
     "arweave-mnemonic-keys": "0.0.9",
     "axios": "^0.25.0",
