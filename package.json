@@ -43,7 +43,7 @@
     "isomorphic-git": "^1.10.4",
     "lodash": "^4.17.21",
     "pify": "^5.0.0",
-    "simple-git": "^3.0.3",
+    "simple-git": "^3.1.0",
     "sudo-prompt": "^9.2.1",
     "tar-fs": "^2.1.1",
     "unbzip2-stream": "^1.4.3",
