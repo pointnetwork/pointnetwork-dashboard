@@ -40,7 +40,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "follow-redirects": "^1.14.7",
     "fs-extra": "^10.0.0",
-    "isomorphic-git": "^1.10.4",
+    "isomorphic-git": "^1.10.5",
     "lodash": "^4.17.21",
     "pify": "^5.0.0",
     "simple-git": "^3.0.3",
