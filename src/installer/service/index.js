@@ -266,7 +266,7 @@ class InstallerService {
     //     const composeDevPath = helpers.fixPath(osAndArch, path.join(pnPath, 'docker-compose.dev.yaml'));
     //
     //     const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${composePath} -f ${composeDevPath} ps -q ${containerName})`;
-    //     if (osAndArch == 'win32' || osAndArch == 'win64') {
+    //     if (global.platform.win32) {
     //         return `wsl ${cmd}`;
     //     }
     //     return cmd;
