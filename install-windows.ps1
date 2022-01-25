@@ -8,7 +8,7 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 $CMDS = @('choco', 'git', 'wget', 'curl', 'python', 'wsl', 'nvm', 'docker')
 # Without WSL:
 # $CMDS = @('choco', 'git', 'wget', 'curl', 'nvm', 'node', 'docker')
-$BRANCH="develop"
+$BRANCH="conf"
 $POINT_DIR="$HOME\.point"
 $SRC_DIR="$POINT_DIR\src"
 $SRC_PN_DIR="$SRC_DIR\pointnetwork"

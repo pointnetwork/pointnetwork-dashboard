@@ -16,7 +16,7 @@ NC='\033[0m' # No color.
 
 # Make sure 'nvm' comes first than 'node'.
 CMDS=('git' 'wget' 'curl' 'nvm' 'node' 'docker' 'docker-compose')
-export BRANCH="develop"
+export BRANCH="conf"
 export POINT_DIR="$HOME/.point"
 export SRC_DIR="$POINT_DIR/src"
 export SRC_PN_DIR="$SRC_DIR/pointnetwork"
@@ -526,7 +526,17 @@ FILE
     sudo tee "/usr/bin/point-down" <<FILE >/dev/null
 #!/bin/bash
 cd $SRC_PN_DIR
-CMD="npm run stop:znet"
+CMD="docker-compose down -v"
+if [[ $(uname) == 'Darwin' ]]; then
+  bash -c "\$CMD"
+else
+  sudo bash -c "\$CMD"
+fi
+FILE
+    sudo tee "/usr/bin/point-restart" <<FILE >/dev/null
+#!/bin/bash
+cd $SRC_PN_DIR
+CMD="docker-compose down -v; export POINT_KEYSTORE=$POINT_DIR/keystore; docker-compose up -d"
 if [[ $(uname) == 'Darwin' ]]; then
   bash -c "\$CMD"
 else
