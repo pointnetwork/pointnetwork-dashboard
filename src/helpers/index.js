@@ -21,7 +21,7 @@ class Helpers {
         }
         if (platform == 'linux') {
             if (arch == 'x64') {
-                os8asAndArch = 'linux-x86_64';
+                osAndArch = 'linux-x86_64';
             }
             if (arch == 'x32') {
                 osAndArch = 'linux-i686';
