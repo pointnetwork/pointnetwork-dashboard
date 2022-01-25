@@ -42,15 +42,23 @@ class Helpers {
         return osAndArch;
     }
 
+    getPlatform(){
+        global.platform = {
+            darwin: platform == 'darwin',
+            linux: platform == 'linux',
+            win32: platform == 'win32'
+        }
+    }
+
     getHTTPorHTTPs(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return https;
         }
         return http;
     }
 
     fixPath(osAndArch, pathStr) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return pathStr.split(path.sep).join(path.posix.sep);
         }
         // linux & mac
@@ -74,7 +82,7 @@ class Helpers {
     }
 
     async getHomePath(osAndArch) {
-        // if (osAndArch == 'win32' || osAndArch == 'win64') {
+        // if (global.platform.win32) {
         //     // NOTE: `wsl echo $HOME` doesn't work.
         //     const cmd = `wsl realpath ~`;
         //     try {
