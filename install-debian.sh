@@ -553,6 +553,7 @@ FILE
     sudo chmod +x "/usr/bin/point-up"
     sudo chmod +x "/usr/bin/point-down"
     sudo chmod +x "/usr/bin/point-start"
+    sudo chmod +x "/usr/bin/point-restart"
 }
 
 download_docker_images() {
