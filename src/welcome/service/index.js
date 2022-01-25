@@ -39,7 +39,7 @@ class WelcomeService {
 
         // done
         const osAndArch = helpers.getOSAndArch();
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             // const keyjson = '"C:\\Windows\\system32\\wsl.exe" cp "$("C:\\Windows\\system32\\wsl.exe" wslpath $("C:\\Windows\\system32\\wsl.exe" wslvar USERPROFILE))/.point/keystore/key.json" .';
             // const arjson = '"C:\\Windows\\system32\\wsl.exe" cp "$("C:\\Windows\\system32\\wsl.exe" wslpath $("C:\\Windows\\system32\\wsl.exe" wslvar USERPROFILE))/.point/keystore/arweave.json" .';
             const wslvar = 'wsl.exe wslvar USERPROFILE';

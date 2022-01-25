@@ -48,7 +48,7 @@ module.exports = {
         const composeDevPath = helpers.fixPath(osAndArch, path.join(pnPath, 'docker-compose.dev.yaml'));
 
         const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${composePath} -f ${composeDevPath} ps -q ${containerName})`;
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return `wsl ${cmd}`;
         }
         return cmd;
@@ -98,10 +98,10 @@ module.exports = {
     },
 
     getFileName(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return 'Docker Desktop Installer.exe';
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             return `Docker.dmg`;
         }
         // linux & mac
@@ -109,11 +109,11 @@ module.exports = {
     },
 
     unpack(osAndArch, releasePath, browserDir) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             // Executing installer.
             sudo.exec(releasePath);
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             dmg.mount(releasePath, (err, dmgPath) => {
                 fs.copy(`${dmgPath}/Docker.app`, `${browserDir}/Docker.app`, (err) => {
                     if (err) {
@@ -126,78 +126,78 @@ module.exports = {
             });
             return;
         }
-        if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+        if (global.platform.linux || global.platform.linux) {
             return;
         }
     },
 
     unpackCompose(osAndArch, releasePath, browserDir) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             // Comes with installer.
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             // Comes with installer.
         }
-        if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+        if (global.platform.linux || global.platform.linux) {
             installDir = module.exports.getInstallDirCompose();
             sudo.exec(`mv `);
         }
     },
 
     getURL(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe';
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             return 'https://desktop.docker.com/mac/main/amd64/Docker.dmg';
         }
-        if (osAndArch == 'linux-x86_64') {
+        if (global.platform.linux) {
             
         }
         throw "unrecognized platform";
     },
 
     getURLCompose(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             // return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Darwin-x86_64';
         }
-        if (osAndArch == 'linux-x86_64') {
+        if (global.platform.linux) {
             return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64';
         }
         throw "unrecognized platform";
     },
 
     getInstallDir(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             // It's an installer exe.
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             return '/Applications';
         }
-        if (osAndArch == 'linux-x86_64') {
+        if (global.platform.linux) {
             // We install via 
         }
         throw "unrecognized platform";
     },
 
     getInstallDirCompose(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             // It's an installer exe.
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             // It's an installer.
         }
-        if (osAndArch == 'linux-x86_64') {
+        if (global.platform.linux) {
             return '/usr/local/bin';
         }
         throw "unrecognized platform";
     },
 
     async install(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        if (global.platform.win32 || global.platform.darwin) {
             const dockerURL = module.exports.getURL(osAndArch);
             const sw = getPointSoftwarePath(osAndArch);
             const filename = module.exports.getFileName(osAndArch);
@@ -213,7 +213,7 @@ module.exports = {
         }
 
         // TODO: This only works for Debian-based distros.
-        if (osAndArch == 'linux-x86_64') {
+        if (global.platform.linux) {
             sudo.exec('apt-get update');
             sudo.exec('sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release');
             sudo.exec('curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg');
@@ -229,7 +229,7 @@ module.exports = {
         const composePath = await getComposePath();
         const cmd = `docker inspect --format "{{json .State.Health}}" $(docker-compose -f ${composePath} ps -q)`;
         
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return `wsl ${cmd}`;
         }
 
@@ -246,11 +246,11 @@ module.exports = {
         const composePath = await getComposePath();
         const cmd = `docker-compose -f ${composePath} up -d`;
 
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return `wsl ${cmd}`;
         }
 
-        if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+        if (global.platform.linux || global.platform.linux) {
             return `sudo ${cmd}`
         }
 
@@ -262,7 +262,7 @@ module.exports = {
         const composePath = await getComposePath();
         const cmd = `docker-compose -f ${composePath} down`;
 
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return `wsl ${cmd}`;
         }
 

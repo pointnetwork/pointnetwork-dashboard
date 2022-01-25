@@ -29,15 +29,13 @@ app.mainDecision = async() => {
     //     const installer = new Installer();
     //     installer.runFirefox();
     // }
+    helpers.getPlatform();
     if (! await helpers.isLoggedIn()) {
         const welcome = new Welcome();
         welcome.run();
     } else {
         if (! await docker.isComposeRunning()) {
             await docker.startCompose();
-        }
-        if (! await firefox.isInstalled()) {
-            await firefox.download();
         }
         app.openDashboard();
     }

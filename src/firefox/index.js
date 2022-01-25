@@ -28,7 +28,7 @@ class Firefox {
     };
 
     getURL(version, osAndArch, language, filename) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return 'https://github.com/pointnetwork/phyrox-esr-portable/releases/download/test/point-browser-portable-win64-78.12.0-55.7z';
         }
         // linux & mac
@@ -36,21 +36,21 @@ class Firefox {
     };
 
     getFileName(osAndArch, version) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             // TODO: Still unsure about this: we need to decide on the name
             // of the browser, check how we get the version, etc.
             return `point-browser-portable-${osAndArch}-78.12.0-55.7z`;
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             return `Firefox%20${version}.dmg`;
         }
         // linux & mac
         return `firefox-${version}.tar.bz2`;
     };
 
-    async download() {
+    async download(win) {
         const language = 'en-US';
-        const version = '93.0b4';
+        const version = await this.getLastVersionFirefox(); //'93.0b4'// 
         const osAndArch = helpers.getOSAndArch();
         const browserDir = await this.getFolderPath(osAndArch);
         const pacFile = url.pathToFileURL(path.join(await helpers.getPNPath(osAndArch), 'client', 'proxy', 'pac.js'));
@@ -73,7 +73,9 @@ class Firefox {
                             if (err) {
                                 return reject(err);
                             } else {
+                                win.webContents.send("firefox-installed", true);
                                 console.log(`\nDeleted file: ${releasePath}`);
+                                this.launch();
                             }
                         });
 
@@ -83,8 +85,11 @@ class Firefox {
                     };
                     this.unpack(osAndArch, releasePath, browserDir, cb);
                 });
-            })
+            });
+
+            
         });
+  
     }
 
     async launch() {
@@ -93,15 +98,16 @@ class Firefox {
         const profile_path = path.join(await helpers.getHomePath(), ".point/keystore/profile");
         const flags = "--profile "+profile_path;
 	let webext_binary = '';
-	if (osAndArch == 'win32' || osAndArch == 'win64') {
+	if (global.platform.win32) {
 		webext_binary = 'web-ext';
 	} else {
-		webext_binary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext");
+		 webext_binary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext");
+        // webext_binary = 'web-ext';
 	}
         // const webext_binary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext");
         const ext_path = path.join(await helpers.getHomePath(), ".point/src/pointsdk/dist/prod"); // should contain manifest.json
 	let webext = '';
-	if (osAndArch == 'win32' || osAndArch == 'win64') {
+	if (global.platform.win32) {
 		webext = `"${webext_binary}" run "--firefox=${cmd}" "--firefox-profile=${profile_path}" --keep-profile-changes "--source-dir=${ext_path}" --url https://point`;
 	} else {
 		webext = `${webext_binary} run --firefox="${cmd}" --firefox-profile ${profile_path} --keep-profile-changes --source-dir ${ext_path} --url https://point`;
@@ -121,10 +127,10 @@ class Firefox {
     }
     
     unpack(osAndArch, releasePath, browserDir, cb) {
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             _7z.unpack(releasePath, browserDir, (err) => { if (err) throw err; cb();});
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             dmg.mount(releasePath, (err, dmgPath) => {
                 fs.copy(`${dmgPath}/Firefox.app`, `${browserDir}/Firefox.app`, (err) => {
                     if (err) {
@@ -137,7 +143,7 @@ class Firefox {
             });
             return;
         }
-        if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686') {
+        if (global.platform.linux || global.platform.linux) {
             let readStream = fs.createReadStream(releasePath).pipe(bz2()).pipe(tarfs.extract(browserDir));
             // readStream.on('finish', () => {cb();} );
             readStream.on('finish', cb );
@@ -145,7 +151,7 @@ class Firefox {
     };
 
     async getRootPath(osAndArch) {
-        if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        if (global.platform.win32 || global.platform.darwin) {
             return path.join(await this.getFolderPath(osAndArch));
         }
         // linux
@@ -155,9 +161,9 @@ class Firefox {
     async getAppPath(osAndArch) {
         const rootPath = await this.getRootPath(osAndArch);
 
-        if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        if (global.platform.win32 || global.platform.darwin) {
             let appPath = '';
-            if (osAndArch == 'mac') {
+            if (global.platform.darwin) {
                 appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');
             } else {
                 appPath = path.join(rootPath, 'app');
@@ -177,9 +183,9 @@ class Firefox {
     async getPrefPath(osAndArch) {
         const rootPath = await this.getRootPath(osAndArch);
 
-        if (osAndArch == 'win32' || osAndArch == 'win64' || osAndArch == 'mac') {
+        if (global.platform.win32 || global.platform.darwin) {
             let appPath = '';
-            if (osAndArch == 'mac') {
+            if (global.platform.darwin) {
                 appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');
             } else {
                 appPath = path.join(rootPath, 'app');
@@ -206,10 +212,10 @@ class Firefox {
 
     async getBinPath(osAndArch) {
         const rootPath = await this.getRootPath(osAndArch);
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             return path.join(rootPath, 'point-browser-portable.exe');
         }
-        if (osAndArch == 'mac') {
+        if (global.platform.darwin) {
             return `${path.join(rootPath, 'Firefox.app')}`;
         }
         // linux
@@ -220,7 +226,7 @@ class Firefox {
         if (!pacFile) throw Error('pacFile sent to createConfigFiles is undefined or null!');
 
         let networkProxyType = '';
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             networkProxyType = '1';
         }
         networkProxyType = '2';
@@ -257,7 +263,7 @@ pref('browser.tabs.drawInTitlebar', true);
         const prefPath = await this.getPrefPath(osAndArch);
         const appPath = await this.getAppPath(osAndArch);
 
-        if (osAndArch == 'win32' || osAndArch == 'win64') {
+        if (global.platform.win32) {
             // Portapps creates `defaults/pref/autonfig.js` for us, same contents.
             //
             // Portapps also creates `portapps.cfg`, which is equivalent to *nix's firefox.cfg.
@@ -271,7 +277,7 @@ pref('browser.tabs.drawInTitlebar', true);
                     }
                 });
         }
-        if (osAndArch == 'linux-x86_64' || osAndArch == 'linux-i686' || osAndArch == 'mac') {
+        if (global.platform.linux || global.platform.linux || global.platform.darwin) {
             fs.writeFile(path.join(prefPath, 'autoconfig.js'),
                 autoconfigContent,
                 err => {
@@ -300,6 +306,28 @@ pref('browser.tabs.drawInTitlebar', true);
     async setFirefoxRanOnce() {
         const pointPath = await module.exports.getPointPath();
         fs.writeFileSync(path.join(pointPath, INSTALLER_FINISHED_FLAG_PATH), "");
+    }
+
+    async getLastVersionFirefox(){
+        const url = "https://product-details.mozilla.org/1.0/firefox_versions.json";
+
+        return new Promise((resolve) => {
+            https.get(url, res => {
+                let data= "";
+    
+                res.on('data', chunk => { data += chunk }) 
+    
+                res.on('end', () => {
+                    try {
+                        let json = JSON.parse(data);
+                        resolve(json.LATEST_FIREFOX_VERSION);
+                    } catch (error) {
+                        console.error(error.message);
+                    };
+    
+                })
+            }) 
+        })
     }
 }
 
