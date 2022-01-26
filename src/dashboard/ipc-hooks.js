@@ -83,4 +83,11 @@ export const attach = (ipcMain, win) => {
         }
         win.webContents.send("docker-checkeded-installed", false);
     });
+
+
+    ipcMain.on("docker-run", async(event, args) => {
+        if (! await docker.isComposeRunning()) {
+            await docker.startCompose();
+        }
+    });
 }
