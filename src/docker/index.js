@@ -234,6 +234,7 @@ module.exports = {
         }
 
         try {
+            console.log(cmd)
             await execProm(cmd);
             return true;
         } catch(e) {
@@ -253,7 +254,6 @@ module.exports = {
         if (global.platform.linux || global.platform.linux) {
             return `sudo ${cmd}`
         }
-
         await execProm(cmd);
     },
 
