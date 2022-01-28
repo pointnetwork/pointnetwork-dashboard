@@ -1,51 +1,51 @@
 window.api.receive("point-node-checked", (isRunning) => {
     if (isRunning) {
       isPointNodeRunning = true;
-      addIconPassStatus("#docker-point-node .icon");
+      uiDrawer.addIconPassStatus("#docker-point-node .icon");
       $("#docker-point-node .status").html("Ready");
   
-      addIconAction("#firefox", firefoxRun);
+      uiDrawer.addIconAction("#firefox", uiDrawer.firefoxRun);
       $("#firefox .status").html("Ready");
-      addIconPassStatus("#firefox .icon");
+      uiDrawer.addIconPassStatus("#firefox .icon");
   
       $("#msg").addClass("no-display");
-      if (isAllReady && !window.firefox_auto_started) {
+      if (uiDrawer.isAllReady && !window.firefox_auto_started) {
         // If Point Node and Firefox are good, then immediately run Firefox.
         // But only one time
         window.firefox_auto_started = true;
-        firefoxRun();
+        uiDrawer.firefoxRun();
       }
       return;
     }
-    addIconFailStatus("#docker-point-node .icon", "fail");
+    uiDrawer.addIconFailStatus("#docker-point-node .icon", "fail");
     $("#docker-point-node .status").html("Not running");
     //$("#msg").removeClass("no-display");
     //$("#msg").html(
     //  "Point Node is not running, please run <code>point-up</code> in a terminal"
     //);
   
-    addIconFailStatus("#firefox .icon", "fail");
+    uiDrawer.addIconFailStatus("#firefox .icon", "fail");
     $("#firefox .icon").unbind("click");
     $("#firefox .status").html("Point Node not running");
   });
   
   window.api.receive("firefox-checked", (isInstalled) => {
     if (isInstalled) {
-      addIconPassStatus("#firefox .icon");
-      addIconAction("#firefox", firefoxRun);
-      setStatus("#firefox", "Ready");
+      uiDrawer.addIconPassStatus("#firefox .icon");
+      uiDrawer.addIconAction("#firefox", uiDrawer.firefoxRun);
+      uiDrawer.setStatus("#firefox", "Ready");
       isFirefoxInstalled = true;
-      if (isAllReady) {
+      if (uiDrawer.isAllReady) {
         // If Point Node and Firefox are good, then immediately run Firefox.
-        firefoxRun();
+        uiDrawer.firefoxRun();
       }
       return;
     }
-    addIconFailStatus("#firefox .icon", "fail");
-    addIconAction("#firefox", firefoxInstallation);
+    uiDrawer.addIconFailStatus("#firefox .icon", "fail");
+    uiDrawer.addIconAction("#firefox", firefoxInstallation);
     $("#firefox .status").html("Not installed");
     // If it's not installed, immediately start downloading and configuring.=
-    firefoxInstall();
+    uiDrawer.firefoxInstall();
   });
   
   window.api.receive("platform-checked", (platform) => {
@@ -55,7 +55,7 @@ window.api.receive("point-node-checked", (isRunning) => {
   });
   
   window.api.receive("firefox-closed", () => {
-    setStatus("#firefox", "Ready");
+    uiDrawer.setStatus("#firefox", "Ready");
   });
   
   window.api.receive("docker-checked", (containerInfo) => {
@@ -63,34 +63,34 @@ window.api.receive("point-node-checked", (isRunning) => {
     const status = containerInfo.status;
   
     if (status == "healthy") {
-      addIconPassStatus(`${component} .icon`);
-      setStatus(component, "Healthy");
+      uiDrawer.addIconPassStatus(`${component} .icon`);
+      uiDrawer.setStatus(component, "Healthy");
       return;
     }
     if (status == "starting") {
-      addIconCheckingStatus(`${component} .icon`);
-      setStatus(component, "Starting");
+      uiDrawer.addIconCheckingStatus(`${component} .icon`);
+      uiDrawer.setStatus(component, "Starting");
       return;
     }
     if (status == "unhealthy") {
-      addIconFailStatus(`${component} .icon`);
-      setStatus(component, "Unhealthy");
+      uiDrawer.addIconFailStatus(`${component} .icon`);
+      uiDrawer.setStatus(component, "Unhealthy");
       return;
     }
     if (status == "no connection") {
-      addIconFailStatus(`${component} .icon`);
-      setStatus(component, "No connection");
+      uiDrawer.addIconFailStatus(`${component} .icon`);
+      uiDrawer.setStatus(component, "No connection");
       return;
     }
     if (status == "not running") {
-      addIconFailStatus(`${component} .icon`);
-      setStatus(component, "Not running");
+      uiDrawer.addIconFailStatus(`${component} .icon`);
+      uiDrawer.setStatus(component, "Not running");
       return;
     }
-    addIconFailStatus(`${component} .icon`);
-    setStatus(component, "No connection");
+    uiDrawer.addIconFailStatus(`${component} .icon`);
+    uiDrawer.setStatus(component, "No connection");
   });
 
   window.api.receive("firefox-installed", () => {
-    firefoxInstalled();
+    uiDrawer.firefoxInstalled();
   });
