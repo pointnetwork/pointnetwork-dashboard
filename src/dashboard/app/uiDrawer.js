@@ -246,6 +246,9 @@ class UiDrawer {
       
      dockerCheckInstalled() {
         window.api.send("docker-check-installed");
-      }
+     }
 
+    logout() {
+        window.api.send("logout");
+    }
 }

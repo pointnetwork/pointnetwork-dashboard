@@ -1,3 +1,4 @@
+const { app } = require('electron');
 const { http, https } = require('follow-redirects');
 const path = require('path');
 const fs = require('fs-extra');
@@ -113,8 +114,12 @@ class Helpers {
     }
 
     async logout() {
-        fs.unlinkSync(await helpers.getKeyFileName());
-        fs.unlinkSync(await helpers.getArweaveKeyFileName());
+        // Removing key files.
+        fs.unlinkSync(await this.getKeyFileName());
+        fs.unlinkSync(await this.getArweaveKeyFileName());
+        // Relaunching the dashboard to ask for key or generate a new one.
+        app.relaunch()
+        app.exit()
     }
 
     isDirEmpty(path) {
