@@ -2,6 +2,7 @@ const helpers = require('../helpers');
 const path = require('path');
 const util = require('util');
 const _ = require('lodash');
+const compose = require('docker-compose');
 const execPromBeforeWrapper = util.promisify(require('child_process').exec);
 const execProm = async(cmd) => {
     if (_.startsWith(cmd, 'sudo ')) {
@@ -35,6 +36,13 @@ const which = require('which');
 
 // TODO: Change to class and add as method, then change all instances of `module.exports` to `this.`
 async function getComposePath() {
+    const osAndArch = helpers.getOSAndArch();
+    const pnPath = await helpers.getPNPath(osAndArch);
+    const composePath = helpers.fixPath(osAndArch, path.join(pnPath));
+    return composePath;
+}
+
+async function getComposePathWithFile() {
     const osAndArch = helpers.getOSAndArch();
     const pnPath = await helpers.getPNPath(osAndArch);
     const composePath = helpers.fixPath(osAndArch, path.join(pnPath, 'docker-compose.yaml'));
@@ -242,10 +250,20 @@ module.exports = {
         }
     },
 
-    async startCompose() {
-        const osAndArch = helpers.getOSAndArch();
+    async startCompose(win) {
         const composePath = await getComposePath();
-        const cmd = `docker-compose -f ${composePath} up -d`;
+        compose.upAll({
+            cwd: composePath,
+            callback: (chunk) => {
+              console.log('job in progres: ', chunk.toString('utf8'));
+              win.webContents.send("docker-log", chunk.toString('utf8'));
+               }
+            })
+           .then(
+             () => { console.log('job done')},
+             err => { console.log('something went wrong:', err.message)}
+           );
+       /* const cmd = `docker-compose -f ${composePath} up -d`;
 
         if (global.platform.win32) {
             return `wsl ${cmd}`;
@@ -254,7 +272,7 @@ module.exports = {
         if (global.platform.linux || global.platform.linux) {
             return `sudo ${cmd}`
         }
-        await execProm(cmd);
+        await execProm(cmd);*/
     },
 
     async stopCompose() {

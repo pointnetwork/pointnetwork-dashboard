@@ -57,7 +57,6 @@ const firefoxPointBrowser = {
   icon:'<i class="small-icon icon fab checking fa-firefox-browser fa-fw"></i>',
   jqId: '#firefox',
   action: () => {
-    console.log('entre');
     uiDrawer.firefoxRun();
   }
 }
