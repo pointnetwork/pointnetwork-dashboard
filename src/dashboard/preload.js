@@ -31,7 +31,8 @@ contextBridge.exposeInMainWorld(
                                  "docker-check-installed",
                                  "docker-logs",
                                  "point-node-check",
-                                 "docker-run"
+                                 "docker-run",
+                                 "logout"
                                 ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);

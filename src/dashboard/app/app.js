@@ -46,6 +46,10 @@ async function dockerInit(id) {
   });
 }
 
+function logout() {
+    uiDrawer.logout();
+}
+
 /* TODO: Change to something else. Currently you would need to be forced to click on #docker-point-node icon */
 const firefoxPointBrowser = {
   id: "firefox", 

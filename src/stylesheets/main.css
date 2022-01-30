@@ -123,3 +123,8 @@ li:before {
     text-align: left;
     color: #fff;
 }
+
+.logout-btn {
+    margin-left: auto;
+    width: 100px;
+}
