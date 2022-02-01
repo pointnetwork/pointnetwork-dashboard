@@ -214,8 +214,13 @@ class UiDrawer {
     $("#statusUI").append( log + "</br>");
     $( ".statusStyle" ).scrollTop( $(".statusStyle").prop("scrollHeight") );
     setTimeout(() => {
-      $(".statusStyle").hide("slow");
+      uiDrawer.closeLog();
     }, 45000);
+  }
+
+  closeLog(){
+    $(".statusStyle").hide("slow");
+    uiDrawer.pointNodeCheck();
   }
 
   firefoxInstall() {

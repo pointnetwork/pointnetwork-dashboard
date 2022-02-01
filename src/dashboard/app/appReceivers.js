@@ -12,10 +12,12 @@ window.api.receive("point-node-checked", (isRunning) => {
         // If Point Node and Firefox are good, then immediately run Firefox.
         // But only one time
         window.firefox_auto_started = true;
-        // uiDrawer.firefoxRun();
+        uiDrawer.firefoxRun();
+
       }
       return;
     }
+    window.api.send("docker-run");
     uiDrawer.addIconFailStatus("#docker-point-node .icon", "fail");
     $("#docker-point-node .status").html("Not running");
     //$("#msg").removeClass("no-display");
