@@ -9,6 +9,7 @@ const url = require("url");
 const helpers = require("../helpers");
 const { exec } = require("child_process");
 const { https } = require("follow-redirects");
+const find = require('find-process');
 
 const FIREFOX_RAN_ONCE = "firefox-ran-once";
 
@@ -92,6 +93,12 @@ class Firefox {
   }
 
   async launch() {
+    const isRunning = await find('name', 'Firefox')
+    if(isRunning.length > 0 ) {
+      console.log('Firefox already Running');
+      return;
+    }
+
     const osAndArch = helpers.getOSAndArch();
     const cmd = await this.getBinPath(osAndArch);
     const profile_path = path.join(
