@@ -57,7 +57,6 @@ const firefoxPointBrowser = {
   icon:'<i class="small-icon icon fab checking fa-firefox-browser fa-fw"></i>',
   jqId: '#firefox',
   action: () => {
-    console.log('entre');
     uiDrawer.firefoxRun();
   }
 }
@@ -98,7 +97,3 @@ uiDrawer.firefoxCheck();
 // Running once before loop.
 // dockerHealthAll();
 uiDrawer.pointNodeCheck();
-setInterval(function () {
-  // dockerHealthAll();
-  uiDrawer.pointNodeCheck();
-}, 3 * 1000); // 60 * 1000 milsec

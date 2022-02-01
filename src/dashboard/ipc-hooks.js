@@ -86,7 +86,7 @@ export const attach = (ipcMain, win) => {
 
 
     ipcMain.on("docker-run", async(event, args) => {
-            await docker.startCompose();
+            await docker.startCompose(win);
     });
 
     ipcMain.on("logout", async(event, args) => {

@@ -4,7 +4,6 @@ window.api.receive("point-node-checked", (isRunning) => {
       uiDrawer.addIconPassStatus("#docker-point-node .icon");
       $("#docker-point-node .status").html("Ready");
   
-      uiDrawer.addIconAction("#firefox", uiDrawer.firefoxRun);
       $("#firefox .status").html("Ready");
       uiDrawer.addIconPassStatus("#firefox .icon");
   
@@ -14,9 +13,11 @@ window.api.receive("point-node-checked", (isRunning) => {
         // But only one time
         window.firefox_auto_started = true;
         uiDrawer.firefoxRun();
+
       }
       return;
     }
+    window.api.send("docker-run");
     uiDrawer.addIconFailStatus("#docker-point-node .icon", "fail");
     $("#docker-point-node .status").html("Not running");
     //$("#msg").removeClass("no-display");
@@ -37,12 +38,12 @@ window.api.receive("point-node-checked", (isRunning) => {
       isFirefoxInstalled = true;
       if (uiDrawer.isAllReady) {
         // If Point Node and Firefox are good, then immediately run Firefox.
-        uiDrawer.firefoxRun();
+        // uiDrawer.firefoxRun();
       }
       return;
     }
     uiDrawer.addIconFailStatus("#firefox .icon", "fail");
-    uiDrawer.addIconAction("#firefox", firefoxInstallation);
+    uiDrawer.addIconAction("#firefox", uiDrawer.firefoxInstallation);
     $("#firefox .status").html("Not installed");
     // If it's not installed, immediately start downloading and configuring.=
     uiDrawer.firefoxInstall();
@@ -93,4 +94,8 @@ window.api.receive("point-node-checked", (isRunning) => {
 
   window.api.receive("firefox-installed", () => {
     uiDrawer.firefoxInstalled();
+  });
+
+  window.api.receive("docker-log", (log) => {
+    uiDrawer.dockerLog(log);
   });

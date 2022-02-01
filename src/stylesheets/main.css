@@ -113,6 +113,8 @@ li:before {
 
 .statusStyle {
     position: relative;
+    height: 200px;
+    overflow: auto;
     display: none;
     flex-direction: column;
     min-width: 0;

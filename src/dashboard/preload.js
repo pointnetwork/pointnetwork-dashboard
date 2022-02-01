@@ -45,7 +45,8 @@ contextBridge.exposeInMainWorld(
                                  "platform-checked",
                                  "docker-checked",
                                  "docker-checked-installed",
-                                 "point-node-checked"
+                                 "point-node-checked",
+                                 "docker-log"
                                  ];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 

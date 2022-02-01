@@ -34,9 +34,6 @@ app.mainDecision = async() => {
         const welcome = new Welcome();
         welcome.run();
     } else {
-        if (! await docker.isComposeRunning()) {
-            await docker.startCompose();
-        }
         app.openDashboard();
     }
 }
