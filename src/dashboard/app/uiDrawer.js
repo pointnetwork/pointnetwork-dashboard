@@ -212,9 +212,9 @@ class UiDrawer {
   appendLog(log) {
     $(".statusStyle").show("slow");
     $("#statusUI").append( log + "</br>");
-    $( ".statusStyle" ).scrollTop( $(".statusStyle").prop("scrollHeight") );
+    //$( ".statusStyle" ).scrollTop( $(".statusStyle").prop("scrollHeight") );
     setTimeout(() => {
-      uiDrawer.closeLog();
+     // uiDrawer.closeLog();
     }, 45000);
   }
 
@@ -260,5 +260,9 @@ class UiDrawer {
 
   dockerLog(log) {
     this.appendLog(log);
+  }
+
+  logout() {
+    window.api.send("logout");
   }
 }

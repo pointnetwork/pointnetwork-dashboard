@@ -252,7 +252,7 @@ module.exports = {
 
     async startCompose(win) {
         const composePath = await getComposePath();
-        compose.upAll({
+        await compose.upAll({
             cwd: composePath,
             callback: (chunk) => {
               console.log('job in progres: ', chunk.toString('utf8'));
@@ -263,6 +263,8 @@ module.exports = {
              () => { console.log('job done')},
              err => { console.log('something went wrong:', err.message)}
            );
+
+        await this.getLogsNode(win);
        /* const cmd = `docker-compose -f ${composePath} up -d`;
 
         if (global.platform.win32) {
@@ -273,6 +275,29 @@ module.exports = {
             return `sudo ${cmd}`
         }
         await execProm(cmd);*/
+    },
+
+    async getLogsNode(win){
+        const composePath = await getComposePath();
+        await compose.logs([ 'point_node'], {
+            follow: true,
+            cwd: composePath,
+            callback: (chunk) => {
+                win.webContents.send("docker-log", chunk.toString('utf8'));
+            }
+        })
+    },
+
+    async getLogsDatabase(win){
+        const composePath = await getComposePath();
+        await compose.logs('database', {
+            follow: true,
+            cwd: composePath,
+            callback: (chunk) => {
+                console.log('Log: ', chunk.toString('utf8'));
+                win.webContents.send("docker-log", chunk.toString('utf8'));
+            }
+        })
     },
 
     async stopCompose() {
