@@ -32,7 +32,9 @@ contextBridge.exposeInMainWorld(
                                  "docker-logs",
                                  "point-node-check",
                                  "docker-run",
-                                 "logout"
+                                 "logout",
+                                 "open-docker-logs-node",
+                                 "open-docker-logs-database"
                                 ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
