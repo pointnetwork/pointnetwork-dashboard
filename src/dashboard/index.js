@@ -23,7 +23,7 @@ class Dashboard {
             // Create the browser window.
             win = new BrowserWindow({
                 width: 1000,
-                height: 500,
+                height: 800,
                 webPreferences: {
                     nodeIntegration: false,
                     contextIsolation: true,
@@ -36,7 +36,7 @@ class Dashboard {
             win.loadFile('./src/dashboard/app/app.html');
 
             // Open the DevTools.
-            // win.webContents.openDevTools();
+             win.webContents.openDevTools();
 
             // Register Cmd+Q on macs
             if (process.platform === 'darwin') {

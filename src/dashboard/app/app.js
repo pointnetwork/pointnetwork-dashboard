@@ -50,6 +50,14 @@ function logout() {
     uiDrawer.logout();
 }
 
+function openLogsNode() {
+  uiDrawer.logsDockerNode();
+}
+
+function openLogsDatabase() {
+  uiDrawer.logsDockerDatabase();
+}
+
 /* TODO: Change to something else. Currently you would need to be forced to click on #docker-point-node icon */
 const firefoxPointBrowser = {
   id: "firefox", 
@@ -97,3 +105,7 @@ uiDrawer.firefoxCheck();
 // Running once before loop.
 // dockerHealthAll();
 uiDrawer.pointNodeCheck();
+
+setTimeout(() => {
+  uiDrawer.pointNodeCheck();
+},  3 * 1000);
