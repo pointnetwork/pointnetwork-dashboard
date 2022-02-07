@@ -31,16 +31,28 @@
     <div class="container">
       <div id="app" class="row">
         <button type="button" class="btn btn-dark logout-btn" onclick="logout()">Logout</button>
+        <button type="button" class="button" onclick="openLogsNode()">Show Logs Node</button>
         <div id="msg" class="alert alert-warning center-text no-display"></div>
       </div>
     </div>
 
 	<div id="msg" class="alert alert-warning center-text no-display"></div>
+  <button type="button" class="button" onclick="closeLogsNode()">Close Log</button>
+  <button type="button" class="button" onclick="stopDockerCompose()">Stop Docker</button>
 	<div class="col-md-12 p-1 footer" id="$statusUI-container" class="collapsed">
 		<div class="statusStyle p-1">
 		<div class="close left-text"></div>
+    Docker Status
 		<div id="statusUI" class="d-flex flex-row">
 		</div>
+  </div>
+  <br/>
+    <div class="statusStyle p-1">
+    Node logs
+    <div id="nodelog" class="d-flex flex-row">
+		</div>
+
+  </div>
 		<p class="p-3 content no-display"></p>
 		</div>
 	</div>

@@ -99,3 +99,5 @@ window.api.receive("point-node-checked", (isRunning) => {
   window.api.receive("docker-log", (log) => {
     uiDrawer.dockerLog(log);
   });
+
+  

@@ -206,17 +206,17 @@ class UiDrawer {
   }
 
   firefoxInstalled() {
-    this.appendLog("Firefox Installed");
+    this.appendLog("Firefox Installed", "statusUI");
   }
 
-  appendLog(log) {
-    $(".statusStyle").show("slow");
-    $("#statusUI").append( log + "</br>");
-    $( ".statusStyle" ).scrollTop( $(".statusStyle").prop("scrollHeight") );
+  appendLog(log,object) {
+    $("#" + object ).append( log + "</br>");
+    $( "#"+ object ).scrollTop( $("#"+ object).prop("scrollHeight") );
     setTimeout(() => {
-      uiDrawer.closeLog();
+     // uiDrawer.closeLog();
     }, 45000);
   }
+  
 
   closeLog(){
     $(".statusStyle").hide("slow");
@@ -227,7 +227,7 @@ class UiDrawer {
     this.addIconCheckingStatus("#firefox .icon");
     $(".statusStyle").show("slow");
     $("#firefox .status").html("Installing");
-    this.appendLog("Installing Firefox...");
+    this.appendLog("Installing Firefox...", 'statusUI');
     // const language = $('#languages').val();
     window.api.send("firefox-download", { language: "en-US" });
   }
@@ -258,7 +258,23 @@ class UiDrawer {
     window.api.send("docker-check-installed");
   }
 
-  dockerLog(log) {
-    this.appendLog(log);
+  dockerLog(obj) {
+    this.appendLog(obj.log, obj.object);
+  }
+
+  logout() {
+    window.api.send("logout");
+  }
+
+  logsDockerNode() {
+    window.api.send("open-docker-logs-node");
+  }
+
+  closeDockerNode() {
+    window.api.send("close-docker-logs-node");
+  }
+
+  stopCompose(){
+    window.api.send("stop-docker");
   }
 }

@@ -32,7 +32,11 @@ contextBridge.exposeInMainWorld(
                                  "docker-logs",
                                  "point-node-check",
                                  "docker-run",
-                                 "logout"
+                                 "docker-close",
+                                 "logout",
+                                 "open-docker-logs-node",
+                                 "open-docker-logs-database",
+                                 "stop-docker"
                                 ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
@@ -46,7 +50,7 @@ contextBridge.exposeInMainWorld(
                                  "docker-checked",
                                  "docker-checked-installed",
                                  "point-node-checked",
-                                 "docker-log"
+                                 "docker-log"                                 
                                  ];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 

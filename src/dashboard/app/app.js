@@ -50,6 +50,23 @@ function logout() {
     uiDrawer.logout();
 }
 
+function openLogsNode() {
+  $(".statusStyle").show("slow");
+  uiDrawer.logsDockerNode();
+}
+
+function closeLogsNode() {
+  uiDrawer.closeLog();
+}
+
+function stopDockerCompose() {
+  uiDrawer.stopCompose();
+}
+
+function openLogsDatabase() {
+  uiDrawer.logsDockerDatabase();
+}
+
 /* TODO: Change to something else. Currently you would need to be forced to click on #docker-point-node icon */
 const firefoxPointBrowser = {
   id: "firefox", 
@@ -57,6 +74,7 @@ const firefoxPointBrowser = {
   icon:'<i class="small-icon icon fab checking fa-firefox-browser fa-fw"></i>',
   jqId: '#firefox',
   action: () => {
+    $(".statusStyle").show("slow");
     uiDrawer.firefoxRun();
   }
 }
@@ -66,6 +84,7 @@ const dockerPointNode = {
   icon:'<i class="small-icon icon fab checking fa-docker"></i>',
   jqId: '#docker-point-node',
   action: () => {
+    $(".statusStyle").show("slow");
     window.api.send("docker-run");
   }
 }
@@ -97,3 +116,7 @@ uiDrawer.firefoxCheck();
 // Running once before loop.
 // dockerHealthAll();
 uiDrawer.pointNodeCheck();
+
+setTimeout(() => {
+  uiDrawer.pointNodeCheck();
+},  3 * 1000);

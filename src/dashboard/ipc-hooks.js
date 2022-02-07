@@ -92,4 +92,14 @@ export const attach = (ipcMain, win) => {
     ipcMain.on("logout", async(event, args) => {
         await helpers.logout();
     });
+
+    ipcMain.on("open-docker-logs-node", async(event, args) => {
+        await docker.getLogsNode(win);
+    });
+
+    ipcMain.on("stop-docker", async(event, args) => {
+        await docker.stopCompose(win);
+    });
+
+
 }
