@@ -113,8 +113,7 @@ li:before {
 
 .statusStyle {
     position: relative;
-    height: 100px;
-    overflow: auto;
+    
     display: none;
     flex-direction: column;
     min-width: 0;
@@ -124,6 +123,16 @@ li:before {
     border-radius: .25rem;
     text-align: left;
     color: #fff;
+}
+
+#nodelog {
+    height: 200px;
+    overflow: auto;
+}
+
+#statusUI {
+    height: 70px;
+    overflow: auto;
 }
 
 .logout-btn {

@@ -300,13 +300,23 @@ module.exports = {
           );
     },
 
-    async stopCompose() {
+    async stopCompose(win) {
         const composePath = await getComposePath();
         await compose.stop({
-            cwd: composePath
+            cwd: composePath,
+            callback: (chunk) => {
+                console.log('job in progres: ', chunk.toString('utf8'));
+                win.webContents.send("docker-log", 
+                { log: chunk.toString('utf8'),
+                  object: 'statusUI'
+                });
+                 }
             })
            .then(
-             () => { console.log('docker stop')},
+             () => { 
+                 console.log('docker stop');
+                 win.webContents.send("point-node-check");
+            },
              err => { console.log('something went wrong:', err.message)}
            );
     }

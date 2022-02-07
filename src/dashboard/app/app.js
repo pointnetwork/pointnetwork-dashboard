@@ -51,7 +51,16 @@ function logout() {
 }
 
 function openLogsNode() {
+  $(".statusStyle").show("slow");
   uiDrawer.logsDockerNode();
+}
+
+function closeLogsNode() {
+  uiDrawer.closeLog();
+}
+
+function stopDockerCompose() {
+  uiDrawer.stopCompose();
 }
 
 function openLogsDatabase() {
@@ -65,6 +74,7 @@ const firefoxPointBrowser = {
   icon:'<i class="small-icon icon fab checking fa-firefox-browser fa-fw"></i>',
   jqId: '#firefox',
   action: () => {
+    $(".statusStyle").show("slow");
     uiDrawer.firefoxRun();
   }
 }
@@ -74,6 +84,7 @@ const dockerPointNode = {
   icon:'<i class="small-icon icon fab checking fa-docker"></i>',
   jqId: '#docker-point-node',
   action: () => {
+    $(".statusStyle").show("slow");
     window.api.send("docker-run");
   }
 }
