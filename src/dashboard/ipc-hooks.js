@@ -97,5 +97,9 @@ export const attach = (ipcMain, win) => {
         await docker.getLogsNode(win);
     });
 
+    ipcMain.on("stop-docker", async(event, args) => {
+        await docker.stopCompose(win);
+    });
+
 
 }

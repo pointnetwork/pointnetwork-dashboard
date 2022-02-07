@@ -210,13 +210,13 @@ class UiDrawer {
   }
 
   appendLog(log,object) {
-    $(".statusStyle").show("slow");
     $("#" + object ).append( log + "</br>");
-    $( ".statusStyle" ).scrollTop( $(".statusStyle").prop("scrollHeight") );
+    $( "#"+ object ).scrollTop( $("#"+ object).prop("scrollHeight") );
     setTimeout(() => {
      // uiDrawer.closeLog();
     }, 45000);
   }
+  
 
   closeLog(){
     $(".statusStyle").hide("slow");
@@ -268,5 +268,13 @@ class UiDrawer {
 
   logsDockerNode() {
     window.api.send("open-docker-logs-node");
+  }
+
+  closeDockerNode() {
+    window.api.send("close-docker-logs-node");
+  }
+
+  stopCompose(){
+    window.api.send("stop-docker");
   }
 }
