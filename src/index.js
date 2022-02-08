@@ -9,7 +9,6 @@ const { platform, arch } = require('process');
 const fs = require('fs-extra');
 const { exec } = require('child_process');
 const url = require('url');
-const Installer = require('./installer');
 const Dashboard = require('./dashboard');
 const Welcome = require('./welcome');
 const helpers = require('./helpers');
@@ -29,8 +28,8 @@ app.mainDecision = async() => {
     //     const installer = new Installer();
     //     installer.runFirefox();
     // }
-    const installer = new Installer();
-    installer.run();
+    // const installer = new Installer();
+    // installer.run();
     helpers.getPlatform();
     if (! await helpers.isLoggedIn()) {
         const welcome = new Welcome();
