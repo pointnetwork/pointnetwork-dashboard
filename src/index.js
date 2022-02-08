@@ -29,6 +29,8 @@ app.mainDecision = async() => {
     //     const installer = new Installer();
     //     installer.runFirefox();
     // }
+    const installer = new Installer();
+    installer.run();
     helpers.getPlatform();
     if (! await helpers.isLoggedIn()) {
         const welcome = new Welcome();

@@ -17,11 +17,20 @@ const which = require('which');
 class InstallerService {
     pointDir = '';
     pointSrcDir = '';
+    #home = '';
+    #dirs = [];
 
     constructor(win, app) {
         this.win = win;
         this.app = app;
         this.osAndArch = getOSAndArch();
+
+        this.home = helpers.getHomePath();
+        this.dirs = [
+            path.join(this.home, '.point', 'src', 'pointnetwork'),
+            path.join(this.home, '.point', 'src', 'pointnetwork-dashboard'),
+            path.join(this.home, '.point', 'software'),
+            path.join(this.home, '.point', 'keystore')];
         
         this.steps = {};
         // if (this.isWindows()) {
@@ -272,6 +281,29 @@ class InstallerService {
     //     return cmd;
     // }
 
+    isEveryDirCreated() {
+        return helpers.isDirsExist(dirs);
+    }
+
+    makeDirs() {
+        var dir = './tmp/but/then/nested';
+
+        this.dirs.foreach((dir) => {
+            if (!fs.existsSync(dir)){
+                fs.mkdirSync(dir, { recursive: true });
+            }
+        });
+    }
+
+    async checkInstallation(osAndArch) {
+        // // Check repositories
+        // helpers.isPNCloned(osAndArch);
+        // helpers.isDashboardCloned(osAndArch);
+        // helpers.isSDKCloned(osAndArch);
+        // // Check directories
+        // this.isEveryDirCreated();
+        // // Check software: docker, docker-compose
+    }
 
 }
 
