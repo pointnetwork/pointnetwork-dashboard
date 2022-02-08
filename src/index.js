@@ -9,7 +9,6 @@ const { platform, arch } = require('process');
 const fs = require('fs-extra');
 const { exec } = require('child_process');
 const url = require('url');
-const Installer = require('./installer');
 const Dashboard = require('./dashboard');
 const Welcome = require('./welcome');
 const helpers = require('./helpers');
@@ -29,14 +28,13 @@ app.mainDecision = async() => {
     //     const installer = new Installer();
     //     installer.runFirefox();
     // }
+    // const installer = new Installer();
+    // installer.run();
     helpers.getPlatform();
     if (! await helpers.isLoggedIn()) {
         const welcome = new Welcome();
         welcome.run();
     } else {
-        if (! await docker.isComposeRunning()) {
-            await docker.startCompose();
-        }
         app.openDashboard();
     }
 }
@@ -55,8 +53,7 @@ app.openDashboard = () => {
     // Quit when all windows are closed, except on macOS. There, it's common
     // for applications and their menu bar to stay active until the user quits
     // explicitly with Cmd + Q.
-    app.on('window-all-closed', function () {
-        docker.stopCompose();
+    app.on('window-all-closed', async function () {
         if (platform !== 'darwin') app.quit();
     });
 }
