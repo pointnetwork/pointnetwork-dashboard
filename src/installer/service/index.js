@@ -296,13 +296,13 @@ class InstallerService {
     }
 
     async checkInstallation(osAndArch) {
-        // Check repositories
-        helpers.isPNCloned(osAndArch);
-        helpers.isDashboardCloned(osAndArch);
-        helpers.isSDKCloned(osAndArch);
-        // Check directories
-        this.isEveryDirCreated();
-        // Check software: docker, docker-compose
+        // // Check repositories
+        // helpers.isPNCloned(osAndArch);
+        // helpers.isDashboardCloned(osAndArch);
+        // helpers.isSDKCloned(osAndArch);
+        // // Check directories
+        // this.isEveryDirCreated();
+        // // Check software: docker, docker-compose
     }
 
 }
