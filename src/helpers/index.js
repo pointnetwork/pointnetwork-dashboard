@@ -1,3 +1,4 @@
+const { app } = require('electron');
 const { http, https } = require('follow-redirects');
 const path = require('path');
 const fs = require('fs-extra');
@@ -67,21 +68,30 @@ class Helpers {
 
     async getPNPath(osAndArch) {
         // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
-        const homePath = await module.exports.getHomePath(osAndArch);
-        return path.join(homePath, '.point', 'src', 'pointnetwork');
+        return path.join(os.homedir(), '.point', 'src', 'pointnetwork');
+    }
+
+    async getDashboardPath(osAndArch) {
+        return path.join(os.homedir(), '.point', 'src', 'pointnetwork-dashboard');
+    }
+
+    async getSDKPath(osAndArch) {
+        return path.join(os.homedir(), '.point', 'src', 'pointsdk');
     }
 
     async getBrowserFolderPath(osAndArch) {
         // const definitelyPosix = projectDir.split(path.sep).join(path.posix.sep);
-        const homePath = await module.exports.getHomePath(osAndArch);
-        const browserDir = path.join(homePath, '.point', 'src', 'point-browser');
+        const browserDir = path.join(os.homedir(), '.point', 'src', 'point-browser');
         if (!fs.existsSync(browserDir)) {
             fs.mkdirpSync(browserDir);
         }
         return browserDir;
     }
 
-    async getHomePath(osAndArch) {
+    getHomePath(osAndArch) {
+        // TODO: Delete if `os.homedir` works for Windows, too (because of WSL).
+        // If not, work with the commented code below.
+
         // if (global.platform.win32) {
         //     // NOTE: `wsl echo $HOME` doesn't work.
         //     const cmd = `wsl realpath ~`;
@@ -113,17 +123,28 @@ class Helpers {
     }
 
     async logout() {
-        fs.unlinkSync(await helpers.getKeyFileName());
-        fs.unlinkSync(await helpers.getArweaveKeyFileName());
+        // Removing key files.
+        fs.unlinkSync(await this.getKeyFileName());
+        fs.unlinkSync(await this.getArweaveKeyFileName());
+        // Relaunching the dashboard to ask for key or generate a new one.
+        app.relaunch()
+        app.exit()
     }
 
     isDirEmpty(path) {
         return fs.readdirSync(path).length === 0;
     }
 
+    isDirsExist(paths) {
+        return paths.every((path) => {
+            if (!fs.existsSync(path)) {
+                return false;
+            }
+        });
+    }
+
     async getPointPath(osAndArch) {
-        const homePath = await module.exports.getHomePath(osAndArch);
-        const pointPath = path.join(homePath, '.point/');
+        const pointPath = path.join(os.homedir(), '.point/');
 
         if (!fs.existsSync(pointPath)) {
             fs.mkdirSync(pointPath);
@@ -155,9 +176,18 @@ class Helpers {
     }
 
     async isPNCloned(osAndArch) {
-        const git = simpleGit(module.exports.getPointSrcPath(osAndArch));
         const pnPath = await module.exports.getPNPath(osAndArch);
         return fs.existsSync(pnPath);
+    }
+
+    async isDashboardCloned(osAndArch) {
+        const dashboardPath = await module.exports.getDashboardPath(osAndArch);
+        return fs.existsSync(dashboardPath);
+    }
+
+    async isSDKCloned(osAndArch) {
+        const sdkPath = await module.exports.getSDKPath(osAndArch);
+        return fs.existsSync(sdkPath);
     }
 
     async clonePN(pnPath, osAndArch) {

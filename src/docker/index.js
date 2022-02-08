@@ -2,6 +2,8 @@ const helpers = require('../helpers');
 const path = require('path');
 const util = require('util');
 const _ = require('lodash');
+let follow = true;
+const compose = require('docker-compose');
 const execPromBeforeWrapper = util.promisify(require('child_process').exec);
 const execProm = async(cmd) => {
     if (_.startsWith(cmd, 'sudo ')) {
@@ -35,6 +37,13 @@ const which = require('which');
 
 // TODO: Change to class and add as method, then change all instances of `module.exports` to `this.`
 async function getComposePath() {
+    const osAndArch = helpers.getOSAndArch();
+    const pnPath = await helpers.getPNPath(osAndArch);
+    const composePath = helpers.fixPath(osAndArch, path.join(pnPath));
+    return composePath;
+}
+
+async function getComposePathWithFile() {
     const osAndArch = helpers.getOSAndArch();
     const pnPath = await helpers.getPNPath(osAndArch);
     const composePath = helpers.fixPath(osAndArch, path.join(pnPath, 'docker-compose.yaml'));
@@ -234,6 +243,7 @@ module.exports = {
         }
 
         try {
+            console.log(cmd)
             await execProm(cmd);
             return true;
         } catch(e) {
@@ -241,10 +251,26 @@ module.exports = {
         }
     },
 
-    async startCompose() {
-        const osAndArch = helpers.getOSAndArch();
+    async startCompose(win) {
         const composePath = await getComposePath();
-        const cmd = `docker-compose -f ${composePath} up -d`;
+        await compose.upAll({
+            cwd: composePath,
+            callback: (chunk) => {
+              console.log('job in progres: ', chunk.toString('utf8'));
+              win.webContents.send("docker-log", 
+              { log: chunk.toString('utf8'),
+                object: 'statusUI'
+              });
+               }
+            })
+           .then(
+             () => { console.log('job done')
+             win.webContents.send("point-node-check");
+            },
+             err => { console.log('something went wrong:', err.message)}
+           );
+
+       /* const cmd = `docker-compose -f ${composePath} up -d`;
 
         if (global.platform.win32) {
             return `wsl ${cmd}`;
@@ -253,19 +279,45 @@ module.exports = {
         if (global.platform.linux || global.platform.linux) {
             return `sudo ${cmd}`
         }
-
-        await execProm(cmd);
+        await execProm(cmd);*/
     },
 
-    async stopCompose() {
-        const osAndArch = helpers.getOSAndArch();
+    async getLogsNode(win){
         const composePath = await getComposePath();
-        const cmd = `docker-compose -f ${composePath} down`;
+        await compose.logs('point_node', {
+            follow: follow,
+            cwd: composePath,
+            callback: (chunk) => {
+                console.log('Log: ', chunk.toString('utf8'));
+                win.webContents.send("docker-log", 
+                { log: chunk.toString('utf8'),
+                object: 'nodelog'
+              });
+            }
+        })
+        .then(
+            err => { console.log('something went wrong:', err.message)}
+          );
+    },
 
-        if (global.platform.win32) {
-            return `wsl ${cmd}`;
-        }
-
-        await execProm(cmd);
+    async stopCompose(win) {
+        const composePath = await getComposePath();
+        await compose.stop({
+            cwd: composePath,
+            callback: (chunk) => {
+                console.log('job in progres: ', chunk.toString('utf8'));
+                win.webContents.send("docker-log", 
+                { log: chunk.toString('utf8'),
+                  object: 'statusUI'
+                });
+                 }
+            })
+           .then(
+             () => { 
+                 console.log('docker stop');
+                 win.webContents.send("point-node-check");
+            },
+             err => { console.log('something went wrong:', err.message)}
+           );
     }
 };
