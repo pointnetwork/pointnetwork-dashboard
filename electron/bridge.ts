@@ -9,17 +9,18 @@ export const api = {
    * The function below can accessed using `window.Main.sendMessage`
    */
 
-  send: (channel: string, message: string) => {
-    console.log('enra aqui')
+  send: (channel: string, message?: string) => {
     ipcRenderer.send(channel, message)
   },
 
   /**
    * Provide an easier way to listen to events
-   */
-  once: (channel: string, callback: Function) => {
-    ipcRenderer.once(channel, (_, data) => callback(data))
-  }
+     */
+  receive: (channel: string, func: (arg0: any[]) => void) => ipcRenderer.once(
+    channel,
+    (event, ...args) => func(args)
+  )
+
 }
 
-contextBridge.exposeInMainWorld('Main', api)
+contextBridge.exposeInMainWorld("Main",api)

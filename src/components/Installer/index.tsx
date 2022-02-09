@@ -6,11 +6,10 @@ import { Container, Image, Text } from './styles'
 export function Installer() {
 
   async function handlerStart() {
-      console.log('resresrer')
     const ipc = new IpcService();
-    const t = await ipc.send<{ kernel: string }>('system-info', {});
+    const t = await ipc.send<{ kernel: string }>('system-info', { responseChannel: 'system-info-response'});
 
-    console.log('Message sent! Check main process log in terminal.', t)
+    console.log('Message sent! Check main process log in terminal.', t);
   }
 
   return (
