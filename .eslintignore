@@ -1,5 +1,6 @@
+*/.js
 node_modules
 dist
-packages
+webpack/*.js
 .webpack
 out

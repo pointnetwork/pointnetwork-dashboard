@@ -1,76 +1,104 @@
 {
-  "name": "pointnetwork-dashboard",
-  "version": "1.0.0",
-  "description": "PointNetwork Dashboard",
-  "main": "app/main.js",
+  "name": "electron-react-typescript",
+  "author": "Diego Fernandes <diego.schell.f@gmail.com>",
+  "version": "2.0.0",
+  "description": "An Electron boilerplate including TypeScript, React, Jest and ESLint.",
+  "main": "./.webpack/main/index.js",
   "scripts": {
-    "start": "node build/start.js",
-    "forge-start": "electron-forge start",
-    "forge-package": "electron-forge package",
-    "forge-make": "electron-forge make"
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "release": "electron-forge publish",
+    "lint": "eslint . --ext js,ts",
+    "test": "jest"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
-  ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
-  "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.63",
-    "@electron-forge/maker-deb": "^6.0.0-beta.63",
-    "@electron-forge/maker-dmg": "^6.0.0-beta.63",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.63",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
-    "@electron-forge/maker-zip": "^6.0.0-beta.63",
-    "electron": "^17.0.0"
-  },
+  "keywords": [],
+  "license": "MIT",
   "dependencies": {
-    "7zip-min": "^1.4.1",
-    "@babel/core": "^7.17.0",
-    "arweave-mnemonic-keys": "0.0.9",
     "axios": "^0.25.0",
-    "babel-loader": "^8.2.3",
-    "bip39": "^3.0.4",
-    "child_process": "^1.0.2",
-    "dmg": "^0.1.0",
-    "docker-compose": "^0.23.17",
-    "electron-squirrel-startup": "^1.0.0",
-    "find-process": "^1.4.7",
-    "follow-redirects": "^1.14.7",
-    "fs-extra": "^10.0.0",
-    "isomorphic-git": "^1.11.2",
-    "lodash": "^4.17.21",
-    "node-docker-log-monitor": "^1.0.9",
-    "pify": "^5.0.0",
-    "simple-git": "^3.1.1",
-    "sudo-prompt": "^9.2.1",
-    "tar-fs": "^2.1.1",
-    "unbzip2-stream": "^1.4.3",
-    "web-ext": "^6.6.0",
-    "webpack": "^5.68.0",
-    "webpack-merge": "^5.8.0",
-    "webpack-node-externals": "^3.0.0",
-    "which": "^2.0.2"
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-hot-loader": "4.13.0",
+    "styled-components": "5.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "7.14.6",
+    "@babel/plugin-transform-runtime": "7.14.5",
+    "@babel/preset-env": "7.14.5",
+    "@babel/preset-react": "7.14.5",
+    "@babel/preset-typescript": "7.14.5",
+    "@electron-forge/cli": "6.0.0-beta.57",
+    "@electron-forge/maker-deb": "6.0.0-beta.57",
+    "@electron-forge/maker-rpm": "6.0.0-beta.57",
+    "@electron-forge/maker-squirrel": "6.0.0-beta.57",
+    "@electron-forge/maker-zip": "6.0.0-beta.57",
+    "@electron-forge/plugin-webpack": "6.0.0-beta.57",
+    "@marshallofsound/webpack-asset-relocator-loader": "0.5.0",
+    "@testing-library/jest-dom": "5.14.1",
+    "@testing-library/react": "11.2.7",
+    "@types/electron-devtools-installer": "2.2.0",
+    "@types/jest": "26.0.23",
+    "@types/react": "17.0.11",
+    "@types/react-dom": "17.0.8",
+    "@types/styled-components": "5.1.10",
+    "@typescript-eslint/eslint-plugin": "4.27.0",
+    "@typescript-eslint/parser": "4.27.0",
+    "babel-loader": "8.2.2",
+    "cross-env": "7.0.3",
+    "electron": "13.1.2",
+    "eslint": "7.29.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-config-standard": "16.0.3",
+    "eslint-plugin-import": "2.23.4",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-prettier": "3.4.0",
+    "eslint-plugin-promise": "5.1.0",
+    "eslint-plugin-react": "7.24.0",
+    "eslint-plugin-standard": "5.0.0",
+    "file-loader": "^6.2.0",
+    "jest": "27.0.4",
+    "npm-run-all": "4.1.5",
+    "prettier": "2.3.1",
+    "ts-jest": "27.0.3",
+    "typescript": "4.3.4",
+    "wait-on": "5.3.0"
   },
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "name": "ElectronStarter",
+        "executableName": "electron-starter",
+        "icon": "assets/icon",
+        "extraResource": [
+          "assets"
+        ]
+      },
+      "plugins": [
+        [
+          "@electron-forge/plugin-webpack",
+          {
+            "mainConfig": "./webpack/main.webpack.js",
+            "renderer": {
+              "config": "./webpack/renderer.webpack.js",
+              "entryPoints": [
+                {
+                  "html": "./public/index.html",
+                  "js": "./src/index.tsx",
+                  "name": "main_window",
+                  "preload": {
+                    "js": "./electron/bridge.ts"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      ],
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "pointnetwork_dashboard"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-dmg",
-          "config": {
-            "background": "./resources/pointbackground.png",
-            "format": "ULFO"
+            "name": "ElectronStarter"
           }
         },
         {
