@@ -3,8 +3,9 @@ import { IpcRequest } from '../../shared/Interfaces';
 
 export class IpcService {
   private render: any;
+  private response: any; 
 
-  public send<T>(channel: string, request: IpcRequest): Promise<T> {
+  public async send<T>(channel: string, request: IpcRequest): Promise<T> {
     // If the ipcRenderer is not available try to initialize it
     if (!this.render) {
       this.initializeIpcRenderer();
@@ -14,14 +15,19 @@ export class IpcService {
     const responseChannel: string = request.responseChannel? request.responseChannel: `${channel}_response_${new Date().getTime()}`;
 
     this.render.send(channel, request);
-
+   /* this.render.receive(responseChannel, (args: T) => {
+        console.log(this)
+    }); */
     // This method returns a promise which will be resolved when the response has arrived.
     return new Promise(resolve => {
-        this.render.once(responseChannel, (event: any, response: T | PromiseLike<T>) => resolve(response));
+        this.render.receive(responseChannel, (args: T) => {
+            resolve(args)
+        });
     });
   }
 
   private initializeIpcRenderer() {
+      console.log(window.Main)
     this.render = window.Main;
   }
 }
