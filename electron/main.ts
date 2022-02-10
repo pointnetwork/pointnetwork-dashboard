@@ -1,4 +1,5 @@
 import {app, BrowserWindow, ipcMain} from 'electron';
+import { FirefoxChannel } from './Channels/firefoxChannel';
 import { SystemInfoChannel } from './Channels/SystemInfoChannel';
 import { IpcChannelInterface } from './IpcChannelInterface';
 
@@ -53,5 +54,6 @@ class Main {
 
 // Here we go!
 (new Main()).init([
-    new SystemInfoChannel()
+    new SystemInfoChannel(),
+    new FirefoxChannel()
 ]);
