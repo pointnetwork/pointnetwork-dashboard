@@ -13,6 +13,7 @@ export class Helpers {
     private flagPath = "installer-finished";
 
     getOSAndArch() {
+        console.log('platform', platform)
         /*
             Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
          */

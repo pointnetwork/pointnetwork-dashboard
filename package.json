@@ -28,7 +28,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "find-process": "^1.4.7",
     "follow-redirects": "^1.14.7",
-    "fs-extra": "^10.0.0",
+    "fs-extra": "8.1.0",
     "isomorphic-git": "^1.11.2",
     "lodash": "^4.17.21",
     "node-docker-log-monitor": "^1.0.9",

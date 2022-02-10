@@ -54,6 +54,7 @@ export class Firefox {
   }
 
   async download() {
+      console.log('download')
     const language = "en-US";
     const version = await this.getLastVersionFirefox(); // '93.0b4'//
     const osAndArch = this.helpers.getOSAndArch();
@@ -81,6 +82,7 @@ export class Firefox {
                             return reject(err);
                         } else {
                             console.log(`\nDeleted file: ${releasePath}`);
+                            this.launch();
                             return resolve();
                         }
                     });

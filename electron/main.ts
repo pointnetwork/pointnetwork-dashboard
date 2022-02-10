@@ -1,6 +1,7 @@
 import {app, BrowserWindow, ipcMain} from 'electron';
 import { FirefoxChannel } from './Channels/firefoxChannel';
 import { SystemInfoChannel } from './Channels/SystemInfoChannel';
+import { Helpers } from './helpers';
 import { IpcChannelInterface } from './IpcChannelInterface';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
@@ -46,7 +47,7 @@ class Main {
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
       }
     });
-
+    new Helpers().getPlatform()
     this.mainWindow.webContents.openDevTools();
     this.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
   }

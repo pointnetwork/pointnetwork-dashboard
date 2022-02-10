@@ -19,11 +19,13 @@ export class FirefoxChannel implements IpcChannelInterface {
     const firefoxInstalled = await this.firefox.isInstalled()
     if (!firefoxInstalled) {
         await this.firefox.download();
-        this.messages.push('Firefox Installed');
+        this.messages.push('Firefox Installing');
+        event.sender.send(request.responseChannel, {messages: this.messages});
     }
     await this.firefox.launch();
     this.messages.push('Firefox Launched');
-
     event.sender.send(request.responseChannel, {messages: this.messages});
+
+
   }
 }
