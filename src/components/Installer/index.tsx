@@ -1,7 +1,5 @@
+import { useEffect } from 'react';
 import { IpcService } from '../../services/IpcService';
-import { Button } from '../Button'
-import { Container, Image, Text } from './styles'
-
 
 export function Installer() {
 
@@ -12,15 +10,12 @@ export function Installer() {
     console.log('Message sent! Check main process log in terminal.', t);
   }
 
+  useEffect(() => {
+    handlerStart();
+  },[])
+
   return (
-    <Container>
-      <Image
-        src="https://pointnetwork.io/assets/imgs/logo.svg"
-        alt="Point logo"
-      />
-      <Text>Welcome to Point Network installer. Please review the components to be installed and click "Start".</Text>
-      <Button onClick={handlerStart}>Start</Button>
-    </Container>
+    <h1 className='text-3xl text-teal-500 font-bold'>Hello world</h1>
   )
 }
  
