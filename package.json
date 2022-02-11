@@ -89,7 +89,7 @@
               "entryPoints": [
                 {
                   "html": "./public/index.html",
-                  "js": "./src/main/index.tsx",
+                  "js": "./src/main/ui.tsx",
                   "name": "main_window",
                   "preload": {
                     "js": "./src/main/bridge.ts"
