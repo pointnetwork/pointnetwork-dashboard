@@ -34,11 +34,7 @@ function createWindow () {
 async function registerListeners () {
   ipcMain.on('installer:start', async(_, message) => {
     const installer = new Installer(mainWindow!);
-    if(await installer.isInstalled()) {
-      installer.upgrade()
-    } else {
-      installer.install()
-    }
+    await installer.start();
   })
 }
 

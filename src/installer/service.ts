@@ -38,6 +38,16 @@ class Installer {
         this.REPOSITORIES = ['pointnetwork', 'pointnetwork-dashboard']
     }
 
+    start = async() => {
+      this.logger.log('Starting')
+      if(await this.isInstalled()) {
+        await this.upgrade()
+      } else {
+        await this.install()
+      }
+      this.logger.log('Done')
+    }
+
     isInstalled = async () => {
       this.logger.log('Checking installation...')
       return (await Promise.all(this.DIRECTORIES.map(dir => fs.existsSync(dir)))).every(
