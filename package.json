@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.25.0",
+    "isomorphic-git": "^1.11.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-hot-loader": "4.13.0"
@@ -88,10 +89,10 @@
               "entryPoints": [
                 {
                   "html": "./public/index.html",
-                  "js": "./src/index.tsx",
+                  "js": "./src/main/index.tsx",
                   "name": "main_window",
                   "preload": {
-                    "js": "./electron/bridge.ts"
+                    "js": "./src/main/bridge.ts"
                   }
                 }
               ]
