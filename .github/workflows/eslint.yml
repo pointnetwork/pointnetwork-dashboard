@@ -1,4 +1,4 @@
-name: ESLint
+name: Lint
 on: [push]
 jobs:
   eslint_check:
@@ -13,5 +13,5 @@ jobs:
       with:
         ghToken: ${{ secrets.GITHUB_TOKEN }}
         eslintFiles: "lib, scripts"
-        eslintConfig: "./eslintrc.json",
+        eslintConfig: "myConfigs/eslint.config.js"
         eslintExt: "ts, tsx"
