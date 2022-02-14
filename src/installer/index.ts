@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import Installer from '../installer/service'
+import Installer from './service'
+export { Installer }
 
 let mainWindow: BrowserWindow | null
 

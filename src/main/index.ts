@@ -1,5 +1,4 @@
-import Installer from '../installer/service'
-import installer from '../installer/main'
+import installer, { Installer } from '../installer'
 ;(async () => {
   if (!(await Installer.isInstalled())) {
     installer()
