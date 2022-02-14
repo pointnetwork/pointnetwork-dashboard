@@ -88,11 +88,11 @@
               "config": "./webpack/renderer.webpack.js",
               "entryPoints": [
                 {
-                  "html": "./public/index.html",
-                  "js": "./src/main/ui.tsx",
-                  "name": "main_window",
+                  "html": "./src/installer/ui/index.html",
+                  "js": "./src/installer/ui/index.tsx",
+                  "name": "installer_window",
                   "preload": {
-                    "js": "./src/main/bridge.ts"
+                    "js": "./src/installer/bridge.ts"
                   }
                 }
               ]
