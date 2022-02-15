@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron'
+import Logger from '../../shared/logger'
 const path = require('path')
 const git = require('isomorphic-git')
 const http = require('isomorphic-git/http/node')
@@ -17,21 +18,10 @@ const DIRECTORIES = [
 const REPOSITORIES = ['pointnetwork', 'pointnetwork-dashboard']
 
 class Installer {
-  private window
-
-  logger = {
-    log: (...log: string[]) => {
-      console.log(...log)
-      this.window.webContents.send('installer:log', log)
-    },
-    error: (...err: any[]) => {
-      console.error(...err)
-      this.window.webContents.send('installer:error', err)
-    },
-  }
+  private logger
 
   constructor(window: BrowserWindow) {
-    this.window = window
+    this.logger = new Logger({ window, channel: 'installer' })
   }
 
   static isInstalled = async () => {
