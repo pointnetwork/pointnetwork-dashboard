@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
 
-import { Firefox } from './index'
+import  Firefox  from './index'
 
 test('Greetings should renders', () => {
   const { getByText, getByAltText } = render(<Firefox />)

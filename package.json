@@ -20,10 +20,20 @@
     "@types/tar-fs": "^2.0.1",
     "arweave-mnemonic-keys": "0.0.9",
     "axios": "^0.25.0",
+    "dmg": "^0.1.0",
+    "find-process": "^1.4.7",
+    "i": "^0.3.7",
     "isomorphic-git": "^1.11.2",
+    "npm": "^8.5.0",
+    "pify": "^5.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "react-hot-loader": "4.13.0"
+    "react-hot-loader": "4.13.0",
+    "simple-git": "^3.2.4",
+    "styled-components": "^5.3.3",
+    "tar-fs": "^2.1.1",
+    "unbzip2-stream": "^1.4.3",
+    "web-ext": "^6.7.0"
   },
   "devDependencies": {
     "@babel/core": "7.14.6",
@@ -94,7 +104,15 @@
               "config": "./webpack/renderer.webpack.js",
               "entryPoints": [
                 {
-                  "html": "./src/installer/ui/index.html",
+                  "html": "./public/index.html",
+                  "js": "./src/dashboard/ui/index.tsx",
+                  "name": "dashboard_window",
+                  "preload": {
+                    "js": "./src/dashboard/bridge.ts"
+                  }
+                },
+                {
+                  "html": "./public/index.html",
                   "js": "./src/installer/ui/index.tsx",
                   "name": "installer_window",
                   "preload": {
