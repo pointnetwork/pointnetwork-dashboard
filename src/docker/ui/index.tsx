@@ -9,12 +9,12 @@ export default function() {
     window.Dashboard.checkDocker()
 
     window.Dashboard.on('docker:log', (log: string) => {
-      setStatusFirefox(log)
+      console.log(log);
     })
   }, [])
 
   return (
-    <Text>Firefox Status: {logsElement}</Text>
+    <Text>Docker Status: {logsElement}</Text>
   )
 }
 
