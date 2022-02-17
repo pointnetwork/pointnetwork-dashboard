@@ -33,10 +33,7 @@ export default function App() {
       </h1>
       <div
         id="logs"
-        className={
-          'p-2 rounded text-sm h-48 overflow-scroll' +
-          (installing ? 'bg-slate-100' : '')
-        }
+        className={'p-2 rounded text-sm' + (installing ? 'bg-slate-100' : '')}
       >
         {installing ? null : (
           <Fragment>
