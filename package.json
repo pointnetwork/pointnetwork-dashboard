@@ -21,9 +21,11 @@
     "arweave-mnemonic-keys": "0.0.9",
     "axios": "^0.25.0",
     "dmg": "^0.1.0",
+    "docker-compose": "^0.23.17",
     "find-process": "^1.4.7",
     "i": "^0.3.7",
     "isomorphic-git": "^1.11.2",
+    "lodash": "^4.17.21",
     "npm": "^8.5.0",
     "pify": "^5.0.0",
     "react": "17.0.2",
@@ -33,7 +35,8 @@
     "styled-components": "^5.3.3",
     "tar-fs": "^2.1.1",
     "unbzip2-stream": "^1.4.3",
-    "web-ext": "^6.7.0"
+    "web-ext": "^6.7.0",
+    "which": "^2.0.2"
   },
   "devDependencies": {
     "@babel/core": "7.14.6",
@@ -54,9 +57,11 @@
     "@types/electron-devtools-installer": "2.2.0",
     "@types/follow-redirects": "^1.14.0",
     "@types/jest": "26.0.23",
+    "@types/lodash": "^4.14.178",
     "@types/react": "17.0.11",
     "@types/react-dom": "17.0.8",
     "@types/styled-components": "5.1.10",
+    "@types/which": "^2.0.1",
     "@typescript-eslint/eslint-plugin": "4.27.0",
     "@typescript-eslint/parser": "4.27.0",
     "autoprefixer": "^10.4.2",

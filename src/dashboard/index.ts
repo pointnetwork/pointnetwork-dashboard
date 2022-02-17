@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
+import Docker from '../docker'
 
 let mainWindow: BrowserWindow | null
 
@@ -47,6 +48,17 @@ export default function () {
       }
       else{
         await firefox.launch();
+      }
+    })
+
+    ipcMain.on('docker:check', async (_, message) => {
+      const docker = new Docker(mainWindow!)
+      const dockerInstalled = await docker.isInstalled()
+      if (!dockerInstalled) {
+          await docker.download();
+      }
+      else{
+        await docker.startCompose();
       }
     })
   }
