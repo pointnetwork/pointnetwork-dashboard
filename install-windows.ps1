@@ -196,7 +196,7 @@ function Clone-Repositories() {
     }
     if(!(Test-DashboardRepo)) {
 	Msg("Cloning PointNetwork Dashboard")
-	git clone https://github.com/pointnetwork/pointnetwork-dashboard $SRC_DASHBOARD_DIR
+	git clone --branch main https://github.com/pointnetwork/pointnetwork-dashboard $SRC_DASHBOARD_DIR
     }
     if(!(Test-SDKRepo)) {
 	Msg("Cloning PointSDK")
