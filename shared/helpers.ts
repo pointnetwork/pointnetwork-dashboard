@@ -60,19 +60,19 @@ const getHomePath = () => {
   return os.homedir()
 }
 
-const getPNPath = async () => {
+const getPNPath = () => {
   return path.join(getHomePath(), '.point', 'src', 'pointnetwork')
 }
 
-const getDashboardPath = async () => {
+const getDashboardPath = () => {
   return path.join(getHomePath(), '.point', 'src', 'pointnetwork-dashboard')
 }
 
-const getSDKPath = async () => {
+const getSDKPath = () => {
   return path.join(getHomePath(), '.point', 'src', 'pointsdk')
 }
 
-const getBrowserFolderPath = async () => {
+const getBrowserFolderPath = () => {
   const browserDir = path.join(getHomePath(), '.point', 'src', 'point-browser')
   if (!fs.existsSync(browserDir)) {
     fs.mkdirpSync(browserDir)
@@ -80,71 +80,53 @@ const getBrowserFolderPath = async () => {
   return browserDir
 }
 
-const getLiveDirectoryPath = async () => {
-  return path.join(await getHomePath(), '.point', 'keystore')
+const getLiveDirectoryPath = () => {
+  return path.join(getHomePath(), '.point', 'keystore')
 }
 
-const getKeyFileName = async () => {
-  return path.join(await getLiveDirectoryPath(), 'key.json')
+const getKeyFileName = () => {
+  return path.join(getLiveDirectoryPath(), 'key.json')
 }
 
-const getArweaveKeyFileName = async () => {
-  return path.join(await getLiveDirectoryPath(), 'arweave.json')
+const getArweaveKeyFileName = () => {
+  return path.join(getLiveDirectoryPath(), 'arweave.json')
 }
 
-const isLoggedIn = async () => {
-  return fs.existsSync(await getKeyFileName())
+const isLoggedIn = () => {
+  return fs.existsSync(getKeyFileName())
 }
 
-const logout = async () => {
+const logout = () => {
   // Removing key files.
-  fs.unlinkSync(await getKeyFileName())
-  fs.unlinkSync(await getArweaveKeyFileName())
+  fs.unlinkSync(getKeyFileName())
+  fs.unlinkSync(getArweaveKeyFileName())
   // Relaunching the dashboard to ask for key or generate a new one.
   app.relaunch()
   app.exit()
 }
 
 const getPointPath = () => {
-  const pointPath = path.join(getHomePath(), '.point/')
-
-  if (!fs.existsSync(pointPath)) {
-    fs.mkdirSync(pointPath)
-  }
-
-  return pointPath
+  return path.join(getHomePath(), '.point/')
 }
 
-const getPointSrcPath = async () => {
-  const pointSrcPath = path.join(getPointPath(), 'src/')
-
-  if (!fs.existsSync(pointSrcPath)) {
-    fs.mkdirSync(pointSrcPath)
-  }
-
-  return pointSrcPath
+const getPointSrcPath = () => {
+  return path.join(getPointPath(), 'src/')
 }
 
-const getPointSoftwarePath = async () => {
-  const pointSWPath = path.join(getPointPath(), 'software/')
-
-  if (!fs.existsSync(pointSWPath)) {
-    fs.mkdirSync(pointSWPath)
-  }
-
-  return pointSWPath
+const getPointSoftwarePath = () => {
+  return path.join(getPointPath(), 'software/')
 }
 
-const isPNCloned = async () => {
-  return fs.existsSync(await getPNPath())
+const isPNCloned = () => {
+  return fs.existsSync(getPNPath())
 }
 
-const isDashboardCloned = async () => {
-  return fs.existsSync(await getDashboardPath())
+const isDashboardCloned = () => {
+  return fs.existsSync(getDashboardPath())
 }
 
-const isSDKCloned = async () => {
-  return fs.existsSync(await getSDKPath())
+const isSDKCloned = () => {
+  return fs.existsSync(getSDKPath())
 }
 
 export default Object.freeze({
