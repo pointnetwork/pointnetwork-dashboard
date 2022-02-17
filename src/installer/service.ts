@@ -1,18 +1,18 @@
 import { BrowserWindow } from 'electron'
+import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 const path = require('path')
 const git = require('isomorphic-git')
 const http = require('isomorphic-git/http/node')
 const fs = require('fs')
 
-const HOME_DIR = process.cwd()
-const POINT_SRC_DIR = path.join(HOME_DIR, '.point', 'src')
+const POINT_SRC_DIR = helpers.getPointSrcPath()
 
 const DIRECTORIES = [
-  path.join(HOME_DIR, '.point', 'src', 'pointnetwork'),
-  path.join(HOME_DIR, '.point', 'src', 'pointnetwork-dashboard'),
-  path.join(HOME_DIR, '.point', 'software'),
-  path.join(HOME_DIR, '.point', 'keystore'),
+  helpers.getPNPath(),
+  helpers.getDashboardPath(),
+  helpers.getPointSoftwarePath(),
+  helpers.getLiveDirectoryPath(),
 ]
 
 const REPOSITORIES = ['pointnetwork', 'pointnetwork-dashboard']
