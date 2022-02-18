@@ -6,6 +6,8 @@ let mainWindow: BrowserWindow | null
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
+declare const DOCKER_LOG_WINDOW_WEBPACK_ENTRY: string
+declare const DOCKER_LOG_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
@@ -39,7 +41,7 @@ export default function () {
   }
 
   async function registerListeners() {
-
+    const docker = new Docker(mainWindow!)
     ipcMain.on('firefox:check', async (_, message) => {
       const firefox = new Firefox(mainWindow!)
       const firefoxInstalled = await firefox.isInstalled()
@@ -52,15 +54,39 @@ export default function () {
     })
 
     ipcMain.on('docker:check', async (_, message) => {
-      const docker = new Docker(mainWindow!)
       const dockerInstalled = await docker.isInstalled()
       if (!dockerInstalled) {
           await docker.download();
       }
       else{
-        await docker.startCompose();
+        await docker.startCompose()
+       
       }
     })
+
+    ipcMain.on('node:check', async (_, message) => {
+      await docker.pointNodeCheck()
+    })
+
+    ipcMain.on('node:window', async (_, message) => {
+      if(mainWindow){
+        const child = new BrowserWindow({parent: mainWindow,
+          webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: DOCKER_LOG_WINDOW_PRELOAD_WEBPACK_ENTRY,
+          },});
+        child.show();
+        child.loadURL(DOCKER_LOG_WINDOW_WEBPACK_ENTRY)
+        child.on('show', async () => {
+            await docker.getLogsNode(child)
+        })
+
+      }
+
+    })
+
+
   }
 
   app

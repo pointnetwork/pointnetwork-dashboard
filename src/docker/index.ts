@@ -8,12 +8,13 @@ import fs from 'fs-extra'
 import which from 'which'
 import { BrowserWindow } from 'electron'
 import { http } from 'follow-redirects'
+import Logger from '../../shared/logger'
 const dmg = require('dmg')
 
 export default class {
     private window
     private execPromBeforeWrapper = util.promisify(require('child_process').exec)
-    
+
     private execProm = async (cmd: string) => {
         if (_.startsWith(cmd, 'sudo ')) {
             return await new Promise((resolve, reject) => {
@@ -40,14 +41,14 @@ export default class {
 
     constructor(window: BrowserWindow) {
         this.window = window
-      }
+    }
 
     async getComposePath() {
         const pnPath = await helpers.getPNPath()
         const composePath = helpers.fixPath(path.join(pnPath))
         return composePath
     }
-    
+
     async getComposePathWithFile() {
         const pnPath = await helpers.getPNPath();
         const composePath = helpers.fixPath(path.join(pnPath, 'docker-compose.yaml'));
@@ -65,7 +66,7 @@ export default class {
         }
         return cmd;
     }
-    
+
     async download() {
         const dockerDir = path.join('.', 'docker');
         const osAndArch = helpers.getOSAndArch();
@@ -79,7 +80,7 @@ export default class {
         }
 
 
-        const callback =  async (response: any) => {
+        const callback = async (response: any) => {
             await response.pipe(dockerRelease);
             dockerRelease.on('finish', () => {
                 const cb = () => {
@@ -101,7 +102,7 @@ export default class {
         await http.get(dockerURL, callback)
     }
 
-    
+
 
     async isInstalled() {
         if (which.sync('docker', { nothrow: true }) != null) {
@@ -208,7 +209,7 @@ export default class {
             sudo.exec('apt-get update');
             sudo.exec('apt-get install docker-ce docker-ce-cli containerd.io');
         }
-        
+
     }
 
     async isComposeRunning() {
@@ -250,22 +251,19 @@ export default class {
             );
     }
 
-    async getLogsNode(){
+    async getLogsNode(child: BrowserWindow) {
+        const logger = new Logger({ window: child, channel: 'docker' })
         const composePath = await this.getComposePath();
         await compose.logs('point_node', {
             follow: true,
             cwd: composePath,
             callback: (chunk) => {
                 console.log('Log: ', chunk.toString('utf8'));
-                this.window.webContents.send('docker-log',
-                    {
-                        log: chunk.toString('utf8'),
-                        object: 'nodelog'
-                    });
+                logger.log(chunk.toString('utf8'))
             }
         })
             .then(
-                err =>  console.log('something went wrong:', err) 
+                err => console.log('something went wrong:', err)
             );
     }
 
@@ -285,9 +283,19 @@ export default class {
             .then(
                 () => {
                     console.log('docker stop');
-                    win.webContents.send('point-node-check');
+                    this.window.webContents.send('point-node-check');
                 },
                 (err: { message: any; }) => { console.log('something went wrong:', err.message) }
             );
+    }
+
+    pointNodeCheck() {
+        console.log('etnra')
+        http.get("http://localhost:2468/v1/api/status/ping", (res) => {
+            this.window.webContents.send("pointNode:checked", true)
+        }).on('error', err => {
+            console.log(err);
+            this.window.webContents.send("pointNode:checked", false)
+        });
     }
 };

@@ -111,7 +111,7 @@ export default class {
     const isRunning = await find('name', 'Firefox')
     if (isRunning.length > 0) {
       console.log('Firefox already Running')
-      this.window.webContents.send('firefox:log', 'Firefox already Running')
+      this.window.webContents.send('firefox:active', true)
       return
     }
 
@@ -147,13 +147,15 @@ export default class {
       // win.webContents.send("firefox-closed")
       if (error) {
         console.log(`error: ${error.message}`)
+        this.window.webContents.send('firefox:active', false)
         return
       }
       if (stderr) {
         console.log(`stderr: ${stderr}`)
+        this.window.webContents.send('firefox:active', false)
       }
     })
-    this.window.webContents.send('firefox:log', 'Firefox Start')
+    this.window.webContents.send('firefox:active', true)
   }
 
   unpack(
