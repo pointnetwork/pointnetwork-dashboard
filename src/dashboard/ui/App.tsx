@@ -1,6 +1,6 @@
 import { Container, Image, Text } from './styles'
 import Firefox from '../../firefox/ui'
-
+import Docker from '../../docker/ui'
 export default function App() {
 
 
@@ -12,6 +12,7 @@ export default function App() {
       />
       <Text>Welcome to Point Network Dashboard.</Text>
       <Firefox/>
+      <Docker/>
     </Container>
   )
 }
