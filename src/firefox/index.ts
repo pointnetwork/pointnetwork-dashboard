@@ -7,6 +7,7 @@ import helpers from '../../shared/helpers'
 import util from 'util'
 import https from 'follow-redirects'
 import { BrowserWindow } from 'electron'
+import Logger from '../../shared/logger'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
@@ -15,8 +16,11 @@ const exec = util.promisify(require('child_process').exec)
 
 export default class {
   private window
+  private installationLogger
+
   constructor(window: BrowserWindow) {
     this.window = window
+    this.installationLogger = new Logger({ window, channel: 'installer' })
   }
 
   private flagPath = 'installer-finished'
@@ -26,12 +30,15 @@ export default class {
   }
 
   async isInstalled() {
+    this.installationLogger.log('Checking Firefox installation')
     const osAndArch = helpers.getOSAndArch()
 
     const binPath = await this.getBinPath(osAndArch)
     if (fs.existsSync(binPath)) {
+      this.installationLogger.log('Firefox already installed')
       return true
     }
+    this.installationLogger.log('Firefox not installed')
     return false
   }
 
@@ -57,8 +64,7 @@ export default class {
   }
 
   async download() {
-    console.log('download firefox')
-    this.window.webContents.send('firefox:log', 'Installing Firefox...')
+    this.installationLogger.log('Starting Firefox installation...')
 
     const language = 'en-US'
     const version = await this.getLastVersionFirefox() // '93.0b4'//
@@ -73,26 +79,26 @@ export default class {
     const firefoxURL = this.getURL(version, osAndArch, language, filename)
 
     if (!fs.existsSync(browserDir)) {
+      this.installationLogger.log('Creating browser directory')
       fs.mkdirSync(browserDir)
     }
 
     return https.https.get(
       firefoxURL,
       async (response: { pipe: (arg0: fs.WriteStream) => any }) => {
+        this.installationLogger.log('Downloading Firefox...')
         await response.pipe(firefoxRelease)
 
         return await new Promise((resolve, reject) => {
           firefoxRelease.on('finish', () => {
+            this.installationLogger.log('Downloaded Firefox')
             const cb = async () => {
               fs.unlink(releasePath, err => {
                 if (err) {
                   return reject(err)
                 } else {
                   console.log(`\nDeleted file: ${releasePath}`)
-                  this.window.webContents.send(
-                    'firefox:log',
-                    'Installed Successfully'
-                  )
+                  this.installationLogger.log('Installed Firefox successfully')
                   this.launch()
                   return resolve()
                 }
@@ -162,6 +168,7 @@ export default class {
     browserDir: string,
     cb: { (): Promise<void>; (): void }
   ) {
+    this.installationLogger.log('Unpacking Firefox...')
     if (global.platform.win32) {
       _7z.unpack(releasePath, browserDir, err => {
         if (err) throw err
@@ -269,6 +276,7 @@ export default class {
   }
 
   async createConfigFiles(osAndArch: any, pacFile: url.URL) {
+    this.installationLogger.log('Creating configuration files for Firefox...')
     if (!pacFile)
       throw Error('pacFile sent to createConfigFiles is undefined or null!')
 
@@ -350,6 +358,7 @@ pref('browser.tabs.drawInTitlebar', true)
         }
       )
     }
+    this.installationLogger.log('Created configuration files for Firefox')
   }
 
   async isFirefoxRanOnce() {
