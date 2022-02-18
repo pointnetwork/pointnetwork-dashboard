@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
+import Firefox from '../firefox'
 import Installer from './service'
 export { Installer }
 
@@ -36,6 +37,8 @@ export default function () {
     ipcMain.on('installer:start', async (_, message) => {
       const installer = new Installer(mainWindow!)
       await installer.start()
+      const firefox = new Firefox(mainWindow!)
+      if (!(await firefox.isInstalled())) await firefox.download()
     })
   }
 
