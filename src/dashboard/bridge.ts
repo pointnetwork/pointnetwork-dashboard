@@ -14,6 +14,12 @@ export const api = {
   checkDocker: () => {
     ipcRenderer.send('docker:check')
   },
+  checkNode: () => {
+    ipcRenderer.send('node:check')
+  },
+  createLogWindow: () =>{
+    ipcRenderer.send('node:window')
+  },
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
   },

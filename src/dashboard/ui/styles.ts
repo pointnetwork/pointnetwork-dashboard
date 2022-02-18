@@ -22,7 +22,7 @@ export const Container = styled.div`
 `
 
 export const Image = styled.img`
-  width: 240px;
+  width: 140px;
   animation: ${rotate} 15s linear infinite;
 `
 
