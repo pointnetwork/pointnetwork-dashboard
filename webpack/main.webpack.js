@@ -1,11 +1,9 @@
-const webpack = require("webpack");
-
 module.exports = {
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js'],
   },
-  entry: './electron/main.ts',
+  entry: './src/main/index.ts',
   module: {
     rules: require('./rules.webpack'),
-  }
+  },
 }

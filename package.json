@@ -1,8 +1,8 @@
 {
-  "name": "electron-react-typescript",
-  "author": "Diego Fernandes <diego.schell.f@gmail.com>",
-  "version": "2.0.0",
-  "description": "An Electron boilerplate including TypeScript, React, Jest and ESLint.",
+  "name": "pointnetwork-dashboard",
+  "author": "Point Labs",
+  "version": "0.2.0",
+  "description": "PointNetwork",
   "main": "./.webpack/main/index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -15,11 +15,33 @@
   "keywords": [],
   "license": "MIT",
   "dependencies": {
+    "7zip-min": "^1.4.1",
+    "@babel/core": "^7.17.0",
+    "@emotion/react": "^11.8.1",
+    "@emotion/styled": "^11.8.1",
+    "@mui/material": "^5.4.2",
+    "@mui/styled-engine-sc": "^5.4.2",
+    "@types/tar-fs": "^2.0.1",
+    "arweave-mnemonic-keys": "0.0.9",
     "axios": "^0.25.0",
+    "dmg": "^0.1.0",
+    "docker-compose": "^0.23.17",
+    "find-process": "^1.4.7",
+    "i": "^0.3.7",
+    "isomorphic-git": "^1.11.2",
+    "lodash": "^4.17.21",
+    "npm": "^8.5.0",
+    "pify": "^5.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-hot-loader": "4.13.0",
-    "styled-components": "5.3.0"
+    "react-icons": "^4.3.1",
+    "simple-git": "^3.2.4",
+    "styled-components": "^5.3.3",
+    "tar-fs": "^2.1.1",
+    "unbzip2-stream": "^1.4.3",
+    "web-ext": "^6.7.0",
+    "which": "^2.0.2"
   },
   "devDependencies": {
     "@babel/core": "7.14.6",
@@ -36,15 +58,21 @@
     "@marshallofsound/webpack-asset-relocator-loader": "0.5.0",
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "11.2.7",
+    "@types/7zip-min": "^1.3.1",
     "@types/electron-devtools-installer": "2.2.0",
+    "@types/follow-redirects": "^1.14.0",
     "@types/jest": "26.0.23",
+    "@types/lodash": "^4.14.178",
     "@types/react": "17.0.11",
     "@types/react-dom": "17.0.8",
     "@types/styled-components": "5.1.10",
+    "@types/which": "^2.0.1",
     "@typescript-eslint/eslint-plugin": "4.27.0",
     "@typescript-eslint/parser": "4.27.0",
+    "autoprefixer": "^10.4.2",
     "babel-loader": "8.2.2",
     "cross-env": "7.0.3",
+    "css-loader": "^6.6.0",
     "electron": "13.1.2",
     "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
@@ -58,7 +86,11 @@
     "file-loader": "^6.2.0",
     "jest": "27.0.4",
     "npm-run-all": "4.1.5",
+    "postcss": "^8.4.6",
+    "postcss-loader": "^6.2.1",
     "prettier": "2.3.1",
+    "style-loader": "^3.3.1",
+    "tailwindcss": "^3.0.19",
     "ts-jest": "27.0.3",
     "typescript": "4.3.4",
     "wait-on": "5.3.0"
@@ -66,8 +98,8 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "name": "ElectronStarter",
-        "executableName": "electron-starter",
+        "name": "pointnetwork-dashboard",
+        "executableName": "pointnetwork-dashboard",
         "icon": "assets/icon",
         "extraResource": [
           "assets"
@@ -83,10 +115,26 @@
               "entryPoints": [
                 {
                   "html": "./public/index.html",
-                  "js": "./src/index.tsx",
-                  "name": "main_window",
+                  "js": "./src/dashboard/ui/index.tsx",
+                  "name": "dashboard_window",
                   "preload": {
-                    "js": "./electron/bridge.ts"
+                    "js": "./src/dashboard/bridge.ts"
+                  }
+                },
+                {
+                  "html": "./public/index.html",
+                  "js": "./src/installer/ui/index.tsx",
+                  "name": "installer_window",
+                  "preload": {
+                    "js": "./src/installer/bridge.ts"
+                  }
+                },
+                {
+                  "html": "./public/index.html",
+                  "js": "./src/dockerLog/ui/index.tsx",
+                  "name": "docker_log_window",
+                  "preload": {
+                    "js": "./src/dockerLog/bridge.ts"
                   }
                 }
               ]
@@ -98,7 +146,7 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "ElectronStarter"
+            "name": "pointnetwork-dashboard"
           }
         },
         {
