@@ -42,8 +42,9 @@ export default function () {
 
   async function registerListeners() {
     const docker = new Docker(mainWindow!)
+    const firefox = new Firefox(mainWindow!)
     ipcMain.on('firefox:check', async (_, message) => {
-      const firefox = new Firefox(mainWindow!)
+      
       const firefoxInstalled = await firefox.isInstalled()
       if (!firefoxInstalled) {
           await firefox.download();
@@ -51,6 +52,10 @@ export default function () {
       else{
         await firefox.launch();
       }
+    })
+
+    ipcMain.on('firefox:lunch', async (_, message) => {
+      await firefox.launch();
     })
 
     ipcMain.on('docker:check', async (_, message) => {
