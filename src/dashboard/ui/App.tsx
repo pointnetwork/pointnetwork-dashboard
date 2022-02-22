@@ -3,7 +3,8 @@ import Docker from '../../docker/ui'
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { Container, Typography } from '@mui/material'
+import { Button, Container, Typography } from '@mui/material'
+import { MouseEventHandler } from 'react'
 
 const theme = createTheme({
   typography: {
@@ -11,13 +12,27 @@ const theme = createTheme({
   }
 });
 
+const logout: MouseEventHandler = () => {
+  window.Dashboard.logOut()
+}
+
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="md" sx={{marginTop:'5px'}}>
-        <Typography variant="h4" gutterBottom component="div">
-          Welcome to the Point Dashboard
-        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid item xs={10}>
+          <Typography variant="h4" gutterBottom component="div">
+            Welcome to the Point Dashboard
+          </Typography>
+          </Grid>
+          <Grid item xs={2}>
+            <Button variant="outlined" onClick={logout}>
+              Logout
+            </Button>
+          </Grid>
+        </Grid>
         <Typography variant="subtitle1" color="text.secondary" component="div">
           Manage the various point components from here
         </Typography>

@@ -17,6 +17,9 @@ export const api = {
   checkNode: () => {
     ipcRenderer.send('node:check')
   },
+  logOut: () => {
+    ipcRenderer.send('logOut')
+  },
   createLogWindow: () =>{
     ipcRenderer.send('node:window')
   },
