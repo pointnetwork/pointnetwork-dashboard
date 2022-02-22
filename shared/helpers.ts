@@ -138,6 +138,7 @@ export default Object.freeze({
   getDashboardPath,
   getSDKPath,
   getBrowserFolderPath,
+  getPointPath,
   getHomePath,
   getLiveDirectoryPath,
   getKeyFileName,
