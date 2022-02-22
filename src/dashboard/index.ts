@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
 import Docker from '../docker'
+import helpers from '../../shared/helpers'
 
 let mainWindow: BrowserWindow | null
 
@@ -71,6 +72,10 @@ export default function () {
 
     ipcMain.on('node:check', async (_, message) => {
       await docker.pointNodeCheck()
+    })
+
+    ipcMain.on('logOut', async (_, message) => {
+      helpers.logout()
     })
 
     ipcMain.on('node:window', async (_, message) => {
