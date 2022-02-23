@@ -1,5 +1,6 @@
 import { BrowserWindow } from 'electron'
 import path from 'path'
+import which from 'which'
 import fs from 'fs-extra'
 import { https } from 'follow-redirects'
 import Logger from '../../shared/logger'
@@ -14,6 +15,11 @@ class Docker {
   constructor(window: BrowserWindow) {
     this.window = window
     this.installationLogger = new Logger({ channel: 'installer', window })
+  }
+
+  static isInstalled = () => {
+    if (which.sync('docker', { nothrow: true }) !== null) return true
+    return false
   }
 
   private getDownloadSpecs = () => {

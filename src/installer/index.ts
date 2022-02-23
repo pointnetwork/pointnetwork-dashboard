@@ -40,8 +40,9 @@ export default function () {
       // await installer.start()
       // const firefox = new Firefox(mainWindow!)
       // if (!(await firefox.isInstalled())) await firefox.download()
-      const docker = new Docker(mainWindow!)
-      docker.download()
+      if (!Docker.isInstalled()) {
+        new Docker(mainWindow!).download()
+      }
     })
   }
 
