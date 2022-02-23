@@ -24,10 +24,13 @@
     "7zip-min": "^1.4.1",
     "arweave-mnemonic-keys": "0.0.9",
     "axios": "^0.25.0",
+    "bitcore-lib": "^8.25.25",
+    "bitcore-mnemonic": "^8.25.25",
     "dmg": "^0.1.0",
     "docker-compose": "^0.23.17",
     "extract-dmg": "^1.0.0",
     "find-process": "^1.4.7",
+    "fs-extra": "8.1.0",
     "i": "^0.3.7",
     "isomorphic-git": "^1.11.2",
     "lodash": "^4.17.21",
@@ -45,7 +48,7 @@
     "which": "^2.0.2"
   },
   "devDependencies": {
-    "@babel/core": "7.14.6",
+    "@babel/core": "7.17.2",
     "@babel/plugin-transform-runtime": "7.14.5",
     "@babel/preset-env": "7.14.5",
     "@babel/preset-react": "7.14.5",
@@ -55,7 +58,7 @@
     "@electron-forge/maker-rpm": "6.0.0-beta.57",
     "@electron-forge/maker-squirrel": "6.0.0-beta.57",
     "@electron-forge/maker-zip": "6.0.0-beta.57",
-    "@electron-forge/plugin-webpack": "6.0.0-beta.57",
+    "@electron-forge/plugin-webpack": "^6.0.0-beta.63",
     "@marshallofsound/webpack-asset-relocator-loader": "0.5.0",
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "11.2.7",
@@ -120,6 +123,14 @@
                   "name": "dashboard_window",
                   "preload": {
                     "js": "./src/dashboard/bridge.ts"
+                  }
+                },
+                {
+                  "html": "./public/index.html",
+                  "js": "./src/welcome/ui/index.tsx",
+                  "name": "welcome_window",
+                  "preload": {
+                    "js": "./src/welcome/bridge.ts"
                   }
                 },
                 {
