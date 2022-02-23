@@ -44,6 +44,13 @@ class Docker {
         this.installationLogger.log('Downloading Docker...')
 
         await response.pipe(downloadStream)
+
+        const total = response.headers['content-length']
+        let downloaded = 0
+        response.on('data', chunk => {
+          downloaded += Buffer.from(chunk).length
+          console.log(`Downloaded: ${(downloaded * 100) / Number(total)}%`)
+        })
       })
       // When download finishes, start installation
       downloadStream.on('finish', async () => {
@@ -53,18 +60,20 @@ class Docker {
     }
 
     if (global.platform.linux) {
-      sudo.exec('apt-get update')
-      sudo.exec(
+      this.execSudoCommand('apt-get update')
+      this.execSudoCommand(
         'apt-get install apt-transport-https ca-certificates curl gnupg lsb-release'
       )
-      sudo.exec(
+      this.execSudoCommand(
         'curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg'
       )
-      sudo.exec(
+      this.execSudoCommand(
         `echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable' | tee /etc/apt/sources.list.d/docker.list > /dev/null`
       )
-      sudo.exec('apt-get update')
-      sudo.exec('apt-get install docker-ce docker-ce-cli containerd.io')
+      this.execSudoCommand('apt-get update')
+      this.execSudoCommand(
+        'apt-get install docker-ce docker-ce-cli containerd.io'
+      )
     }
   }
 
@@ -74,22 +83,32 @@ class Docker {
   ) => {
     this.installationLogger.log('Starting Docker installation...')
     if (global.platform.win32) {
-      sudo.exec(downloadPath, {}, (error, stdout, stderr) => {
-        if (error) {
-          this.installationLogger.log(error.message)
-        }
-        if (stdout) {
-          this.installationLogger.log(stdout.toString())
-        }
-        if (stderr) {
-          this.installationLogger.log(stderr.toString())
-        }
-      })
+      this.execSudoCommand(downloadPath)
     }
 
     if (global.platform.darwin) {
+      this.installationLogger.log('Extracting Docker...')
       await extractDmg(downloadPath, unpackDestinationPath)
+      this.installationLogger.log('Extracted Docker')
     }
+  }
+
+  private execSudoCommand = (command: string) => {
+    sudo.exec(command, { name: 'Point Installer' }, (error, stdout, stderr) => {
+      this.installationLogger.log('Executed: ', command)
+      if (error) {
+        this.installationLogger.error('Installation error: ', error.message)
+      }
+      if (stdout) {
+        this.installationLogger.log('Installation STDOUT: ', stdout.toString())
+      }
+      if (stderr) {
+        this.installationLogger.error(
+          'Installation STDERR: ',
+          stderr.toString()
+        )
+      }
+    })
   }
 }
 
