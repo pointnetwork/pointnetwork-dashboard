@@ -86,8 +86,7 @@ class Docker {
     this.installationLogger.log('Starting Docker installation...')
     try {
       if (global.platform.win32) {
-        const x = execFileSync(downloadPath!)
-        this.installationLogger.log(x.toString())
+        this.installationLogger.log(execFileSync(downloadPath!).toString())
       }
 
       if (global.platform.darwin) {
