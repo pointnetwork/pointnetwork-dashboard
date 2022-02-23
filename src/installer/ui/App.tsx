@@ -7,15 +7,22 @@ export default function App() {
   function sendStartInstallation() {
     window.Installer.startInstallation()
     setInstalling(true)
-
     window.Installer.on('installer:log', (log: string[]) => {
       addLog(log)
       console.log(...log)
     })
+    window.Installer.on('installer:error', (log: string[]) => {
+      addLog(log, true)
+      console.error(...log)
+    })
   }
 
-  function addLog(log: string[]) {
+  function addLog(log: string[], error?: boolean) {
     const li = document.createElement('li')
+    if (error) {
+      li.classList.add('text-red-500')
+      li.classList.add('font-semibold')
+    }
     li.innerHTML = `${log.join(' ')}`
     logsElement?.appendChild(li)
     window.scrollTo(0, logsElement!.scrollHeight)
@@ -28,6 +35,7 @@ export default function App() {
 
   return (
     <div className="py-4 px-4">
+      <div className="hidden text-red-500"></div>
       <h1 className="text-2xl font-semibold mb-4">
         {installing ? 'Installing' : 'Welcome to the Point Installer'}
       </h1>
