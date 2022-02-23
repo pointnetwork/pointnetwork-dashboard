@@ -6,6 +6,7 @@ import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 import sudo from 'sudo-prompt'
 import extractDmg from 'extract-dmg'
+import { execFileSync } from 'child_process'
 
 class Docker {
   private window
@@ -47,13 +48,22 @@ class Docker {
 
         const total = response.headers['content-length']
         let downloaded = 0
+        let percentage = 0
+        let temp = 0
         response.on('data', chunk => {
           downloaded += Buffer.from(chunk).length
-          console.log(`Downloaded: ${(downloaded * 100) / Number(total)}%`)
+
+          temp = Math.round((downloaded * 100) / Number(total))
+          if (temp !== percentage) {
+            percentage = temp
+            this.installationLogger.log(
+              `Downloaded: ${Number(percentage).toFixed(0)}%`
+            )
+          }
         })
       })
       // When download finishes, start installation
-      downloadStream.on('finish', async () => {
+      downloadStream.on('close', async () => {
         this.installationLogger.log('Downloaded Docker')
         await this.install(downloadPath!, unpackDestinationPath)
       })
@@ -85,14 +95,19 @@ class Docker {
     unpackDestinationPath?: string
   ) => {
     this.installationLogger.log('Starting Docker installation...')
-    if (global.platform.win32) {
-      this.execSudoCommand(downloadPath)
-    }
+    try {
+      if (global.platform.win32) {
+        const x = execFileSync(downloadPath)
+        this.installationLogger.log(x.toString())
+      }
 
-    if (global.platform.darwin) {
-      this.installationLogger.log('Extracting Docker...')
-      await extractDmg(downloadPath, unpackDestinationPath)
-      this.installationLogger.log('Extracted Docker')
+      if (global.platform.darwin) {
+        this.installationLogger.log('Extracting Docker...')
+        await extractDmg(downloadPath, unpackDestinationPath)
+        this.installationLogger.log('Extracted Docker')
+      }
+    } catch (error) {
+      this.installationLogger.error(error)
     }
   }
 
