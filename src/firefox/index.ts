@@ -83,7 +83,7 @@ export default class {
       fs.mkdirSync(browserDir)
     }
 
-    return https.https.get(
+    return await https.https.get(
       firefoxURL,
       async (response: { pipe: (arg0: fs.WriteStream) => any }) => {
         this.installationLogger.log('Downloading Firefox...')
@@ -99,7 +99,7 @@ export default class {
                 } else {
                   console.log(`\nDeleted file: ${releasePath}`)
                   this.installationLogger.log('Installed Firefox successfully')
-                  this.launch()
+                  // this.launch()
                   return resolve()
                 }
               })
@@ -296,7 +296,7 @@ pref("general.config.obscure_value", 0)
 // pref('network.proxy.type', 1)
 pref('network.proxy.type', ${networkProxyType})
 pref('network.proxy.http', 'localhost')
-pref('network.proxy.http_port', 8666)
+pref('network.proxy.http_port', 2468)
 pref('browser.startup.homepage', 'https://point')
 pref('startup.homepage_welcome_url', 'https://point/welcome')
 pref('startup.homepage_welcome_url.additional', '')
