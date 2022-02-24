@@ -3,7 +3,7 @@
   "author": "Point Labs",
   "version": "0.2.0",
   "description": "PointNetwork",
-  "main": "./.webpack/main/index.js",
+  "main": "./.webpack/main",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
