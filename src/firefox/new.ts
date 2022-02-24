@@ -2,13 +2,11 @@ import { BrowserWindow } from 'electron'
 import path from 'path'
 import axios from 'axios'
 import fs from 'fs-extra'
-import tarfs from 'tar-fs'
 import { https } from 'follow-redirects'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 import extractDmg from 'extract-dmg'
 import { execSync } from 'child_process'
-const bz2 = require('unbzip2-stream')
 
 class Firefox {
   private window
@@ -96,9 +94,9 @@ class Firefox {
       await extractDmg(downloadPath!, installationPath)
     }
     if (global.platform.linux) {
-      fs.createReadStream(downloadPath)
-        .pipe(bz2())
-        .pipe(tarfs.extract(installationPath))
+      this.installationLogger.log(
+        execSync(`tar -xf ${downloadPath} -C ${installationPath}`).toString()
+      )
     }
     this.installationLogger.log('Extracted Firefox')
   }
