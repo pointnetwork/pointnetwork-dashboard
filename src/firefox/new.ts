@@ -20,7 +20,8 @@ class Firefox {
   static isInstalled = () => {}
 
   private getDownloadSpecs = async () => {
-    let filename, downloadURL
+    let filename = ''
+    let downloadURL
 
     const version = await (
       await axios.get(
