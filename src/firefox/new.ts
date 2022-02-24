@@ -81,26 +81,26 @@ class Firefox {
     // When download finishes, start installation
     downloadStream.on('close', async () => {
       this.installationLogger.log('Downloaded Firefox')
-      await this.install(downloadPath!, installationPath)
+      await this.extract(downloadPath!, installationPath)
     })
   }
 
-  private install = async (downloadPath: string, installationPath: string) => {
+  private extract = async (downloadPath: string, installationPath: string) => {
+    this.installationLogger.log('Extracting Firefox...')
     if (global.platform.win32) {
       this.installationLogger.log(
         execSync(`unzip -o ${downloadPath} -d ${installationPath}`).toString()
       )
     }
     if (global.platform.darwin) {
-      this.installationLogger.log('Extracting Docker...')
       await extractDmg(downloadPath!, installationPath)
-      this.installationLogger.log('Extracted Docker')
     }
     if (global.platform.linux) {
       fs.createReadStream(downloadPath)
         .pipe(bz2())
         .pipe(tarfs.extract(installationPath))
     }
+    this.installationLogger.log('Extracted Firefox')
   }
 }
 
