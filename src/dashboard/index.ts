@@ -48,7 +48,7 @@ export default function () {
       
       const firefoxInstalled = await firefox.isInstalled()
       if (!firefoxInstalled) {
-          await firefox.download();
+        await firefox.download();
       }
       else{
         await firefox.launch();
@@ -62,10 +62,10 @@ export default function () {
     ipcMain.on('docker:check', async (_, message) => {
       const dockerInstalled = await docker.isInstalled()
       if (!dockerInstalled) {
-          await docker.download();
+        //  await docker.download();
       }
       else{
-        await docker.startCompose()
+       // await docker.startCompose()
        
       }
     })
