@@ -28,7 +28,7 @@ class WelcomeService {
             fs.mkdirSync(await helpers.getLiveDirectoryPath());
         }
 
-        const contents = JSON.stringify({phrase: phrase});
+        const contents = JSON.stringify(phrase);
         fs.writeFileSync(await helpers.getKeyFileName(), contents);
 
         // arweave
