@@ -1,10 +1,14 @@
+import util from 'util'
 import { BrowserWindow } from 'electron'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
+import Firefox from '../firefox'
+
 const path = require('path')
 const git = require('isomorphic-git')
 const http = require('isomorphic-git/http/node')
 const fs = require('fs')
+const exec = util.promisify(require('child_process').exec)
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
 
@@ -15,13 +19,16 @@ const DIRECTORIES = [
   helpers.getLiveDirectoryPath(),
 ]
 
-const REPOSITORIES = ['pointnetwork', 'pointnetwork-dashboard']
+const REPOSITORIES = ['pointnetwork-dashboard', 'pointnetwork', 'pointsdk']
 
 class Installer {
   private logger
+  private dashboardPath: any
+  private firefox 
 
   constructor(window: BrowserWindow) {
     this.logger = new Logger({ window, channel: 'installer' })
+    this.firefox = new Firefox(window)
   }
 
   static isInstalled = async () => {
@@ -57,7 +64,7 @@ class Installer {
       }
     })
     this.logger.log('Created required directories')
-
+    await this.firefox.download()
     // Clone the repos
     this.logger.log('Cloning the repositores')
     await Promise.all(
@@ -78,11 +85,29 @@ class Installer {
           url,
         })
         this.logger.log('Cloned', url)
+        if(dir.includes("dashboard")){
+          console.log(`npm --prefix ${dir} install`)
+          await exec(`npm --prefix ${dir} install`, (error: { message: any }, _stdout: any, stderr: any) => {
+            // win.webContents.send("firefox-closed")
+            if (error) {
+              console.log(`error: ${error.message}`)
+             
+              return
+            }
+            if (stderr) {
+              console.log(`stderr: ${stderr}`)
+            }
+          })
+        }
       })
+
     )
+    this.logger.log('Cloned repositories')
+    this.logger.log('Installing Dependencies')
+
 
     // Finish
-    this.logger.log('Cloned the repositores')
+    
   }
 
   upgrade = async () => {
