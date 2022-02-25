@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import os from 'os'
 import { platform, arch } from 'process'
+import welcome from '../src/welcome'
 
 const getOSAndArch = () => {
   console.log('platform', platform)
@@ -101,8 +102,7 @@ const logout = () => {
   fs.unlinkSync(getKeyFileName())
   fs.unlinkSync(getArweaveKeyFileName())
   // Relaunching the dashboard to ask for key or generate a new one.
-  app.relaunch()
-  app.exit()
+  welcome(true)
 }
 
 const getPointPath = () => {

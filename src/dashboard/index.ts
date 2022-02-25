@@ -15,8 +15,7 @@ declare const DOCKER_LOG_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 //     ? process.resourcesPath
 //     : app.getAppPath()
 
-export default function () {
-
+export default function (isExplicitRun = false) {
 
   function createWindow() {
     mainWindow = new BrowserWindow({
@@ -48,7 +47,7 @@ export default function () {
       
       const firefoxInstalled = await firefox.isInstalled()
       if (!firefoxInstalled) {
-          await firefox.download();
+        await firefox.download();
       }
       else{
         await firefox.launch();
@@ -62,7 +61,7 @@ export default function () {
     ipcMain.on('docker:check', async (_, message) => {
       const dockerInstalled = await docker.isInstalled()
       if (!dockerInstalled) {
-          await docker.download();
+        await docker.download();
       }
       else{
         await docker.startCompose()
@@ -75,6 +74,7 @@ export default function () {
     })
 
     ipcMain.on('logOut', async (_, message) => {
+      mainWindow.close()
       helpers.logout()
     })
 
@@ -89,31 +89,37 @@ export default function () {
         child.show();
         child.loadURL(DOCKER_LOG_WINDOW_WEBPACK_ENTRY)
         child.on('show', async () => {
-            await docker.getLogsNode(child)
+          await docker.getLogsNode(child)
         })
 
       }
 
     })
-
-
   }
 
-  app
-    .on('ready', createWindow)
-    .whenReady()
-    .then(registerListeners)
-    .catch(e => console.error(e))
+  if (isExplicitRun) {
+    createWindow();
+    registerListeners();
+  }
 
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit()
-    }
-  })
+  if (!isExplicitRun) {
+    app
+      .on('ready', createWindow)
+      .whenReady()
+      .then(registerListeners)
+      .catch(e => console.error(e))
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
+    app.on('window-all-closed', (goDashboard) => {
+      if (process.platform !== 'darwin') {
+        console.log('WHAT')
+        app.quit()
+      }
+    })
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+      }
+    })
+  }
 }

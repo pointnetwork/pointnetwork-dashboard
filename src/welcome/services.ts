@@ -28,11 +28,11 @@ class WelcomeService {
             fs.mkdirSync(await helpers.getLiveDirectoryPath());
         }
 
-        const contents = JSON.stringify({phrase: phrase});
+        const contents = JSON.stringify(phrase);
         fs.writeFileSync(await helpers.getKeyFileName(), contents);
 
         // arweave
-        const arKey = getKeyFromMnemonic(phrase);
+        const arKey = getKeyFromMnemonic(phrase.phrase);
         fs.writeFileSync(await helpers.getArweaveKeyFileName(), JSON.stringify(arKey));
 
         // done
@@ -116,6 +116,10 @@ class WelcomeService {
         }
         return true;
 
+    }
+
+    close() {
+        this.win.close()
     }
 
     async generate(){

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import WelcomeService from './services'
+import dashboard from '../dashboard'
 let mainWindow: BrowserWindow | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -11,7 +12,7 @@ declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
 //     ? process.resourcesPath
 //     : app.getAppPath()
 
-export default function () {
+export default function (isExplicitRun = false) {
 
 
   function createWindow() {
@@ -30,7 +31,7 @@ export default function () {
     //  mainWindow.webContents.openDevTools()
 
 
-     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
+    mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
       mainWindow = null
@@ -46,34 +47,42 @@ export default function () {
     })
 
     ipcMain.on('welcome:confirm', async (_, message) => {
-      welcomeService.validate(message);
+      welcomeService.validate(message.replace(/^\s+|\s+$/g, ''));
     })
 
     ipcMain.on('welcome:login', async (_, message) => {
       const result = await welcomeService.login(message);
       if(result) {
-        app.relaunch()
-        app.exit()
+        dashboard(true)
+        welcomeService.close()
       }
     })
 
   }
 
-  app
-    .on('ready', createWindow)
-    .whenReady()
-    .then(registerListeners)
-    .catch(e => console.error(e))
+  if (isExplicitRun) {
+    createWindow();
+    registerListeners();
+  }
 
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit()
-    }
-  })
+  if (!isExplicitRun) {
+    app
+      .on('ready', createWindow)
+      .whenReady()
+      .then(registerListeners)
+      .catch(e => console.error(e))
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
+    app.on('window-all-closed', () => {
+      if (process.platform !== 'darwin') {
+        app.quit()
+      }
+    })
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+      }
+    })
+  }
+
 }
