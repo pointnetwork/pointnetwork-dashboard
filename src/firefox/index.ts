@@ -105,6 +105,7 @@ export default class {
               })
 
               await this.createConfigFiles(osAndArch, pacFile)
+              await this.launch()
             }
             this.unpack(osAndArch, releasePath, browserDir, cb)
           })
@@ -175,6 +176,7 @@ export default class {
       try {
         await extract(releasePath, { dir: browserDir })
         console.log('Extraction complete')
+        cb()
       } catch (err) {
         console.log(err)
       }
