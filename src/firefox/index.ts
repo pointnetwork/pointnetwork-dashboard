@@ -63,6 +63,19 @@ export default class {
     return `firefox-${version}.tar.bz2`
   }
 
+  getNodeFileName() {
+    if (global.platform.win32) {
+      // TODO: Still unsure about this: we need to decide on the name
+      // of the browser, check how we get the version, etc.
+      return `pointnetwork-linux-v0.1.38-test.gz`
+    }
+    if (global.platform.darwin) {
+      return `pointnetwork-macos-v0.1.38-test.gz`
+    }
+    // linux & mac
+    return ` pointnetwork-linux-v0.1.38-test.gz`
+  }
+
   async download() {
     this.installationLogger.log('Starting Firefox installation...')
 
