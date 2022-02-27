@@ -137,7 +137,7 @@ const isSDKCloned = () => {
   return fs.existsSync(getSDKPath())
 }
 
-const copyFileSync(source, target) {
+const copyFileSync = (source, target) => {
   var targetFile = target;
 
   if (fs.existsSync(target)) {
