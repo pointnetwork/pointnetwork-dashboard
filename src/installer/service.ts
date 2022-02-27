@@ -87,7 +87,10 @@ class Installer {
           url,
         })
         this.logger.log('Cloned', url)
-        if(dir.includes("dashboard")){
+        if(dir.includes("dashboard")) {
+          this.logger.log('Copying liveprofile')
+          helpers.copyFolderRecursiveSync(path.join(POINT_DASHBOARD_DIR, 'liveprofile'), POINT_LIVE_DIR)
+
           console.log(`npm --prefix ${dir} install`)
           await exec(`npm --prefix ${dir} install`, (error: { message: any }, _stdout: any, stderr: any) => {
             // win.webContents.send("firefox-closed")
@@ -105,10 +108,6 @@ class Installer {
 
     )
     this.logger.log('Cloned repositories')
-
-    this.logger.log('Copying liveprofile')
-    helpers.copyFileSync(path.join(POINT_DASHBOARD_DIR, 'liveprofile'), POINT_LIVE_DIR)
-
     this.logger.log('Installing Dependencies')
 
 
