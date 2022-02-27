@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
-import _7z from '7zip-min'
+import extract from 'extract-zip'
 import tarfs from 'tar-fs'
 import url from 'url'
 import helpers from '../../shared/helpers'
@@ -44,7 +44,7 @@ export default class {
 
   getURL(version: unknown, osAndArch: any, language: string, filename: string) {
     if (global.platform.win32) {
-      return 'https://github.com/pointnetwork/phyrox-esr-portable/releases/download/test/point-browser-portable-win64-78.12.0-55.7z'
+      return 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.1.0/point-browser.zip'
     }
     // linux & mac
     return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`
@@ -54,7 +54,7 @@ export default class {
     if (global.platform.win32) {
       // TODO: Still unsure about this: we need to decide on the name
       // of the browser, check how we get the version, etc.
-      return `point-browser-portable-${osAndArch}-78.12.0-55.7z`
+      return `point-browser.zip`
     }
     if (global.platform.darwin) {
       return `Firefox%20${version}.dmg`
@@ -118,6 +118,7 @@ export default class {
               })
 
               await this.createConfigFiles(osAndArch, pacFile)
+              await this.launch()
             }
             this.unpack(osAndArch, releasePath, browserDir, cb)
           })
@@ -177,7 +178,7 @@ export default class {
     this.window.webContents.send('firefox:active', true)
   }
 
-  unpack(
+  async unpack(
     _osAndArch: any,
     releasePath: string,
     browserDir: string,
@@ -185,10 +186,13 @@ export default class {
   ) {
     this.installationLogger.log('Unpacking Firefox...')
     if (global.platform.win32) {
-      _7z.unpack(releasePath, browserDir, err => {
-        if (err) throw err
+      try {
+        await extract(releasePath, { dir: browserDir })
+        console.log('Extraction complete')
         cb()
-      })
+      } catch (err) {
+        console.log(err)
+      }
     }
     if (global.platform.darwin) {
       dmg.mount(releasePath, (_err: any, dmgPath: any) => {
