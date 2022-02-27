@@ -139,7 +139,7 @@ export default class {
     const cmd = await this.getBinPath(osAndArch)
     const profilePath = path.join(
       helpers.getHomePath(),
-      '.point/keystore/profile'
+      '.point/keystore/liveprofile'
     )
     let webextBinary = ''
     if (global.platform.win32) {
