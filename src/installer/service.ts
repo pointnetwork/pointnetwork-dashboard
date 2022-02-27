@@ -11,12 +11,14 @@ const fs = require('fs')
 const exec = util.promisify(require('child_process').exec)
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
+const POINT_DASHBOARD_DIR = helpers.getDashboardPath()
+const POINT_LIVE_DIR = helpers.getLiveDirectoryPath()
 
 const DIRECTORIES = [
   helpers.getPNPath(),
-  helpers.getDashboardPath(),
+  POINT_DASHBOARD_DIR,
   helpers.getPointSoftwarePath(),
-  helpers.getLiveDirectoryPath(),
+  POINT_LIVE_DIR,
 ]
 
 const REPOSITORIES = ['pointnetwork-dashboard', 'pointnetwork', 'pointsdk']
@@ -103,6 +105,10 @@ class Installer {
 
     )
     this.logger.log('Cloned repositories')
+
+    this.logger.log('Copying liveprofile')
+    helpers.copyFileSync(path.join(POINT_DASHBOARD_DIR, 'liveprofile'), POINT_LIVE_DIR)
+
     this.logger.log('Installing Dependencies')
 
 
