@@ -137,6 +137,18 @@ const isSDKCloned = () => {
   return fs.existsSync(getSDKPath())
 }
 
+const copyFileSync(source, target) {
+  var targetFile = target;
+
+  if (fs.existsSync(target)) {
+    if (fs.lstatSync(target).isDirectory()) {
+      targetFile = path.join(target, path.basename(source));
+    }
+  }
+
+  fs.writeFileSync(targetFile, fs.readFileSync(source));
+}
+
 export default Object.freeze({
   getOSAndArch,
   getPlatform,
@@ -158,4 +170,5 @@ export default Object.freeze({
   isDashboardCloned,
   isSDKCloned,
   getNodeExecutablePath,
+  copyFileSync
 })
