@@ -45,7 +45,6 @@ export default function App() {
               <li>Point Node</li>
               <li>Point Dashboard</li>
               <li>Firefox (Point Browser)</li>
-              <li>Docker & WSL</li>
             </ul>
             <button
               onClick={sendStartInstallation}
