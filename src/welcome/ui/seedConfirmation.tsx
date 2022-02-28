@@ -12,13 +12,14 @@ export default function SeedConfirmation(props: { seedGenerated: string, back: a
   const [seed, setSeed] = useState<string | null>(null)
 
   const validate = () => {
-    window.Welcome.confirm(seed)
+    const trimmedSeed = seed.trim()
+    window.Welcome.confirm(trimmedSeed)
     window.Welcome.on('welcome:confirmed', (seedValid: any) => {
       if (
         seedValid &&
-        (props.seedGenerated === seed || props.seedGenerated === 'login')
+        (props.seedGenerated === trimmedSeed || props.seedGenerated === 'login')
       ) {
-        window.Welcome.login({ phrase: seed, firstTime: true })
+        window.Welcome.login({ phrase: trimmedSeed, firstTime: true })
       }
     })
   }
