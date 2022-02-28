@@ -32,7 +32,7 @@ class WelcomeService {
         fs.writeFileSync(await helpers.getKeyFileName(), contents);
 
         // arweave
-        const arKey = getKeyFromMnemonic(phrase);
+        const arKey = getKeyFromMnemonic(phrase.phrase);
         fs.writeFileSync(await helpers.getArweaveKeyFileName(), JSON.stringify(arKey));
 
         return true;
