@@ -1,14 +1,13 @@
-import util from 'util'
 import { BrowserWindow } from 'electron'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import Firefox from '../firefox'
+import { execSync } from 'child_process'
 
 const path = require('path')
 const git = require('isomorphic-git')
 const http = require('isomorphic-git/http/node')
 const fs = require('fs')
-const exec = util.promisify(require('child_process').exec)
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
 const POINT_DASHBOARD_DIR = helpers.getDashboardPath()
@@ -26,7 +25,7 @@ const REPOSITORIES = ['pointnetwork-dashboard', 'pointnetwork', 'pointsdk']
 class Installer {
   private logger
   private dashboardPath: any
-  private firefox 
+  private firefox
 
   constructor(window: BrowserWindow) {
     this.logger = new Logger({ window, channel: 'installer' })
@@ -87,32 +86,26 @@ class Installer {
           url,
         })
         this.logger.log('Cloned', url)
-        if(dir.includes("dashboard")) {
+        if (dir.includes('dashboard')) {
           this.logger.log('Copying liveprofile')
-          helpers.copyFolderRecursiveSync(path.join(POINT_DASHBOARD_DIR, 'liveprofile'), POINT_LIVE_DIR)
+          helpers.copyFolderRecursiveSync(
+            path.join(POINT_DASHBOARD_DIR, 'liveprofile'),
+            POINT_LIVE_DIR
+          )
 
-          console.log(`npm --prefix ${dir} install`)
-          await exec(`npm --prefix ${dir} install`, (error: { message: any }, _stdout: any, stderr: any) => {
-            // win.webContents.send("firefox-closed")
-            if (error) {
-              console.log(`error: ${error.message}`)
-             
-              return
-            }
-            if (stderr) {
-              console.log(`stderr: ${stderr}`)
-            }
-          })
+          this.logger.log(
+            "Running a `npm install` to install deps - Estimated time (2-4 mins) - Please don't cancel the process."
+          )
+          this.logger.log(`npm --prefix ${dir} install`)
+          execSync(`npm --prefix ${dir} install`)
+          this.logger.log('Installed npm dependencies successfully')
         }
       })
-
     )
     this.logger.log('Cloned repositories')
     this.logger.log('Installing Dependencies')
 
-
     // Finish
-    
   }
 
   upgrade = async () => {
