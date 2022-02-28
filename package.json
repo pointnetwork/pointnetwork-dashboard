@@ -25,6 +25,8 @@
     "axios": "^0.25.0",
     "bitcore-lib": "^8.25.25",
     "bitcore-mnemonic": "^8.25.25",
+    "decompress": "^4.2.1",
+    "decompress-targz": "^4.1.1",
     "dmg": "^0.1.0",
     "docker-compose": "^0.23.17",
     "extract-zip": "^2.0.1",

@@ -8,6 +8,7 @@ export default function () {
   const [activeDocker, setActiveDocker] = useState<string>()
 
   useEffect(() => {
+    window.Dashboard.launchNode()
     window.Dashboard.checkDocker()
 
     window.Dashboard.on('docker:log', (log: string) => {
@@ -21,7 +22,7 @@ export default function () {
   }, [])
 
   const openLogs = () => {
-    window.Dashboard.createLogWindow()
+    window.Dashboard.checkDocker()
   }
 
   useEffect(() => {

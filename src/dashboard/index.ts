@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
 import Docker from '../docker'
+import Node from '../node'
 import helpers from '../../shared/helpers'
 
 let mainWindow: BrowserWindow | null
@@ -44,6 +45,7 @@ export default function () {
   async function registerListeners() {
     const docker = new Docker(mainWindow!)
     const firefox = new Firefox(mainWindow!)
+    const node = new Node(mainWindow!)
     ipcMain.on('firefox:check', async (_, message) => {
       
       const firefoxInstalled = await firefox.isInstalled()
@@ -68,6 +70,10 @@ export default function () {
        // await docker.startCompose()
        
       }
+    })
+
+    ipcMain.on('node:launch', async (_, message) => {
+     node.launch()
     })
 
     ipcMain.on('node:check', async (_, message) => {

@@ -3,6 +3,7 @@ import { BrowserWindow } from 'electron'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import Firefox from '../firefox'
+import Node from '../node'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -25,10 +26,12 @@ class Installer {
   private logger
   private dashboardPath: any
   private firefox 
+  private node 
 
   constructor(window: BrowserWindow) {
     this.logger = new Logger({ window, channel: 'installer' })
     this.firefox = new Firefox(window)
+    this.node = new Node(window)
   }
 
   static isInstalled = async () => {
@@ -65,6 +68,7 @@ class Installer {
     })
     this.logger.log('Created required directories')
     await this.firefox.download()
+    await this.node.downloadNode()
     // Clone the repos
     this.logger.log('Cloning the repositores')
     await Promise.all(

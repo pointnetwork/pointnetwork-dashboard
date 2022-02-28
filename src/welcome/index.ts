@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import WelcomeService from './services'
+import Node from '../node'
 let mainWindow: BrowserWindow | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -40,9 +41,11 @@ export default function () {
   async function registerListeners() {
 
     const welcomeService = new WelcomeService(mainWindow!)
+    const node = new Node(mainWindow!)
 
     ipcMain.on('welcome:generate', async (_, message) => {
-      welcomeService.generate();
+      welcomeService.generate()
+      await node.downloadNode()
     })
 
     ipcMain.on('welcome:confirm', async (_, message) => {

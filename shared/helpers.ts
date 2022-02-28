@@ -88,6 +88,14 @@ const getNodeExecutablePath = () => {
   return browserDir
 }
 
+const getNodeExecutableFile = () => {
+  const browserDir = path.join(getHomePath(), '.point', 'src', 'bin')
+  if (!fs.existsSync(browserDir)) {
+    fs.mkdirpSync(browserDir)
+  }
+  return browserDir
+}
+
 const getLiveDirectoryPath = () => {
   return path.join(getHomePath(), '.point', 'keystore')
 }
@@ -158,4 +166,5 @@ export default Object.freeze({
   isDashboardCloned,
   isSDKCloned,
   getNodeExecutablePath,
+  getNodeExecutableFile
 })

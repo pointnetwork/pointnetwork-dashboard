@@ -17,6 +17,9 @@ export const api = {
   checkNode: () => {
     ipcRenderer.send('node:check')
   },
+  launchNode: () => {
+    ipcRenderer.send('node:launch')
+  },
   logOut: () => {
     ipcRenderer.send('logOut')
   },
