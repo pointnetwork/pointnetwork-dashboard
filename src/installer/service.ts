@@ -26,10 +26,12 @@ class Installer {
   private logger
   private dashboardPath: any
   private firefox
+  private window
 
   constructor(window: BrowserWindow) {
     this.logger = new Logger({ window, channel: 'installer' })
     this.firefox = new Firefox(window)
+    this.window = window
   }
 
   static isInstalled = async () => {
@@ -106,6 +108,10 @@ class Installer {
     this.logger.log('Installing Dependencies')
 
     // Finish
+  }
+
+  close() {
+    this.window.close()
   }
 
   upgrade = async () => {

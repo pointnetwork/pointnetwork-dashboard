@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
+import welcome from '../welcome'
 import Installer from './service'
 export { Installer }
 
@@ -35,16 +36,16 @@ export default function () {
 
   async function registerListeners() {
     ipcMain.on('installer:start', async (_, message) => {
-      // this line is a workaround in the meantime we fix web-ext 
+      // this line is a workaround in the meantime we fix web-ext
       // it will close installer after 10 min if npm doesn't finish or error
       setTimeout(() => {
         app.relaunch()
         app.exit()
-      }, 300000);
+      }, 300000)
       const installer = new Installer(mainWindow!)
       await installer.start()
-      app.relaunch()
-      app.exit()
+      await installer.close()
+      welcome(true)
       // const firefox = new Firefox(mainWindow!)
       // if (!(await firefox.isInstalled())) await firefox.download()
     })

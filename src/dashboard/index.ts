@@ -15,9 +15,7 @@ declare const DOCKER_LOG_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 //     ? process.resourcesPath
 //     : app.getAppPath()
 
-export default function () {
-
-
+export default function (isExplicitRun = false) {
   function createWindow() {
     mainWindow = new BrowserWindow({
       // icon: path.join(assetsPath, 'assets', 'icon.png'),
@@ -33,7 +31,6 @@ export default function () {
     // debug
     // mainWindow.webContents.openDevTools()
 
-
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
@@ -45,28 +42,24 @@ export default function () {
     const docker = new Docker(mainWindow!)
     const firefox = new Firefox(mainWindow!)
     ipcMain.on('firefox:check', async (_, message) => {
-      
       const firefoxInstalled = await firefox.isInstalled()
       if (!firefoxInstalled) {
-        await firefox.download();
-      }
-      else{
-        await firefox.launch();
+        await firefox.download()
+      } else {
+        await firefox.launch()
       }
     })
 
     ipcMain.on('firefox:lunch', async (_, message) => {
-      await firefox.launch();
+      await firefox.launch()
     })
 
     ipcMain.on('docker:check', async (_, message) => {
       const dockerInstalled = await docker.isInstalled()
       if (!dockerInstalled) {
-        //  await docker.download();
-      }
-      else{
-       // await docker.startCompose()
-       
+        // await docker.download()
+      } else {
+        // await docker.startCompose()
       }
     })
 
@@ -75,45 +68,51 @@ export default function () {
     })
 
     ipcMain.on('logOut', async (_, message) => {
+      mainWindow.close()
       helpers.logout()
     })
 
     ipcMain.on('node:window', async (_, message) => {
-      if(mainWindow){
-        const child = new BrowserWindow({parent: mainWindow,
+      if (mainWindow) {
+        const child = new BrowserWindow({
+          parent: mainWindow,
           webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
             preload: DOCKER_LOG_WINDOW_PRELOAD_WEBPACK_ENTRY,
-          },});
-        child.show();
+          },
+        })
+        child.show()
         child.loadURL(DOCKER_LOG_WINDOW_WEBPACK_ENTRY)
         child.on('show', async () => {
-            await docker.getLogsNode(child)
+          await docker.getLogsNode(child)
         })
-
       }
-
     })
-
-
   }
 
-  app
-    .on('ready', createWindow)
-    .whenReady()
-    .then(registerListeners)
-    .catch(e => console.error(e))
+  if (isExplicitRun) {
+    createWindow()
+    registerListeners()
+  }
 
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit()
-    }
-  })
+  if (!isExplicitRun) {
+    app
+      .on('ready', createWindow)
+      .whenReady()
+      .then(registerListeners)
+      .catch(e => console.error(e))
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
+    app.on('window-all-closed', () => {
+      if (process.platform !== 'darwin') {
+        app.quit()
+      }
+    })
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+      }
+    })
+  }
 }
