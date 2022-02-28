@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import os from 'os'
 import { platform, arch } from 'process'
+import welcome from '../src/welcome'
 
 const getOSAndArch = () => {
   console.log('platform', platform)
@@ -109,8 +110,7 @@ const logout = () => {
   fs.unlinkSync(getKeyFileName())
   fs.unlinkSync(getArweaveKeyFileName())
   // Relaunching the dashboard to ask for key or generate a new one.
-  app.relaunch()
-  app.exit()
+  welcome(true)
 }
 
 const getPointPath = () => {
@@ -138,37 +138,37 @@ const isSDKCloned = () => {
 }
 
 const copyFileSync = (source, target) => {
-  var targetFile = target;
+  var targetFile = target
 
   if (fs.existsSync(target)) {
     if (fs.lstatSync(target).isDirectory()) {
-      targetFile = path.join(target, path.basename(source));
+      targetFile = path.join(target, path.basename(source))
     }
   }
 
-  fs.writeFileSync(targetFile, fs.readFileSync(source));
+  fs.writeFileSync(targetFile, fs.readFileSync(source))
 }
 
 const copyFolderRecursiveSync = (source, target) => {
-  var files = [];
+  var files = []
 
   // Check if folder needs to be created or integrated
-  var targetFolder = path.join(target, path.basename(source));
+  var targetFolder = path.join(target, path.basename(source))
   if (!fs.existsSync(targetFolder)) {
-    fs.mkdirSync(targetFolder);
+    fs.mkdirSync(targetFolder)
   }
 
   // Copy
   if (fs.lstatSync(source).isDirectory()) {
-    files = fs.readdirSync(source);
+    files = fs.readdirSync(source)
     files.forEach(function (file) {
-      var curSource = path.join(source, file);
+      var curSource = path.join(source, file)
       if (fs.lstatSync(curSource).isDirectory()) {
-        copyFolderRecursiveSync(curSource, targetFolder);
+        copyFolderRecursiveSync(curSource, targetFolder)
       } else {
-        copyFileSync(curSource, targetFolder);
+        copyFileSync(curSource, targetFolder)
       }
-    });
+    })
   }
 }
 
@@ -194,5 +194,5 @@ export default Object.freeze({
   isSDKCloned,
   getNodeExecutablePath,
   copyFileSync,
-  copyFolderRecursiveSync
+  copyFolderRecursiveSync,
 })
