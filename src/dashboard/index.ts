@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
 import Docker from '../docker'
+import Node from '../node'
 import helpers from '../../shared/helpers'
 
 let mainWindow: BrowserWindow | null
@@ -41,6 +42,8 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     const docker = new Docker(mainWindow!)
     const firefox = new Firefox(mainWindow!)
+    const node = new Node(mainWindow!)
+
     ipcMain.on('firefox:check', async (_, message) => {
       const firefoxInstalled = await firefox.isInstalled()
       if (!firefoxInstalled) {
@@ -52,6 +55,10 @@ export default function (isExplicitRun = false) {
 
     ipcMain.on('firefox:lunch', async (_, message) => {
       await firefox.launch()
+    })
+
+    ipcMain.on('node:launch', async (_, message) => {
+      node.launch()
     })
 
     ipcMain.on('docker:check', async (_, message) => {
@@ -68,7 +75,7 @@ export default function (isExplicitRun = false) {
     })
 
     ipcMain.on('logOut', async (_, message) => {
-      mainWindow.close()
+      mainWindow!.close()
       helpers.logout()
     })
 

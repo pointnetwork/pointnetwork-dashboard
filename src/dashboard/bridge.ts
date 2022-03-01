@@ -14,16 +14,19 @@ export const api = {
   checkDocker: () => {
     ipcRenderer.send('docker:check')
   },
+  launchNode: () => {
+    ipcRenderer.send('node:launch')
+  },
   checkNode: () => {
     ipcRenderer.send('node:check')
   },
   logOut: () => {
     ipcRenderer.send('logOut')
   },
-  createLogWindow: () =>{
+  createLogWindow: () => {
     ipcRenderer.send('node:window')
   },
-  openFirefox: () =>{
+  openFirefox: () => {
     ipcRenderer.send('firefox:lunch')
   },
   on: (channel: string, callback: Function) => {
