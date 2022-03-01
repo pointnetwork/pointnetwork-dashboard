@@ -85,35 +85,46 @@ export default class {
         fs.mkdirSync(browserDir)
       }
 
-      await https.https.get(
-        firefoxURL,
-        async (response: { pipe: (arg0: fs.WriteStream) => any }) => {
-          this.installationLogger.log('Downloading Firefox...')
-          await response.pipe(firefoxRelease)
+      https.https.get(firefoxURL, async response => {
+        this.installationLogger.log('Downloading Firefox...')
+        await response.pipe(firefoxRelease)
 
-          firefoxRelease.on('finish', () => {
-            this.installationLogger.log('Downloaded Firefox')
-            const cb = async () => {
-              fs.unlink(releasePath, err => {
-                if (err) {
-                  this.installationLogger.error(err)
-                  reject(err)
-                } else {
-                  this.installationLogger.log(`\nDeleted file: ${releasePath}`)
-                  resolve(
-                    this.installationLogger.log(
-                      'Installed Firefox successfully'
-                    )
-                  )
-                }
-              })
+        const total = response.headers['content-length']
+        let downloaded = 0
+        let percentage = 0
+        let temp = 0
+        response.on('data', chunk => {
+          downloaded += Buffer.from(chunk).length
 
-              await this.createConfigFiles(osAndArch, pacFile)
+          temp = Math.round((downloaded * 100) / Number(total))
+          if (temp !== percentage) {
+            percentage = temp
+            this.installationLogger.log(
+              `Downloaded: ${Number(percentage).toFixed(0)}%`
+            )
+          }
+        })
+      })
+
+      firefoxRelease.on('finish', () => {
+        this.installationLogger.log('Downloaded Firefox')
+        const cb = async () => {
+          fs.unlink(releasePath, err => {
+            if (err) {
+              this.installationLogger.error(err)
+              reject(err)
+            } else {
+              this.installationLogger.log(`\nDeleted file: ${releasePath}`)
+              resolve(
+                this.installationLogger.log('Installed Firefox successfully')
+              )
             }
-            this.unpack(osAndArch, releasePath, browserDir, cb)
           })
+
+          await this.createConfigFiles(osAndArch, pacFile)
         }
-      )
+        this.unpack(osAndArch, releasePath, browserDir, cb)
+      })
     })
 
   async launch() {

@@ -27,7 +27,7 @@ export const api = {
     ipcRenderer.send('node:window')
   },
   openFirefox: () => {
-    ipcRenderer.send('firefox:lunch')
+    ipcRenderer.send('firefox:launch')
   },
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
