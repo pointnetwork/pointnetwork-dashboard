@@ -1,4 +1,3 @@
-import { app } from 'electron'
 import { http, https } from 'follow-redirects'
 import path from 'path'
 import fs from 'fs-extra'
@@ -137,8 +136,8 @@ const isSDKCloned = () => {
   return fs.existsSync(getSDKPath())
 }
 
-const copyFileSync = (source, target) => {
-  var targetFile = target
+const copyFileSync = (source: string, target: string) => {
+  let targetFile = target
 
   if (fs.existsSync(target)) {
     if (fs.lstatSync(target).isDirectory()) {
@@ -149,11 +148,11 @@ const copyFileSync = (source, target) => {
   fs.writeFileSync(targetFile, fs.readFileSync(source))
 }
 
-const copyFolderRecursiveSync = (source, target) => {
-  var files = []
+const copyFolderRecursiveSync = (source: string, target: string) => {
+  let files = []
 
   // Check if folder needs to be created or integrated
-  var targetFolder = path.join(target, path.basename(source))
+  const targetFolder = path.join(target, path.basename(source))
   if (!fs.existsSync(targetFolder)) {
     fs.mkdirSync(targetFolder)
   }
@@ -162,7 +161,7 @@ const copyFolderRecursiveSync = (source, target) => {
   if (fs.lstatSync(source).isDirectory()) {
     files = fs.readdirSync(source)
     files.forEach(function (file) {
-      var curSource = path.join(source, file)
+      const curSource = path.join(source, file)
       if (fs.lstatSync(curSource).isDirectory()) {
         copyFolderRecursiveSync(curSource, targetFolder)
       } else {
@@ -170,6 +169,14 @@ const copyFolderRecursiveSync = (source, target) => {
       }
     })
   }
+}
+
+const getBinPath = () => {
+  const dir = path.join(getHomePath(), '.point', 'src', 'bin')
+  if (!fs.existsSync(dir)) {
+    fs.mkdirpSync(dir)
+  }
+  return dir
 }
 
 export default Object.freeze({
@@ -195,4 +202,6 @@ export default Object.freeze({
   getNodeExecutablePath,
   copyFileSync,
   copyFolderRecursiveSync,
+  getBinPath,
+  getPointPath,
 })
