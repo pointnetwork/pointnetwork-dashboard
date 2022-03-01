@@ -130,7 +130,7 @@ export default class {
     })
 
   async launch() {
-    const isRunning = await find('name', 'Firefox')
+    const isRunning = await find('name', /firefox*/gi)
     if (isRunning.length > 0) {
       console.log('Firefox already Running')
       this.window.webContents.send('firefox:active', true)
