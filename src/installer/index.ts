@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
 import welcome from '../welcome'
+import Node from '../node'
 import Installer from './service'
 export { Installer }
 
@@ -46,6 +47,7 @@ export default function () {
       await installer.start()
       const firefox = new Firefox(mainWindow!)
       if (!(await firefox.isInstalled())) await firefox.download()
+      await new Node(mainWindow!).download()
       await installer.close()
       welcome(true)
     })
