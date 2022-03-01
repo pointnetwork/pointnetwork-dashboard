@@ -53,7 +53,7 @@ export default function (isExplicitRun = false) {
       }
     })
 
-    ipcMain.on('firefox:lunch', async (_, message) => {
+    ipcMain.on('firefox:launch', async (_, message) => {
       await firefox.launch()
     })
 
