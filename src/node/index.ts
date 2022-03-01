@@ -1,69 +1,102 @@
-import { BrowserWindow } from "electron"
-import { https } from "follow-redirects"
-import Logger from "../../shared/logger"
+import { BrowserWindow } from 'electron'
+import { https } from 'follow-redirects'
+import Logger from '../../shared/logger'
 import fs from 'fs-extra'
-import helpers from "../../shared/helpers"
+import helpers from '../../shared/helpers'
 import path from 'path'
+import util from 'util'
 
+const decompress = require('decompress')
+const decompressTargz = require('decompress-targz')
+
+const exec = util.promisify(require('child_process').exec)
 export default class {
-    private installationLogger
-    private window
+  private installationLogger
+  private window
 
-    constructor(window: BrowserWindow) {
-        this.window = window
-        this.installationLogger = new Logger({ window, channel: 'installer' })
-    }
+  constructor(window: BrowserWindow) {
+    this.window = window
+    this.installationLogger = new Logger({ window, channel: 'installer' })
+  }
 
-    async getFolderPath() {
-        return await helpers.getNodeExecutablePath()
+  getURL(filename: string) {
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.39/${filename}`
+  }
+
+  getNodeFileName() {
+    if (global.platform.win32) return `point-win-v0.1.39.tar.gz`
+
+    if (global.platform.darwin) return `point-macos-v0.1.39.tar.gz`
+
+    return `point-linux-v0.1.39.tar.gz`
+  }
+
+  download = () =>
+    // eslint-disable-next-line no-async-promise-executor
+    new Promise(async (resolve, reject) => {
+      const pointPath = helpers.getPointPath()
+      const filename = this.getNodeFileName()
+
+      const donwloadPath = path.join(pointPath, filename)
+      if (!donwloadPath) {
+        fs.mkdirpSync(donwloadPath)
       }
+      const downloadStream = fs.createWriteStream(donwloadPath)
+      const downloadUrl = this.getURL(filename)
 
-    getNodeFileName() {
-        if (global.platform.win32) {
-            // TODO: Still unsure about this: we need to decide on the name
-            // of the browser, check how we get the version, etc.
-            return `pointnetwork-linux-v0.1.38-test.gz`
-        }
-        if (global.platform.darwin) {
-            return `pointnetwork-macos-v0.1.38-test.gz`
-        }
-        // linux & mac
-        return ` pointnetwork-linux-v0.1.38-test.gz`
-    }
+      https.get(downloadUrl, async response => {
+        this.installationLogger.log('Downloading Node...')
+        await response.pipe(downloadStream)
 
-    async downloadNode() {
-        const browserDir = await this.getFolderPath()
-        const filename = this.getNodeFileName()
-        const releasePath = path.join(browserDir, filename)
-        const nodeRelease = fs.createWriteStream(releasePath)
+        const total = response.headers['content-length']
+        let downloaded = 0
+        let percentage = 0
+        let temp = 0
+        response.on('data', chunk => {
+          downloaded += Buffer.from(chunk).length
 
-        return await https.get(
-            '',
-            async (response: { pipe: (arg0: fs.WriteStream) => any }) => {
-                this.installationLogger.log('Downloading Firefox...')
-                await response.pipe(nodeRelease)
+          temp = Math.round((downloaded * 100) / Number(total))
+          if (temp !== percentage) {
+            percentage = temp
+            this.installationLogger.log(
+              `Downloaded: ${Number(percentage).toFixed(0)}%`
+            )
+          }
+        })
+      })
 
-                return await new Promise((resolve, reject) => {
-                    nodeRelease.on('finish', () => {
-                        this.installationLogger.log('Downloaded Firefox')
-                        const cb = async () => {
-                            fs.unlink(releasePath, err => {
-                                if (err) {
-                                    return reject(err)
-                                } else {
-                                    console.log(`\nDeleted file: ${releasePath}`)
-                                    this.installationLogger.log('Installed Firefox successfully')
-                                    // this.launch()
-                                    return resolve()
-                                }
-                            })
+      downloadStream.on('close', async () => {
+        this.installationLogger.log('Downloaded Node')
+        decompress(donwloadPath, helpers.getPointPath(), {
+          plugins: [decompressTargz()],
+        }).then(() => {
+          resolve(this.installationLogger.log('Files decompressed'))
+        })
+      })
+    })
 
-                         //   await this.createConfigFiles(osAndArch, pacFile)
-                        }
-                       // this.unpack(osAndArch, releasePath, browserDir, cb)
-                    })
-                })
-            }
-        )
-    }
+  async launch() {
+    console.log('Launching Node')
+    const pointPath = helpers.getPointPath()
+
+    let file = path.join(pointPath, 'bin', 'linux', 'point')
+    if (global.platform.win32)
+      file = path.join(pointPath, 'bin', 'win', 'point')
+    if (global.platform.darwin)
+      file = path.join(pointPath, 'bin', 'macos', 'point')
+
+    exec(file, (error: { message: any }, _stdout: any, stderr: any) => {
+      console.log('Launched Node')
+      // win.webContents.send("firefox-closed")
+      if (error) {
+        console.log(`error: ${error.message}`)
+        this.window.webContents.send('firefox:active', false)
+        return
+      }
+      if (stderr) {
+        console.log(`stderr: ${stderr}`)
+        this.window.webContents.send('firefox:active', false)
+      }
+    })
+  }
 }
