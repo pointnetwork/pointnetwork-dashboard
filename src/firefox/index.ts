@@ -63,19 +63,6 @@ export default class {
     return `firefox-${version}.tar.bz2`
   }
 
-  getNodeFileName() {
-    if (global.platform.win32) {
-      // TODO: Still unsure about this: we need to decide on the name
-      // of the browser, check how we get the version, etc.
-      return `pointnetwork-linux-v0.1.38-test.gz`
-    }
-    if (global.platform.darwin) {
-      return `pointnetwork-macos-v0.1.38-test.gz`
-    }
-    // linux & mac
-    return ` pointnetwork-linux-v0.1.38-test.gz`
-  }
-
   download = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -130,12 +117,12 @@ export default class {
     })
 
   async launch() {
-    const isRunning = await find('name', /firefox*/gi)
-    if (isRunning.length > 0) {
-      console.log('Firefox already Running')
-      this.window.webContents.send('firefox:active', true)
-      return
-    }
+    // const isRunning = await find('name', /firefox*/gi)
+    // if (isRunning.length > 0) {
+    //   console.log('Firefox already Running')
+    //   this.window.webContents.send('firefox:active', true)
+    //   return
+    // }
 
     const osAndArch = helpers.getOSAndArch()
     const cmd = await this.getBinPath(osAndArch)
