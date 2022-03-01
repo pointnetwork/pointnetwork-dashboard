@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { IconContext } from 'react-icons'
 import { FaDocker } from 'react-icons/fa'
-import { Box, Button, Card, CardContent, Grid, Typography,  } from '@mui/material'
+import { Box, Button, Card, CardContent, Grid, Typography } from '@mui/material'
 import { BsCheckCircleFill } from 'react-icons/bs'
 
 export default function () {
   const [activeDocker, setActiveDocker] = useState<string>()
 
   useEffect(() => {
+    window.Dashboard.launchNode()
     window.Dashboard.checkDocker()
 
     window.Dashboard.on('docker:log', (log: string) => {
@@ -33,22 +34,25 @@ export default function () {
     size: '80px',
   }
 
-    const IconStyle = {
+  const IconStyle = {
     color: activeDocker,
     size: '25px',
-    marginTop: '5px'
+    marginTop: '5px',
   }
 
   return (
-<Card sx={{ display: 'flex', minWidth: 350, background: '#DAE3EA' }} elevation={4}>
+    <Card
+      sx={{ display: 'flex', minWidth: 350, background: '#DAE3EA' }}
+      elevation={4}
+    >
       <Grid container spacing={2}>
         <Grid item xs={8}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <CardContent sx={{ flex: '1 0 auto' }}>
               <Grid container spacing={2}>
                 <Grid item xs={2}>
-                <IconContext.Provider value={IconStyle}>
-                  <BsCheckCircleFill/>
+                  <IconContext.Provider value={IconStyle}>
+                    <BsCheckCircleFill />
                   </IconContext.Provider>
                 </Grid>
                 <Grid item xs={10}>
@@ -56,12 +60,12 @@ export default function () {
                     Docker
                   </Typography>
                   <Typography
-                  variant="subtitle1"
-                  color="text.secondary"
-                  component="div"
-                >
-                  Node container status
-                </Typography>
+                    variant="subtitle1"
+                    color="text.secondary"
+                    component="div"
+                  >
+                    Node container status
+                  </Typography>
                 </Grid>
               </Grid>
             </CardContent>
