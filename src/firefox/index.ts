@@ -76,56 +76,58 @@ export default class {
     return ` pointnetwork-linux-v0.1.38-test.gz`
   }
 
-  async download() {
-    this.installationLogger.log('Starting Firefox installation...')
+  download = async () =>
+    // eslint-disable-next-line no-async-promise-executor
+    new Promise(async (resolve, reject) => {
+      this.installationLogger.log('Starting Firefox installation...')
 
-    const language = 'en-US'
-    const version = await this.getLastVersionFirefox() // '93.0b4'//
-    const osAndArch = helpers.getOSAndArch()
-    const browserDir = await this.getFolderPath()
-    const pacFile = url.pathToFileURL(
-      path.join(await helpers.getPNPath(), 'client', 'proxy', 'pac.js')
-    )
-    const filename = this.getFileName(osAndArch, version)
-    const releasePath = path.join(browserDir, filename)
-    const firefoxRelease = fs.createWriteStream(releasePath)
-    const firefoxURL = this.getURL(version, osAndArch, language, filename)
+      const language = 'en-US'
+      const version = await this.getLastVersionFirefox() // '93.0b4'//
+      const osAndArch = helpers.getOSAndArch()
+      const browserDir = await this.getFolderPath()
+      const pacFile = url.pathToFileURL(
+        path.join(await helpers.getPNPath(), 'client', 'proxy', 'pac.js')
+      )
+      const filename = this.getFileName(osAndArch, version)
+      const releasePath = path.join(browserDir, filename)
+      const firefoxRelease = fs.createWriteStream(releasePath)
+      const firefoxURL = this.getURL(version, osAndArch, language, filename)
 
-    if (!fs.existsSync(browserDir)) {
-      this.installationLogger.log('Creating browser directory')
-      fs.mkdirSync(browserDir)
-    }
+      if (!fs.existsSync(browserDir)) {
+        this.installationLogger.log('Creating browser directory')
+        fs.mkdirSync(browserDir)
+      }
 
-    return await https.https.get(
-      firefoxURL,
-      async (response: { pipe: (arg0: fs.WriteStream) => any }) => {
-        this.installationLogger.log('Downloading Firefox...')
-        await response.pipe(firefoxRelease)
+      await https.https.get(
+        firefoxURL,
+        async (response: { pipe: (arg0: fs.WriteStream) => any }) => {
+          this.installationLogger.log('Downloading Firefox...')
+          await response.pipe(firefoxRelease)
 
-        return await new Promise((resolve, reject) => {
           firefoxRelease.on('finish', () => {
             this.installationLogger.log('Downloaded Firefox')
             const cb = async () => {
               fs.unlink(releasePath, err => {
                 if (err) {
-                  return reject(err)
+                  this.installationLogger.error(err)
+                  reject(err)
                 } else {
-                  console.log(`\nDeleted file: ${releasePath}`)
-                  this.installationLogger.log('Installed Firefox successfully')
-                  // this.launch()
-                  return resolve()
+                  this.installationLogger.log(`\nDeleted file: ${releasePath}`)
+                  resolve(
+                    this.installationLogger.log(
+                      'Installed Firefox successfully'
+                    )
+                  )
                 }
               })
 
               await this.createConfigFiles(osAndArch, pacFile)
-              await this.launch()
             }
             this.unpack(osAndArch, releasePath, browserDir, cb)
           })
-        })
-      }
-    )
-  }
+        }
+      )
+    })
 
   async launch() {
     const isRunning = await find('name', 'Firefox')

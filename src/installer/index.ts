@@ -44,10 +44,10 @@ export default function () {
       }, 300000)
       const installer = new Installer(mainWindow!)
       await installer.start()
+      const firefox = new Firefox(mainWindow!)
+      if (!(await firefox.isInstalled())) await firefox.download()
       await installer.close()
       welcome(true)
-      // const firefox = new Firefox(mainWindow!)
-      // if (!(await firefox.isInstalled())) await firefox.download()
     })
   }
 
