@@ -20,15 +20,15 @@ export default class {
   }
 
   getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.39/${filename}`
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.40/${filename}`
   }
 
   getNodeFileName() {
-    if (global.platform.win32) return `point-win-v0.1.39.tar.gz`
+    if (global.platform.win32) return `point-win-v0.1.40.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-v0.1.39.tar.gz`
+    if (global.platform.darwin) return `point-macos-v0.1.40.tar.gz`
 
-    return `point-linux-v0.1.39.tar.gz`
+    return `point-linux-v0.1.40.tar.gz`
   }
 
   download = () =>
