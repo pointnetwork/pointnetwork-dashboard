@@ -73,7 +73,7 @@ export default class {
       const osAndArch = helpers.getOSAndArch()
       const browserDir = await this.getFolderPath()
       const pacFile = url.pathToFileURL(
-        path.join(await helpers.getPNPath(), 'client', 'proxy', 'pac.js')
+        path.join(await helpers.getPNPath(), 'resources', 'pac.js')
       )
       const filename = this.getFileName(osAndArch, version)
       const releasePath = path.join(browserDir, filename)
@@ -141,29 +141,10 @@ export default class {
       helpers.getHomePath(),
       '.point/keystore/liveprofile'
     )
-    let webextBinary = ''
-    if (global.platform.win32) {
-      webextBinary = 'web-ext'
-    } else {
-      webextBinary = path.join(
-        helpers.getHomePath(),
-        '.point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext'
-      )
-      // webextBinary = 'web-ext'
-    }
-    // const webextBinary = path.join(await helpers.getHomePath(), ".point/src/pointnetwork-dashboard/node_modules/web-ext/bin/web-ext")
-    const extPath = path.join(
-      helpers.getHomePath(),
-      '.point/src/pointsdk/dist/prod'
-    ) // should contain manifest.json
-    let webext = ''
-    if (global.platform.win32) {
-      webext = `"${webextBinary}" run "--firefox=${cmd}" "--firefox-profile=${profilePath}" --keep-profile-changes "--source-dir=${extPath}" --url https://point`
-    } else {
-      webext = `${webextBinary} run --firefox="${cmd}" --firefox-profile ${profilePath} --keep-profile-changes --source-dir ${extPath} --url https://point`
-    }
 
-    exec(webext, (error: { message: any }, _stdout: any, stderr: any) => {
+    const browserCmd = `${cmd} --first-startup --profile ${profilePath} --url https://point`
+
+    exec(browserCmd, (error: { message: any }, _stdout: any, stderr: any) => {
       // win.webContents.send("firefox-closed")
       if (error) {
         console.log(`error: ${error.message}`)
@@ -285,7 +266,8 @@ export default class {
   async getBinPath(osAndArch: string) {
     const rootPath = await this.getRootPath(osAndArch)
     if (global.platform.win32) {
-      return path.join(rootPath, 'point-browser-portable.exe')
+      // return path.join(rootPath, 'point-browser-portable.exe')
+      return path.join(rootPath, 'app', 'firefox.exe')
     }
     if (global.platform.darwin) {
       return `${path.join(rootPath, 'Firefox.app')}`
@@ -305,15 +287,18 @@ export default class {
     }
     networkProxyType = '2'
 
-    const autoconfigContent = `pref("general.config.filename", "firefox.cfg")
-pref("general.config.obscure_value", 0)
+    const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
+pref("general.config.obscure_value", 0);
 `
     const firefoxCfgContent = `
 // IMPORTANT: Start your code on the 2nd line
 // pref('network.proxy.type', 1)
+pref("intl.locale.requested", "en-US");
+pref("browser.rights.3.shown", true);
+pref("browser.startup.homepage_override.mstone", "ignore");
 pref('network.proxy.type', ${networkProxyType})
 pref('network.proxy.http', 'localhost')
-pref('network.proxy.http_port', 2468)
+pref('network.proxy.http_port', 8666)
 pref('browser.startup.homepage', 'https://point')
 pref('startup.homepage_welcome_url', 'https://point/welcome')
 pref('startup.homepage_welcome_url.additional', '')
@@ -333,6 +318,9 @@ pref('network.proxy.autoconfig_url', '${pacFile}')
 pref('security.enterprise_roots.enabled', true)
 pref('network.captive-portal-service.enabled', false)
 pref('browser.tabs.drawInTitlebar', true)
+pref('extensions.enabledScopes', 0)
+pref('extensions.autoDisableScopes', 0)
+pref("extensions.startupScanScopes", 15);
 `
     const prefPath = await this.getPrefPath(osAndArch)
     const appPath = await this.getAppPath(osAndArch)
@@ -342,7 +330,7 @@ pref('browser.tabs.drawInTitlebar', true)
       //
       // Portapps also creates `portapps.cfg`, which is equivalent to *nix's firefox.cfg.
       // We're just appending our preferences.
-      fs.appendFile(
+      fs.writeFileSync(
         path.join(appPath, 'portapps.cfg'),
         firefoxCfgContent,
         err => {
