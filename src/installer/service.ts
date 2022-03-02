@@ -88,13 +88,6 @@ class Installer {
             path.join(POINT_DASHBOARD_DIR, 'liveprofile'),
             POINT_LIVE_DIR
           )
-
-          this.logger.log(
-            "Running a `npm install` to install deps - Estimated time (2-4 mins) - Please don't cancel the process."
-          )
-          // this.logger.log(`npm --prefix ${dir} install`)
-          // execSync(`npm --prefix ${dir} install`)
-          // this.logger.log('Installed npm dependencies successfully')
         }
       })
     )
