@@ -73,7 +73,7 @@ export default class {
       const osAndArch = helpers.getOSAndArch()
       const browserDir = await this.getFolderPath()
       const pacFile = url.pathToFileURL(
-        path.join(await helpers.getPNPath(), 'resources', 'pac.js')
+        path.join(helpers.getDashboardPath(), 'resources', 'pac.js')
       )
       const filename = this.getFileName(osAndArch, version)
       const releasePath = path.join(browserDir, filename)
