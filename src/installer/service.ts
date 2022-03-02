@@ -13,17 +13,15 @@ const POINT_DASHBOARD_DIR = helpers.getDashboardPath()
 const POINT_LIVE_DIR = helpers.getLiveDirectoryPath()
 
 const DIRECTORIES = [
-  helpers.getPNPath(),
   POINT_DASHBOARD_DIR,
   helpers.getPointSoftwarePath(),
   POINT_LIVE_DIR,
 ]
 
-const REPOSITORIES = ['pointnetwork-dashboard', 'pointnetwork', 'pointsdk']
+const REPOSITORIES = ['pointnetwork-dashboard', 'pointsdk']
 
 class Installer {
   private logger
-  private dashboardPath: any
   private window
 
   constructor(window: BrowserWindow) {
