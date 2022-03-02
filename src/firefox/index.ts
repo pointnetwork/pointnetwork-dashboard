@@ -270,7 +270,7 @@ export default class {
       return path.join(rootPath, 'app', 'firefox.exe')
     }
     if (global.platform.darwin) {
-      return `${path.join(rootPath, 'Firefox.app')}`
+      return `${path.join(rootPath, 'Firefox.app', 'Contents', 'MacOS', 'firefox')}`
     }
     // linux
     return path.join(rootPath, 'firefox')
