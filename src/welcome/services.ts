@@ -3,20 +3,13 @@ import helpers from '../../shared/helpers'
 import { BrowserWindow } from 'electron'
 
 const Mnemonic = require('bitcore-mnemonic')
-const util = require('util')
-const exec = util.promisify(require('child_process').exec)
 const { getKeyFromMnemonic } = require('arweave-mnemonic-keys')
 
 class WelcomeService {
   private win
-  private code = new Mnemonic()
 
   constructor(win: BrowserWindow) {
     this.win = win
-  }
-
-  async start() {
-    // ?
   }
 
   async login(phrase: any, firstTime = false) {
@@ -43,7 +36,7 @@ class WelcomeService {
   }
 
   async generate() {
-    this.win.webContents.send('welcome:generated', this.code.toString())
+    this.win.webContents.send('welcome:generated', new Mnemonic().toString())
   }
 
   async validate(message: any) {
