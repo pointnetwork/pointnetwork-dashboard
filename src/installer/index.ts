@@ -37,12 +37,6 @@ export default function () {
 
   async function registerListeners() {
     ipcMain.on('installer:start', async (_, message) => {
-      // this line is a workaround in the meantime we fix web-ext
-      // it will close installer after 10 min if npm doesn't finish or error
-      setTimeout(() => {
-        app.relaunch()
-        app.exit()
-      }, 300000)
       const installer = new Installer(mainWindow!)
       await installer.start()
       const firefox = new Firefox(mainWindow!)
