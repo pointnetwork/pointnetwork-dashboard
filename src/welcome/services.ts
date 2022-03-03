@@ -44,7 +44,7 @@ class WelcomeService {
   }
 
   close() {
-    this.win.close()
+    this.win.hide()
   }
 
   tryToShowError(e: any) {

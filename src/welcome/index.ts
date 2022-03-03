@@ -49,6 +49,8 @@ export default function (isExplicitRun = false) {
       const result = await welcomeService.login(message)
       if (result) {
         dashboard(true)
+        mainWindow.hide()
+        mainWindow.reload()
         welcomeService.close()
       }
     })
@@ -57,6 +59,7 @@ export default function (isExplicitRun = false) {
   if (isExplicitRun) {
     createWindow()
     registerListeners()
+    // mainWindow.show()
   }
 
   if (!isExplicitRun) {

@@ -290,7 +290,6 @@ export default class {
     }
 
     pointNodeCheck() {
-        console.log('etnra')
         http.get("http://localhost:2468/v1/api/status/ping", (res) => {
             this.window.webContents.send("pointNode:checked", true)
         }).on('error', err => {

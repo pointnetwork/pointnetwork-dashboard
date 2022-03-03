@@ -99,6 +99,7 @@ class Installer {
 
   close() {
     this.window.close()
+    this.window = null
   }
 
   upgrade = async () => {

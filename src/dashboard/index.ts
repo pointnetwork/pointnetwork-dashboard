@@ -75,7 +75,7 @@ export default function (isExplicitRun = false) {
     })
 
     ipcMain.on('logOut', async (_, message) => {
-      mainWindow!.close()
+      mainWindow!.hide()
       helpers.logout()
     })
 
