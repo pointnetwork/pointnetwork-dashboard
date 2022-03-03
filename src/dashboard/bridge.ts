@@ -29,6 +29,10 @@ export const api = {
   openFirefox: () => {
     ipcRenderer.send('firefox:launch')
   },
+  nodeStop: () => {
+    ipcRenderer.send('node:stop')
+  },
+
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
   },

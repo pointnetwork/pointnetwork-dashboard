@@ -81,7 +81,7 @@ const getBrowserFolderPath = () => {
 }
 
 const getNodeExecutablePath = () => {
-  const browserDir = path.join(getHomePath(), '.point', 'src')
+  const browserDir = path.join(getHomePath(), '.point', 'bin')
   if (!fs.existsSync(browserDir)) {
     fs.mkdirpSync(browserDir)
   }

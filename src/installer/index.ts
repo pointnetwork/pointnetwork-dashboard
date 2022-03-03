@@ -41,7 +41,7 @@ export default function () {
       await installer.start()
       const firefox = new Firefox(mainWindow!)
       if (!(await firefox.isInstalled())) await firefox.download()
-      await new Node(mainWindow!).download()
+      await Node.getInstance(mainWindow!).download()
       await installer.close()
       welcome(true)
     })

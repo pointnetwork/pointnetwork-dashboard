@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { IconContext } from 'react-icons'
-import { FaDocker } from 'react-icons/fa'
 import { Box, Button, Card, CardContent, Grid, Typography } from '@mui/material'
 import { BsCheckCircleFill } from 'react-icons/bs'
+import PointShadow from '../../../public/pointIcon'
 
 export default function () {
   const [activeDocker, setActiveDocker] = useState<string>()
@@ -11,9 +11,6 @@ export default function () {
     window.Dashboard.launchNode()
     window.Dashboard.checkDocker()
 
-    window.Dashboard.on('docker:log', (log: string) => {
-      console.log(log)
-    })
 
     window.Dashboard.on('pointNode:checked', (active: boolean) => {
       const color = active ? 'green' : 'red'
@@ -21,21 +18,13 @@ export default function () {
     })
   }, [])
 
-  const openLogs = () => {
-    // window.Dashboard.checkNode()
-    // window.Dashboard.createLogWindow()
-    window.Dashboard.nodeStop()
-    // window.Dashboard.checkNode()
+  const checkNode = () => {
+    window.Dashboard.checkNode()
   }
 
   useEffect(() => {
     window.Dashboard.checkNode()
   }, [activeDocker])
-
-  const dockerStyle = {
-    color: '#ededed',
-    size: '80px',
-  }
 
   const IconStyle = {
     color: activeDocker,
@@ -60,29 +49,29 @@ export default function () {
                 </Grid>
                 <Grid item xs={10}>
                   <Typography component="div" variant="h5">
-                    Docker
+                    Point
                   </Typography>
                   <Typography
                     variant="subtitle1"
                     color="text.secondary"
                     component="div"
                   >
-                    Node container status
+                    Point Node status
                   </Typography>
                 </Grid>
               </Grid>
             </CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pb: 1 }}>
-              <Button variant="outlined" onClick={openLogs}>
-                Check Node Status
+              <Button variant="outlined" onClick={checkNode}>
+                Check Status
               </Button>
             </Box>
           </Box>
         </Grid>
         <Grid item xs={4}>
-          <IconContext.Provider value={dockerStyle}>
-            <FaDocker />
-          </IconContext.Provider>
+          
+            <PointShadow />
+
         </Grid>
       </Grid>
     </Card>
