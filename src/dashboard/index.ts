@@ -6,6 +6,8 @@ import helpers from '../../shared/helpers'
 
 let mainWindow: BrowserWindow | null
 
+let node: Node
+
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 declare const DOCKER_LOG_WINDOW_WEBPACK_ENTRY: string
@@ -28,7 +30,7 @@ export default function (isExplicitRun = false) {
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
     })
-
+    node = Node.getInstance(mainWindow!)
     // debug
     // mainWindow.webContents.openDevTools()
 
@@ -36,13 +38,14 @@ export default function (isExplicitRun = false) {
 
     mainWindow.on('closed', () => {
       mainWindow = null
+      node.stopNode()
     })
   }
 
   async function registerListeners() {
     const docker = new Docker(mainWindow!)
     const firefox = new Firefox(mainWindow!)
-    const node = new Node(mainWindow!)
+
 
     ipcMain.on('firefox:check', async (_, message) => {
       const firefoxInstalled = await firefox.isInstalled()
@@ -71,12 +74,16 @@ export default function (isExplicitRun = false) {
     })
 
     ipcMain.on('node:check', async (_, message) => {
-      await docker.pointNodeCheck()
+      await node.pointNodeCheck()
     })
 
     ipcMain.on('logOut', async (_, message) => {
       mainWindow!.close()
       helpers.logout()
+    })
+
+    ipcMain.on('node:stop', async (_, message) => {
+      node.stopNode()
     })
 
     ipcMain.on('node:window', async (_, message) => {

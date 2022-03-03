@@ -1,5 +1,5 @@
 import Firefox from '../../firefox/ui'
-import Docker from '../../docker/ui'
+import Point from '../../node/ui'
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
@@ -49,7 +49,7 @@ export default function App() {
               }}
             >
               <Firefox />
-              <Docker />
+              <Point />
             </Box>
           </Grid>
         </Grid>

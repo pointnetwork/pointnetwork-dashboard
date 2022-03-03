@@ -11,7 +11,6 @@ import Logger from '../../shared/logger'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
-const find = require('find-process')
 const exec = util.promisify(require('child_process').exec)
 
 export default class {
