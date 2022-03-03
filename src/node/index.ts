@@ -81,13 +81,15 @@ export default class {
 
     let file = path.join(pointPath, 'bin', 'linux', 'point')
     if (global.platform.win32)
-      file = path.join(pointPath, 'bin', 'win', 'point')
+      file = `"${path.join(pointPath, 'bin', 'win', 'point')}"`
     if (global.platform.darwin)
       file = path.join(pointPath, 'bin', 'macos', 'point')
 
-    exec(file, (error: { message: any }, _stdout: any, stderr: any) => {
+    let cmd = `NODE_ENV=production ${file}`
+    if (global.platform.win32) cmd = `set NODE_ENV=production && ${file}`
+
+    exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       console.log('Launched Node')
-      // win.webContents.send("firefox-closed")
       if (error) {
         console.log(`error: ${error.message}`)
         this.window.webContents.send('firefox:active', false)
