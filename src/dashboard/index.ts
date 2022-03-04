@@ -37,9 +37,10 @@ export default function (isExplicitRun = false) {
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
+      console.log('closed')
       mainWindow = null
-      node.stopNode()
     })
+
   }
 
   async function registerListeners() {
@@ -110,6 +111,13 @@ export default function (isExplicitRun = false) {
     registerListeners()
   }
 
+  app.on('will-quit', async function () {
+    // This is a good place to add tests insuring the app is still
+    // responsive and all windows are closed.
+    console.log("will-quit");
+    await node.stopNode()
+});
+
   if (!isExplicitRun) {
     app
       .on('ready', createWindow)
@@ -119,7 +127,7 @@ export default function (isExplicitRun = false) {
 
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {
-        app.quit()
+         app.quit()
       }
     })
 
