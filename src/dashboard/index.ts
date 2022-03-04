@@ -37,16 +37,14 @@ export default function (isExplicitRun = false) {
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
-      console.log('closed')
+      console.log('Closed Dashboard Window')
       mainWindow = null
     })
-
   }
 
   async function registerListeners() {
     const docker = new Docker(mainWindow!)
     const firefox = new Firefox(mainWindow!)
-
 
     ipcMain.on('firefox:check', async (_, message) => {
       const firefoxInstalled = await firefox.isInstalled()
@@ -63,15 +61,6 @@ export default function (isExplicitRun = false) {
 
     ipcMain.on('node:launch', async (_, message) => {
       node.launch()
-    })
-
-    ipcMain.on('docker:check', async (_, message) => {
-      const dockerInstalled = await docker.isInstalled()
-      if (!dockerInstalled) {
-        // await docker.download()
-      } else {
-        // await docker.startCompose()
-      }
     })
 
     ipcMain.on('node:check', async (_, message) => {
@@ -114,9 +103,9 @@ export default function (isExplicitRun = false) {
   app.on('will-quit', async function () {
     // This is a good place to add tests insuring the app is still
     // responsive and all windows are closed.
-    console.log("will-quit");
+    console.log('Dashboard Window "will-quit" event')
     await node.stopNode()
-});
+  })
 
   if (!isExplicitRun) {
     app
@@ -127,7 +116,7 @@ export default function (isExplicitRun = false) {
 
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {
-         app.quit()
+        app.quit()
       }
     })
 

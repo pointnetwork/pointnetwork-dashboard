@@ -26,13 +26,13 @@ export default class Node {
 
   static getInstance(window: BrowserWindow | null) {
     if (this._instance) {
-      return this._instance;
+      return this._instance
     }
     if (!window) {
-      throw new Error("window should be BrowserWindow to create instance");
+      throw new Error('window should be BrowserWindow to create instance')
     }
-    this._instance = new Node(window);
-    return this._instance;
+    this._instance = new Node(window)
+    return this._instance
   }
 
   getURL(filename: string) {
@@ -47,32 +47,27 @@ export default class Node {
     return `point-linux-v0.1.40.tar.gz`
   }
 
-  async getFolderPath() {
-    return await helpers.getNodeExecutablePath()
-  }
-
   async getBinPath() {
-    const rootPath = await this.getFolderPath()
+    const binPath = await helpers.getBinPath()
     if (global.platform.win32) {
-      // return path.join(rootPath, 'point-browser-portable.exe')
-      return path.join(rootPath, 'win', 'point.exe')
+      return path.join(binPath, 'win', 'point.exe')
     }
     if (global.platform.darwin) {
-      return `${path.join(rootPath, 'macos', 'point')}`
+      return `${path.join(binPath, 'macos', 'point')}`
     }
     // linux
-    return path.join(rootPath, 'linux', 'point')
+    return path.join(binPath, 'linux', 'point')
   }
 
   async isInstalled() {
-    this.installationLogger.log('Checking Point executable exist')
+    this.installationLogger.log('Checking PointNode exists or node')
 
     const binPath = await this.getBinPath()
     if (fs.existsSync(binPath)) {
-      this.installationLogger.log('Point already downloaded')
+      this.installationLogger.log('PointNode already downloaded')
       return true
     }
-    this.installationLogger.log('Point does not exist')
+    this.installationLogger.log('PointNode does not exist')
     return false
   }
 
@@ -82,11 +77,11 @@ export default class Node {
       const pointPath = helpers.getPointPath()
       const filename = this.getNodeFileName()
 
-      const donwloadPath = path.join(pointPath, filename)
-      if (!donwloadPath) {
-        fs.mkdirpSync(donwloadPath)
+      const downloadPath = path.join(pointPath, filename)
+      if (!downloadPath) {
+        fs.mkdirpSync(downloadPath)
       }
-      const downloadStream = fs.createWriteStream(donwloadPath)
+      const downloadStream = fs.createWriteStream(downloadPath)
       const downloadUrl = this.getURL(filename)
 
       https.get(downloadUrl, async response => {
@@ -112,7 +107,7 @@ export default class Node {
 
       downloadStream.on('close', async () => {
         this.installationLogger.log('Downloaded Node')
-        decompress(donwloadPath, helpers.getPointPath(), {
+        decompress(downloadPath, helpers.getPointPath(), {
           plugins: [decompressTargz()],
         }).then(() => {
           resolve(this.installationLogger.log('Files decompressed'))
@@ -140,64 +135,62 @@ export default class Node {
 
     exec(file, (error: { message: any }, _stdout: any, stderr: any) => {
       console.log('Launched Node')
-      // win.webContents.send("firefox-closed")
+      this.window.webContents.send('pointNode:checked', true)
       if (error) {
         console.log(`error: ${error.message}`)
-        this.window.webContents.send('firefox:active', false)
-        return
+        this.window.webContents.send('pointNode:checked', false)
       }
       if (stderr) {
         console.log(`stderr: ${stderr}`)
-        this.window.webContents.send('firefox:active', false)
+        this.window.webContents.send('pointNode:checked', false)
       }
     })
   }
 
   pointNodeCheck(): boolean {
-    http.get("http://localhost:2468/v1/api/status/ping", (res) => {
-      this.window.webContents.send("pointNode:checked", true)
-      return true
-    }).on('error', err => {
-      this.window.webContents.send("pointNode:checked", false)
-      console.log(err)
-    })
+    http
+      .get('http://localhost:2468/v1/api/status/ping', res => {
+        this.window.webContents.send('pointNode:checked', true)
+        return true
+      })
+      .on('error', err => {
+        this.window.webContents.send('pointNode:checked', false)
+        console.log(err)
+      })
     return false
   }
 
   async getNodeProcess() {
-
     if (await this.isInstalled()) {
       await this.launch()
-      console.log('checking pid')
+      console.log('Checking PointNode PID')
       const process = await find('name', 'point', true)
-      console.log('founded Process', process)
-      if(process.length >0){
+      if (process.length > 0) {
+        console.log('Found running process', process)
         this.pid = process[0].pid
-        console.log('process', this.pid)
+        console.log('Process ID', this.pid)
         this.killCmd = `kill ${this.pid}`
-        if (global.platform.win32)
-          this.killCmd = `taskkill /F /PID ${this.pid}`
+        if (global.platform.win32) this.killCmd = `taskkill /F /PID ${this.pid}`
       }
-
     }
   }
 
   async stopNode() {
     if (this.pid) {
       console.log('Stopping Node...', this.killCmd)
-      await exec(this.killCmd, (error: { message: any }, _stdout: any, stderr: any) => {
-        console.log('Kill Node ', this.pid)
-        // win.webContents.send("firefox-closed")
-        if (error) {
-          console.log(`error: ${error.message}`)
-          return
+      await exec(
+        this.killCmd,
+        (error: { message: any }, _stdout: any, stderr: any) => {
+          console.log('Kill Node ', this.pid)
+          if (error) {
+            console.log(`error: ${error.message}`)
+            return
+          }
+          if (stderr) {
+            console.log(`stderr: ${stderr}`)
+          }
         }
-        if (stderr) {
-          console.log(`stderr: ${stderr}`)
-        }
-      })
+      )
     }
   }
-
 }
-
