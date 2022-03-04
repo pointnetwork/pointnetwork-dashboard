@@ -12,11 +12,18 @@ const theme = createTheme({
 
 export default function App() {
   const [seedConfirm, setSeedConfirm] = useState<boolean>(false)
-  const [seedValue, setSeedValue] = useState<string>('')
+  const [seed, setSeed] = useState<string>('')
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false)
 
-  const confirm = (value: string) => {
-    setSeedConfirm(!seedConfirm)
-    if(value) setSeedValue(value)
+  const login = () => {
+    setSeed('')
+    setIsLoggingIn(true)
+    setSeedConfirm(true)
+  }
+
+  const goBack = () => {
+    setIsLoggingIn(false)
+    setSeedConfirm(false)
   }
 
   return (
@@ -25,9 +32,22 @@ export default function App() {
         <Typography variant="h4" gutterBottom component="div">
           Point Network
         </Typography>
-        {!seedConfirm && <SeedGenerator confirm={confirm} />}
+        {!seedConfirm && (
+          <SeedGenerator
+            seed={seed}
+            setSeed={setSeed}
+            confirm={() => setSeedConfirm(true)}
+            login={login}
+          />
+        )}
 
-        {seedConfirm && <SeedConfirmation seedGenerated={seedValue} back={confirm} />}
+        {seedConfirm && (
+          <SeedConfirmation
+            isLoggingIn={isLoggingIn}
+            seed={seed}
+            goBack={goBack}
+          />
+        )}
       </Container>
     </ThemeProvider>
   )
