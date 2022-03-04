@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react'
+import { MouseEventHandler, useEffect } from 'react'
 import { Button, Card, CardContent, Typography } from '@mui/material'
 import CardAlert from './cardAlert'
 
-export default function SeedGenerator(props: { confirm: any }) {
-  const [seed, setSeed] = useState<string | null>(null)
-
+export default function SeedGenerator(props: {
+  seed: string
+  setSeed: Function
+  confirm: MouseEventHandler
+  login: MouseEventHandler
+}) {
   useEffect(() => {
     window.Welcome.on('welcome:generated', (seed: string) => {
-      setSeed(seed)
+      props.setSeed(seed)
     })
   }, [])
 
@@ -34,23 +37,23 @@ export default function SeedGenerator(props: { confirm: any }) {
       >
         <CardContent>
           <Typography sx={{ fontSize: 24 }} color="green" gutterBottom>
-            {seed}
+            {props.seed}
           </Typography>
         </CardContent>
       </Card>
-      {seed && (
+      {props.seed && (
         <>
-          <Button variant="outlined" onClick={() => props.confirm(seed)}>
+          <Button variant="outlined" onClick={props.confirm}>
             I have it written down, continue &rarr;
           </Button>
-          <CardAlert/>
+          <CardAlert />
         </>
       )}
       <Typography variant="subtitle1" gutterBottom component="div">
         Already have a secret phrase? Cool, click below to enter your seed
         phrase and log back in.
       </Typography>
-      <Button variant="outlined" onClick={() => props.confirm('login')}>
+      <Button variant="outlined" onClick={props.login}>
         Login
       </Button>
     </>
