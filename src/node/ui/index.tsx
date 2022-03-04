@@ -8,10 +8,13 @@ export default function () {
   const [isPointNodeActive, setIsPointNodeActive] = useState<string>()
 
   useEffect(() => {
+    checkNode()
     window.Dashboard.on('pointNode:checked', (active: boolean) => {
       const color = active ? 'green' : 'red'
       setIsPointNodeActive(color)
-      window.Dashboard.checkBalanceAndAirdrop()
+      setTimeout(() => {
+        active && window.Dashboard.checkBalanceAndAirdrop()
+      }, 5000)
     })
   }, [])
 
