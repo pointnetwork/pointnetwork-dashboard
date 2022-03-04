@@ -31,7 +31,7 @@ export default function (isExplicitRun = false) {
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
     })
-    node = Node.getInstance(mainWindow!)
+    node = new Node(mainWindow!)
     // debug
     // mainWindow.webContents.openDevTools()
 
