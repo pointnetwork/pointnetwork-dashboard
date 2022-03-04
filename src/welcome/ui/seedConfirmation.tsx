@@ -31,8 +31,11 @@ export default function SeedConfirmation(props: {
   return (
     <>
       {!props.isLoggingIn ? (
-        <Alert severity={userInput !== props.seed ? 'warning' : 'success'}>
-          The seed phrases {userInput !== props.seed ? 'do not' : ''} match
+        <Alert
+          severity={userInput.trim() !== props.seed ? 'warning' : 'success'}
+        >
+          The seed phrases {userInput.trim() !== props.seed ? 'do not' : ''}{' '}
+          match
         </Alert>
       ) : null}
       <Typography variant="subtitle1" color="text.secondary" component="div">
