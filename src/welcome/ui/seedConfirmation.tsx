@@ -20,8 +20,8 @@ export default function SeedConfirmation(props: {
     const trimmedSeed = userInput.trim()
     if (!props.isLoggingIn && props.seed.trim() !== trimmedSeed) return
 
-    window.Welcome.confirm(trimmedSeed)
-    window.Welcome.on('welcome:confirmed', (seedValid: any) => {
+    window.Welcome.validateMnemonic(trimmedSeed)
+    window.Welcome.on('welcome:mnemonic_validated', (seedValid: any) => {
       if (seedValid && (props.seed === trimmedSeed || props.isLoggingIn)) {
         window.Welcome.login({ phrase: trimmedSeed })
       }

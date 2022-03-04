@@ -8,11 +8,11 @@ declare global {
 }
 
 export const api = {
-  generate: () => {
-    ipcRenderer.send('welcome:generate')
+  generateMnemonic: () => {
+    ipcRenderer.send('welcome:generate_mnemonic')
   },
-  confirm: (value: any) => {
-    ipcRenderer.send('welcome:confirm', value)
+  validateMnemonic: (value: any) => {
+    ipcRenderer.send('welcome:validate_mnemonic', value)
   },
   login: (object: any) => {
     ipcRenderer.send('welcome:login', object)

@@ -36,11 +36,17 @@ class WelcomeService {
   }
 
   async generate() {
-    this.win.webContents.send('welcome:generated', new Mnemonic().toString())
+    this.win.webContents.send(
+      'welcome:mnemonic_generated',
+      new Mnemonic().toString()
+    )
   }
 
   async validate(message: any) {
-    this.win.webContents.send('welcome:confirmed', Mnemonic.isValid(message))
+    this.win.webContents.send(
+      'welcome:mnemonic_validated',
+      Mnemonic.isValid(message)
+    )
   }
 
   close() {
