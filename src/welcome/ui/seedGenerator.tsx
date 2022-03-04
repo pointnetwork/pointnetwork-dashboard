@@ -9,13 +9,13 @@ export default function SeedGenerator(props: {
   login: MouseEventHandler
 }) {
   useEffect(() => {
-    window.Welcome.on('welcome:generated', (seed: string) => {
+    window.Welcome.on('welcome:mnemonic_generated', (seed: string) => {
       props.setSeed(seed)
     })
   }, [])
 
   const generate = () => {
-    window.Welcome.generate()
+    window.Welcome.generateMnemonic()
   }
 
   return (

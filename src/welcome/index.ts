@@ -37,11 +37,11 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     const welcomeService = new WelcomeService(mainWindow!)
 
-    ipcMain.on('welcome:generate', async (_, message) => {
+    ipcMain.on('welcome:generate_mnemonic', async (_, message) => {
       welcomeService.generate()
     })
 
-    ipcMain.on('welcome:confirm', async (_, message) => {
+    ipcMain.on('welcome:validate_mnemonic', async (_, message) => {
       welcomeService.validate(message.replace(/^\s+|\s+$/g, ''))
     })
 
