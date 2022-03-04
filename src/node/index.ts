@@ -12,19 +12,18 @@ const find = require('find-process')
 
 const exec = util.promisify(require('child_process').exec)
 export default class Node {
-  private static _instance: Node
   private installationLogger
   private window
   private pid: any
   private killCmd: string = ''
 
-  private constructor(window: BrowserWindow) {
+  constructor(window: BrowserWindow) {
     this.window = window
     this.installationLogger = new Logger({ window, channel: 'installer' })
     this.getNodeProcess()
   }
 
-  static getInstance(window: BrowserWindow | null) {
+  /* static getInstance(window: BrowserWindow | null) {
     if (this._instance) {
       return this._instance
     }
@@ -33,7 +32,7 @@ export default class Node {
     }
     this._instance = new Node(window)
     return this._instance
-  }
+  } */
 
   getURL(filename: string) {
     return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.40/${filename}`
@@ -67,6 +66,7 @@ export default class Node {
       this.installationLogger.log('PointNode already downloaded')
       return true
     }
+
     this.installationLogger.log('PointNode does not exist')
     return false
   }
@@ -123,7 +123,7 @@ export default class Node {
     }
     if (!this.isInstalled()) {
       console.log('Node is not downloaded')
-      return
+      await this.download()
     }
     const pointPath = helpers.getPointPath()
 
