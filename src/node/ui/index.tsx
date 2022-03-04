@@ -5,14 +5,12 @@ import { BsCheckCircleFill } from 'react-icons/bs'
 import PointShadow from '../../../public/pointIcon'
 
 export default function () {
-  const [activeDocker, setActiveDocker] = useState<string>()
+  const [isPointNodeActive, setIsPointNodeActive] = useState<string>()
 
   useEffect(() => {
-    window.Dashboard.checkDocker()
-    
     window.Dashboard.on('pointNode:checked', (active: boolean) => {
       const color = active ? 'green' : 'red'
-      setActiveDocker(color)
+      setIsPointNodeActive(color)
     })
   }, [])
 
@@ -20,9 +18,8 @@ export default function () {
     window.Dashboard.checkNode()
   }
 
-
   const IconStyle = {
-    color: activeDocker,
+    color: isPointNodeActive,
     size: '25px',
     marginTop: '5px',
   }
@@ -44,7 +41,7 @@ export default function () {
                 </Grid>
                 <Grid item xs={10}>
                   <Typography component="div" variant="h5">
-                    Point
+                    Point Node
                   </Typography>
                   <Typography
                     variant="subtitle1"
@@ -64,9 +61,7 @@ export default function () {
           </Box>
         </Grid>
         <Grid item xs={4}>
-          
-            <PointShadow />
-
+          <PointShadow />
         </Grid>
       </Grid>
     </Card>

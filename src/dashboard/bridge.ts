@@ -11,9 +11,6 @@ export const api = {
   checkFirefox: () => {
     ipcRenderer.send('firefox:check')
   },
-  checkDocker: () => {
-    ipcRenderer.send('docker:check')
-  },
   launchNode: () => {
     ipcRenderer.send('node:launch')
   },
