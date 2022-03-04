@@ -11,4 +11,4 @@ WIN_FILE="./out/make/squirrel.windows/x64/pointnetwork-dashboard-${VERSION} Setu
 mkdir -p ./out/win_executables/pkg
 chmod +x "$WIN_FILE"
 mv "$WIN_FILE" ./out/win_executables/pkg/point-dashboard.exe
-tar -czvf ./out/win_executables/point-dashboard.tar.gz -C ./out/win_executables/pkg ./
+7z a ./out/win_executables/point-dashboard.zip ./out/win_executables/pkg/point-dashboard.exe

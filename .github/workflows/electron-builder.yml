@@ -1,8 +1,8 @@
 name: Build
 on:
   push:
-    tags:
-      - 'v*'
+    # tags:
+    #   - 'v*'
 
 jobs:
   create_release:
@@ -25,65 +25,65 @@ jobs:
         draft: false
         prerelease: false
 
-  build_on_linux:
-    runs-on: ubuntu-latest
-    needs: create_release
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@master
-      with:
-        node-version: 14
-    - name: Install dependencies
-      run: npm install
-    - name: Build executables
-      run: npm run make
+  # build_on_linux:
+  #   runs-on: ubuntu-latest
+  #   needs: create_release
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-node@master
+  #     with:
+  #       node-version: 14
+  #   - name: Install dependencies
+  #     run: npm install
+  #   - name: Build executables
+  #     run: npm run make
 
-    - name: Compress and package executables
-      run: ./scripts/package_linux_executables.sh
+  #   - name: Compress and package executables
+  #     run: ./scripts/package_linux_executables.sh
 
-    - name: Upload linux deb artefact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-deb.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload linux rpm artefact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-rpm.tar.gz
-        asset_content_type: application/gzip
+  #   - name: Upload linux deb artefact
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
+  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
+  #       asset_content_type: application/gzip
+  #   - name: Upload linux rpm artefact
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
+  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
+  #       asset_content_type: application/gzip
 
-  build_on_mac:
-    runs-on: macos-latest
-    needs: create_release
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@master
-      with:
-        node-version: 14
-    - name: Install dependencies
-      run: npm install
-    - name: Build executables
-      run: npm run make
+  # build_on_mac:
+  #   runs-on: macos-latest
+  #   needs: create_release
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-node@master
+  #     with:
+  #       node-version: 14
+  #   - name: Install dependencies
+  #     run: npm install
+  #   - name: Build executables
+  #     run: npm run make
 
-    - name: Compress and package executables
-      run: ./scripts/package_macos_executables.sh
-    - name: Upload macos artefact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/mac_executables/point-dashboard.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-mac.tar.gz
-        asset_content_type: application/gzip
+  #   - name: Compress and package executables
+  #     run: ./scripts/package_macos_executables.sh
+  #   - name: Upload macos artefact
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./out/mac_executables/point-dashboard.tar.gz
+  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS.tar.gz
+  #       asset_content_type: application/gzip
 
   build_on_win:
     runs-on: windows-latest
@@ -93,12 +93,22 @@ jobs:
     - uses: actions/setup-node@master
       with:
         node-version: 14
+    - name: Add Windows certificate
+      id: write_file
+      uses: timheuer/base64-to-file@v1
+      with:
+        fileName: 'win-certificate.pfx'
+        encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
     - name: Update npm
       run: npm i -g npm
     - name: Install dependencies
       run: npm install
     - name: Build executables
       run: npm run make
+      env:
+        WINDOWS_PFX_FILE: ${{ steps.write_file.outputs.filePath }}
+        WINDOWS_PFX_PASSWORD: ""
+        # WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
 
     - name: Compress and package executables
       run: bash ./scripts/package_win_executables.sh
@@ -108,6 +118,6 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/win_executables/point-dashboard.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-win.tar.gz
+        asset_path: ./out/win_executables/point-dashboard.zip
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows.zip
         asset_content_type: application/gzip
