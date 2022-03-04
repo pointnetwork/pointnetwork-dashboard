@@ -1,16 +1,16 @@
+import { MouseEventHandler } from 'react'
 import Firefox from '../../firefox/ui'
 import Point from '../../node/ui'
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { Button, Container, Typography } from '@mui/material'
-import { MouseEventHandler } from 'react'
 
 const theme = createTheme({
   typography: {
     fontFamily: 'Arial',
-  }
-});
+  },
+})
 
 const logout: MouseEventHandler = () => {
   window.Dashboard.logOut()
@@ -19,13 +19,12 @@ const logout: MouseEventHandler = () => {
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="md" sx={{marginTop:'5px'}}>
-
+      <Container maxWidth="md" sx={{ marginTop: '5px' }}>
         <Grid container spacing={2}>
           <Grid item xs={10}>
-          <Typography variant="h4" gutterBottom component="div">
-            Welcome to the Point Dashboard
-          </Typography>
+            <Typography variant="h4" gutterBottom component="div">
+              Welcome to the Point Dashboard
+            </Typography>
           </Grid>
           <Grid item xs={2}>
             <Button variant="outlined" onClick={logout}>

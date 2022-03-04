@@ -11,6 +11,7 @@ export default function () {
     window.Dashboard.on('pointNode:checked', (active: boolean) => {
       const color = active ? 'green' : 'red'
       setIsPointNodeActive(color)
+      window.Dashboard.checkBalanceAndAirdrop()
     })
   }, [])
 

@@ -29,6 +29,9 @@ export const api = {
   nodeStop: () => {
     ipcRenderer.send('node:stop')
   },
+  checkBalanceAndAirdrop: () => {
+    ipcRenderer.send('node:check_balance_and_airdrop')
+  },
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))

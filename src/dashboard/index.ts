@@ -3,6 +3,7 @@ import Firefox from '../firefox'
 import Docker from '../docker'
 import Node from '../node'
 import helpers from '../../shared/helpers'
+import axios from 'axios'
 
 let mainWindow: BrowserWindow | null
 
@@ -74,6 +75,30 @@ export default function (isExplicitRun = false) {
 
     ipcMain.on('node:stop', async (_, message) => {
       node.stopNode()
+    })
+
+    ipcMain.on('node:check_balance_and_airdrop', async () => {
+      try {
+        console.log('[node:check_balance_and_airdrop] Getting wallet address')
+        let res = await axios.get('http://localhost:2468/v1/api/wallet/address')
+        const address = res.data.data.address
+        console.log(
+          `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
+        )
+        res = await axios.get(
+          `https://point-faucet.herokuapp.com/balance?address=${address}`
+        )
+        if (res.data.balance <= 0) {
+          console.log(
+            '[node:check_balance_and_airdrop] Airdropping wallet address with yPoints'
+          )
+          await axios.get(
+            `https://point-faucet.herokuapp.com/airdrop?address=${address}`
+          )
+        }
+      } catch (error) {
+        console.error(error)
+      }
     })
 
     ipcMain.on('node:window', async (_, message) => {
