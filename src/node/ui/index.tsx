@@ -8,10 +8,8 @@ export default function () {
   const [activeDocker, setActiveDocker] = useState<string>()
 
   useEffect(() => {
-    window.Dashboard.launchNode()
     window.Dashboard.checkDocker()
-
-
+    
     window.Dashboard.on('pointNode:checked', (active: boolean) => {
       const color = active ? 'green' : 'red'
       setActiveDocker(color)
@@ -22,9 +20,6 @@ export default function () {
     window.Dashboard.checkNode()
   }
 
-  useEffect(() => {
-    window.Dashboard.checkNode()
-  }, [activeDocker])
 
   const IconStyle = {
     color: activeDocker,

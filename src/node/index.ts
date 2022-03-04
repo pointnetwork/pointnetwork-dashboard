@@ -15,10 +15,13 @@ export default class Node {
   private static _instance: Node
   private installationLogger
   private window
+  private pid: any
+  private killCmd: string = ''
 
   private constructor(window: BrowserWindow) {
     this.window = window
     this.installationLogger = new Logger({ window, channel: 'installer' })
+    this.getNodeProcess()
   }
 
   static getInstance(window: BrowserWindow | null) {
@@ -161,18 +164,29 @@ export default class Node {
     return false
   }
 
+  async getNodeProcess() {
+
+    if (await this.isInstalled()) {
+      await this.launch()
+      console.log('checking pid')
+      const process = await find('name', 'point', true)
+      console.log('founded Process', process)
+      if(process.length >0){
+        this.pid = process[0].pid
+        console.log('process', this.pid)
+        this.killCmd = `kill ${this.pid}`
+        if (global.platform.win32)
+          this.killCmd = `taskkill /F /PID ${this.pid}`
+      }
+
+    }
+  }
+
   async stopNode() {
-    console.log('Stoping Node...')
-    const process = await find('name', 'point', true)
-
-    if (process.length > 0) {
-
-      let cmd = `kill ${process[0].pid}`
-      if (global.platform.win32)
-        cmd = `taskkill /F /PID ${process[0].pid}`
-
-      exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
-        console.log('Kill Node')
+    if (this.pid) {
+      console.log('Stopping Node...', this.killCmd)
+      await exec(this.killCmd, (error: { message: any }, _stdout: any, stderr: any) => {
+        console.log('Kill Node ', this.pid)
         // win.webContents.send("firefox-closed")
         if (error) {
           console.log(`error: ${error.message}`)
