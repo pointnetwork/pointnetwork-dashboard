@@ -23,16 +23,6 @@ export default class Node {
     this.getNodeProcess()
   }
 
-  /* static getInstance(window: BrowserWindow | null) {
-    if (this._instance) {
-      return this._instance
-    }
-    if (!window) {
-      throw new Error('window should be BrowserWindow to create instance')
-    }
-    this._instance = new Node(window)
-    return this._instance
-  } */
 
   getURL(filename: string) {
     return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.40/${filename}`
