@@ -24,15 +24,15 @@ export default class Node {
   }
 
   getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.41/${filename}`
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.42/${filename}`
   }
 
   getNodeFileName() {
-    if (global.platform.win32) return `point-win-v0.1.41.tar.gz`
+    if (global.platform.win32) return `point-win-v0.1.42.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-v0.1.41.tar.gz`
+    if (global.platform.darwin) return `point-macos-v0.1.42.tar.gz`
 
-    return `point-linux-v0.1.41.tar.gz`
+    return `point-linux-v0.1.42.tar.gz`
   }
 
   async getBinPath() {
