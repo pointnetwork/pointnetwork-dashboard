@@ -16,8 +16,12 @@ corporations and give it back to you.
 ## Installation
 
 Download the [latest
-release](https://github.com/pointnetwork/pointnetwork/releases/latest) for your
-platform, decompress the file and run the extracted executable.
+release](https://github.com/pointnetwork/pointnetwork-dashboard/releases/latest)
+for your platform, decompress the file and run the extracted executable.
+
+*NOTE FOR MAC USERS:* If MacOS tells you that the dashboard cannot be opened
+because it is an app from an unidentified developer, please Control-click the
+application file (`point-dashboard`) and then click on Open.
 
 ## Installation for Developers
 
