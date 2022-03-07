@@ -16,7 +16,7 @@ corporations and give it back to you.
 ## Installation
 
 Download the [latest
-release](https://github.com/pointnetwork/pointnetwork/releases/latest) for your
+release](https://github.com/pointnetwork/pointnetwork-dashboard/releases/latest) for your
 platform, decompress the file and run the extracted executable.
 
 ## Installation for Developers
