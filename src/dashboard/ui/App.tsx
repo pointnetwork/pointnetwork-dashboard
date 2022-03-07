@@ -1,6 +1,6 @@
 import { MouseEventHandler } from 'react'
-import Firefox from '../../firefox/ui'
-import Point from '../../node/ui'
+import Firefox from './components/FirefoxStatus'
+import PointNode from './components/NodeStatus'
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
@@ -23,7 +23,7 @@ export default function App() {
         <Grid container spacing={2}>
           <Grid item xs={10}>
             <Typography variant="h4" gutterBottom component="div">
-              Welcome to the Point Dashboard
+              Welcome to the Node Dashboard
             </Typography>
           </Grid>
           <Grid item xs={2}>
@@ -48,7 +48,7 @@ export default function App() {
               }}
             >
               <Firefox />
-              <Point />
+              <PointNode />
             </Box>
           </Grid>
         </Grid>

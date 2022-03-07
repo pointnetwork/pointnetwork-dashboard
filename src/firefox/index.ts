@@ -22,17 +22,10 @@ export default class {
     this.installationLogger = new Logger({ window, channel: 'installer' })
   }
 
-  private flagPath = 'installer-finished'
-
-  async getFolderPath() {
-    return await helpers.getBrowserFolderPath()
-  }
-
   async isInstalled() {
     this.installationLogger.log('Checking Firefox installation')
-    const osAndArch = helpers.getOSAndArch()
 
-    const binPath = await this.getBinPath(osAndArch)
+    const binPath = await this.getBinPath()
     if (fs.existsSync(binPath)) {
       this.installationLogger.log('Firefox already installed')
       return true
@@ -49,7 +42,7 @@ export default class {
     return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`
   }
 
-  getFileName(osAndArch: any, version: unknown) {
+  getFileName(version: unknown) {
     if (global.platform.win32) {
       // TODO: Still unsure about this: we need to decide on the name
       // of the browser, check how we get the version, etc.
@@ -70,11 +63,11 @@ export default class {
       const language = 'en-US'
       const version = await this.getLastVersionFirefox() // '93.0b4'//
       const osAndArch = helpers.getOSAndArch()
-      const browserDir = await this.getFolderPath()
+      const browserDir = helpers.getBrowserFolderPath()
       const pacFile = url.pathToFileURL(
         path.join(helpers.getDashboardPath(), 'resources', 'pac.js')
       )
-      const filename = this.getFileName(osAndArch, version)
+      const filename = this.getFileName(version)
       const releasePath = path.join(browserDir, filename)
       const firefoxRelease = fs.createWriteStream(releasePath)
       const firefoxURL = this.getURL(version, osAndArch, language, filename)
@@ -120,9 +113,9 @@ export default class {
             }
           })
 
-          await this.createConfigFiles(osAndArch, pacFile)
+          await this.createConfigFiles(pacFile)
         }
-        this.unpack(osAndArch, releasePath, browserDir, cb)
+        this.unpack(releasePath, browserDir, cb)
       })
     })
 
@@ -133,9 +126,7 @@ export default class {
     //   this.window.webContents.send('firefox:active', true)
     //   return
     // }
-
-    const osAndArch = helpers.getOSAndArch()
-    const cmd = await this.getBinPath(osAndArch)
+    const cmd = await this.getBinPath()
     const profilePath = path.join(
       helpers.getHomePath(),
       '.point/keystore/liveprofile'
@@ -143,23 +134,16 @@ export default class {
 
     const browserCmd = `${cmd} --first-startup --profile ${profilePath} --url https://point`
 
-    exec(browserCmd, (error: { message: any }, _stdout: any, stderr: any) => {
-      // win.webContents.send("firefox-closed")
-      if (error) {
-        console.log(`error: ${error.message}`)
-        this.window.webContents.send('firefox:active', false)
-        return
-      }
-      if (stderr) {
-        console.log(`stderr: ${stderr}`)
-        this.window.webContents.send('firefox:active', false)
-      }
-    })
     this.window.webContents.send('firefox:active', true)
+    try {
+      const { stderr } = await exec(browserCmd)
+      if (stderr) this.window.webContents.send('firefox:active', false)
+    } catch (error) {
+      this.window.webContents.send('firefox:active', false)
+    }
   }
 
   async unpack(
-    _osAndArch: any,
     releasePath: string,
     browserDir: string,
     cb: { (): Promise<void>; (): void }
@@ -168,7 +152,7 @@ export default class {
     if (global.platform.win32) {
       try {
         await extract(releasePath, { dir: browserDir })
-        console.log('Extraction complete')
+        this.installationLogger.log('Extraction complete')
         cb()
       } catch (err) {
         console.log(err)
@@ -197,21 +181,20 @@ export default class {
         .createReadStream(releasePath)
         .pipe(bz2())
         .pipe(tarfs.extract(browserDir))
-      // readStream.on('finish', () => {cb()} )
       readStream.on('finish', cb)
     }
   }
 
-  async getRootPath(osAndArch: any) {
+  async getRootPath() {
     if (global.platform.win32 || global.platform.darwin) {
-      return path.join(await this.getFolderPath())
+      return path.join(helpers.getBrowserFolderPath())
     }
     // linux
-    return path.join(await this.getFolderPath(), 'firefox')
+    return path.join(helpers.getBrowserFolderPath(), 'firefox')
   }
 
-  async getAppPath(osAndArch: any) {
-    const rootPath = await this.getRootPath(osAndArch)
+  async getAppPath() {
+    const rootPath = await this.getRootPath()
 
     if (global.platform.win32 || global.platform.darwin) {
       let appPath = ''
@@ -232,8 +215,8 @@ export default class {
     return rootPath
   }
 
-  async getPrefPath(osAndArch: any) {
-    const rootPath = await this.getRootPath(osAndArch)
+  async getPrefPath() {
+    const rootPath = await this.getRootPath()
 
     if (global.platform.win32 || global.platform.darwin) {
       let appPath = ''
@@ -262,20 +245,26 @@ export default class {
     return path.join(rootPath, 'defaults', 'pref')
   }
 
-  async getBinPath(osAndArch: string) {
-    const rootPath = await this.getRootPath(osAndArch)
+  async getBinPath() {
+    const rootPath = await this.getRootPath()
     if (global.platform.win32) {
       // return path.join(rootPath, 'point-browser-portable.exe')
       return path.join(rootPath, 'app', 'firefox.exe')
     }
     if (global.platform.darwin) {
-      return `${path.join(rootPath, 'Firefox.app', 'Contents', 'MacOS', 'firefox')}`
+      return `${path.join(
+        rootPath,
+        'Firefox.app',
+        'Contents',
+        'MacOS',
+        'firefox'
+      )}`
     }
     // linux
     return path.join(rootPath, 'firefox')
   }
 
-  async createConfigFiles(osAndArch: any, pacFile: url.URL) {
+  async createConfigFiles(pacFile: url.URL) {
     this.installationLogger.log('Creating configuration files for Firefox...')
     if (!pacFile)
       throw Error('pacFile sent to createConfigFiles is undefined or null!')
@@ -321,8 +310,8 @@ pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
 pref("extensions.startupScanScopes", 15);
 `
-    const prefPath = await this.getPrefPath(osAndArch)
-    const appPath = await this.getAppPath(osAndArch)
+    const prefPath = await this.getPrefPath()
+    const appPath = await this.getAppPath()
 
     if (global.platform.win32) {
       // Portapps creates `defaults/pref/autonfig.js` for us, same contents.
@@ -339,11 +328,7 @@ pref("extensions.startupScanScopes", 15);
         }
       )
     }
-    if (
-      global.platform.linux ||
-      global.platform.linux ||
-      global.platform.darwin
-    ) {
+    if (global.platform.linux || global.platform.darwin) {
       fs.writeFile(
         path.join(prefPath, 'autoconfig.js'),
         autoconfigContent,
@@ -365,16 +350,6 @@ pref("extensions.startupScanScopes", 15);
       )
     }
     this.installationLogger.log('Created configuration files for Firefox')
-  }
-
-  async isFirefoxRanOnce() {
-    const pointPath = await module.exports.getPointPath()
-    return fs.pathExistsSync(path.join(pointPath, this.flagPath))
-  }
-
-  async setFirefoxRanOnce() {
-    const pointPath = await module.exports.getPointPath()
-    fs.writeFileSync(path.join(pointPath, this.flagPath), '')
   }
 
   async getLastVersionFirefox() {

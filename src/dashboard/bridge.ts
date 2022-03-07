@@ -8,9 +8,6 @@ declare global {
 }
 
 export const api = {
-  checkFirefox: () => {
-    ipcRenderer.send('firefox:check')
-  },
   launchNode: () => {
     ipcRenderer.send('node:launch')
   },
@@ -19,9 +16,6 @@ export const api = {
   },
   logOut: () => {
     ipcRenderer.send('logOut')
-  },
-  createLogWindow: () => {
-    ipcRenderer.send('node:window')
   },
   openFirefox: () => {
     ipcRenderer.send('firefox:launch')
