@@ -1,35 +1,31 @@
-## Electron + TypeScript + React
+# Point Network Dashboard
 
-Boilerplate for a project using Electron, React and Typescript.
+*Use this application to start using Point Network's Web 3.0!*
+
+Point Network Dashboard is a utility that handles the installation processes
+required for running Point Network, as well as the execution and maintenance of
+the multiple components that are part of Point Network.
 
 ## Installation
 
-Use a package manager of your choice (npm, yarn, etc.) in order to install all dependencies
+Download the [latest
+release](https://github.com/pointnetwork/pointnetwork/releases/latest) for your
+platform, decompress the file and run the extracted executable.
 
-```bash
-yarn
+## Installation for Developers
+
+Install the dependencies:
+
+``` bash
+npm i
 ```
 
-## Usage
+Start the dashboard:
 
-Just run `start` script.
-
-```bash
-yarn start
-```
-
-## Packaging
-
-To generate the project package based on the OS you're running on, just run:
-
-```bash
-yarn package
+``` bash
+npm start
 ```
 
 ## Contributing
 
 Pull requests are always welcome 😃.
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
