@@ -11,9 +11,6 @@ export const api = {
   checkFirefox: () => {
     ipcRenderer.send('firefox:check')
   },
-  checkDocker: () => {
-    ipcRenderer.send('docker:check')
-  },
   launchNode: () => {
     ipcRenderer.send('node:launch')
   },
@@ -29,6 +26,13 @@ export const api = {
   openFirefox: () => {
     ipcRenderer.send('firefox:launch')
   },
+  nodeStop: () => {
+    ipcRenderer.send('node:stop')
+  },
+  checkBalanceAndAirdrop: () => {
+    ipcRenderer.send('node:check_balance_and_airdrop')
+  },
+
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
   },

@@ -6,7 +6,6 @@ import { platform, arch } from 'process'
 import welcome from '../src/welcome'
 
 const getOSAndArch = () => {
-  console.log('platform', platform)
   // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
   let osAndArch = ''
 
@@ -80,14 +79,6 @@ const getBrowserFolderPath = () => {
   return browserDir
 }
 
-const getNodeExecutablePath = () => {
-  const browserDir = path.join(getHomePath(), '.point', 'src')
-  if (!fs.existsSync(browserDir)) {
-    fs.mkdirpSync(browserDir)
-  }
-  return browserDir
-}
-
 const getLiveDirectoryPath = () => {
   return path.join(getHomePath(), '.point', 'keystore')
 }
@@ -113,15 +104,15 @@ const logout = () => {
 }
 
 const getPointPath = () => {
-  return path.join(getHomePath(), '.point/')
+  return path.join(getHomePath(), '.point')
 }
 
 const getPointSrcPath = () => {
-  return path.join(getPointPath(), 'src/')
+  return path.join(getPointPath(), 'src')
 }
 
 const getPointSoftwarePath = () => {
-  return path.join(getPointPath(), 'software/')
+  return path.join(getPointPath(), 'software')
 }
 
 const isPNCloned = () => {
@@ -172,7 +163,7 @@ const copyFolderRecursiveSync = (source: string, target: string) => {
 }
 
 const getBinPath = () => {
-  const dir = path.join(getHomePath(), '.point', 'src', 'bin')
+  const dir = path.join(getHomePath(), '.point', 'bin')
   if (!fs.existsSync(dir)) {
     fs.mkdirpSync(dir)
   }
@@ -199,9 +190,8 @@ export default Object.freeze({
   isPNCloned,
   isDashboardCloned,
   isSDKCloned,
-  getNodeExecutablePath,
+  getBinPath,
   copyFileSync,
   copyFolderRecursiveSync,
-  getBinPath,
   getPointPath,
 })

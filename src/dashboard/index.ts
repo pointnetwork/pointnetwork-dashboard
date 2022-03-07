@@ -3,8 +3,11 @@ import Firefox from '../firefox'
 import Docker from '../docker'
 import Node from '../node'
 import helpers from '../../shared/helpers'
+import axios from 'axios'
 
 let mainWindow: BrowserWindow | null
+
+let node: Node
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
@@ -28,13 +31,14 @@ export default function (isExplicitRun = false) {
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
     })
-
+    node = new Node(mainWindow!)
     // debug
     // mainWindow.webContents.openDevTools()
 
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
+      console.log('Closed Dashboard Window')
       mainWindow = null
     })
   }
@@ -42,7 +46,6 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     const docker = new Docker(mainWindow!)
     const firefox = new Firefox(mainWindow!)
-    const node = new Node(mainWindow!)
 
     ipcMain.on('firefox:check', async (_, message) => {
       const firefoxInstalled = await firefox.isInstalled()
@@ -61,22 +64,41 @@ export default function (isExplicitRun = false) {
       node.launch()
     })
 
-    ipcMain.on('docker:check', async (_, message) => {
-      const dockerInstalled = await docker.isInstalled()
-      if (!dockerInstalled) {
-        // await docker.download()
-      } else {
-        // await docker.startCompose()
-      }
-    })
-
     ipcMain.on('node:check', async (_, message) => {
-      await docker.pointNodeCheck()
+      await node.pointNodeCheck()
     })
 
     ipcMain.on('logOut', async (_, message) => {
       mainWindow!.close()
       helpers.logout()
+    })
+
+    ipcMain.on('node:stop', async (_, message) => {
+      node.stopNode()
+    })
+
+    ipcMain.on('node:check_balance_and_airdrop', async () => {
+      try {
+        console.log('[node:check_balance_and_airdrop] Getting wallet address')
+        let res = await axios.get('http://localhost:2468/v1/api/wallet/address')
+        const address = res.data.data.address
+        console.log(
+          `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
+        )
+        res = await axios.get(
+          `https://point-faucet.herokuapp.com/balance?address=${address}`
+        )
+        if (res.data.balance <= 0) {
+          console.log(
+            '[node:check_balance_and_airdrop] Airdropping wallet address with yPoints'
+          )
+          await axios.get(
+            `https://point-faucet.herokuapp.com/airdrop?address=${address}`
+          )
+        }
+      } catch (error) {
+        console.error(error)
+      }
     })
 
     ipcMain.on('node:window', async (_, message) => {
@@ -102,6 +124,13 @@ export default function (isExplicitRun = false) {
     createWindow()
     registerListeners()
   }
+
+  app.on('will-quit', async function () {
+    // This is a good place to add tests insuring the app is still
+    // responsive and all windows are closed.
+    console.log('Dashboard Window "will-quit" event')
+    await node.stopNode()
+  })
 
   if (!isExplicitRun) {
     app
