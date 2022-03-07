@@ -23,7 +23,6 @@ export default class Node {
     this.getNodeProcess()
   }
 
-
   getURL(filename: string) {
     return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.41/${filename}`
   }
@@ -130,11 +129,11 @@ export default class Node {
       console.log('Launched Node')
       this.window.webContents.send('pointNode:checked', true)
       if (error) {
-        console.log(`error: ${error.message}`)
+        console.log(`pointnode launch exec error: ${error.message}`)
         this.window.webContents.send('pointNode:checked', false)
       }
       if (stderr) {
-        console.log(`stderr: ${stderr}`)
+        console.log(`pointnode launch exec stderr: ${stderr}`)
         this.window.webContents.send('pointNode:checked', false)
       }
     })
@@ -176,11 +175,11 @@ export default class Node {
         (error: { message: any }, _stdout: any, stderr: any) => {
           console.log('Kill Node ', this.pid)
           if (error) {
-            console.log(`error: ${error.message}`)
+            console.log(`stopNode error: ${error.message}`)
             return
           }
           if (stderr) {
-            console.log(`stderr: ${stderr}`)
+            console.log(`stopNode stderr: ${stderr}`)
           }
         }
       )

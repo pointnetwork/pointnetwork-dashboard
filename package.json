@@ -140,14 +140,6 @@
                   "preload": {
                     "js": "./src/installer/bridge.ts"
                   }
-                },
-                {
-                  "html": "./public/index.html",
-                  "js": "./src/dockerLog/ui/index.tsx",
-                  "name": "docker_log_window",
-                  "preload": {
-                    "js": "./src/dockerLog/bridge.ts"
-                  }
                 }
               ]
             }

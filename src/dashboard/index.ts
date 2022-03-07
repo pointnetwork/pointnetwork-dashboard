@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
-import Docker from '../docker'
 import Node from '../node'
 import helpers from '../../shared/helpers'
 import axios from 'axios'
@@ -11,8 +10,6 @@ let node: Node
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
-declare const DOCKER_LOG_WINDOW_WEBPACK_ENTRY: string
-declare const DOCKER_LOG_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
@@ -44,17 +41,7 @@ export default function (isExplicitRun = false) {
   }
 
   async function registerListeners() {
-    const docker = new Docker(mainWindow!)
     const firefox = new Firefox(mainWindow!)
-
-    ipcMain.on('firefox:check', async (_, message) => {
-      const firefoxInstalled = await firefox.isInstalled()
-      if (!firefoxInstalled) {
-        await firefox.download()
-      } else {
-        await firefox.launch()
-      }
-    })
 
     ipcMain.on('firefox:launch', async (_, message) => {
       await firefox.launch()
@@ -98,24 +85,6 @@ export default function (isExplicitRun = false) {
         }
       } catch (error) {
         console.error(error)
-      }
-    })
-
-    ipcMain.on('node:window', async (_, message) => {
-      if (mainWindow) {
-        const child = new BrowserWindow({
-          parent: mainWindow,
-          webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            preload: DOCKER_LOG_WINDOW_PRELOAD_WEBPACK_ENTRY,
-          },
-        })
-        child.show()
-        child.loadURL(DOCKER_LOG_WINDOW_WEBPACK_ENTRY)
-        child.on('show', async () => {
-          await docker.getLogsNode(child)
-        })
       }
     })
   }
