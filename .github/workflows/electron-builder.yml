@@ -48,7 +48,7 @@ jobs:
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
         asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-deb.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
         asset_content_type: application/gzip
     - name: Upload linux rpm artefact
       uses: actions/upload-release-asset@v1
@@ -57,7 +57,7 @@ jobs:
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
         asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-rpm.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
         asset_content_type: application/gzip
 
   build_on_mac:
@@ -82,7 +82,7 @@ jobs:
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
         asset_path: ./out/mac_executables/point-dashboard.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-mac.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS.tar.gz
         asset_content_type: application/gzip
 
   build_on_win:
@@ -109,5 +109,5 @@ jobs:
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
         asset_path: ./out/win_executables/point-dashboard.tar.gz
-        asset_name: point-dashboard-${{ needs.create_release.outputs.release_name }}-win.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows.tar.gz
         asset_content_type: application/gzip
