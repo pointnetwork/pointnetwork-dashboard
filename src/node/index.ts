@@ -25,15 +25,15 @@ export default class Node {
 
 
   getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.40/${filename}`
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.41/${filename}`
   }
 
   getNodeFileName() {
-    if (global.platform.win32) return `point-win-v0.1.40.tar.gz`
+    if (global.platform.win32) return `point-win-v0.1.41.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-v0.1.40.tar.gz`
+    if (global.platform.darwin) return `point-macos-v0.1.41.tar.gz`
 
-    return `point-linux-v0.1.40.tar.gz`
+    return `point-linux-v0.1.41.tar.gz`
   }
 
   async getBinPath() {
@@ -119,11 +119,14 @@ export default class Node {
 
     let file = path.join(pointPath, 'bin', 'linux', 'point')
     if (global.platform.win32)
-      file = path.join(pointPath, 'bin', 'win', 'point')
+      file = `"${path.join(pointPath, 'bin', 'win', 'point')}"`
     if (global.platform.darwin)
       file = path.join(pointPath, 'bin', 'macos', 'point')
 
-    exec(file, (error: { message: any }, _stdout: any, stderr: any) => {
+    let cmd = `NODE_ENV=production ${file}`
+    if (global.platform.win32) cmd = `set NODE_ENV=production && ${file}`
+
+    exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       console.log('Launched Node')
       this.window.webContents.send('pointNode:checked', true)
       if (error) {
