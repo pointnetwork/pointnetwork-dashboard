@@ -28,11 +28,11 @@ export default class Node {
   }
 
   getNodeFileName() {
-    if (global.platform.win32) return `point-win-v0.1.42.tar.gz`
+    if (global.platform.win32) return `point-win-v0.1.43.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-v0.1.42.tar.gz`
+    if (global.platform.darwin) return `point-macos-v0.1.43.tar.gz`
 
-    return `point-linux-v0.1.42.tar.gz`
+    return `point-linux-v0.1.43.tar.gz`
   }
 
   async getBinPath() {
