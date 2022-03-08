@@ -111,6 +111,7 @@ const ResourceItemCard = ({
     <Box
       display="flex"
       justifyContent="space-between"
+      alignItems="center"
       borderRadius={2}
       sx={{ p: 2, background: blueGrey[50] }}
     >
