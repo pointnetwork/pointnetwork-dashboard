@@ -15,7 +15,7 @@ export default function () {
     setTimeout(() => {
       window.Dashboard.checkBalanceAndAirdrop()
       checkNode()
-    }, 5000)
+    }, 10000)
   }, [])
 
   const checkNode = () => {

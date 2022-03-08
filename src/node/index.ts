@@ -5,10 +5,12 @@ import fs from 'fs-extra'
 import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
+import { NODE_VERSION } from '../../shared/constants'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const find = require('find-process')
+var rimraf = require("rimraf");
 
 const exec = util.promisify(require('child_process').exec)
 export default class Node {
@@ -24,15 +26,39 @@ export default class Node {
   }
 
   getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.43/${filename}`
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/${NODE_VERSION}/${filename}`
   }
 
   getNodeFileName() {
-    if (global.platform.win32) return `point-win-v0.1.43.tar.gz`
+    if (global.platform.win32) return `point-win-${NODE_VERSION}.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-v0.1.43.tar.gz`
+    if (global.platform.darwin) return `point-macos-${NODE_VERSION}.tar.gz`
 
-    return `point-linux-v0.1.43.tar.gz`
+    return `point-linux-${NODE_VERSION}.tar.gz`
+  }
+
+  async checkNodeVersion(){
+    const pointPath = helpers.getPointPath()
+    const versonData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
+    let version = versonData.toString()
+    const installedVersion = JSON.parse(version)
+
+    if(installedVersion.nodeVersionInstalled !== NODE_VERSION){
+      console.log('Node Update need it')
+      await this.getprocess()
+      await this.stopNode()
+      rimraf(path.join(pointPath, 'contracts'),  async () => { 
+        console.log('delete Contracts')
+      });
+      rimraf(path.join(pointPath, 'bin'),  async () => { 
+        await this.download()
+        this.launch()
+      });
+      return true
+    }
+
+    return false
+
   }
 
   async getBinPath() {
@@ -100,6 +126,19 @@ export default class Node {
           plugins: [decompressTargz()],
         }).then(() => {
           resolve(this.installationLogger.log('Files decompressed'))
+
+          // stringify JSON Object
+          var jsonData ='{"nodeVersionInstalled":"'+NODE_VERSION+'"}';
+          var jsonContent = JSON.parse(jsonData)
+          var jsonparse = JSON.stringify(jsonContent);
+          fs.writeFile(path.join(pointPath, 'infoNode.json'), jsonparse, 'utf8', function (err) {
+            if (err) {
+              console.log("An error occured while writing JSON Object to File.")
+              return console.log(err);
+            }
+
+            console.log("JSON file has been saved.");
+          })
         })
       })
     })
@@ -152,18 +191,23 @@ export default class Node {
     return false
   }
 
+  async getprocess(){
+    console.log('Checking PointNode PID')
+    const process = await find('name', 'point', true)
+    if (process.length > 0) {
+      console.log('Found running process', process)
+      this.pid = process[0].pid
+      console.log('Process ID', this.pid)
+      this.killCmd = `kill ${this.pid}`
+      if (global.platform.win32) this.killCmd = `taskkill /F /PID ${this.pid}`
+    }
+  }
+
   async getNodeProcess() {
+    await this.checkNodeVersion()
     if (await this.isInstalled()) {
       await this.launch()
-      console.log('Checking PointNode PID')
-      const process = await find('name', 'point', true)
-      if (process.length > 0) {
-        console.log('Found running process', process)
-        this.pid = process[0].pid
-        console.log('Process ID', this.pid)
-        this.killCmd = `kill ${this.pid}`
-        if (global.platform.win32) this.killCmd = `taskkill /F /PID ${this.pid}`
-      }
+      await this.getprocess()
     }
   }
 
