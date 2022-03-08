@@ -56,7 +56,7 @@ export default function SeedConfirmation(props: {
       />
 
       <Box>
-        <Button variant="contained" onClick={validate} disabled={!isSeedsMatch}>
+        <Button variant="contained" onClick={validate}>
           Confirm
         </Button>
         <Button variant="outlined" onClick={props.goBack} sx={{ mx: '.7rem' }}>
