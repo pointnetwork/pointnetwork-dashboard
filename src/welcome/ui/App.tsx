@@ -1,18 +1,15 @@
 import { useState } from 'react'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { Container, Typography } from '@mui/material'
-import SeedGenerator from './seedGenerator'
-import SeedConfirmation from './seedConfirmation'
-
-const theme = createTheme({
-  typography: {
-    fontFamily: 'Arial',
-  },
-})
+// Components
+import SeedGenerator from './components/SeedGenerator'
+import SeedConfirmation from './components/SeedConfirmation'
+// MAterial UI
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import UIThemeProvider from '../../../shared/UIThemeProvider'
 
 export default function App() {
-  const [seedConfirm, setSeedConfirm] = useState<boolean>(false)
   const [seed, setSeed] = useState<string>('')
+  const [seedConfirm, setSeedConfirm] = useState<boolean>(false)
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false)
 
   const login = () => {
@@ -27,10 +24,10 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <Container maxWidth="md" sx={{ marginTop: '5px' }}>
-        <Typography variant="h4" gutterBottom component="div">
-          Point Network
+    <UIThemeProvider>
+      <Box sx={{ p: '3.5%' }}>
+        <Typography variant="h4" component="h1">
+          Welcome to Point Network
         </Typography>
         {!seedConfirm && (
           <SeedGenerator
@@ -48,7 +45,7 @@ export default function App() {
             goBack={goBack}
           />
         )}
-      </Container>
-    </ThemeProvider>
+      </Box>
+    </UIThemeProvider>
   )
 }
