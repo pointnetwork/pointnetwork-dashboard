@@ -20,7 +20,8 @@ export default function () {
     mainWindow = new BrowserWindow({
       // icon: path.join(assetsPath, 'assets', 'icon.png'),
       width: 640,
-      height: 400,
+      height: 440,
+      autoHideMenuBar: true,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
