@@ -5,7 +5,6 @@ import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
-import { blueGrey } from '@mui/material/colors'
 // Icons
 import CancelIcon from '@mui/icons-material/Cancel'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -52,22 +51,23 @@ export default function App() {
             Logout
           </Button>
         </Box>
-        {isLoading && (
-          <Box display="flex" sx={{ mt: '-1.5rem', mb: '1.2rem' }}>
-            <CircularProgress size={20} />
-            <Typography sx={{ ml: '.6rem' }}>
-              Starting up Node and Browser...
-            </Typography>
-          </Box>
-        )}
         <Typography variant="h4" component="h1">
           Welcome to Point Dashboard
         </Typography>
         <Typography color="text.secondary">
           Manage the various point components from here
         </Typography>
+        {isLoading && (
+          <Box display="flex" sx={{ mt: '2rem' }}>
+            <CircularProgress size={20} />
+            <Typography sx={{ ml: '.6rem' }}>
+              Starting up Node and Browser...
+            </Typography>
+          </Box>
+        )}
         <Box
           sx={{
+            opacity: isLoading ? 0.2 : 1,
             my: '1.5rem',
             display: 'grid',
             gridTemplateColumns: { sm: '1fr 1fr' },
@@ -80,6 +80,7 @@ export default function App() {
             onClick={openFirefox}
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
+            isLoading={isLoading}
           />
           <ResourceItemCard
             title="Point Node"
@@ -87,6 +88,7 @@ export default function App() {
             onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
+            isLoading={isLoading}
           />
         </Box>
       </Box>
@@ -100,12 +102,14 @@ const ResourceItemCard = ({
   onClick,
   status,
   icon,
+  isLoading,
 }: {
   title: string
   buttonLabel: string
   onClick: any
   icon: any
   status: boolean
+  isLoading: boolean
 }) => {
   return (
     <Box
@@ -113,7 +117,8 @@ const ResourceItemCard = ({
       justifyContent="space-between"
       alignItems="center"
       borderRadius={2}
-      sx={{ p: 2, background: blueGrey[50] }}
+      sx={{ p: 2 }}
+      bgcolor="primary.light"
     >
       <Box flex={3}>
         <Typography variant="h6">{title}</Typography>
@@ -127,7 +132,12 @@ const ResourceItemCard = ({
             <CancelIcon color="error" />
           )}
         </Box>
-        <Button variant="contained" sx={{ mt: '2rem' }} onClick={onClick}>
+        <Button
+          variant="contained"
+          sx={{ mt: '2rem' }}
+          onClick={onClick}
+          disabled={isLoading}
+        >
           {buttonLabel}
         </Button>
       </Box>
