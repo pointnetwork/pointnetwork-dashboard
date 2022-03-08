@@ -24,7 +24,7 @@ export default class Node {
   }
 
   getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.42/${filename}`
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.43/${filename}`
   }
 
   getNodeFileName() {
