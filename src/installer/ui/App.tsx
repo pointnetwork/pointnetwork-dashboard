@@ -1,7 +1,17 @@
-import { Fragment, useEffect, useState } from 'react'
+import { useRef, useState } from 'react'
+// MAterial UI
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import List from '@mui/material/List'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
+// Theme provider
+import UIThemeProvider from '../../../shared/UIThemeProvider'
 
 export default function App() {
-  const [logsElement, setLogsElement] = useState<HTMLElement>()
+  const logsElementRef = useRef<HTMLElement>(null)
+
+  const [logs, setLogs] = useState<string[]>([])
   const [installing, setInstalling] = useState<boolean>(false)
 
   function sendStartInstallation() {
@@ -9,52 +19,54 @@ export default function App() {
     setInstalling(true)
 
     window.Installer.on('installer:log', (log: string[]) => {
-      addLog(log)
-      console.log(...log)
+      setLogs(prev => [...prev, `${log.join(' ')}`])
+      logsElementRef.current!.scroll(0, logsElementRef.current!.scrollHeight)
     })
   }
 
-  function addLog(log: string[]) {
-    const li = document.createElement('li')
-    li.innerHTML = `${log.join(' ')}`
-    logsElement?.appendChild(li)
-    window.scrollTo(0, logsElement!.scrollHeight)
-  }
-
-  useEffect(() => {
-    const logEl = document.getElementById('logs')
-    if (logEl) setLogsElement(logEl)
-  }, [])
-
   return (
-    <div className="py-4 px-4">
-      <h1 className="text-2xl font-semibold mb-4">
-        {installing ? 'Installing' : 'Welcome to the Point Installer'}
-      </h1>
-      <div
-        id="logs"
-        className={'p-2 rounded text-sm' + (installing ? 'bg-slate-100' : '')}
+    <UIThemeProvider>
+      <Box
+        display={'flex'}
+        flexDirection="column"
+        sx={{ p: '3.5%', overflow: 'hidden', maxHeight: '82vh' }}
       >
-        {installing ? null : (
-          <Fragment>
-            <p>
-              The following components will be installed on your system to run
-              the point dashboard
-            </p>
-            <ul className="text-sm list-disc ml-4 mt-2 mb-8">
-              <li>Point Node</li>
-              <li>Point Dashboard</li>
-              <li>Firefox (Point Browser)</li>
-            </ul>
-            <button
-              onClick={sendStartInstallation}
-              className="block bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 text-white py-2 px-4 text-sm rounded"
-            >
-              Start Installation
-            </button>
-          </Fragment>
-        )}
-      </div>
-    </div>
+        <Typography variant="h4" gutterBottom component="h1">
+          {installing ? 'Installing' : 'Welcome to the Point Installer'}
+        </Typography>
+
+        <Box flex={1} display={installing ? 'none' : 'block'}>
+          <Typography>
+            The following components will be installed on your system to run the
+            point dashboard
+          </Typography>
+          <Box
+            sx={{ px: '1rem', mt: '1rem', mb: '2rem' }}
+            bgcolor="primary.light"
+            borderRadius={2}
+          >
+            <List>
+              <ListItemText>Point Node</ListItemText>
+              <ListItemText>Point Dashboard</ListItemText>
+              <ListItemText>Point Browser (Firefox)</ListItemText>
+            </List>
+          </Box>
+          <Button variant="contained" onClick={sendStartInstallation}>
+            Start Installation
+          </Button>
+        </Box>
+        <Box
+          sx={{ p: '1rem', mt: '.5rem', overflowY: 'auto' }}
+          bgcolor="primary.light"
+          borderRadius={2}
+          ref={logsElementRef}
+          display={installing ? 'block' : 'none'}
+        >
+          {logs.map((log, index) => (
+            <Typography key={index}>{log}</Typography>
+          ))}
+        </Box>
+      </Box>
+    </UIThemeProvider>
   )
 }
