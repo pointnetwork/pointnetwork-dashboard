@@ -10,7 +10,6 @@ import { NODE_VERSION } from '../../shared/constants'
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const find = require('find-process')
-var rimraf = require("rimraf");
 
 const exec = util.promisify(require('child_process').exec)
 export default class Node {
@@ -25,47 +24,16 @@ export default class Node {
   }
 
   getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/${NODE_VERSION}/${filename}`
-  }
-
-  getLastNodeVersion(){
-    const cmd= 'curl -sL https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest | jq -r ".tag_name"'
-    exec(cmd, (_error: { message: any }, _stdout: any, stderr: any) => {
-      console.log('get last version', _stdout)
-      this.window.webContents.send('pointNode:checked', true)
-    })
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/${global.nodePoint.version}/${filename}`
   }
 
   getNodeFileName() {
-    if (global.platform.win32) return `point-win-${NODE_VERSION}.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-${NODE_VERSION}.tar.gz`
+    if (global.platform.win32) return `point-win-${global.nodePoint.version}.tar.gz`
 
-    return `point-linux-${NODE_VERSION}.tar.gz`
-  }
+    if (global.platform.darwin) return `point-macos-${global.nodePoint.version}.tar.gz`
 
-  async checkNodeVersion(){
-    const pointPath = helpers.getPointPath()
-    const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
-    const  version = versionData.toString()
-    const installedVersion = JSON.parse(version)
-
-    if(installedVersion.nodeVersionInstalled !== NODE_VERSION){
-      console.log('Node Update need it')
-      await this.getProcess()
-      await this.stopNode()
-      rimraf(path.join(pointPath, 'contracts'),  async () => { 
-        console.log('delete Contracts')
-      });
-      rimraf(path.join(pointPath, 'bin'),  async () => { 
-        await this.download()
-        this.launch()
-      });
-      return true
-    }
-
-    return false
-
+    return `point-linux-${global.nodePoint.version}.tar.gz`
   }
 
   async getBinPath() {
@@ -135,7 +103,7 @@ export default class Node {
           resolve(this.installationLogger.log('Files decompressed'))
 
           // stringify JSON Object
-          var jsonData ='{"nodeVersionInstalled":"'+NODE_VERSION+'"}';
+          var jsonData = '{"nodeVersionInstalled":"' + NODE_VERSION + '"}';
           var jsonContent = JSON.parse(jsonData)
           var jsonparse = JSON.stringify(jsonContent);
           fs.writeFile(path.join(pointPath, 'infoNode.json'), jsonparse, 'utf8', function (err) {
@@ -180,7 +148,7 @@ export default class Node {
         console.log(`pointnode launch exec stderr: ${stderr}`)
       }
     })
-    this.getNodeProcess()
+    this.getProcess()
   }
 
   pointNodeCheck(): boolean {
@@ -196,7 +164,7 @@ export default class Node {
     return false
   }
 
-  async getProcess(){
+  async getProcess() {
     console.log('Checking PointNode PID')
     const process = await find('name', 'point', true)
     if (process.length > 0) {
@@ -205,14 +173,6 @@ export default class Node {
       console.log('Process ID', this.pid)
       this.killCmd = `kill ${this.pid}`
       if (global.platform.win32) this.killCmd = `taskkill /F /PID ${this.pid}`
-    }
-  }
-
-  async getNodeProcess() {
-    await this.checkNodeVersion()
-    if (await this.isInstalled()) {
-      await this.launch()
-      await this.getProcess()
     }
   }
 

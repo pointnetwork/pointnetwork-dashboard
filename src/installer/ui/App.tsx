@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 // MAterial UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -12,7 +12,15 @@ export default function App() {
   const logsElementRef = useRef<HTMLElement>(null)
 
   const [logs, setLogs] = useState<string[]>([])
+  const [update, setUpdate] = useState<boolean>(false)
   const [installing, setInstalling] = useState<boolean>(false)
+
+  useEffect(() => {
+    window.Installer.checkUpdate()
+    window.Installer.on('installer:update', (update: boolean) => {
+      setUpdate(update)
+    })
+  }, [])
 
   function sendStartInstallation() {
     window.Installer.startInstallation()
@@ -37,19 +45,28 @@ export default function App() {
 
         <Box flex={1} display={installing ? 'none' : 'block'}>
           <Typography>
-            The following components will be installed on your system to run the
-            point dashboard
+            {update
+              ? `The following components will be updated on your system to run the
+            point dashboard`
+              : `The following components will be installed on your system to run the
+            point dashboard`}
           </Typography>
           <Box
             sx={{ px: '1rem', mt: '1rem', mb: '2rem' }}
             bgcolor="primary.light"
             borderRadius={2}
           >
-            <List>
-              <ListItemText>Point Node</ListItemText>
-              <ListItemText>Point Dashboard</ListItemText>
-              <ListItemText>Point Browser (Firefox)</ListItemText>
-            </List>
+            {update ? (
+              <List>
+                <ListItemText>Point Node</ListItemText>
+              </List>
+            ) : (
+              <List>
+                <ListItemText>Point Node</ListItemText>
+                <ListItemText>Point Dashboard</ListItemText>
+                <ListItemText>Point Browser (Firefox)</ListItemText>
+              </List>
+            )}
           </Box>
           <Button variant="contained" onClick={sendStartInstallation}>
             Start Installation

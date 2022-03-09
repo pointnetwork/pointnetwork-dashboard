@@ -4,6 +4,7 @@ import fs from 'fs-extra'
 import os from 'os'
 import { platform, arch } from 'process'
 import welcome from '../src/welcome'
+import axios from 'axios'
 
 const getOSAndArch = () => {
   // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
@@ -37,6 +38,19 @@ const getPlatform = () => {
     darwin: platform === 'darwin',
     linux: platform === 'linux',
     win32: platform === 'win32',
+  }
+}
+
+const getLastNodeVersion = async () => {
+  const url = 'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
+  const headers = { 'user-agent': 'node.js' }
+  const res = await axios.get(url, {
+    headers: headers
+  });
+
+  console.log('last version', res.data.tag_name)
+  global.nodePoint = {
+    version: res.data.tag_name?res.data.tag_name: ''
   }
 }
 
@@ -93,6 +107,14 @@ const getArweaveKeyFileName = () => {
 
 const isLoggedIn = () => {
   return fs.existsSync(getKeyFileName())
+}
+
+const getInstalledVersion = () =>{
+  const pointPath = getPointPath()
+  const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
+  const version = versionData.toString()
+  const installedVersion = JSON.parse(version)
+  return installedVersion
 }
 
 const logout = () => {
@@ -194,4 +216,6 @@ export default Object.freeze({
   copyFileSync,
   copyFolderRecursiveSync,
   getPointPath,
+  getLastNodeVersion,
+  getInstalledVersion,
 })

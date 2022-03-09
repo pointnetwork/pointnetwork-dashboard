@@ -46,6 +46,10 @@ export default function () {
       await installer.close()
       welcome(true)
     })
+    ipcMain.on('installer:checkUpdate', async (_, message) => {
+      new Installer(mainWindow!).checkUpdateOrInstall()
+    })
+    
   }
 
   app

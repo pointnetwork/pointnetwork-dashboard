@@ -6,5 +6,8 @@ declare global {
         linux: boolean;
         win32: boolean;
     };
+    var nodePoint: {
+        version: string;
+    };
 }
 export { };

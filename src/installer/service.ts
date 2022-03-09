@@ -6,15 +6,18 @@ const path = require('path')
 const git = require('isomorphic-git')
 const http = require('isomorphic-git/http/node')
 const fs = require('fs')
+const rimraf = require("rimraf");
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
 const POINT_DASHBOARD_DIR = helpers.getDashboardPath()
 const POINT_LIVE_DIR = helpers.getLiveDirectoryPath()
+const POINT_BIN_NODE = helpers.getBinPath()
 
 const DIRECTORIES = [
   POINT_DASHBOARD_DIR,
   helpers.getPointSoftwarePath(),
   POINT_LIVE_DIR,
+  POINT_BIN_NODE,
 ]
 
 const REPOSITORIES = ['pointnetwork-dashboard', 'pointsdk']
@@ -28,6 +31,26 @@ class Installer {
     this.window = window
   }
 
+  static async checkNodeVersion() {
+    const installedVersion = helpers.getInstalledVersion()
+    const pointPath = helpers.getPointPath()
+
+    if (installedVersion.nodeVersionInstalled !== global.nodePoint.version) {
+      console.log('Node Update need it')
+      await rimraf(path.join(pointPath, 'contracts'), async () => {
+        console.log('delete Contracts')
+      });
+      await rimraf(path.join(pointPath, 'keystore'), async () => {
+        console.log('delete keystore')
+      });
+      await rimraf(path.join(pointPath, 'bin'), async () => {
+        console.log('delete bin')
+      });
+      return true
+    }
+    return false
+  }
+
   static isInstalled = async () => {
     return (
       await Promise.all(DIRECTORIES.map(dir => fs.existsSync(dir)))
@@ -38,12 +61,21 @@ class Installer {
 
   start = async () => {
     this.logger.log('Starting')
+
     if (await Installer.isInstalled()) {
       await this.upgrade()
     } else {
       await this.install()
     }
     this.logger.log('Done')
+  }
+
+  checkUpdateOrInstall = () =>{
+    const installedVersion = helpers.getInstalledVersion()
+    
+    if (installedVersion.nodeVersionInstalled !== global.nodePoint.version) {
+      this.window.webContents.send(`installer:update`, true)
+    }
   }
 
   install = async () => {
@@ -130,3 +162,5 @@ class Installer {
 }
 
 export default Installer
+
+
