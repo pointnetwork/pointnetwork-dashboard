@@ -1,7 +1,6 @@
 import { BrowserWindow } from 'electron'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
-import { execSync } from 'child_process'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -74,11 +73,12 @@ class Installer {
           fs,
           http,
           dir,
-          onProgress: (progress: { phase: any; loaded: any; total: any }) => {
-            let log = `${progress.phase}: ${progress.loaded}`
-            if (progress.total) log = `${log}/${progress.total}`
-            this.logger.log(log)
-          },
+          // onProgress: (progress: { phase: any; loaded: any; total: any }) => {
+          //   let log = `${progress.phase}: ${progress.loaded}`
+          //   if (progress.total) log = `${log}/${progress.total}`
+          //   this.logger.log(log)
+          // },
+          onMessage: this.logger.log,
           url,
         })
         this.logger.log('Cloned', url)
@@ -115,11 +115,11 @@ class Installer {
           fs,
           http,
           dir,
-          onProgress: (progress: { phase: any; loaded: any; total: any }) => {
-            let log = `${progress.phase}: ${progress.loaded}`
-            if (progress.total) log = `${log}/${progress.total}`
-            this.logger.log(log)
-          },
+          // onProgress: (progress: { phase: any; loaded: any; total: any }) => {
+          //   let log = `${progress.phase}: ${progress.loaded}`
+          //   if (progress.total) log = `${log}/${progress.total}`
+          //   this.logger.log(log)
+          // },
           author: { name: 'PointNetwork', email: 'pn@pointnetwork.io' },
         })
       })
