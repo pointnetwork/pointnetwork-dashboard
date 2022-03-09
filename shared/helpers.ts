@@ -111,10 +111,17 @@ const isLoggedIn = () => {
 
 const getInstalledVersion = () =>{
   const pointPath = getPointPath()
-  const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
-  const version = versionData.toString()
-  const installedVersion = JSON.parse(version)
-  return installedVersion
+  try {
+    const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
+    const version = versionData.toString()
+    const installedVersion = JSON.parse(version)
+    return installedVersion
+  } catch (error) {
+    return {
+      version: null
+    }
+  }
+
 }
 
 const logout = () => {

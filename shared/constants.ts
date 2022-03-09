@@ -1,1 +1,0 @@
-export const NODE_VERSION= 'v0.1.43';

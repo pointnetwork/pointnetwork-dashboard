@@ -5,7 +5,6 @@ import fs from 'fs-extra'
 import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
-import { NODE_VERSION } from '../../shared/constants'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -103,10 +102,10 @@ export default class Node {
           resolve(this.installationLogger.log('Files decompressed'))
 
           // stringify JSON Object
-          var jsonData = '{"nodeVersionInstalled":"' + NODE_VERSION + '"}';
-          var jsonContent = JSON.parse(jsonData)
-          var jsonparse = JSON.stringify(jsonContent);
-          fs.writeFile(path.join(pointPath, 'infoNode.json'), jsonparse, 'utf8', function (err) {
+          const jsonData = '{"nodeVersionInstalled":"' + global.nodePoint.version + '"}'
+          const  jsonContent = JSON.parse(jsonData)
+          const jsonParse = JSON.stringify(jsonContent)
+          fs.writeFile(path.join(pointPath, 'infoNode.json'), jsonParse, 'utf8', function (err) {
             if (err) {
               console.log("An error occured while writing JSON Object to File.")
               return console.log(err);
