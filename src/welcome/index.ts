@@ -1,7 +1,9 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import WelcomeService from './services'
 import dashboard from '../dashboard'
+
 let mainWindow: BrowserWindow | null
+let welcomeService: WelcomeService | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
@@ -15,8 +17,9 @@ export default function (isExplicitRun = false) {
   function createWindow() {
     mainWindow = new BrowserWindow({
       // icon: path.join(assetsPath, 'assets', 'icon.png'),
-      width: 1100,
-      height: 700,
+      width: 960,
+      height: 560,
+      autoHideMenuBar: true,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -26,31 +29,52 @@ export default function (isExplicitRun = false) {
 
     // debug
     //  mainWindow.webContents.openDevTools()
+    welcomeService = new WelcomeService(mainWindow!)
 
     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
 
+    mainWindow.on('close', () => {
+      console.log('Closed Welcome Window')
+      events.forEach(event => {
+        ipcMain.removeListener(event.channel, event.listener)
+        console.log('[welcome:index.ts] Removed event', event.channel)
+      })
+    })
     mainWindow.on('closed', () => {
       mainWindow = null
+      welcomeService = null
     })
   }
 
+  const events = [
+    {
+      channel: 'welcome:generate_mnemonic',
+      listener() {
+        welcomeService!.generate()
+      },
+    },
+    {
+      channel: 'welcome:validate_mnemonic',
+      listener(_: any, message: string) {
+        welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''))
+      },
+    },
+    {
+      channel: 'welcome:login',
+      async listener(_: any, message: string) {
+        const result = await welcomeService!.login(message)
+        if (result) {
+          dashboard(true)
+          welcomeService!.close()
+        }
+      },
+    },
+  ]
+
   async function registerListeners() {
-    const welcomeService = new WelcomeService(mainWindow!)
-
-    ipcMain.on('welcome:generate_mnemonic', async (_, message) => {
-      welcomeService.generate()
-    })
-
-    ipcMain.on('welcome:validate_mnemonic', async (_, message) => {
-      welcomeService.validate(message.replace(/^\s+|\s+$/g, ''))
-    })
-
-    ipcMain.on('welcome:login', async (_, message) => {
-      const result = await welcomeService.login(message)
-      if (result) {
-        dashboard(true)
-        welcomeService.close()
-      }
+    events.forEach(event => {
+      ipcMain.on(event.channel, event.listener)
+      console.log('[welcome:index.ts] Registered event', event.channel)
     })
   }
 

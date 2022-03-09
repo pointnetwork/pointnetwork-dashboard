@@ -22,7 +22,6 @@ export default class Node {
   constructor(window: BrowserWindow) {
     this.window = window
     this.installationLogger = new Logger({ window, channel: 'installer' })
-    this.getNodeProcess()
   }
 
   getURL(filename: string) {
@@ -174,16 +173,14 @@ export default class Node {
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       console.log('Launched Node')
-      this.window.webContents.send('pointNode:checked', true)
       if (error) {
         console.log(`pointnode launch exec error: ${error.message}`)
-        this.window.webContents.send('pointNode:checked', false)
       }
       if (stderr) {
         console.log(`pointnode launch exec stderr: ${stderr}`)
-        this.window.webContents.send('pointNode:checked', false)
       }
     })
+    this.getNodeProcess()
   }
 
   pointNodeCheck(): boolean {
