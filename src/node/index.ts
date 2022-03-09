@@ -20,7 +20,6 @@ export default class Node {
   constructor(window: BrowserWindow) {
     this.window = window
     this.installationLogger = new Logger({ window, channel: 'installer' })
-    this.getNodeProcess()
   }
 
   getURL(filename: string) {
@@ -127,16 +126,14 @@ export default class Node {
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       console.log('Launched Node')
-      this.window.webContents.send('pointNode:checked', true)
       if (error) {
         console.log(`pointnode launch exec error: ${error.message}`)
-        this.window.webContents.send('pointNode:checked', false)
       }
       if (stderr) {
         console.log(`pointnode launch exec stderr: ${stderr}`)
-        this.window.webContents.send('pointNode:checked', false)
       }
     })
+    this.getNodeProcess()
   }
 
   pointNodeCheck(): boolean {
@@ -153,17 +150,14 @@ export default class Node {
   }
 
   async getNodeProcess() {
-    if (await this.isInstalled()) {
-      await this.launch()
-      console.log('Checking PointNode PID')
-      const process = await find('name', 'point', true)
-      if (process.length > 0) {
-        console.log('Found running process', process)
-        this.pid = process[0].pid
-        console.log('Process ID', this.pid)
-        this.killCmd = `kill ${this.pid}`
-        if (global.platform.win32) this.killCmd = `taskkill /F /PID ${this.pid}`
-      }
+    console.log('Checking PointNode PID')
+    const process = await find('name', 'point', true)
+    if (process.length > 0) {
+      console.log('Found running process', process)
+      this.pid = process[0].pid
+      console.log('Process ID', this.pid)
+      this.killCmd = `kill ${this.pid}`
+      if (global.platform.win32) this.killCmd = `taskkill /F /PID ${this.pid}`
     }
   }
 
