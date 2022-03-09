@@ -8,9 +8,8 @@ Any troubles? Ask us in our Telegram group: [https://t.me/pointnetworkchat](http
 
 ### Mac OS
 
-1. Download the latest release here: https://github.com/pointnetwork/pointnetwork-dashboard/releases (yours is with the suffix **-mac**), unpack and install
-2. Try to run it first, but it is not signed for now so it will not be able to run, click "Cancel"
-3. Now you can allow it to run: Settings -> Security & Privacy -> General -> "Open Anyway"
+1. Download the latest release here: https://github.com/pointnetwork/pointnetwork-dashboard/releases (yours is with the suffix **-mac**)
+2. Unpack, but instead of clicking on it, right-click and choose Open, then Open again
 4. See "After Installation" section below
 
 ### Windows
