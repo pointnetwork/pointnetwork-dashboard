@@ -8,13 +8,13 @@ Any troubles? Ask us in our Telegram group: [https://t.me/pointnetworkchat](http
 
 ### Mac OS
 
-1. Download the latest release here: https://github.com/pointnetwork/pointnetwork-dashboard/releases (yours is with the suffix **-mac**)
+1. Download the latest release here: https://github.com/pointnetwork/pointnetwork-dashboard/releases (yours is with the suffix **-MacOS**)
 2. Unpack, but instead of clicking on it, right-click and choose Open, then Open again
 4. See "After Installation" section below
 
 ### Windows
 
-1. Download the latest release here: https://github.com/pointnetwork/pointnetwork-dashboard/releases (yours is with the suffix **-win**), unpack and install
+1. Download the latest release here: https://github.com/pointnetwork/pointnetwork-dashboard/releases (yours is with the suffix **-Windows**), unpack and install
 2. See "After Installation" section below
 
 ### Linux
