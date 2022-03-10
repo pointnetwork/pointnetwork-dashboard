@@ -5,9 +5,7 @@ import helpers from '../../shared/helpers'
  export default async function main() {
 
   helpers.getPlatform()
-  await helpers.getLastNodeVersion()
-  const update = await Installer.checkNodeVersion()
-  if (!(await Installer.isInstalled()) || update) {
+  if (!(await Installer.isInstalled()) ) {
     installer()
   } else {
     if (! await helpers.isLoggedIn()) {
@@ -20,5 +18,6 @@ import helpers from '../../shared/helpers'
  }
 
   ; (async () => {
+    helpers.getLastNodeVersion()
     main()
   })()

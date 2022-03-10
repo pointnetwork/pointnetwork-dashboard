@@ -3,7 +3,10 @@ import Firefox from '../firefox'
 import welcome from '../welcome'
 import Node from '../node'
 import Installer from './service'
+import helpers from '../../shared/helpers'
 export { Installer }
+
+app.disableHardwareAcceleration()
 
 let mainWindow: BrowserWindow | null
 
@@ -16,7 +19,7 @@ declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 //     : app.getAppPath()
 
 export default function () {
-  function createWindow() {
+  async function createWindow() {
     mainWindow = new BrowserWindow({
       // icon: path.join(assetsPath, 'assets', 'icon.png'),
       width: 640,
@@ -34,6 +37,9 @@ export default function () {
     mainWindow.on('closed', () => {
       mainWindow = null
     })
+    
+    Installer.checkNodeVersion()
+  
   }
 
   async function registerListeners() {
@@ -53,7 +59,7 @@ export default function () {
   }
 
   app
-    .on('ready', createWindow)
+    .on('ready', createWindow, )
     .whenReady()
     .then(registerListeners)
     .catch(e => console.error(e))

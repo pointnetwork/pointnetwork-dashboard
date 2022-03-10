@@ -52,6 +52,34 @@ const getLastNodeVersion = async () => {
   global.nodePoint = {
     version: res.data.tag_name?res.data.tag_name: ''
   }
+  return true
+}
+
+const getLastVersionNode = () => {
+  const url = 'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
+
+  return new Promise(resolve => {
+    https.get(url, (res: { on: (arg0: string, arg1: any) => void }) => {
+      let data = ''
+
+      res.on('data', (chunk: string) => {
+        data += chunk
+      })
+
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data)
+          console.log(json.tag_name);
+          global.nodePoint = {
+            version: json.tag_name
+          }
+          resolve(json.tag_name)
+        } catch (error: any) {
+          console.error(error.message)
+        }
+      })
+    })
+  })
 }
 
 const getHTTPorHTTPs = () => {
@@ -225,4 +253,5 @@ export default Object.freeze({
   getPointPath,
   getLastNodeVersion,
   getInstalledVersion,
+  getLastVersionNode,
 })

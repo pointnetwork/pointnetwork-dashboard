@@ -32,32 +32,30 @@ class Installer {
   }
 
   static async checkNodeVersion() {
-    const installedVersion = helpers.getInstalledVersion()
-    const pointPath = helpers.getPointPath()
 
-    if (installedVersion.nodeVersionInstalled !== global.nodePoint.version) {
-      console.log('Node Update need it')
-      await rimraf(path.join(pointPath, 'contracts'), async () => {
-        console.log('delete Contracts')
-      });
-      await rimraf(path.join(pointPath, 'keystore'), async () => {
-        console.log('delete keystore')
-      });
-      await rimraf(path.join(pointPath, 'bin'), async () => {
-        console.log('delete bin')
-      });
-      return true
-    }
-    return false
+      const pointPath = helpers.getPointPath()
+      if(!fs.existsSync(path.join(pointPath, 'src'))){
+        return
+      }
+      const installedVersion = helpers.getInstalledVersion()
+      
+      console.log(installedVersion.nodeVersionInstalled )
+      if (installedVersion.nodeVersionInstalled !== '11' && installedVersion.nodeVersionInstalled ) {
+        console.log('Node Update need it')
+        if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
+        if (fs.existsSync(path.join(pointPath, 'keystore'))) rimraf.sync(path.join(pointPath, 'keystore'));
+        if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));
+      }
   }
 
   static isInstalled = async () => {
+    await Installer.checkNodeVersion()
     return (
-      await Promise.all(DIRECTORIES.map(dir => fs.existsSync(dir)))
+      await Promise.all( DIRECTORIES.map(dir => fs.existsSync(dir)))
     ).every(result => result)
   }
 
-  createWindow = async () => {}
+  createWindow = async () => { }
 
   start = async () => {
     this.logger.log('Starting')
@@ -70,10 +68,10 @@ class Installer {
     this.logger.log('Done')
   }
 
-  checkUpdateOrInstall = () =>{
+  checkUpdateOrInstall = () => {
     const installedVersion = helpers.getInstalledVersion()
-    
-    if (installedVersion.nodeVersionInstalled !== global.nodePoint.version) {
+
+    if (installedVersion.nodeVersionInstalled !== '11'  && installedVersion.nodeVersionInstalled) {
       this.window.webContents.send(`installer:update`, true)
     }
   }
