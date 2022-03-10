@@ -26,6 +26,15 @@ const MESSAGES = {
       cancel: 'No',
     },
   },
+  logoutConfirmation: {
+    title: 'Are you sure you want to log out?',
+    message:
+      'Do you want to close the browser and remove the secret phrase from this computer?',
+    buttons: {
+      confirm: 'Yes',
+      cancel: 'No',
+    },
+  },
 }
 
 // const assetsPath =
@@ -135,10 +144,23 @@ export default function (isExplicitRun = false) {
     {
       channel: 'logOut',
       async listener() {
-        isLoggingOut = true
-        await node!.stopNode()
-        helpers.logout()
-        mainWindow!.close()
+        const confirmationAnswer = dialog.showMessageBoxSync({
+          type: 'question',
+          title: MESSAGES.logoutConfirmation.title,
+          message: MESSAGES.logoutConfirmation.message,
+          buttons: [
+            MESSAGES.logoutConfirmation.buttons.confirm,
+            MESSAGES.logoutConfirmation.buttons.cancel,
+          ],
+        })
+
+        if (confirmationAnswer === 0) {
+          // User clicked 'Yes' (button at index 0)
+          isLoggingOut = true
+          await node!.stopNode()
+          helpers.logout()
+          mainWindow!.close()
+        }
       },
     },
     {
