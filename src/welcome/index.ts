@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import WelcomeService from './services'
 import dashboard from '../dashboard'
+import baseWindowConfig from '../../shared/windowConfig'
 
 let mainWindow: BrowserWindow | null
 let welcomeService: WelcomeService | null
@@ -16,13 +17,11 @@ declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
 export default function (isExplicitRun = false) {
   function createWindow() {
     mainWindow = new BrowserWindow({
-      // icon: path.join(assetsPath, 'assets', 'icon.png'),
+      ...baseWindowConfig,
       width: 960,
       height: 560,
-      autoHideMenuBar: true,
       webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
+        ...baseWindowConfig.webPreferences,
         preload: WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
     })
