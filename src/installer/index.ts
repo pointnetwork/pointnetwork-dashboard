@@ -26,6 +26,8 @@ export default function () {
         contextIsolation: true,
         preload: INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
+      resizable: false,
+      maximizable: false,
     })
 
     installer = new Installer(mainWindow!)
