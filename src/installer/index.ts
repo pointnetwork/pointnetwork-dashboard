@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import Firefox from '../firefox'
 import welcome from '../welcome'
-import Node from '../node'
+import baseWindowConfig from '../../shared/windowConfig'
 import Installer from './service'
 import helpers from '../../shared/helpers'
 export { Installer }
@@ -9,6 +8,7 @@ export { Installer }
 app.disableHardwareAcceleration()
 
 let mainWindow: BrowserWindow | null
+let installer: Installer | null
 
 declare const INSTALLER_WINDOW_WEBPACK_ENTRY: string
 declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -21,36 +21,48 @@ declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 export default function () {
   async function createWindow() {
     mainWindow = new BrowserWindow({
-      // icon: path.join(assetsPath, 'assets', 'icon.png'),
+      ...baseWindowConfig,
       width: 640,
       height: 440,
-      autoHideMenuBar: true,
       webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
+        ...baseWindowConfig.webPreferences,
         preload: INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
     })
 
+    installer = new Installer(mainWindow!)
+
     mainWindow.loadURL(INSTALLER_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
+      console.log('Closed Installer Window')
+      events.forEach(event => {
+        ipcMain.removeListener(event.channel, event.listener)
+        console.log('[installer:index.ts] Removed event', event.channel)
+      })
       mainWindow = null
+      installer = null
     })
     
     Installer.checkNodeVersion()
   
   }
 
+  const events = [
+    {
+      channel: 'installer:start',
+      async listener() {
+        await installer!.start()
+        await installer!.close()
+        welcome(true)
+      },
+    },
+  ]
+
   async function registerListeners() {
-    ipcMain.on('installer:start', async (_, message) => {
-      const installer = new Installer(mainWindow!)
-      await installer.start()
-      const firefox = new Firefox(mainWindow!)
-      if (!(await firefox.isInstalled())) await firefox.download()
-      await new Node(mainWindow!).download()
-      await installer.close()
-      welcome(true)
+    events.forEach(event => {
+      ipcMain.on(event.channel, event.listener)
+      console.log('[installer:index.ts] Registered event', event.channel)
     })
     ipcMain.on('installer:checkUpdate', async (_, message) => {
       new Installer(mainWindow!).checkUpdateOrInstall()
