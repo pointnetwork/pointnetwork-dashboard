@@ -1,11 +1,10 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import Firefox from '../firefox'
 import welcome from '../welcome'
-import Node from '../node'
 import Installer from './service'
 export { Installer }
 
 let mainWindow: BrowserWindow | null
+let installer: Installer | null
 
 declare const INSTALLER_WINDOW_WEBPACK_ENTRY: string
 declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
@@ -29,22 +28,36 @@ export default function () {
       },
     })
 
+    installer = new Installer(mainWindow!)
+
     mainWindow.loadURL(INSTALLER_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
+      console.log('Closed Installer Window')
+      events.forEach(event => {
+        ipcMain.removeListener(event.channel, event.listener)
+        console.log('[installer:index.ts] Removed event', event.channel)
+      })
       mainWindow = null
+      installer = null
     })
   }
 
+  const events = [
+    {
+      channel: 'installer:start',
+      async listener() {
+        await installer!.start()
+        await installer!.close()
+        welcome(true)
+      },
+    },
+  ]
+
   async function registerListeners() {
-    ipcMain.on('installer:start', async (_, message) => {
-      const installer = new Installer(mainWindow!)
-      await installer.start()
-      const firefox = new Firefox(mainWindow!)
-      if (!(await firefox.isInstalled())) await firefox.download()
-      await new Node(mainWindow!).download()
-      await installer.close()
-      welcome(true)
+    events.forEach(event => {
+      ipcMain.on(event.channel, event.listener)
+      console.log('[installer:index.ts] Registered event', event.channel)
     })
   }
 
