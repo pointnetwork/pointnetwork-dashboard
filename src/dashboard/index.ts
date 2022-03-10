@@ -11,6 +11,7 @@ let node: Node | null
 let firefox: Firefox | null
 
 let isFirefoxRunning = false
+let isLoggingOut = false
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
@@ -44,6 +45,8 @@ export default function (isExplicitRun = false) {
       },
     })
 
+    isLoggingOut = false
+
     node = new Node(mainWindow!)
     // if (!(await node.pointNodeCheck())) node.launch()
 
@@ -56,7 +59,7 @@ export default function (isExplicitRun = false) {
     mainWindow.on('close', async ev => {
       let quit = true
 
-      if (isFirefoxRunning) {
+      if (!isLoggingOut && isFirefoxRunning) {
         const confirmationAnswer = dialog.showMessageBoxSync({
           type: 'question',
           title: MESSAGES.closeConfirmation.title,
@@ -132,7 +135,8 @@ export default function (isExplicitRun = false) {
     {
       channel: 'logOut',
       async listener() {
-        await Promise.all([firefox!.close(), node!.stopNode()])
+        isLoggingOut = true
+        await node!.stopNode()
         helpers.logout()
         mainWindow!.close()
       },
