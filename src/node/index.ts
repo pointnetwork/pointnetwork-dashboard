@@ -20,6 +20,7 @@ export default class Node {
   constructor(window: BrowserWindow) {
     this.window = window
     this.installationLogger = new Logger({ window, channel: 'installer' })
+    this.launch()
   }
 
   getURL(filename: string) {
@@ -112,7 +113,7 @@ export default class Node {
     }
     if (!this.isInstalled()) {
       console.log('Node is not downloaded')
-      await this.download()
+      return
     }
     const pointPath = helpers.getPointPath()
 
@@ -165,19 +166,8 @@ export default class Node {
   async stopNode() {
     if (this.pid) {
       console.log('Stopping Node...', this.killCmd)
-      await exec(
-        this.killCmd,
-        (error: { message: any }, _stdout: any, stderr: any) => {
-          console.log('Kill Node ', this.pid)
-          if (error) {
-            console.log(`stopNode error: ${error.message}`)
-            return
-          }
-          if (stderr) {
-            console.log(`stopNode stderr: ${stderr}`)
-          }
-        }
-      )
+      const result  = await exec(this.killCmd)
+      console.log('Sotoped Message',result);
     }
   }
 }

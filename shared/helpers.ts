@@ -4,6 +4,7 @@ import fs from 'fs-extra'
 import os from 'os'
 import { platform, arch } from 'process'
 import welcome from '../src/welcome'
+const rimraf = require("rimraf");
 
 const getOSAndArch = () => {
   // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
@@ -96,7 +97,9 @@ const isLoggedIn = () => {
 }
 
 const logout = () => {
+  const pointPath = getPointPath()
   // Removing key files.
+  if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
   fs.unlinkSync(getKeyFileName())
   fs.unlinkSync(getArweaveKeyFileName())
   // Relaunching the dashboard to ask for key or generate a new one.
