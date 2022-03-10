@@ -79,6 +79,7 @@ export default function (isExplicitRun = false) {
           ipcMain.removeListener(event.channel, event.listener)
           console.log('[dashboard:index.ts] Removed event', event.channel)
         })
+        await firefox?.close()
         await node?.stopNode()
       } else {
         ev.preventDefault()
