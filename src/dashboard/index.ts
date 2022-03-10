@@ -93,13 +93,9 @@ export default function (isExplicitRun = false) {
       async listener() {
         // TODO: move this func somewhere to utils
         const delay = (ms: number) => new Promise(resolve => {setTimeout(resolve, ms)})
+        const start = new Date().getTime()
         try {
           let balance = 0
-          let failed = false
-          setTimeout(() => {
-            failed = true
-            console.error('Could not get positive wallet balance in 2 minutes')
-          }, 120000)
           console.log('[node:check_balance_and_airdrop] Getting wallet address')
           const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
@@ -142,7 +138,10 @@ export default function (isExplicitRun = false) {
 
           await checkBalance()
           // eslint-disable-next-line no-unmodified-loop-condition
-          while (balance <= 0 && !failed) {
+          while (balance <= 0) {
+            if (new Date().getTime() - start > 120000) {
+              throw new Error('Could not get positive wallet balance in 2 minutes')
+            }
             await requestAirdrop()
             await delay(10000)
             await checkBalance()
