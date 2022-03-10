@@ -98,6 +98,7 @@ export default class Node {
         decompress(downloadPath, helpers.getPointPath(), {
           plugins: [decompressTargz()],
         }).then(() => {
+          fs.unlinkSync(downloadPath)
           resolve(this.installationLogger.log('Files decompressed'))
         })
       })
