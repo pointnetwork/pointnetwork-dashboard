@@ -98,7 +98,7 @@ export default function (isExplicitRun = false) {
           let failed = false
           setTimeout(() => {
             failed = true
-            throw new Error('Could not get positive wallet balance in 2 minutes')
+            console.error('Could not get positive wallet balance in 2 minutes')
           }, 120000)
           console.log('[node:check_balance_and_airdrop] Getting wallet address')
           const addressRes = await axios.get(
