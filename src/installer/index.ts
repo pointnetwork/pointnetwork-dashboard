@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import welcome from '../welcome'
+import baseWindowConfig from '../../shared/windowConfig'
 import Installer from './service'
 export { Installer }
 
@@ -17,17 +18,13 @@ declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 export default function () {
   function createWindow() {
     mainWindow = new BrowserWindow({
-      // icon: path.join(assetsPath, 'assets', 'icon.png'),
+      ...baseWindowConfig,
       width: 640,
       height: 440,
-      autoHideMenuBar: true,
       webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
+        ...baseWindowConfig.webPreferences,
         preload: INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
-      resizable: false,
-      maximizable: false,
     })
 
     installer = new Installer(mainWindow!)

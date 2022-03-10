@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
+import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 
 let mainWindow: BrowserWindow | null
@@ -20,13 +21,11 @@ declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 export default function (isExplicitRun = false) {
   async function createWindow() {
     mainWindow = new BrowserWindow({
-      // icon: path.join(assetsPath, 'assets', 'icon.png'),
+      ...baseWindowConfig,
       width: 860,
       height: 500,
-      autoHideMenuBar: true,
       webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
+        ...baseWindowConfig.webPreferences,
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
     })
