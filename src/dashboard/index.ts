@@ -32,7 +32,7 @@ export default function (isExplicitRun = false) {
     })
 
     node = new Node(mainWindow!)
-    if (!(await node.pointNodeCheck())) node.launch()
+    // if (!(await node.pointNodeCheck())) node.launch()
 
     firefox = new Firefox(mainWindow!)
     // debug
@@ -77,9 +77,10 @@ export default function (isExplicitRun = false) {
     },
     {
       channel: 'logOut',
-      listener() {
-        mainWindow!.close()
+      async listener() {
+        await node!.stopNode()
         helpers.logout()
+        mainWindow!.close()
       },
     },
     {
