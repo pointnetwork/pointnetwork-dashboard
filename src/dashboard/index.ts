@@ -91,25 +91,44 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:check_balance_and_airdrop',
       async listener() {
+        // TODO: move this func somewhere to utils
+        const delay = (ms: number) => new Promise(resolve => {setTimeout(resolve, ms)})
         try {
+          let balance = 0
           console.log('[node:check_balance_and_airdrop] Getting wallet address')
-          let res = await axios.get(
+          const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
           )
-          const address = res.data.data.address
-          console.log(
-            `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
-          )
-          res = await axios.get(
-            `https://point-faucet.herokuapp.com/balance?address=${address}`
-          )
-          if (res.data.balance <= 0) {
+          const address = addressRes.data.data.address
+
+          const requestAirdrop = async () => {
             console.log(
               '[node:check_balance_and_airdrop] Airdropping wallet address with yPoints'
             )
             await axios.get(
               `https://point-faucet.herokuapp.com/airdrop?address=${address}`
             )
+          }
+
+          const checkBalance = async () => {
+            console.log(
+              `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
+            )
+            const res = await axios.get(
+              `https://point-faucet.herokuapp.com/balance?address=${address}`
+            )
+            console.log(
+              `[node:check_balance_and_airdrop] Balance: ${res.data.balance}`
+            )
+            balance = res.data.balance
+          }
+
+          await checkBalance()
+          // eslint-disable-next-line no-unmodified-loop-condition
+          while (balance <= 0) {
+            await requestAirdrop()
+            await delay(10000)
+            await checkBalance()
           }
         } catch (error) {
           console.error(error)
