@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, IpcMainEvent } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
@@ -10,8 +10,22 @@ let mainWindow: BrowserWindow | null
 let node: Node | null
 let firefox: Firefox | null
 
+let isFirefoxRunning = false
+
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
+
+const MESSAGES = {
+  closeConfirmation: {
+    title: 'Are you sure you want to close?',
+    message:
+      'Closing the Dashboard will also close the Browser. Are you sure you want to close them?',
+    buttons: {
+      confirm: 'Yes',
+      cancel: 'No',
+    },
+  },
+}
 
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
@@ -39,13 +53,36 @@ export default function (isExplicitRun = false) {
 
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
-    mainWindow.on('close', async () => {
-      console.log('Closed Dashboard Window')
-      events.forEach(event => {
-        ipcMain.removeListener(event.channel, event.listener)
-        console.log('[dashboard:index.ts] Removed event', event.channel)
-      })
-      await node?.stopNode()
+    mainWindow.on('close', async ev => {
+      let quit = true
+
+      if (isFirefoxRunning) {
+        const confirmationAnswer = dialog.showMessageBoxSync({
+          type: 'question',
+          title: MESSAGES.closeConfirmation.title,
+          message: MESSAGES.closeConfirmation.message,
+          buttons: [
+            MESSAGES.closeConfirmation.buttons.confirm,
+            MESSAGES.closeConfirmation.buttons.cancel,
+          ],
+        })
+
+        if (confirmationAnswer === 1) {
+          // User clicked 'No' (button at index 1)
+          quit = false
+        }
+      }
+
+      if (quit) {
+        console.log('Closed Dashboard Window')
+        events.forEach(event => {
+          ipcMain.removeListener(event.channel, event.listener)
+          console.log('[dashboard:index.ts] Removed event', event.channel)
+        })
+        await node?.stopNode()
+      } else {
+        ev.preventDefault()
+      }
     })
 
     mainWindow.on('closed', () => {
@@ -60,6 +97,12 @@ export default function (isExplicitRun = false) {
       channel: 'firefox:launch',
       listener() {
         firefox!.launch()
+      },
+    },
+    {
+      channel: 'firefox:status',
+      listener(_ev: IpcMainEvent, isRunning: boolean) {
+        isFirefoxRunning = isRunning
       },
     },
     {
@@ -103,9 +146,9 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:getVersion',
       async listener(event: IpcMainEvent) {
-        event.returnValue = await helpers.getInstalledVersion() 
+        event.returnValue = await helpers.getInstalledVersion()
       },
-    },   
+    },
     {
       channel: 'node:check_balance_and_airdrop',
       async listener() {
