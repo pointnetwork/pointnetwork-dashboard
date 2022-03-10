@@ -92,25 +92,61 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:check_balance_and_airdrop',
       async listener() {
+        // TODO: move this func somewhere to utils
+        const delay = (ms: number) => new Promise(resolve => {setTimeout(resolve, ms)})
         try {
+          let balance = 0
+          let failed = false
+          setTimeout(() => {
+            failed = true
+            console.error('Could not get positive wallet balance in 2 minutes')
+          }, 120000)
           console.log('[node:check_balance_and_airdrop] Getting wallet address')
-          let res = await axios.get(
+          const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
           )
-          const address = res.data.data.address
-          console.log(
-            `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
-          )
-          res = await axios.get(
-            `https://point-faucet.herokuapp.com/balance?address=${address}`
-          )
-          if (res.data.balance <= 0) {
+          const address = addressRes.data.data.address
+
+          const requestAirdrop = async () => {
             console.log(
               '[node:check_balance_and_airdrop] Airdropping wallet address with yPoints'
             )
-            await axios.get(
-              `https://point-faucet.herokuapp.com/airdrop?address=${address}`
+            try {
+              await axios.get(
+                `https://point-faucet.herokuapp.com/airdrop?address=${address}`
+              )
+            } catch (e) {
+              console.error(e)
+            }
+          }
+
+          const checkBalance = async () => {
+            console.log(
+              `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
             )
+            try {
+              const res = await axios.get(
+                `https://point-faucet.herokuapp.com/balance?address=${address}`
+              )
+              if (res.data?.balance && !isNaN(res.data.balance)) {
+                console.log(
+                  `[node:check_balance_and_airdrop] Balance: ${res.data.balance}`
+                )
+                balance = res.data.balance
+              } else {
+                console.error(`Unexpected balance response: ${res.data}`)
+              }
+            } catch (e) {
+              console.error(e)
+            }
+          }
+
+          await checkBalance()
+          // eslint-disable-next-line no-unmodified-loop-condition
+          while (balance <= 0 && !failed) {
+            await requestAirdrop()
+            await delay(10000)
+            await checkBalance()
           }
         } catch (error) {
           console.error(error)
