@@ -46,6 +46,7 @@ export default function App() {
 
     window.Dashboard.on('firefox:active', (status: boolean) => {
       setIsFirefoxRunning(status)
+      window.Dashboard.changeFirefoxStatus(status)
     })
 
     window.Dashboard.on('pointNode:checked', (version: string | null) => {
