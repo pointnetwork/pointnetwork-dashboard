@@ -1,6 +1,8 @@
 import { BrowserWindow } from 'electron'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
+import Firefox from '../firefox'
+import Node from '../node'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -20,30 +22,43 @@ const DIRECTORIES = [
 const REPOSITORIES = ['pointnetwork-dashboard']
 
 class Installer {
-  private logger
-  private window
+  private logger: Logger
+  private window: BrowserWindow
+  private firefox: Firefox
+  private node: Node
+  private static installationJsonFilePath: string = path.join(
+    helpers.getPointPath(),
+    'installer.json'
+  )
 
   constructor(window: BrowserWindow) {
     this.logger = new Logger({ window, channel: 'installer' })
     this.window = window
+    this.firefox = new Firefox(window)
+    this.node = new Node(window)
   }
 
-  static isInstalled = async () => {
-    return (
-      await Promise.all(DIRECTORIES.map(dir => fs.existsSync(dir)))
-    ).every(result => result)
+  static isInstalled = () => {
+    try {
+      return JSON.parse(
+        fs.readFileSync(this.installationJsonFilePath, {
+          encoding: 'utf8',
+          flag: 'r',
+        })
+      ).isInstalled
+    } catch (error) {
+      return false
+    }
   }
 
   createWindow = async () => {}
 
   start = async () => {
-    this.logger.log('Starting')
-    if (await Installer.isInstalled()) {
+    if (Installer.isInstalled()) {
       await this.upgrade()
     } else {
       await this.install()
     }
-    this.logger.log('Done')
   }
 
   install = async () => {
@@ -60,6 +75,13 @@ class Installer {
         this.logger.error(error)
       }
     })
+
+    // Create a json file and set `isInstalled` flag to false
+    fs.writeFileSync(
+      Installer.installationJsonFilePath,
+      JSON.stringify({ isInstalled: false })
+    )
+
     this.logger.log('Created required directories')
     // Clone the repos
     this.logger.log('Cloning the repositores')
@@ -86,10 +108,18 @@ class Installer {
         }
       })
     )
-    this.logger.log('Cloned repositories')
-    this.logger.log('Installing Dependencies')
 
-    // Finish
+    this.logger.log('Cloned repositories')
+
+    await this.firefox.download()
+    await this.node.download()
+
+    // Set the `isInstalled` flag to true
+    fs.writeFileSync(
+      Installer.installationJsonFilePath,
+      JSON.stringify({ isInstalled: true })
+    )
+    this.logger.log('Installation complete')
   }
 
   close() {
