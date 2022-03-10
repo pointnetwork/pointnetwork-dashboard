@@ -17,7 +17,7 @@ const {execSync} = require('child_process');
 
 try {
     execSync(`npm version ${version}`).toString();
-    execSync(`git push && git push origin v${version}`).toString();
+    execSync(`git push origin HEAD:develop && git push origin v${version}`).toString();
     console.info(`Successfully pushed new addon version "v${version}".`);
 } catch (e) {
     console.error(
