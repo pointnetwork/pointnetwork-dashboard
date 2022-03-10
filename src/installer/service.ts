@@ -17,7 +17,7 @@ const DIRECTORIES = [
   POINT_LIVE_DIR,
 ]
 
-const REPOSITORIES = ['pointnetwork-dashboard', 'pointsdk']
+const REPOSITORIES = ['pointnetwork-dashboard']
 
 class Installer {
   private logger
@@ -73,11 +73,6 @@ class Installer {
           fs,
           http,
           dir,
-          // onProgress: (progress: { phase: any; loaded: any; total: any }) => {
-          //   let log = `${progress.phase}: ${progress.loaded}`
-          //   if (progress.total) log = `${log}/${progress.total}`
-          //   this.logger.log(log)
-          // },
           onMessage: this.logger.log,
           url,
         })
@@ -115,11 +110,6 @@ class Installer {
           fs,
           http,
           dir,
-          // onProgress: (progress: { phase: any; loaded: any; total: any }) => {
-          //   let log = `${progress.phase}: ${progress.loaded}`
-          //   if (progress.total) log = `${log}/${progress.total}`
-          //   this.logger.log(log)
-          // },
           author: { name: 'PointNetwork', email: 'pn@pointnetwork.io' },
         })
       })
