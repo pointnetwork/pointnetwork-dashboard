@@ -109,10 +109,7 @@ export default class Node {
           resolve(this.installationLogger.log('Files decompressed'))
 
           // stringify JSON Object
-          const jsonData = '{"nodeVersionInstalled":"' + version + '"}'
-          const  jsonContent = JSON.parse(jsonData)
-          const jsonParse = JSON.stringify(jsonContent)
-          fs.writeFile(path.join(pointPath, 'infoNode.json'), jsonParse, 'utf8', function (err) {
+          fs.writeFile(path.join(pointPath, 'infoNode.json'),  JSON.stringify({nodeVersionInstalled: version}), 'utf8', function (err) {
             if (err) {
               console.log("An error occured while writing JSON Object to File.")
               return console.log(err);
@@ -120,6 +117,7 @@ export default class Node {
 
             console.log("JSON file has been saved.");
           })
+          
         })
       })
     })
