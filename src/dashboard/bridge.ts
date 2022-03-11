@@ -26,6 +26,9 @@ export const api = {
   checkBalanceAndAirdrop: () => {
     ipcRenderer.send('node:check_balance_and_airdrop')
   },
+  getNodeVersion: (): string => {
+    return ipcRenderer.sendSync('node:getVersion');
+  },
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))

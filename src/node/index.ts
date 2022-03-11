@@ -16,6 +16,7 @@ export default class Node {
   private window
   private pid: any
   private killCmd: string = ''
+  private version: string = 'v0.1.43'
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -23,16 +24,20 @@ export default class Node {
     this.launch()
   }
 
+  getVersion(): string{
+    return this.version;
+  }
+
   getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/v0.1.43/${filename}`
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/${this.version}/${filename}`
   }
 
   getNodeFileName() {
-    if (global.platform.win32) return `point-win-v0.1.43.tar.gz`
+    if (global.platform.win32) return `point-win-${this.version}.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-v0.1.43.tar.gz`
+    if (global.platform.darwin) return `point-macos-${this.version}.tar.gz`
 
-    return `point-linux-v0.1.43.tar.gz`
+    return `point-linux-${this.version}.tar.gz`
   }
 
   async getBinPath() {

@@ -27,6 +27,8 @@ export default function App() {
     balance: '',
   })
 
+  const [nodeVersion, ] = useState<string>(window.Dashboard.getNodeVersion())
+
   useEffect(() => {
     checkNode()
     setIsLoading(true)
@@ -173,7 +175,7 @@ export default function App() {
             isLoading={isLoading}
           />
           <ResourceItemCard
-            title="Point Node"
+            title={"Point Node " + nodeVersion}
             status={isNodeRunning}
             onClick={checkNode}
             icon={<PointLogo />}
