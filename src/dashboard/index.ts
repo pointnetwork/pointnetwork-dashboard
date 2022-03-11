@@ -103,7 +103,7 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:getVersion',
       async listener(event: IpcMainEvent) {
-        event.returnValue = node!.getVersion()
+        event.returnValue = await helpers.getInstalledVersion() 
       },
     },   
     {
