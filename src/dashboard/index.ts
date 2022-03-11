@@ -23,7 +23,7 @@ export default function (isExplicitRun = false) {
     mainWindow = new BrowserWindow({
       ...baseWindowConfig,
       width: 860,
-      height: 500,
+      height: 560,
       webPreferences: {
         ...baseWindowConfig.webPreferences,
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -104,7 +104,10 @@ export default function (isExplicitRun = false) {
       channel: 'node:check_balance_and_airdrop',
       async listener() {
         // TODO: move this func somewhere to utils
-        const delay = (ms: number) => new Promise(resolve => {setTimeout(resolve, ms)})
+        const delay = (ms: number) =>
+          new Promise(resolve => {
+            setTimeout(resolve, ms)
+          })
         const start = new Date().getTime()
         try {
           let balance = 0
@@ -149,15 +152,27 @@ export default function (isExplicitRun = false) {
           }
 
           await checkBalance()
+
+          mainWindow!.webContents.send(
+            'node:wallet_info',
+            JSON.stringify({ balance, address })
+          )
           // eslint-disable-next-line no-unmodified-loop-condition
           while (balance <= 0) {
             if (new Date().getTime() - start > 120000) {
-              throw new Error('Could not get positive wallet balance in 2 minutes')
+              throw new Error(
+                'Could not get positive wallet balance in 2 minutes'
+              )
             }
             await requestAirdrop()
             await delay(10000)
             await checkBalance()
           }
+
+          mainWindow!.webContents.send(
+            'node:wallet_info',
+            JSON.stringify({ balance, address })
+          )
         } catch (error) {
           console.error(error)
         }

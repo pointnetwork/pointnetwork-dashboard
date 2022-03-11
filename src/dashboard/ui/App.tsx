@@ -1,8 +1,10 @@
-import { MouseEventHandler, useEffect, useState } from 'react'
+import { MouseEventHandler, useEffect, useState, Fragment } from 'react'
 // Material UI
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
+import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
 // Icons
@@ -16,6 +18,15 @@ export default function App() {
   const [isUpdating, setUpdating] = useState<boolean>(false)
   const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
+
+  const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(false)
+  const [walletInfo, setWalletInfo] = useState<{
+    address: string
+    balance: string
+  }>({
+    address: '',
+    balance: '',
+  })
 
   useEffect(() => {
     window.Dashboard.checkUpdate()
@@ -50,6 +61,11 @@ export default function App() {
     window.Dashboard.on('pointNode:checked', (status: boolean) => {
       setIsNodeRunning(status)
     })
+    window.Dashboard.on('node:wallet_info', (message: string) => {
+      console.log(message)
+      setWalletInfo(JSON.parse(message))
+      setIsLoadingWalletInfo(false)
+    })
   }, [])
 
   const logout: MouseEventHandler = () => {
@@ -61,11 +77,19 @@ export default function App() {
   const openFirefox = () => {
     window.Dashboard.openFirefox()
   }
+  const requestYPoints = () => {
+    setIsLoadingWalletInfo(true)
+    window.Dashboard.checkBalanceAndAirdrop()
+  }
 
   return (
     <UIThemeProvider>
-      <Box sx={{ p: '3.5%' }}>
-        <Box display={'flex'} flexDirection="row-reverse" sx={{ mb: '0.5rem' }}>
+      <Box sx={{ px: '3.5%', pt: '3.5%' }}>
+        <Box
+          display={'flex'}
+          flexDirection="row-reverse"
+          sx={{ mt: '-3%', mb: '-1%' }}
+        >
           <Button variant="contained" onClick={logout}>
             Logout
           </Button>
@@ -76,13 +100,78 @@ export default function App() {
         <Typography color="text.secondary">
           Manage the various point components from here
         </Typography>
-        {isLoading && (
-          <Box display="flex" sx={{ mt: '2rem' }}>
+        {isLoading ? (
+          <Box display="flex" sx={{ mt: '1.2rem' }}>
             <CircularProgress size={20} />
             <Typography sx={{ ml: '.6rem' }}>
               Starting up Node and Browser...
             </Typography>
           </Box>
+        ) : (
+          <Grid
+            container
+            sx={{
+              my: '.65rem',
+              p: '1rem',
+              pt: '.75rem',
+              opacity: isLoading ? 0.2 : 1,
+            }}
+            borderRadius={2}
+            border={'2px dashed'}
+            borderColor="primary.light"
+          >
+            <Grid item xs={12} marginBottom={1}>
+              {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
+                <Alert severity="info">
+                  You need yPoints to be able to browse the Web3.0. Click
+                  "Request yPoints" button to get some yPoints.
+                </Alert>
+              )}
+            </Grid>
+            <Grid item xs={11}>
+              <Typography variant="h6" component="h2" marginBottom={'2px'}>
+                Your Wallet Info
+              </Typography>
+            </Grid>
+            {isLoadingWalletInfo ? (
+              <Grid item xs={12} display="flex" marginY={2}>
+                <CircularProgress size={20} />
+                <Typography sx={{ ml: '.6rem' }}>
+                  Getting Wallet Info...
+                </Typography>
+              </Grid>
+            ) : (
+              <Fragment>
+                <Grid item xs={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Wallet Address
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant="subtitle2">
+                    {walletInfo.address || 'N/A'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Balance
+                  </Typography>
+                </Grid>
+                <Grid item xs={8} marginBottom={2}>
+                  <Typography variant="subtitle2">
+                    {`${walletInfo.balance} yPoints` || 'N/A'}
+                  </Typography>
+                </Grid>
+                <Button
+                  variant="contained"
+                  disabled={Number(walletInfo.balance) > 0}
+                  onClick={requestYPoints}
+                >
+                  Request yPoints
+                </Button>
+              </Fragment>
+            )}
+          </Grid>
         )}
         {isUpdating && (
           <Box display="flex" sx={{ mt: '2rem' }}>
