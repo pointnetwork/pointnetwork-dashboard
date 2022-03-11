@@ -66,6 +66,10 @@ export default function (isExplicitRun = false) {
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('close', async ev => {
+      // We prevent default to programatically close the window,
+      // thus ensuring we await for all necessaries actions to complete.
+      ev.preventDefault()
+
       let quit = true
 
       if (!isLoggingOut && isFirefoxRunning) {
@@ -91,9 +95,14 @@ export default function (isExplicitRun = false) {
           ipcMain.removeListener(event.channel, event.listener)
           console.log('[dashboard:index.ts] Removed event', event.channel)
         })
-        await Promise.all([firefox?.close(), node?.stopNode()])
-      } else {
-        ev.preventDefault()
+
+        try {
+          await Promise.all([firefox?.close(), node?.stopNode()])
+        } catch (err) {
+          console.error('[dashboard:index.ts] Error in `close` handler', err)
+        } finally {
+          mainWindow?.destroy()
+        }
       }
     })
 
