@@ -2,7 +2,10 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import welcome from '../welcome'
 import baseWindowConfig from '../../shared/windowConfig'
 import Installer from './service'
+import helpers from '../../shared/helpers'
 export { Installer }
+
+app.disableHardwareAcceleration()
 
 let mainWindow: BrowserWindow | null
 let installer: Installer | null
@@ -16,7 +19,7 @@ declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 //     : app.getAppPath()
 
 export default function () {
-  function createWindow() {
+  async function createWindow() {
     mainWindow = new BrowserWindow({
       ...baseWindowConfig,
       width: 640,
@@ -40,6 +43,9 @@ export default function () {
       mainWindow = null
       installer = null
     })
+    
+    Installer.checkNodeVersion()
+  
   }
 
   const events = [
@@ -58,10 +64,14 @@ export default function () {
       ipcMain.on(event.channel, event.listener)
       console.log('[installer:index.ts] Registered event', event.channel)
     })
+    ipcMain.on('installer:checkUpdate', async (_, message) => {
+      new Installer(mainWindow!).checkUpdateOrInstall()
+    })
+    
   }
 
   app
-    .on('ready', createWindow)
+    .on('ready', createWindow, )
     .whenReady()
     .then(registerListeners)
     .catch(e => console.error(e))

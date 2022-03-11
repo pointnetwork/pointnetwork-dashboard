@@ -4,6 +4,7 @@ import fs from 'fs-extra'
 import os from 'os'
 import { platform, arch } from 'process'
 import welcome from '../src/welcome'
+import axios from 'axios'
 const rimraf = require("rimraf");
 
 const getOSAndArch = () => {
@@ -39,6 +40,17 @@ const getPlatform = () => {
     linux: platform === 'linux',
     win32: platform === 'win32',
   }
+}
+
+const getlatestReleaseVersion  = async () => {
+  const url = 'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
+  const headers = { 'user-agent': 'node.js' }
+  const res = await axios.get(url, {
+    headers: headers
+  });
+
+  console.log('last version', res.data.tag_name)
+  return res.data.tag_name
 }
 
 const getHTTPorHTTPs = () => {
@@ -94,6 +106,21 @@ const getArweaveKeyFileName = () => {
 
 const isLoggedIn = () => {
   return fs.existsSync(getKeyFileName())
+}
+
+const getInstalledVersion = () =>{
+  const pointPath = getPointPath()
+  try {
+    const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
+    const version = versionData.toString()
+    const installedVersion = JSON.parse(version)
+    return installedVersion
+  } catch (error) {
+    return {
+      installedReleaseVersion: 'old'
+    }
+  }
+
 }
 
 const logout = () => {
@@ -197,4 +224,6 @@ export default Object.freeze({
   copyFileSync,
   copyFolderRecursiveSync,
   getPointPath,
+  getlatestReleaseVersion,
+  getInstalledVersion,
 })

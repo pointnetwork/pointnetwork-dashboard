@@ -75,6 +75,18 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'node:download',
+      listener() {
+        node!.download()
+      },
+    },
+    {
+      channel: 'node:checkUpdate',
+      listener() {
+        node!.checkNodeVersion()
+      },
+    },
+    {
       channel: 'logOut',
       async listener() {
         await node!.stopNode()
@@ -91,7 +103,7 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:getVersion',
       async listener(event: IpcMainEvent) {
-        event.returnValue = node!.getVersion()
+        event.returnValue = await helpers.getInstalledVersion() 
       },
     },   
     {

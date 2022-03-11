@@ -6,6 +6,7 @@ import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
 
+const rimraf = require("rimraf");
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const find = require('find-process')
@@ -16,7 +17,6 @@ export default class Node {
   private window
   private pid: any
   private killCmd: string = ''
-  private version: string = 'v0.1.43'
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -24,20 +24,18 @@ export default class Node {
     this.launch()
   }
 
-  getVersion(): string{
-    return this.version;
+  getURL(filename: string, version: string) {
+    
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
-  getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/${this.version}/${filename}`
-  }
+  getNodeFileName(version: string) {
 
-  getNodeFileName() {
-    if (global.platform.win32) return `point-win-${this.version}.tar.gz`
+    if (global.platform.win32) return `point-win-${version}.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-${this.version}.tar.gz`
+    if (global.platform.darwin) return `point-macos-${version}.tar.gz`
 
-    return `point-linux-${this.version}.tar.gz`
+    return `point-linux-${version}.tar.gz`
   }
 
   async getBinPath() {
@@ -68,15 +66,16 @@ export default class Node {
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
+      const version = await helpers.getlatestReleaseVersion()
       const pointPath = helpers.getPointPath()
-      const filename = this.getNodeFileName()
+      const filename = this.getNodeFileName(version)
 
       const downloadPath = path.join(pointPath, filename)
       if (!downloadPath) {
         fs.mkdirpSync(downloadPath)
       }
       const downloadStream = fs.createWriteStream(downloadPath)
-      const downloadUrl = this.getURL(filename)
+      const downloadUrl = this.getURL(filename, version)
 
       https.get(downloadUrl, async response => {
         this.installationLogger.log('Downloading Node...')
@@ -95,6 +94,7 @@ export default class Node {
             this.installationLogger.log(
               `Downloaded: ${Number(percentage).toFixed(0)}%`
             )
+
           }
         })
       })
@@ -105,7 +105,19 @@ export default class Node {
           plugins: [decompressTargz()],
         }).then(() => {
           fs.unlinkSync(downloadPath)
+          this.window.webContents.send('pointNode:finishDownload', true)
           resolve(this.installationLogger.log('Files decompressed'))
+
+          // stringify JSON Object
+          fs.writeFile(path.join(pointPath, 'infoNode.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', function (err) {
+            if (err) {
+              console.log("An error occured while writing JSON Object to File.")
+              return console.log(err);
+            }
+
+            console.log("JSON file has been saved.");
+          })
+          
         })
       })
     })
@@ -140,7 +152,7 @@ export default class Node {
         console.log(`pointnode launch exec stderr: ${stderr}`)
       }
     })
-    this.getNodeProcess()
+    this.getProcess()
   }
 
   pointNodeCheck(): boolean {
@@ -156,7 +168,7 @@ export default class Node {
     return false
   }
 
-  async getNodeProcess() {
+  async getProcess() {
     console.log('Checking PointNode PID')
     const process = await find('name', 'point', true)
     if (process.length > 0) {
@@ -175,4 +187,29 @@ export default class Node {
       console.log('Sotoped Message',result);
     }
   }
+
+  async checkNodeVersion() {
+
+    const pointPath = helpers.getPointPath()
+    const installedVersion = helpers.getInstalledVersion()
+
+    const latestReleaseVersion = await helpers.getlatestReleaseVersion()
+    
+    console.log('installed',installedVersion.installedReleaseVersion  )
+    console.log('last',latestReleaseVersion )
+    if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
+      console.log('Node Update need it')
+      this.window.webContents.send('node:update', true)
+      this.stopNode().then(()=>{
+        setTimeout(() => {
+          if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
+          if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));    
+        }, 500);   
+      })
+    }else{
+      this.window.webContents.send('node:update', false)
+    }
+  }
 }
+
+

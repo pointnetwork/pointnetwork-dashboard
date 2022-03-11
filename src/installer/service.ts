@@ -51,7 +51,7 @@ class Installer {
     }
   }
 
-  createWindow = async () => {}
+  createWindow = async () => { }
 
   start = async () => {
     if (Installer.isInstalled()) {
@@ -60,6 +60,7 @@ class Installer {
       await this.install()
     }
   }
+
 
   install = async () => {
     this.logger.log('Starting installation')
@@ -150,3 +151,5 @@ class Installer {
 }
 
 export default Installer
+
+

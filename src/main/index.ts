@@ -3,8 +3,9 @@ import dashboard from '../dashboard'
 import welcome from '../welcome'
 import helpers from '../../shared/helpers'
  export default async function main() {
+
   helpers.getPlatform()
-  if (!(await Installer.isInstalled())) {
+  if (!(await Installer.isInstalled()) ) {
     installer()
   } else {
     if (! await helpers.isLoggedIn()) {
