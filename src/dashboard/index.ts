@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
@@ -100,6 +100,12 @@ export default function (isExplicitRun = false) {
         await node!.stopNode()
       },
     },
+    {
+      channel: 'node:getVersion',
+      async listener(event: IpcMainEvent) {
+        event.returnValue = node!.getVersion()
+      },
+    },   
     {
       channel: 'node:check_balance_and_airdrop',
       async listener() {
