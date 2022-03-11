@@ -387,7 +387,7 @@ pref("extensions.startupScanScopes", 15);
       policiesCfgContent,
       err => {
         if (err) {
-          console.error(err)
+          console.error("Error writing browser settings: " + err)
         }
       }
     )
