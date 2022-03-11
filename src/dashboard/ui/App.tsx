@@ -38,10 +38,24 @@ export default function App() {
       }
     })
 
+    window.Dashboard.on('firefox:update', (status: boolean) => {
+      setIsUpdating(status)
+      if (status) {
+        window.Dashboard.DownloadFirefox()
+      } //else {
+        //openFirefox()
+      //}
+    })
+
     window.Dashboard.on('pointNode:finishDownload', () => {
       setIsUpdating(false)
       window.Dashboard.launchNode()
       checkNode()
+    })
+
+    window.Dashboard.on('firefox:finishDownload', () => {
+      setIsUpdating(false)
+      openFirefox();
     })
 
     window.Dashboard.on('firefox:active', (status: boolean) => {

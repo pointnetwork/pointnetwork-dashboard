@@ -64,6 +64,7 @@ export default class {
       const version = await this.getLastVersionFirefox() // '93.0b4'//
       const osAndArch = helpers.getOSAndArch()
       const browserDir = helpers.getBrowserFolderPath()
+      const pointPath = helpers.getPointPath()
       const pacFile = url.pathToFileURL(
         path.join(helpers.getDashboardPath(), 'resources', 'pac.js')
       )
@@ -107,6 +108,16 @@ export default class {
               reject(err)
             } else {
               this.installationLogger.log(`\nDeleted file: ${releasePath}`)
+              this.window.webContents.send('firefox:finishDownload', true)
+              // write firefox version to a file
+              fs.writeFile(path.join(pointPath, 'infoFirefox.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', function (err) {
+                if (err) {
+                  console.log("An error occured while infoFirefox.json JSON Object to File.")
+                  return console.log(err);
+                }
+
+                console.log("infoFirefox.json file has been saved.");
+              })
               resolve(
                 this.installationLogger.log('Installed Firefox successfully')
               )
@@ -417,4 +428,34 @@ pref("extensions.startupScanScopes", 15);
       })
     })
   }
+
+  async checkFirefoxVersion() {
+
+    const pointPath = helpers.getPointPath()
+    const installedVersion = helpers.getInstalledFirefoxVersion()
+
+    const latestReleaseVersion = await this.getLastVersionFirefox()
+    
+    console.log('firefox version installed',installedVersion.installedReleaseVersion  )
+    console.log('firefox last version',latestReleaseVersion )
+    if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
+      console.log('Firefox Update need it')
+
+      this.window.webContents.send('firefox:update', true)
+      
+      //process to update firefox.
+      //TODO: Close and remove old version of firefox folder. This could be helped by PD-70.
+
+      //this.stopNode().then(()=>{
+      //  setTimeout(() => {
+      //    if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
+      //    if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));    
+      //  }, 500);   
+      //})
+
+    }else{
+      this.window.webContents.send('firefox:update', false)
+    }
+  }
+
 }

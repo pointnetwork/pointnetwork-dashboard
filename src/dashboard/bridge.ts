@@ -23,11 +23,16 @@ export const api = {
   openFirefox: () => {
     ipcRenderer.send('firefox:launch')
   },
+  DownloadFirefox: () => {
+    console.log('firefox:download')
+    ipcRenderer.send('firefox:download')
+  },
   nodeStop: () => {
     ipcRenderer.send('node:stop')
   },
   checkUpdate: () => {
     ipcRenderer.send('node:checkUpdate')
+    ipcRenderer.send('firefox:checkUpdate')
   },
   checkBalanceAndAirdrop: () => {
     ipcRenderer.send('node:check_balance_and_airdrop')
