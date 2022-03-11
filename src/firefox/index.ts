@@ -245,6 +245,30 @@ export default class {
     return path.join(rootPath, 'defaults', 'pref')
   }
 
+  async getPoliciesPath() {
+    const rootPath = await this.getRootPath()
+    let distributionPath;
+
+    if (global.platform.win32 || global.platform.darwin) {
+      let appPath = ''
+      if (global.platform.darwin) {
+        appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
+      } else {
+        appPath = path.join(rootPath, 'app')
+      }
+
+      distributionPath = path.join(appPath, 'distribution')
+    }else{
+      //linux
+      distributionPath = path.join(rootPath, 'distribution')
+    }
+
+    if (!fs.existsSync(distributionPath)) {
+      fs.mkdirSync(distributionPath)
+    }
+    return distributionPath
+  }
+
   async getBinPath() {
     const rootPath = await this.getRootPath()
     if (global.platform.win32) {
@@ -310,8 +334,16 @@ pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
 pref("extensions.startupScanScopes", 15);
 `
+    const policiesCfgContent = 
+`{
+  "policies": {
+      "DisableAppUpdate": true
+    }
+}`;
+
     const prefPath = await this.getPrefPath()
     const appPath = await this.getAppPath()
+    const policiesPath = await this.getPoliciesPath()
 
     if (global.platform.win32) {
       // Portapps creates `defaults/pref/autonfig.js` for us, same contents.
@@ -349,6 +381,17 @@ pref("extensions.startupScanScopes", 15);
         }
       )
     }
+
+    fs.writeFile(
+      path.join(policiesPath, 'policies.json'),
+      policiesCfgContent,
+      err => {
+        if (err) {
+          console.error(err)
+        }
+      }
+    )
+
     this.installationLogger.log('Created configuration files for Firefox')
   }
 
