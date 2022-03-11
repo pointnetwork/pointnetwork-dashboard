@@ -197,13 +197,17 @@ export default class Node {
 
     const lastVersion = await helpers.getLastNodeVersion()
     
-    console.log(installedVersion.nodeVersionInstalled )
-    if (installedVersion.nodeVersionInstalled !== lastVersion && installedVersion.nodeVersionInstalled ) {
+    console.log('installed',installedVersion.nodeVersionInstalled )
+    console.log('last',lastVersion )
+    if (installedVersion.nodeVersionInstalled !== lastVersion ) {
       console.log('Node Update need it')
-      await this.stopNode()
-      if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
-      if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));
       this.window.webContents.send('node:update', true)
+      this.stopNode().then(()=>{
+        setTimeout(() => {
+          if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
+          if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));    
+        }, 500);   
+      })
     }else{
       this.window.webContents.send('node:update', false)
     }

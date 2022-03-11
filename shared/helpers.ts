@@ -117,7 +117,7 @@ const getInstalledVersion = () =>{
     return installedVersion
   } catch (error) {
     return {
-      version: null
+      version: 'old'
     }
   }
 
