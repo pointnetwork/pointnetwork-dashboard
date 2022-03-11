@@ -5,6 +5,7 @@ import fs from 'fs-extra'
 import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
+import axios from 'axios'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -107,14 +108,14 @@ export default class Node {
 
   async launch() {
     console.log('Launching Node')
-    if (this.pointNodeCheck()) {
-      console.log('Node is running')
-      return
-    }
-    if (!this.isInstalled()) {
-      console.log('Node is not downloaded')
-      return
-    }
+    // if (await this.pointNodeCheck()) {
+    //   console.log('Node is running')
+    //   return
+    // }
+    // if (!this.isInstalled()) {
+    //   console.log('Node is not downloaded')
+    //   return
+    // }
     const pointPath = helpers.getPointPath()
 
     let file = path.join(pointPath, 'bin', 'linux', 'point')
@@ -138,17 +139,39 @@ export default class Node {
     this.getNodeProcess()
   }
 
-  pointNodeCheck(): boolean {
-    http
-      .get('http://localhost:2468/v1/api/status/ping', res => {
-        this.window.webContents.send('pointNode:checked', true)
-        return true
+  pointNodeCheck(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const instance = axios.create({
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false,
+        }),
       })
-      .on('error', err => {
-        this.window.webContents.send('pointNode:checked', false)
-        console.log(err)
-      })
-    return false
+
+      http
+        .get('http://localhost:2468/v1/api/status/ping', res => {
+          console.log('Pinging https://point')
+          instance
+            .get('https://point', {
+              proxy: {
+                host: 'localhost',
+                port: 8666,
+              },
+            })
+            .then(() => {
+              console.log('Pinged https://point')
+              this.window.webContents.send('pointNode:checked', true)
+              resolve(true)
+            })
+            .catch(error => {
+              console.log('[axios:err]', error)
+            })
+        })
+        .on('error', err => {
+          this.window.webContents.send('pointNode:checked', false)
+          resolve(false)
+          console.error(err)
+        })
+    })
   }
 
   async getNodeProcess() {
@@ -166,8 +189,8 @@ export default class Node {
   async stopNode() {
     if (this.pid) {
       console.log('Stopping Node...', this.killCmd)
-      const result  = await exec(this.killCmd)
-      console.log('Sotoped Message',result);
+      const result = await exec(this.killCmd)
+      console.log('Sotoped Message', result)
     }
   }
 }

@@ -23,7 +23,7 @@ export default function (isExplicitRun = false) {
     mainWindow = new BrowserWindow({
       ...baseWindowConfig,
       width: 860,
-      height: 560,
+      height: 580,
       webPreferences: {
         ...baseWindowConfig.webPreferences,
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
