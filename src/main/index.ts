@@ -18,6 +18,5 @@ import helpers from '../../shared/helpers'
  }
 
   ; (async () => {
-    helpers.getLastNodeVersion()
     main()
   })()

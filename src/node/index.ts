@@ -66,7 +66,7 @@ export default class Node {
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
-      const version = await helpers.getLastNodeVersion()
+      const version = await helpers.getlatestReleaseVersion()
       const pointPath = helpers.getPointPath()
       const filename = this.getNodeFileName(version)
 
@@ -109,7 +109,7 @@ export default class Node {
           resolve(this.installationLogger.log('Files decompressed'))
 
           // stringify JSON Object
-          fs.writeFile(path.join(pointPath, 'infoNode.json'),  JSON.stringify({nodeVersionInstalled: version}), 'utf8', function (err) {
+          fs.writeFile(path.join(pointPath, 'infoNode.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', function (err) {
             if (err) {
               console.log("An error occured while writing JSON Object to File.")
               return console.log(err);
@@ -193,11 +193,11 @@ export default class Node {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledVersion()
 
-    const lastVersion = await helpers.getLastNodeVersion()
+    const latestReleaseVersion = await helpers.getlatestReleaseVersion()
     
-    console.log('installed',installedVersion.nodeVersionInstalled )
-    console.log('last',lastVersion )
-    if (installedVersion.nodeVersionInstalled !== lastVersion ) {
+    console.log('installed',installedVersion.installedReleaseVersion  )
+    console.log('last',latestReleaseVersion )
+    if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
       console.log('Node Update need it')
       this.window.webContents.send('node:update', true)
       this.stopNode().then(()=>{

@@ -42,7 +42,7 @@ const getPlatform = () => {
   }
 }
 
-const getLastNodeVersion = async () => {
+const getlatestReleaseVersion  = async () => {
   const url = 'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
   const headers = { 'user-agent': 'node.js' }
   const res = await axios.get(url, {
@@ -117,7 +117,7 @@ const getInstalledVersion = () =>{
     return installedVersion
   } catch (error) {
     return {
-      nodeVersionInstalled: 'old'
+      installedReleaseVersion: 'old'
     }
   }
 
@@ -224,6 +224,6 @@ export default Object.freeze({
   copyFileSync,
   copyFolderRecursiveSync,
   getPointPath,
-  getLastNodeVersion,
+  getlatestReleaseVersion,
   getInstalledVersion,
 })
