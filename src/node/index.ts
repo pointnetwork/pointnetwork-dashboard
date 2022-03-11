@@ -1,10 +1,11 @@
 import { BrowserWindow } from 'electron'
-import { http, https } from 'follow-redirects'
+import { https } from 'follow-redirects'
 import Logger from '../../shared/logger'
 import fs from 'fs-extra'
 import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
+import axios from 'axios'
 
 const rimraf = require("rimraf");
 const decompress = require('decompress')
@@ -50,7 +51,7 @@ export default class Node {
     return path.join(binPath, 'linux', 'point')
   }
 
-  async isInstalled() {
+  async isInstalled(): Promise<boolean> {
     this.installationLogger.log('Checking PointNode exists or node')
 
     const binPath = await this.getBinPath()
@@ -124,11 +125,11 @@ export default class Node {
 
   async launch() {
     console.log('Launching Node')
-    if (this.pointNodeCheck()) {
+    if (await this.pointNodeCheck()) {
       console.log('Node is running')
       return
     }
-    if (!this.isInstalled()) {
+    if (!(await this.isInstalled())) {
       console.log('Node is not downloaded')
       return
     }
@@ -155,17 +156,31 @@ export default class Node {
     this.getProcess()
   }
 
-  pointNodeCheck(): boolean {
-    http
-      .get('http://localhost:2468/v1/api/status/ping', res => {
-        this.window.webContents.send('pointNode:checked', true)
-        return true
+  async pointNodeCheck(): Promise<boolean> {
+    try {
+      const httpsAgent = new https.Agent({
+        rejectUnauthorized: false
+      });
+      const res = await axios.get('https://point/v1/api/status/meta', {
+        timeout: 3000,
+        proxy: {
+          host: 'localhost',
+          port: 8666,
+          protocol: 'https'
+        },
+        httpsAgent
       })
-      .on('error', err => {
-        this.window.webContents.send('pointNode:checked', false)
-        console.log(err)
-      })
-    return false
+      this.window.webContents.send('pointNode:checked', res.data.data.pointNodeVersion)
+      return true
+    } catch (e) {
+      if (e.message.match('ECONNREFUSED')) {
+        console.log('Point is not running yet, retrying')
+      } else {
+        console.error('Node check failed: ', e.message)
+      }
+      this.window.webContents.send('pointNode:checked', null)
+      return false
+    }
   }
 
   async getProcess() {
