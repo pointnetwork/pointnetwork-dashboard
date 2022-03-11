@@ -67,7 +67,7 @@ export default function (isExplicitRun = false) {
 
     mainWindow.on('close', async ev => {
       // We prevent default to programatically close the window,
-      // thus ensuring we await for all necessaries actions to complete.
+      // thus ensuring we await for all necessary actions to complete.
       ev.preventDefault()
 
       let quit = true
