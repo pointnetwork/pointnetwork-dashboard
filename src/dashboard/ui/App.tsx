@@ -1,4 +1,4 @@
-import { MouseEventHandler, useEffect, useState, Fragment } from 'react'
+import {MouseEventHandler, useEffect, useState, Fragment, useRef} from 'react'
 // Material UI
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -15,11 +15,9 @@ import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isUpdating, setUpdating] = useState<boolean>(false)
-  const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
+  const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
-
-  const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(false)
+  const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(true)
   const [walletInfo, setWalletInfo] = useState<{
     address: string
     balance: string
@@ -27,53 +25,64 @@ export default function App() {
     address: '',
     balance: '',
   })
-
-  const [nodeVersion, ] = useState<string>(window.Dashboard.getNodeVersion())
+  const [nodeVersion, setNodeVersion] = useState<string | null>(null)
+  const checkStartTime = useRef(0)
 
   useEffect(() => {
-    window.Dashboard.checkUpdate()
-    checkNode()
-    setIsLoading(true)
     window.Dashboard.on('node:update', (status: boolean) => {
-      setUpdating(status)
+      setIsUpdating(status)
       if (status) {
-        setIsLoading(false)
         window.Dashboard.DownloadNode()
-      }else{
-        openFirefox()
-        window.Dashboard.checkBalanceAndAirdrop()
+      } else {
         checkNode()
-        setIsLoading(false)
       }
     })
-    window.Dashboard.on('pointNode:finishDownload', (status: boolean) => {
-      setUpdating(false)
-      setIsLoading(true)
+
+    window.Dashboard.on('pointNode:finishDownload', () => {
+      setIsUpdating(false)
       window.Dashboard.launchNode()
-      setTimeout(() => {
-        openFirefox()
-        window.Dashboard.checkBalanceAndAirdrop()
-        setIsLoading(false)
-        checkNode()
-      }, 5000)
+      checkNode()
     })
+
     window.Dashboard.on('firefox:active', (status: boolean) => {
       setIsFirefoxRunning(status)
     })
-    window.Dashboard.on('pointNode:checked', (status: boolean) => {
-      setIsNodeRunning(status)
+
+    window.Dashboard.on('pointNode:checked', (version: string | null) => {
+      setNodeVersion(version)
+      if (version) {
+        openFirefox()
+        requestYPoints()
+      } else if (new Date().getTime() - checkStartTime.current < 120000) {
+        setTimeout(checkNode, 1000)
+      } else {
+        console.error('Failed to start node in 2 minutes')
+        setIsLoading(false)
+      }
     })
+
     window.Dashboard.on('node:wallet_info', (message: string) => {
       console.log(message)
       setWalletInfo(JSON.parse(message))
       setIsLoadingWalletInfo(false)
     })
+
+    window.Dashboard.checkUpdate()
   }, [])
+
+  useEffect(() => {
+    if (nodeVersion && isFirefoxRunning && !isLoadingWalletInfo && !isUpdating) {
+      setIsLoading(false)
+    }
+  }, [isUpdating, nodeVersion, isFirefoxRunning, isLoadingWalletInfo])
 
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
   }
   const checkNode = () => {
+    if (checkStartTime.current === 0) {
+      checkStartTime.current = new Date().getTime()
+    }
     window.Dashboard.checkNode()
   }
   const openFirefox = () => {
@@ -102,87 +111,87 @@ export default function App() {
         <Typography color="text.secondary">
           Manage the various point components from here
         </Typography>
-        {isLoading ? (
-          <Box display="flex" sx={{ mt: '1.2rem' }}>
-            <CircularProgress size={20} />
-            <Typography sx={{ ml: '.6rem' }}>
-              Starting up Node and Browser...
-            </Typography>
-          </Box>
-        ) : (
-          <Grid
-            container
-            sx={{
-              my: '.65rem',
-              p: '1rem',
-              pt: '.75rem',
-              opacity: isLoading ? 0.2 : 1,
-            }}
-            borderRadius={2}
-            border={'2px dashed'}
-            borderColor="primary.light"
-          >
-            <Grid item xs={12} marginBottom={1}>
-              {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
-                <Alert severity="info">
-                  You need yPoints to be able to browse the Web3.0. Click
-                  "Request yPoints" button to get some yPoints.
-                </Alert>
-              )}
-            </Grid>
-            <Grid item xs={11}>
-              <Typography variant="h6" component="h2" marginBottom={'2px'}>
-                Your Wallet Info
+        {isLoading ?
+          isUpdating ? (
+            <Box display="flex" sx={{ mt: '2rem' }}>
+              <CircularProgress size={20} />
+              <Typography sx={{ ml: '.6rem' }}>
+                Point Node is updating... Please wait
               </Typography>
-            </Grid>
-            {isLoadingWalletInfo ? (
-              <Grid item xs={12} display="flex" marginY={2}>
-                <CircularProgress size={20} />
-                <Typography sx={{ ml: '.6rem' }}>
-                  Getting Wallet Info...
+            </Box>
+          ) : (
+            <Box display="flex" sx={{ mt: '1.2rem' }}>
+              <CircularProgress size={20} />
+              <Typography sx={{ ml: '.6rem' }}>
+                Starting up Node and Browser...
+              </Typography>
+            </Box>
+          ) : (
+            <Grid
+              container
+              sx={{
+                my: '.65rem',
+                p: '1rem',
+                pt: '.75rem',
+                opacity: isLoading ? 0.2 : 1,
+              }}
+              borderRadius={2}
+              border={'2px dashed'}
+              borderColor="primary.light"
+            >
+              <Grid item xs={12} marginBottom={1}>
+                {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
+                  <Alert severity="info">
+                    You need yPoints to be able to browse the Web3.0. Click
+                    "Request yPoints" button to get some yPoints.
+                  </Alert>
+                )}
+              </Grid>
+              <Grid item xs={11}>
+                <Typography variant="h6" component="h2" marginBottom={'2px'}>
+                  Your Wallet Info
                 </Typography>
               </Grid>
-            ) : (
-              <Fragment>
-                <Grid item xs={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Wallet Address
+              {isLoadingWalletInfo ? (
+                <Grid item xs={12} display="flex" marginY={2}>
+                  <CircularProgress size={20} />
+                  <Typography sx={{ ml: '.6rem' }}>
+                    Getting Wallet Info...
                   </Typography>
                 </Grid>
-                <Grid item xs={8}>
-                  <Typography variant="subtitle2">
-                    {walletInfo.address || 'N/A'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={3}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Balance
-                  </Typography>
-                </Grid>
-                <Grid item xs={8} marginBottom={2}>
-                  <Typography variant="subtitle2">
-                    {`${walletInfo.balance} yPoints` || 'N/A'}
-                  </Typography>
-                </Grid>
-                <Button
-                  variant="contained"
-                  disabled={Number(walletInfo.balance) > 0}
-                  onClick={requestYPoints}
-                >
-                  Request yPoints
-                </Button>
-              </Fragment>
-            )}
-          </Grid>
-        )}
-        {isUpdating && (
-          <Box display="flex" sx={{ mt: '2rem' }}>
-            <CircularProgress size={20} />
-            <Typography sx={{ ml: '.6rem' }}>
-              Point Node is updating... Please wait
-            </Typography>
-          </Box>
-        )}
+              ) : (
+                <Fragment>
+                  <Grid item xs={3}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Wallet Address
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography variant="subtitle2">
+                      {walletInfo.address || 'N/A'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Balance
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} marginBottom={2}>
+                    <Typography variant="subtitle2">
+                      {`${walletInfo.balance} yPoints` || 'N/A'}
+                    </Typography>
+                  </Grid>
+                  <Button
+                    variant="contained"
+                    disabled={Number(walletInfo.balance) > 0}
+                    onClick={requestYPoints}
+                  >
+                    Request yPoints
+                  </Button>
+                </Fragment>
+              )}
+            </Grid>
+          )}
         <Box
           sx={{
             opacity: isLoading || isUpdating ? 0.2 : 1,
@@ -202,7 +211,7 @@ export default function App() {
           />
           <ResourceItemCard
             title={"Point Node " + nodeVersion}
-            status={isNodeRunning}
+            status={!!nodeVersion}
             onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
