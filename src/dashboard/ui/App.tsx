@@ -13,24 +13,43 @@ import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isUpdating, setUpdating] = useState<boolean>(false)
   const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
 
   useEffect(() => {
+    window.Dashboard.checkUpdate()
     checkNode()
     setIsLoading(true)
+    window.Dashboard.on('node:update', (status: boolean) => {
+      setUpdating(status)
+      if (status) {
+        setIsLoading(false)
+        window.Dashboard.DownloadNode()
+      }else{
+        openFirefox()
+        window.Dashboard.checkBalanceAndAirdrop()
+        checkNode()
+        setIsLoading(false)
+      }
+    })
+    window.Dashboard.on('pointNode:finishDownload', (status: boolean) => {
+      setUpdating(false)
+      setIsLoading(true)
+      window.Dashboard.launchNode()
+      setTimeout(() => {
+        openFirefox()
+        window.Dashboard.checkBalanceAndAirdrop()
+        setIsLoading(false)
+        checkNode()
+      }, 5000)
+    })
     window.Dashboard.on('firefox:active', (status: boolean) => {
       setIsFirefoxRunning(status)
     })
     window.Dashboard.on('pointNode:checked', (status: boolean) => {
       setIsNodeRunning(status)
     })
-    setTimeout(() => {
-      openFirefox()
-      window.Dashboard.checkBalanceAndAirdrop()
-      checkNode()
-      setIsLoading(false)
-    }, 5000)
   }, [])
 
   const logout: MouseEventHandler = () => {
@@ -65,9 +84,17 @@ export default function App() {
             </Typography>
           </Box>
         )}
+        {isUpdating && (
+          <Box display="flex" sx={{ mt: '2rem' }}>
+            <CircularProgress size={20} />
+            <Typography sx={{ ml: '.6rem' }}>
+              Point Node is updating... Please wait
+            </Typography>
+          </Box>
+        )}
         <Box
           sx={{
-            opacity: isLoading ? 0.2 : 1,
+            opacity: isLoading || isUpdating ? 0.2 : 1,
             my: '1.5rem',
             display: 'grid',
             gridTemplateColumns: { sm: '1fr 1fr' },
@@ -80,7 +107,7 @@ export default function App() {
             onClick={openFirefox}
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
-            isLoading={isLoading}
+            isLoading={isLoading|| isUpdating}
           />
           <ResourceItemCard
             title="Point Node"
@@ -88,7 +115,7 @@ export default function App() {
             onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
-            isLoading={isLoading}
+            isLoading={isLoading || isUpdating}
           />
         </Box>
       </Box>

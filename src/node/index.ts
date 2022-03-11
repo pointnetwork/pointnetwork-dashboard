@@ -6,6 +6,7 @@ import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
 
+const rimraf = require("rimraf");
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const find = require('find-process')
@@ -23,17 +24,18 @@ export default class Node {
     this.launch()
   }
 
-  getURL(filename: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/${global.nodePoint.version}/${filename}`
+  getURL(filename: string, version: string) {
+    
+    return `https://github.com/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
-  getNodeFileName() {
+  getNodeFileName(version: string) {
 
-    if (global.platform.win32) return `point-win-${global.nodePoint.version}.tar.gz`
+    if (global.platform.win32) return `point-win-${version}.tar.gz`
 
-    if (global.platform.darwin) return `point-macos-${global.nodePoint.version}.tar.gz`
+    if (global.platform.darwin) return `point-macos-${version}.tar.gz`
 
-    return `point-linux-${global.nodePoint.version}.tar.gz`
+    return `point-linux-${version}.tar.gz`
   }
 
   async getBinPath() {
@@ -64,15 +66,16 @@ export default class Node {
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
+      const version = await helpers.getLastNodeVersion()
       const pointPath = helpers.getPointPath()
-      const filename = this.getNodeFileName()
+      const filename = this.getNodeFileName(version)
 
       const downloadPath = path.join(pointPath, filename)
       if (!downloadPath) {
         fs.mkdirpSync(downloadPath)
       }
       const downloadStream = fs.createWriteStream(downloadPath)
-      const downloadUrl = this.getURL(filename)
+      const downloadUrl = this.getURL(filename, version)
 
       https.get(downloadUrl, async response => {
         this.installationLogger.log('Downloading Node...')
@@ -91,6 +94,7 @@ export default class Node {
             this.installationLogger.log(
               `Downloaded: ${Number(percentage).toFixed(0)}%`
             )
+
           }
         })
       })
@@ -101,10 +105,11 @@ export default class Node {
           plugins: [decompressTargz()],
         }).then(() => {
           fs.unlinkSync(downloadPath)
+          this.window.webContents.send('pointNode:finishDownload', true)
           resolve(this.installationLogger.log('Files decompressed'))
 
           // stringify JSON Object
-          const jsonData = '{"nodeVersionInstalled":"' + global.nodePoint.version + '"}'
+          const jsonData = '{"nodeVersionInstalled":"' + version + '"}'
           const  jsonContent = JSON.parse(jsonData)
           const jsonParse = JSON.stringify(jsonContent)
           fs.writeFile(path.join(pointPath, 'infoNode.json'), jsonParse, 'utf8', function (err) {
@@ -184,4 +189,25 @@ export default class Node {
       console.log('Sotoped Message',result);
     }
   }
+
+  async checkNodeVersion() {
+
+    const pointPath = helpers.getPointPath()
+    const installedVersion = helpers.getInstalledVersion()
+
+    const lastVersion = await helpers.getLastNodeVersion()
+    
+    console.log(installedVersion.nodeVersionInstalled )
+    if (installedVersion.nodeVersionInstalled !== lastVersion && installedVersion.nodeVersionInstalled ) {
+      console.log('Node Update need it')
+      await this.stopNode()
+      if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
+      if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));
+      this.window.webContents.send('node:update', true)
+    }else{
+      this.window.webContents.send('node:update', false)
+    }
+  }
 }
+
+

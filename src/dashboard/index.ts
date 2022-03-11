@@ -75,6 +75,18 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'node:download',
+      listener() {
+        node!.download()
+      },
+    },
+    {
+      channel: 'node:checkUpdate',
+      listener() {
+        node!.checkNodeVersion()
+      },
+    },
+    {
       channel: 'logOut',
       async listener() {
         await node!.stopNode()

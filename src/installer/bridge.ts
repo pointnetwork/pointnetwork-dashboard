@@ -11,9 +11,6 @@ export const api = {
   startInstallation: () => {
     ipcRenderer.send('installer:start')
   },
-  checkUpdate: () => {
-    ipcRenderer.send('installer:checkUpdate')
-  },
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
   },

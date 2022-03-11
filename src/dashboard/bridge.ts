@@ -11,6 +11,9 @@ export const api = {
   launchNode: () => {
     ipcRenderer.send('node:launch')
   },
+  DownloadNode: () => {
+    ipcRenderer.send('node:download')
+  },
   checkNode: () => {
     ipcRenderer.send('node:check')
   },
@@ -22,6 +25,9 @@ export const api = {
   },
   nodeStop: () => {
     ipcRenderer.send('node:stop')
+  },
+  checkUpdate: () => {
+    ipcRenderer.send('node:checkUpdate')
   },
   checkBalanceAndAirdrop: () => {
     ipcRenderer.send('node:check_balance_and_airdrop')
