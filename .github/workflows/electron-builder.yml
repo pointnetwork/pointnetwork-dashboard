@@ -1,8 +1,8 @@
 name: Build
 on:
   push:
-    tags:
-      - 'v*'
+#    tags:
+#      - 'v*'
 
 jobs:
   create_release:
@@ -72,17 +72,30 @@ jobs:
       run: npm install
     - name: Build executables
       run: npm run make
+    - name: Build Installer
+      run: npm run create-installer-mac
 
     - name: Compress and package executables
       run: ./scripts/package_macos_executables.sh
-    - name: Upload macos artefact
+    - name: Compress and package Installer
+      run: ./scripts/package_macos_installer.sh
+    - name: Upload macos executable
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
         asset_path: ./out/mac_executables/point-dashboard.tar.gz
-        asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-portable.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload macos installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/mac_executables/point-dashboard-dmg.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-installer.tar.gz
         asset_content_type: application/gzip
 
   build_on_win:
