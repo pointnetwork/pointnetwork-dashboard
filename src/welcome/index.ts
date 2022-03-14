@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain} from 'electron'
 import WelcomeService from './services'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
@@ -56,6 +56,12 @@ export default function (isExplicitRun = false) {
       channel: 'welcome:validate_mnemonic',
       listener(_: any, message: string) {
         welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''))
+      },
+    },
+    {
+      channel: 'welcome:copy_mnemonic',
+      listener(_: any, message: string) {
+        welcomeService!.copy(message)
       },
     },
     {
