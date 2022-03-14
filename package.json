@@ -11,7 +11,7 @@
     "release": "electron-forge publish",
     "lint": "eslint . --ext js,ts",
     "test": "jest",
-    "winInstaller": "npm run make && node build_installer_win.js",
+    "create-installer-win": "electron-forge make && node build_installer_win.js",
     "create-installer-mac": "electron-forge make && electron-installer-dmg ./out/pointnetwork-dashboard-darwin-x64/pointnetwork-dashboard.app pointnetwork-dashboard --out=out --overwrite --icon=assets/icon.icns"
   },
   "keywords": [],
