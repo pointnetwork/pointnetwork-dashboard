@@ -9,6 +9,7 @@ import https from 'follow-redirects'
 import { BrowserWindow } from 'electron'
 import Logger from '../../shared/logger'
 import type { Process } from '../@types/process'
+const rimraf = require("rimraf");
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
@@ -110,6 +111,8 @@ export default class {
               reject(err)
             } else {
               this.installationLogger.log(`\nDeleted file: ${releasePath}`)
+              version
+              this.window.webContents.send('firefox:setVersion', version)
               this.window.webContents.send('firefox:finishDownload', true)
               // write firefox version to a file
               fs.writeFile(path.join(pointPath, 'infoFirefox.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', function (err) {
@@ -120,6 +123,7 @@ export default class {
 
                 console.log("infoFirefox.json file has been saved.");
               })
+
               resolve(
                 this.installationLogger.log('Installed Firefox successfully')
               )
@@ -459,25 +463,23 @@ pref("extensions.startupScanScopes", 15);
     const latestReleaseVersion = await this.getLastVersionFirefox()
     
     console.log('firefox version installed',installedVersion.installedReleaseVersion  )
+    this.window.webContents.send('firefox:setVersion', installedVersion.installedReleaseVersion)
     console.log('firefox last version',latestReleaseVersion )
     if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
       console.log('Firefox Update need it')
-
       this.window.webContents.send('firefox:update', true)
       
-      //process to update firefox.
-      //TODO: Close and remove old version of firefox folder. This could be helped by PD-70.
-
-      //this.stopNode().then(()=>{
-      //  setTimeout(() => {
-      //    if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
-      //    if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));    
-      //  }, 500);   
-      //})
-
+      //closes firefox
+      this.close().then(() =>
+        //delete firefox folder
+        setTimeout(() => {
+          if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'src', 'point-browser', 'firefox'));
+        }, 500)
+      )
     }else{
       this.window.webContents.send('firefox:update', false)
     }
+    
   }
 
 }

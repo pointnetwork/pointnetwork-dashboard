@@ -24,7 +24,6 @@ export const api = {
     ipcRenderer.send('firefox:launch')
   },
   DownloadFirefox: () => {
-    console.log('firefox:download')
     ipcRenderer.send('firefox:download')
   },
   changeFirefoxStatus: (isRunning: boolean) => {

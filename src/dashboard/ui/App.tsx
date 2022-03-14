@@ -16,6 +16,7 @@ import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
+  const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
   const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(true)
   const [walletInfo, setWalletInfo] = useState<{
@@ -26,6 +27,7 @@ export default function App() {
     balance: '',
   })
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
+  const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
   const checkStartTime = useRef(0)
 
   useEffect(() => {
@@ -39,13 +41,18 @@ export default function App() {
     })
 
     window.Dashboard.on('firefox:update', (status: boolean) => {
-      setIsUpdating(status)
+      setIsFirefoxUpdating(status)
       if (status) {
         window.Dashboard.DownloadFirefox()
       } //else {
         //openFirefox()
       //}
     })
+
+    window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
+      setFirefoxVersion(firefoxVersion);
+    })
+    
 
     window.Dashboard.on('pointNode:finishDownload', () => {
       setIsUpdating(false)
@@ -54,7 +61,7 @@ export default function App() {
     })
 
     window.Dashboard.on('firefox:finishDownload', () => {
-      setIsUpdating(false)
+      setIsFirefoxUpdating(false)
       openFirefox();
     })
 
@@ -86,10 +93,10 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (nodeVersion && isFirefoxRunning && !isLoadingWalletInfo && !isUpdating) {
+    if (nodeVersion && isFirefoxRunning && !isLoadingWalletInfo && !isUpdating && !isFirefoxUpdating) {
       setIsLoading(false)
     }
-  }, [isUpdating, nodeVersion, isFirefoxRunning, isLoadingWalletInfo])
+  }, [isFirefoxUpdating, isUpdating, nodeVersion, isFirefoxRunning, isLoadingWalletInfo])
 
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
@@ -127,11 +134,11 @@ export default function App() {
           Manage the various point components from here
         </Typography>
         {isLoading ?
-          isUpdating ? (
+          isUpdating || isFirefoxUpdating ? (
             <Box display="flex" sx={{ mt: '2rem' }}>
               <CircularProgress size={20} />
               <Typography sx={{ ml: '.6rem' }}>
-                Point Node is updating... Please wait
+                { (isUpdating ? 'Point Node ' : 'Firefox') +  ' updating... Please wait'}
               </Typography>
             </Box>
           ) : (
@@ -209,7 +216,7 @@ export default function App() {
           )}
         <Box
           sx={{
-            opacity: isLoading || isUpdating ? 0.2 : 1,
+            opacity: isLoading || isUpdating || isFirefoxUpdating ? 0.2 : 1,
             my: '1.5rem',
             display: 'grid',
             gridTemplateColumns: { sm: '1fr 1fr' },
@@ -222,15 +229,17 @@ export default function App() {
             onClick={openFirefox}
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
-            isLoading={isLoading|| isUpdating}
+            isLoading={isLoading|| isUpdating  || isFirefoxUpdating}
+            version={firefoxVersion}
           />
           <ResourceItemCard
-            title={"Point Node " + nodeVersion}
+            title="Point Node"
             status={!!nodeVersion}
             onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
-            isLoading={isLoading || isUpdating}
+            isLoading={isLoading || isUpdating  || isFirefoxUpdating}
+            version={nodeVersion}
           />
         </Box>
       </Box>
@@ -245,13 +254,15 @@ const ResourceItemCard = ({
   status,
   icon,
   isLoading,
+  version
 }: {
   title: string
   buttonLabel: string
   onClick: any
   icon: any
   status: boolean
-  isLoading: boolean
+  isLoading: boolean,
+  version: string | null
 }) => {
   return (
     <Box
@@ -273,6 +284,11 @@ const ResourceItemCard = ({
           ) : (
             <CancelIcon color="error" />
           )}
+        </Box>
+        <Box display="flex" alignItems="center">
+          <Typography color="text.secondary" sx={{ mr: 0.5 }}>
+            Version: {version}
+          </Typography>
         </Box>
         <Button
           variant="contained"
