@@ -57,6 +57,7 @@ export default function (isExplicitRun = false) {
     isLoggingOut = false
 
     node = new Node(mainWindow!)
+    await node.checkNodeVersion()
     // if (!(await node.pointNodeCheck())) node.launch()
 
     firefox = new Firefox(mainWindow!)
