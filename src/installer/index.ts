@@ -1,8 +1,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import welcome from '../welcome'
 import baseWindowConfig from '../../shared/windowConfig'
+import Logger from '../../shared/logger'
 import Installer from './service'
 export { Installer }
+
+
+const logger = new Logger();
 
 app.disableHardwareAcceleration()
 
@@ -34,10 +38,10 @@ export default function () {
     mainWindow.loadURL(INSTALLER_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('closed', () => {
-      console.log('Closed Installer Window')
+      logger.info('Closed Installer Window')
       events.forEach(event => {
         ipcMain.removeListener(event.channel, event.listener)
-        console.log('[installer:index.ts] Removed event', event.channel)
+        logger.info('[installer:index.ts] Removed event', event.channel)
       })
       mainWindow = null
       installer = null
@@ -58,10 +62,10 @@ export default function () {
   async function registerListeners() {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
-      console.log('[installer:index.ts] Registered event', event.channel)
+      logger.info('[installer:index.ts] Registered event', event.channel)
     })
     ipcMain.on('installer:checkUpdate', async (_, message) => {
-      console.log(
+      logger.info(
         '[installer:index.ts] TODO!! -> implement checkUpdateOrInstall method'
       )
       // new Installer(mainWindow!).checkUpdateOrInstall()
@@ -72,7 +76,7 @@ export default function () {
     .on('ready', createWindow)
     .whenReady()
     .then(registerListeners)
-    .catch(e => console.error(e))
+    .catch(e => logger.error(e))
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
