@@ -18,5 +18,5 @@ for FILE in ./out/linux_executables/*; do
   EXTENSION=${tmp#*\.};
   mkdir -p ./out/linux_executables/$EXTENSION;
   mv $FILE ./out/linux_executables/$EXTENSION;
-  tar -czvf ./out/linux_executables/point-dashboard-$EXTENSION.tar.gz -C ./out/linux_executables/$EXTENSION ./;
+  tar -czvf ./out/linux_executables/point-dashboard-$EXTENSION.tar.gz -C ./out/linux_executables/$EXTENSION/ ./point-dashboard.$EXTENSION;
 done
