@@ -8,9 +8,11 @@ import util from 'util'
 import https from 'follow-redirects'
 import { BrowserWindow } from 'electron'
 import Logger from '../../shared/logger'
+import type { Process } from '../@types/process'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
+const find = require('find-process')
 const exec = util.promisify(require('child_process').exec)
 
 export default class {
@@ -151,6 +153,26 @@ export default class {
       if (stderr) this.window.webContents.send('firefox:active', false)
     } catch (error) {
       this.window.webContents.send('firefox:active', false)
+    }
+  }
+
+  getKillCmd(pid: number) {
+    return global.platform.win32 ? `taskkill /F /PID ${pid}` : `kill ${pid}`
+  }
+
+  async close() {
+    const processes: Process[] = await find('name', /firefox/i)
+
+    const pointBrowserParentProcesses = processes.filter(
+      p => p.cmd.includes('point-browser') && !p.cmd.includes('tab')
+    )
+
+    if (pointBrowserParentProcesses.length > 0) {
+      for (const p of pointBrowserParentProcesses) {
+        console.log(`[firefox:close] Killing PID ${p.pid}...`)
+        const cmdOutput = await exec(this.getKillCmd(p.pid))
+        console.log(`[firefox:close] Output of "kill ${p.pid}":`, cmdOutput)
+      }
     }
   }
 

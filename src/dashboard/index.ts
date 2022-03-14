@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, IpcMainEvent } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
@@ -10,8 +10,32 @@ let mainWindow: BrowserWindow | null
 let node: Node | null
 let firefox: Firefox | null
 
+let isFirefoxRunning = false
+let isLoggingOut = false
+
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
+
+const MESSAGES = {
+  closeConfirmation: {
+    title: 'Are you sure you want to close?',
+    message:
+      'Closing the Dashboard will also close the Browser. Are you sure you want to close them?',
+    buttons: {
+      confirm: 'Yes',
+      cancel: 'No',
+    },
+  },
+  logoutConfirmation: {
+    title: 'Are you sure you want to log out?',
+    message:
+      'Do you want to close the browser and remove the secret phrase from this computer?',
+    buttons: {
+      confirm: 'Yes',
+      cancel: 'No',
+    },
+  },
+}
 
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
@@ -30,6 +54,8 @@ export default function (isExplicitRun = false) {
       },
     })
 
+    isLoggingOut = false
+
     node = new Node(mainWindow!)
     // if (!(await node.pointNodeCheck())) node.launch()
 
@@ -39,13 +65,45 @@ export default function (isExplicitRun = false) {
 
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
-    mainWindow.on('close', async () => {
-      console.log('Closed Dashboard Window')
-      events.forEach(event => {
-        ipcMain.removeListener(event.channel, event.listener)
-        console.log('[dashboard:index.ts] Removed event', event.channel)
-      })
-      await node?.stopNode()
+    mainWindow.on('close', async ev => {
+      // We prevent default to programatically close the window,
+      // thus ensuring we await for all necessary actions to complete.
+      ev.preventDefault()
+
+      let quit = true
+
+      if (!isLoggingOut && isFirefoxRunning) {
+        const confirmationAnswer = dialog.showMessageBoxSync({
+          type: 'question',
+          title: MESSAGES.closeConfirmation.title,
+          message: MESSAGES.closeConfirmation.message,
+          buttons: [
+            MESSAGES.closeConfirmation.buttons.confirm,
+            MESSAGES.closeConfirmation.buttons.cancel,
+          ],
+        })
+
+        if (confirmationAnswer === 1) {
+          // User clicked 'No' (button at index 1)
+          quit = false
+        }
+      }
+
+      if (quit) {
+        console.log('Closed Dashboard Window')
+        events.forEach(event => {
+          ipcMain.removeListener(event.channel, event.listener)
+          console.log('[dashboard:index.ts] Removed event', event.channel)
+        })
+
+        try {
+          await Promise.all([firefox?.close(), node?.stopNode()])
+        } catch (err) {
+          console.error('[dashboard:index.ts] Error in `close` handler', err)
+        } finally {
+          mainWindow?.destroy()
+        }
+      }
     })
 
     mainWindow.on('closed', () => {
@@ -60,6 +118,12 @@ export default function (isExplicitRun = false) {
       channel: 'firefox:launch',
       listener() {
         firefox!.launch()
+      },
+    },
+    {
+      channel: 'firefox:status',
+      listener(_ev: IpcMainEvent, isRunning: boolean) {
+        isFirefoxRunning = isRunning
       },
     },
     {
@@ -102,9 +166,23 @@ export default function (isExplicitRun = false) {
     {
       channel: 'logOut',
       async listener() {
-        await node!.stopNode()
-        helpers.logout()
-        mainWindow!.close()
+        const confirmationAnswer = dialog.showMessageBoxSync({
+          type: 'question',
+          title: MESSAGES.logoutConfirmation.title,
+          message: MESSAGES.logoutConfirmation.message,
+          buttons: [
+            MESSAGES.logoutConfirmation.buttons.confirm,
+            MESSAGES.logoutConfirmation.buttons.cancel,
+          ],
+        })
+
+        if (confirmationAnswer === 0) {
+          // User clicked 'Yes' (button at index 0)
+          isLoggingOut = true
+          await node!.stopNode()
+          helpers.logout()
+          mainWindow!.close()
+        }
       },
     },
     {
@@ -116,9 +194,9 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:getVersion',
       async listener(event: IpcMainEvent) {
-        event.returnValue = await helpers.getInstalledVersion() 
+        event.returnValue = await helpers.getInstalledVersion()
       },
-    },   
+    },
     {
       channel: 'node:check_balance_and_airdrop',
       async listener() {
