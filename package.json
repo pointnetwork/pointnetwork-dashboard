@@ -10,7 +10,8 @@
     "make": "electron-forge make",
     "release": "electron-forge publish",
     "lint": "eslint . --ext js,ts",
-    "test": "jest"
+    "test": "jest",
+    "winInstaller": "npm run make && node build_installer_win.js"
   },
   "keywords": [],
   "license": "MIT",
@@ -78,6 +79,7 @@
     "cross-env": "7.0.3",
     "css-loader": "^6.6.0",
     "electron": "^17.1.0",
+    "electron-wix-msi": "^3.2.0",
     "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-config-standard": "16.0.3",
