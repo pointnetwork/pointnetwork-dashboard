@@ -34,9 +34,11 @@ const msiCreator = new MSICreator({
 msiCreator.create().then(function(){
 
     // Step 5: Compile the template to a .msi file
-    msiCreator.compile();
-    console.log('Compiled succesfully')
-    process.exit(0)
+    msiCreator.compile().then(()=>{
+        console.log('Compiled succesfully')
+        process.exit(0)
+    });
+    
 }).catch(err=>{
     console.log('Process error', err)
     process.exit(1)
