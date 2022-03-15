@@ -10,6 +10,7 @@ import { BrowserWindow } from 'electron'
 import Logger from '../../shared/logger'
 import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
+import progress from 'progress-stream'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
@@ -235,10 +236,21 @@ export default class {
       return
     }
     if (global.platform.linux || global.platform.linux) {
+      const stats = fs.statSync(releasePath)
+      const progressStream = progress({ length: stats.size })
+      progressStream.on('progress', progress => {
+        this.installationLogger.log(
+          InstallationStepsEnum.BROWSER,
+          `Unpacking Firefox (${Math.round(progress.percentage)}%)`
+        )
+      })
+
       const readStream = fs
         .createReadStream(releasePath)
+        .pipe(progressStream)
         .pipe(bz2())
         .pipe(tarfs.extract(browserDir))
+
       readStream.on('finish', cb)
     }
   }
