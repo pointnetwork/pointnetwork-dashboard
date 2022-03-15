@@ -218,28 +218,42 @@ export default class {
       }
     }
     if (global.platform.darwin) {
-      dmg.mount(releasePath, (_err: any, dmgPath: any) => {
-        fs.copy(`${dmgPath}/Firefox.app`, `${browserDir}/Firefox.app`, err => {
-          if (err) {
-            logger.info(`Error Found: ${err}`)
-            dmg.unmount(dmgPath, (err: any) => {
-              if (err) throw err
-            })
-            return
-          }
+      dmg.mount(releasePath, async (_err: any, dmgPath: any) => {
+        try {
+          const src = `${dmgPath}/Firefox.app`
+          const dst = `${browserDir}/Firefox.app`
+
+          const totalFiles = await helpers.countFilesinDir(src)
+          let filesCopied = 0
+
+          await fs.copy(src, dst, {
+            filter: src => {
+              if (fs.statSync(src).isFile()) {
+                filesCopied++
+                const progress = Math.round((filesCopied / totalFiles) * 100)
+                this.installationLogger.info(
+                  InstallationStepsEnum.BROWSER,
+                  `Unpacking Firefox (${progress}%)`
+                )
+              }
+              return true // To actually copy the file
+            },
+          })
+        } catch (err) {
+          logger.info('Error Unpacking Firefox:', err)
+        } finally {
           dmg.unmount(dmgPath, (err: any) => {
             if (err) throw err
             cb()
           })
-        })
+        }
       })
-      return
     }
     if (global.platform.linux || global.platform.linux) {
       const stats = fs.statSync(releasePath)
       const progressStream = progress({ length: stats.size })
       progressStream.on('progress', progress => {
-        this.installationLogger.log(
+        this.installationLogger.info(
           InstallationStepsEnum.BROWSER,
           `Unpacking Firefox (${Math.round(progress.percentage)}%)`
         )
