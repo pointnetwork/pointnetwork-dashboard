@@ -118,7 +118,7 @@ jobs:
       run: npm install
     - name: Build executables
       run: npm run make
-    - name: Build executables
+    - name: Build Installer
       run: npm run create-installer-win
       env:
         WINDOWS_PFX_FILE: ${{ steps.write_file.outputs.filePath }}
@@ -136,7 +136,7 @@ jobs:
         asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-portable.zip
         asset_content_type: application/gzip
 
-    - name: Compress and package executables
+    - name: Compress and package installer
       run: bash ./scripts/package_win_installer.sh
     - name: Upload win installer
       uses: actions/upload-release-asset@v1
