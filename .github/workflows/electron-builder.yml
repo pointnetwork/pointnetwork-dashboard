@@ -106,7 +106,7 @@ jobs:
     - uses: actions/setup-node@master
     - uses: actions/setup-python@v2
       with:
-        node-version: 14
+        node-version: 16
         python-version: '3.11.0-alpha - 3.11.0'
     - name: Add Windows certificate
       id: write_file
@@ -116,6 +116,8 @@ jobs:
         encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
     - name: Update npm
       run: npm i -g npm
+    - name: config msvs
+      run: npm config set msvs_version 2022
     - name: Install dependencies
       run: npm install
     - name: Build executables
