@@ -195,7 +195,18 @@ export default class {
     )
     if (global.platform.win32) {
       try {
-        await extract(releasePath, { dir: browserDir })
+        await extract(releasePath, {
+          dir: browserDir,
+          onEntry: (_, zipfile) => {
+            const extracted = zipfile.entriesRead
+            const total = zipfile.entryCount
+            const progress = Math.round((extracted / total) * 100)
+            this.installationLogger.info(
+              InstallationStepsEnum.BROWSER,
+              `Unpacking Firefox (${progress}%)`
+            )
+          },
+        })
         this.installationLogger.info(
           InstallationStepsEnum.BROWSER,
           'Extraction complete'
