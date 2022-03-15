@@ -116,12 +116,17 @@ jobs:
         encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
     - name: Update npm
       run: npm i -g npm
+    - name: Update npm
+      run: npm i exe-icon-extractor --save-dev
     - name: config msvs
       run: npm config set msvs_version 2022
     - name: Install dependencies
       run: npm install
     - name: Build executables
       run: npm run make
+    - name: Set path for candle and light
+      run: echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
+      shell: bash
     - name: Build Installer
       run: npm run create-installer-win
       env:
