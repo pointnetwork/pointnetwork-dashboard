@@ -16,8 +16,8 @@ const exec = util.promisify(require('child_process').exec)
 export default class Node {
   private installationLogger
   private window
-  private pid: any
-  private killCmd: string = ''
+  private pid: string[] = []
+  private killCmd: string[] = []
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -26,7 +26,7 @@ export default class Node {
   }
 
   getURL(filename: string, version: string) {
-    
+
     return `https://github.com/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
@@ -110,7 +110,7 @@ export default class Node {
           resolve(this.installationLogger.log('Files decompressed'))
 
           // stringify JSON Object
-          fs.writeFile(path.join(pointPath, 'infoNode.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', function (err) {
+          fs.writeFile(path.join(pointPath, 'infoNode.json'), JSON.stringify({ installedReleaseVersion: version }), 'utf8', function (err) {
             if (err) {
               console.log("An error occured while writing JSON Object to File.")
               return console.log(err);
@@ -118,7 +118,7 @@ export default class Node {
 
             console.log("JSON file has been saved.");
           })
-          
+
         })
       })
     })
@@ -153,7 +153,7 @@ export default class Node {
         console.log(`pointnode launch exec stderr: ${stderr}`)
       }
     })
-    this.getProcess()
+    await this.getProcess()
   }
 
   async pointNodeCheck(): Promise<boolean> {
@@ -188,18 +188,23 @@ export default class Node {
     const process = await find('name', 'point', true)
     if (process.length > 0) {
       console.log('Found running process', process)
-      this.pid = process[0].pid
-      console.log('Process ID', this.pid)
-      this.killCmd = `kill ${this.pid}`
-      if (global.platform.win32) this.killCmd = `taskkill /F /PID ${this.pid}`
+      this.killCmd = process.map((obj: { pid: any }) => {
+        let command = `kill ${obj.pid}`
+        if (global.platform.win32) command = `taskkill /F /PID ${obj.pid}`
+        return command
+      })
+      console.log('cmd',this.killCmd)
     }
   }
 
   async stopNode() {
     if (this.pid) {
       console.log('Stopping Node...', this.killCmd)
-      const result  = await exec(this.killCmd)
-      console.log('Sotoped Message',result);
+      this.killCmd.forEach(async cmd => {
+        const result = await exec(cmd)
+        console.log('Sotoped Message', result);
+      });
+
     }
   }
 
@@ -209,19 +214,20 @@ export default class Node {
     const installedVersion = helpers.getInstalledVersion()
 
     const latestReleaseVersion = await helpers.getlatestReleaseVersion()
-    
-    console.log('installed',installedVersion.installedReleaseVersion  )
-    console.log('last',latestReleaseVersion )
-    if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
+
+    console.log('installed', installedVersion.installedReleaseVersion)
+    console.log('last', latestReleaseVersion)
+    if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
       console.log('Node Update need it')
       this.window.webContents.send('node:update', true)
-      this.stopNode().then(()=>{
-        setTimeout(() => {
+      await this.getProcess()
+      setTimeout(() => {
+        this.stopNode().then(() => {
           if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
-          if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));    
-        }, 500);   
-      })
-    }else{
+          if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));
+        })
+      }, 500);
+    } else {
       this.window.webContents.send('node:update', false)
     }
   }
