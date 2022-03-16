@@ -133,7 +133,7 @@ export default class {
               this.installationLogger.info(`\nDeleted file: ${releasePath}`)
               resolve(
                 this.installationLogger.info(
-                  InstallationStepsEnum.BROWSER,
+                  `${InstallationStepsEnum.BROWSER}:100`,
                   'Installed Firefox successfully'
                 )
               )
