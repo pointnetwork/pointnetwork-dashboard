@@ -116,12 +116,11 @@ jobs:
         encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
     - name: Update npm
       run: npm i -g npm
-    - name: Update exe-icon-extractor
-      run: npm i exe-icon-extractor --save-dev
-    - name: config msvs
-      run: npm config set msvs_version 2022
+
     - name: Install dependencies
       run: npm install
+    - name: config msvs
+      run: npm config set msvs_version 2022
     - name: Build executables
       run: npm run make
     - name: Set path for candle and light
