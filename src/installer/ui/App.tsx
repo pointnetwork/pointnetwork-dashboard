@@ -10,7 +10,7 @@ import UIThemeProvider from '../../../shared/UIThemeProvider'
 import { InstallationStepsEnum } from '../../@types/installation'
 import { installationLogReducer, initialState } from '../reducer'
 import Logs from './Logs'
-import { parseLog } from '../helpers/parse-log'
+import { parseLog } from '../helpers'
 
 export default function App() {
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)

@@ -4,6 +4,7 @@ import Logger from '../../shared/logger'
 import Firefox from '../firefox'
 import Node from '../node'
 import { InstallationStepsEnum } from '../@types/installation'
+import { getProgressFromGithubMsg } from './helpers'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -110,7 +111,7 @@ class Installer {
           dir,
           url,
           onMessage: (msg: string) => {
-            const progressData = helpers.getProgressFromGithubMsg(msg)
+            const progressData = getProgressFromGithubMsg(msg)
             if (progressData) {
               const cap = 90 // Don't go to 100% since there are further steps.
               const progress =
