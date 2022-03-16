@@ -1,10 +1,12 @@
 import { InstallationStepsEnum } from '../../@types/installation'
 
-export function parseLog(log: string[]): {
+export type ParsedLog = {
   category: InstallationStepsEnum | null
   progress: number | null
   message: string
-} {
+}
+
+export function parseLog(log: string[]): ParsedLog {
   if (!log || log.length === 0) {
     return { category: null, progress: null, message: '' }
   }
