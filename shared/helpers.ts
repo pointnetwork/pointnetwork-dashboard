@@ -96,6 +96,10 @@ const getLiveDirectoryPath = () => {
   return path.join(getHomePath(), '.point', 'keystore')
 }
 
+const getLiveDirectoryPathResources = () => {
+  return path.join(getHomePath(), '.point', 'keystore', 'liveprofile')
+}
+
 const getKeyFileName = () => {
   return path.join(getLiveDirectoryPath(), 'key.json')
 }
@@ -226,4 +230,5 @@ export default Object.freeze({
   getPointPath,
   getlatestReleaseVersion,
   getInstalledVersion,
+  getLiveDirectoryPathResources,
 })

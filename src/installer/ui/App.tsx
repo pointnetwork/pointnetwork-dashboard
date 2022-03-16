@@ -47,7 +47,7 @@ export default function App() {
           >
             <List>
               <ListItemText>Point Node</ListItemText>
-              <ListItemText>Point Dashboard</ListItemText>
+              <ListItemText>Point LiveProfile</ListItemText>
               <ListItemText>Point Browser (Firefox)</ListItemText>
             </List>
           </Box>

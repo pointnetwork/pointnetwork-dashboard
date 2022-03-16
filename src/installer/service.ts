@@ -10,16 +10,14 @@ const http = require('isomorphic-git/http/node')
 const fs = require('fs')
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
-const POINT_DASHBOARD_DIR = helpers.getDashboardPath()
 const POINT_LIVE_DIR = helpers.getLiveDirectoryPath()
 
 const DIRECTORIES = [
-  POINT_DASHBOARD_DIR,
   helpers.getPointSoftwarePath(),
   POINT_LIVE_DIR,
 ]
 
-const REPOSITORIES = ['pointnetwork-dashboard']
+const REPOSITORIES = ['liveprofile']
 
 class Installer {
   private logger: Logger
@@ -100,13 +98,11 @@ class Installer {
           url,
         })
         this.logger.info('Cloned', url)
-        if (dir.includes('dashboard')) {
-          this.logger.info('Copying liveprofile')
-          helpers.copyFolderRecursiveSync(
-            path.join(POINT_DASHBOARD_DIR, 'liveprofile'),
-            POINT_LIVE_DIR
-          )
-        }
+        this.logger.info('Copying liveprofile')
+        helpers.copyFolderRecursiveSync(
+          dir,
+          POINT_LIVE_DIR
+        )
       })
     )
 
