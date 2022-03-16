@@ -43,7 +43,7 @@ export function installationLogReducer(
       return {
         ...state,
         [InstallationStepsEnum.DIRECTORIES]: {
-          status: 'IN_PROGRESS',
+          status: action.payload.progress === 100 ? 'FINISHED' : 'IN_PROGRESS',
           message: action.payload.message,
           progress:
             action.payload.progress ??
@@ -59,7 +59,7 @@ export function installationLogReducer(
           progress: 100,
         },
         [InstallationStepsEnum.CODE]: {
-          status: 'IN_PROGRESS',
+          status: action.payload.progress === 100 ? 'FINISHED' : 'IN_PROGRESS',
           message: action.payload.message,
           progress:
             action.payload.progress ??
@@ -75,7 +75,7 @@ export function installationLogReducer(
           progress: 100,
         },
         [InstallationStepsEnum.BROWSER]: {
-          status: 'IN_PROGRESS',
+          status: action.payload.progress === 100 ? 'FINISHED' : 'IN_PROGRESS',
           message: action.payload.message,
           progress:
             action.payload.progress ??
@@ -91,7 +91,7 @@ export function installationLogReducer(
           progress: 100,
         },
         [InstallationStepsEnum.POINT_NODE]: {
-          status: 'IN_PROGRESS',
+          status: action.payload.progress === 100 ? 'FINISHED' : 'IN_PROGRESS',
           message: action.payload.message,
           progress:
             action.payload.progress ??
