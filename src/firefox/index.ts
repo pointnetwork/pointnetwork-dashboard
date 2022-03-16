@@ -106,9 +106,14 @@ export default class {
           temp = Math.round((downloaded * 100) / Number(total))
           if (temp !== percentage) {
             percentage = temp
+
+            // Downloading is the first half of the process (second is unpacking),
+            // hence the division by 2.
+            const progress = Math.round(Number(percentage) / 2)
+
             this.installationLogger.info(
-              InstallationStepsEnum.BROWSER,
-              `Downloaded: ${Number(percentage).toFixed(0)}%`
+              `${InstallationStepsEnum.BROWSER}:${progress}`,
+              'Downloading'
             )
           }
         })
@@ -201,10 +206,14 @@ export default class {
           onEntry: (_, zipfile) => {
             const extracted = zipfile.entriesRead
             const total = zipfile.entryCount
-            const progress = Math.round((extracted / total) * 100)
+
+            // Unpacking is the second half of the process (first is downloading),
+            // hence the division by 2 and the plus 50.
+            const progress = Math.round(((extracted / total) * 100) / 2 + 50)
+
             this.installationLogger.info(
-              InstallationStepsEnum.BROWSER,
-              `Unpacking Firefox (${progress}%)`
+              `${InstallationStepsEnum.BROWSER}:${progress}`,
+              'Unpacking Firefox'
             )
           },
         })
@@ -230,10 +239,16 @@ export default class {
             filter: src => {
               if (fs.statSync(src).isFile()) {
                 filesCopied++
-                const progress = Math.round((filesCopied / totalFiles) * 100)
+
+                // Unpacking is the second half of the process (first is downloading),
+                // hence the division by 2 and the plus 50.
+                const progress = Math.round(
+                  ((filesCopied / totalFiles) * 100) / 2 + 50
+                )
+
                 this.installationLogger.info(
-                  InstallationStepsEnum.BROWSER,
-                  `Unpacking Firefox (${progress}%)`
+                  `${InstallationStepsEnum.BROWSER}:${progress}`,
+                  'Unpacking Firefox'
                 )
               }
               return true // To actually copy the file
@@ -251,11 +266,14 @@ export default class {
     }
     if (global.platform.linux || global.platform.linux) {
       const stats = fs.statSync(releasePath)
-      const progressStream = progress({ length: stats.size })
-      progressStream.on('progress', progress => {
+      const progressStream = progress({ length: stats.size, time: 250 })
+      progressStream.on('progress', p => {
+        // Unpacking is the second half of the process (first is downloading),
+        // hence the division by 2 and the plus 50.
+        const progress = Math.round(p.percentage / 2 + 50)
         this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          `Unpacking Firefox (${Math.round(progress.percentage)}%)`
+          `${InstallationStepsEnum.BROWSER}:${progress}`,
+          'Unpacking Firefox'
         )
       })
 

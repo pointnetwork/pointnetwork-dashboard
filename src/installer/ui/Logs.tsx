@@ -2,10 +2,9 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
-import CircularProgress from '@mui/material/CircularProgress'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { InstallationStepsEnum } from '../../@types/installation'
-import { InstallationLogData, InstallationStatus } from '../reducer'
+import { InstallationLogData } from '../reducer'
+import ProgressIndicator from './ProgressIndicator'
 
 interface Props {
   stepCategory: InstallationStepsEnum
@@ -22,16 +21,6 @@ const TITLES = {
 export default function Logs({ stepCategory, log }: Props) {
   const theme = useTheme()
 
-  const getStatus = (status: InstallationStatus) => {
-    if (status === 'IN_PROGRESS') {
-      return <CircularProgress size={20} color="primary" />
-    }
-    if (status === 'FINISHED') {
-      return <CheckCircleIcon color="primary" />
-    }
-    return null
-  }
-
   return (
     <Box sx={{ p: 1 }}>
       <Grid container spacing={2}>
@@ -39,11 +28,13 @@ export default function Logs({ stepCategory, log }: Props) {
           <Typography>{TITLES[stepCategory]}</Typography>
         </Grid>
         <Grid item xs={4} justifyContent="center">
-          {getStatus(log.status)}
+          {log.progress && log.progress > 0 ? (
+            <ProgressIndicator status={log.status} progress={log.progress} />
+          ) : null}
         </Grid>
       </Grid>
       <Typography variant="subtitle1" color={theme.palette.text.secondary}>
-        {log.msg}
+        {log.message}
       </Typography>
     </Box>
   )

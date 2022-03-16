@@ -4,10 +4,15 @@ export type InstallationStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'FINISHED'
 
 export type InstallationLogData = {
   status: InstallationStatus
-  msg: string
+  message: string
+  progress: number | null
 }
 
-const initLogData: InstallationLogData = { status: 'NOT_STARTED', msg: '' }
+const initLogData: InstallationLogData = {
+  status: 'NOT_STARTED',
+  message: '',
+  progress: 0,
+}
 
 type InstallationLogState = {
   // eslint-disable-next-line no-unused-vars
@@ -23,7 +28,10 @@ export const initialState: InstallationLogState = {
 
 type Action = {
   type: InstallationStepsEnum
-  payload: string
+  payload: {
+    message: string
+    progress: number | null
+  }
 }
 
 export function installationLogReducer(
@@ -36,7 +44,10 @@ export function installationLogReducer(
         ...state,
         [InstallationStepsEnum.DIRECTORIES]: {
           status: 'IN_PROGRESS',
-          msg: action.payload,
+          message: action.payload.message,
+          progress:
+            action.payload.progress ??
+            state[InstallationStepsEnum.DIRECTORIES].progress,
         },
       }
     case InstallationStepsEnum.CODE:
@@ -45,10 +56,14 @@ export function installationLogReducer(
         [InstallationStepsEnum.DIRECTORIES]: {
           ...state[InstallationStepsEnum.DIRECTORIES],
           status: 'FINISHED',
+          progress: 100,
         },
         [InstallationStepsEnum.CODE]: {
           status: 'IN_PROGRESS',
-          msg: action.payload,
+          message: action.payload.message,
+          progress:
+            action.payload.progress ??
+            state[InstallationStepsEnum.CODE].progress,
         },
       }
     case InstallationStepsEnum.BROWSER:
@@ -57,10 +72,14 @@ export function installationLogReducer(
         [InstallationStepsEnum.CODE]: {
           ...state[InstallationStepsEnum.CODE],
           status: 'FINISHED',
+          progress: 100,
         },
         [InstallationStepsEnum.BROWSER]: {
           status: 'IN_PROGRESS',
-          msg: action.payload,
+          message: action.payload.message,
+          progress:
+            action.payload.progress ??
+            state[InstallationStepsEnum.BROWSER].progress,
         },
       }
     case InstallationStepsEnum.POINT_NODE:
@@ -69,10 +88,14 @@ export function installationLogReducer(
         [InstallationStepsEnum.BROWSER]: {
           ...state[InstallationStepsEnum.BROWSER],
           status: 'FINISHED',
+          progress: 100,
         },
         [InstallationStepsEnum.POINT_NODE]: {
           status: 'IN_PROGRESS',
-          msg: action.payload,
+          message: action.payload.message,
+          progress:
+            action.payload.progress ??
+            state[InstallationStepsEnum.POINT_NODE].progress,
         },
       }
     default:

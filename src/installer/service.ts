@@ -62,14 +62,24 @@ class Installer {
 
     // Create the appropriate directories
     this.logger.info(
-      InstallationStepsEnum.DIRECTORIES,
-      'Creating directories...'
+      `${InstallationStepsEnum.DIRECTORIES}:1`,
+      'Creating directories'
     )
+
     DIRECTORIES.forEach(dir => {
+      const total = DIRECTORIES.length
+      let created = 0
+
       try {
         this.logger.info(InstallationStepsEnum.DIRECTORIES, 'Creating:', dir)
         fs.mkdirSync(dir, { recursive: true })
-        this.logger.info(InstallationStepsEnum.DIRECTORIES, 'Created:', dir)
+        created++
+        const progress = Math.round((created / total) * 100)
+        this.logger.info(
+          `${InstallationStepsEnum.DIRECTORIES}:${progress}`,
+          'Created:',
+          dir
+        )
       } catch (error) {
         this.logger.error(error)
       }
@@ -82,9 +92,10 @@ class Installer {
     )
 
     this.logger.info(
-      InstallationStepsEnum.DIRECTORIES,
+      `${InstallationStepsEnum.DIRECTORIES}:100`,
       'Created required directories'
     )
+
     // Clone the repos
     this.logger.info(InstallationStepsEnum.CODE, 'Cloning the repositores')
     await Promise.all(
@@ -98,17 +109,33 @@ class Installer {
           http,
           dir,
           url,
-          onMessage: (...args: string[]) => {
-            this.logger.info(InstallationStepsEnum.CODE, ...args)
+          onMessage: (msg: string) => {
+            const progressData = helpers.getProgressFromGithubMsg(msg)
+            if (progressData) {
+              const cap = 90 // Don't go to 100% since there are further steps.
+              const progress =
+                progressData.progress <= cap ? progressData.progress : cap
+
+              this.logger.info(
+                `${InstallationStepsEnum.CODE}:${progress}`,
+                progressData.message
+              )
+            } else {
+              this.logger.info(msg)
+            }
           },
         })
         this.logger.info(InstallationStepsEnum.CODE, 'Cloned', url)
         this.logger.info(InstallationStepsEnum.CODE, 'Copying liveprofile')
         helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
+        this.logger.info(
+          `${InstallationStepsEnum.CODE}:99`,
+          'Copied liveprofile'
+        )
       })
     )
 
-    this.logger.info(InstallationStepsEnum.CODE, 'Cloned repositories')
+    this.logger.info(`${InstallationStepsEnum.CODE}:100`, 'Cloned repositories')
 
     await this.firefox.download()
     await this.node.download()

@@ -10,6 +10,7 @@ import UIThemeProvider from '../../../shared/UIThemeProvider'
 import { InstallationStepsEnum } from '../../@types/installation'
 import { installationLogReducer, initialState } from '../reducer'
 import Logs from './Logs'
+import { parseLog } from '../helpers/parse-log'
 
 export default function App() {
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)
@@ -20,12 +21,12 @@ export default function App() {
     setInstalling(true)
 
     window.Installer.on('installer:log', (log: string[]) => {
-      if (log.length < 2) return
+      const { category, progress, message } = parseLog(log)
 
-      const stepCategory = log[0]
-      if (stepCategory in InstallationStepsEnum) {
-        const msg = log.slice(1).join(' ')
-        dispatch({ type: stepCategory as InstallationStepsEnum, payload: msg })
+      // The UI will only display logs associated to a category.
+      if (category) {
+        const payload = { message, progress }
+        dispatch({ type: category, payload })
       }
     })
   }

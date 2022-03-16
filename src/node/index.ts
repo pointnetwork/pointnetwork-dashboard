@@ -95,9 +95,13 @@ export default class Node {
           temp = Math.round((downloaded * 100) / Number(total))
           if (temp !== percentage) {
             percentage = temp
+
+            // Don't let this progress reach 100% as there are some minor final tasks after.
+            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
+
             this.installationLogger.info(
-              InstallationStepsEnum.POINT_NODE,
-              `Downloaded: ${Number(percentage).toFixed(0)}%`
+              `${InstallationStepsEnum.POINT_NODE}:${progress}`,
+              'Downloading'
             )
           }
         })
@@ -105,7 +109,7 @@ export default class Node {
 
       downloadStream.on('close', async () => {
         this.installationLogger.info(
-          InstallationStepsEnum.POINT_NODE,
+          `${InstallationStepsEnum.POINT_NODE}:100`,
           'Downloaded Node'
         )
 
