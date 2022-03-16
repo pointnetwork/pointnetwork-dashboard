@@ -15,6 +15,7 @@ const bz2 = require('unbzip2-stream')
 const find = require('find-process')
 const exec = util.promisify(require('child_process').exec)
 
+const logger = new Logger();
 export default class {
   private window
   private installationLogger
@@ -25,14 +26,14 @@ export default class {
   }
 
   async isInstalled() {
-    this.installationLogger.log('Checking Firefox installation')
+    this.installationLogger.info('Checking Firefox installation')
 
     const binPath = await this.getBinPath()
     if (fs.existsSync(binPath)) {
-      this.installationLogger.log('Firefox already installed')
+      this.installationLogger.info('Firefox already installed')
       return true
     }
-    this.installationLogger.log('Firefox not installed')
+    this.installationLogger.info('Firefox not installed')
     return false
   }
 
@@ -60,7 +61,7 @@ export default class {
   download = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
-      this.installationLogger.log('Starting Firefox installation...')
+      this.installationLogger.info('Starting Firefox installation...')
 
       const language = 'en-US'
       const version = await this.getLastVersionFirefox() // '93.0b4'//
@@ -75,12 +76,12 @@ export default class {
       const firefoxURL = this.getURL(version, osAndArch, language, filename)
 
       if (!fs.existsSync(browserDir)) {
-        this.installationLogger.log('Creating browser directory')
+        this.installationLogger.info('Creating browser directory')
         fs.mkdirSync(browserDir)
       }
 
       https.https.get(firefoxURL, async response => {
-        this.installationLogger.log('Downloading Firefox...')
+        this.installationLogger.info('Downloading Firefox...')
         await response.pipe(firefoxRelease)
 
         const total = response.headers['content-length']
@@ -93,7 +94,7 @@ export default class {
           temp = Math.round((downloaded * 100) / Number(total))
           if (temp !== percentage) {
             percentage = temp
-            this.installationLogger.log(
+            this.installationLogger.info(
               `Downloaded: ${Number(percentage).toFixed(0)}%`
             )
           }
@@ -101,16 +102,16 @@ export default class {
       })
 
       firefoxRelease.on('finish', () => {
-        this.installationLogger.log('Downloaded Firefox')
+        this.installationLogger.info('Downloaded Firefox')
         const cb = async () => {
           fs.unlink(releasePath, err => {
             if (err) {
               this.installationLogger.error(err)
               reject(err)
             } else {
-              this.installationLogger.log(`\nDeleted file: ${releasePath}`)
+              this.installationLogger.info(`\nDeleted file: ${releasePath}`)
               resolve(
-                this.installationLogger.log('Installed Firefox successfully')
+                this.installationLogger.info('Installed Firefox successfully')
               )
             }
           })
@@ -124,7 +125,7 @@ export default class {
   async launch() {
     // const isRunning = await find('name', /firefox*/gi)
     // if (isRunning.length > 0) {
-    //   console.log('Firefox already Running')
+    //   logger.info('Firefox already Running')
     //   this.window.webContents.send('firefox:active', true)
     //   return
     // }
@@ -158,9 +159,9 @@ export default class {
 
     if (pointBrowserParentProcesses.length > 0) {
       for (const p of pointBrowserParentProcesses) {
-        console.log(`[firefox:close] Killing PID ${p.pid}...`)
+        logger.info(`[firefox:close] Killing PID ${p.pid}...`)
         const cmdOutput = await exec(this.getKillCmd(p.pid))
-        console.log(`[firefox:close] Output of "kill ${p.pid}":`, cmdOutput)
+        logger.info(`[firefox:close] Output of "kill ${p.pid}":`, cmdOutput)
       }
     }
   }
@@ -170,21 +171,21 @@ export default class {
     browserDir: string,
     cb: { (): Promise<void>; (): void }
   ) {
-    this.installationLogger.log('Unpacking Firefox...')
+    this.installationLogger.info('Unpacking Firefox...')
     if (global.platform.win32) {
       try {
         await extract(releasePath, { dir: browserDir })
-        this.installationLogger.log('Extraction complete')
+        this.installationLogger.info('Extraction complete')
         cb()
-      } catch (err) {
-        console.log(err)
+      } catch (err: any) {
+        logger.info(err)
       }
     }
     if (global.platform.darwin) {
       dmg.mount(releasePath, (_err: any, dmgPath: any) => {
         fs.copy(`${dmgPath}/Firefox.app`, `${browserDir}/Firefox.app`, err => {
           if (err) {
-            console.log('Error Found:', err)
+            logger.info(`Error Found: ${err}`)
             dmg.unmount(dmgPath, (err: any) => {
               if (err) throw err
             })
@@ -281,7 +282,7 @@ export default class {
 
       distributionPath = path.join(appPath, 'distribution')
     }else{
-      //linux
+      // linux
       distributionPath = path.join(rootPath, 'distribution')
     }
 
@@ -311,7 +312,7 @@ export default class {
   }
 
   async createConfigFiles(pacFile: url.URL) {
-    this.installationLogger.log('Creating configuration files for Firefox...')
+    this.installationLogger.info('Creating configuration files for Firefox...')
     if (!pacFile)
       throw Error('pacFile sent to createConfigFiles is undefined or null!')
 
@@ -356,7 +357,7 @@ pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
 pref("extensions.startupScanScopes", 15);
 `
-    const policiesCfgContent = 
+    const policiesCfgContent =
 `{
   "policies": {
       "DisableAppUpdate": true
@@ -375,11 +376,6 @@ pref("extensions.startupScanScopes", 15);
       fs.writeFileSync(
         path.join(appPath, 'portapps.cfg'),
         firefoxCfgContent,
-        err => {
-          if (err) {
-            console.error(err)
-          }
-        }
       )
     }
     if (global.platform.linux || global.platform.darwin) {
@@ -388,7 +384,7 @@ pref("extensions.startupScanScopes", 15);
         autoconfigContent,
         err => {
           if (err) {
-            console.error(err)
+            logger.error(err)
           }
         }
       )
@@ -398,7 +394,7 @@ pref("extensions.startupScanScopes", 15);
         firefoxCfgContent,
         err => {
           if (err) {
-            console.error(err)
+            logger.error(err)
           }
         }
       )
@@ -409,12 +405,12 @@ pref("extensions.startupScanScopes", 15);
       policiesCfgContent,
       err => {
         if (err) {
-          console.error("Error writing browser settings: " + err)
+          logger.error("Error writing browser settings: " + err)
         }
       }
     )
 
-    this.installationLogger.log('Created configuration files for Firefox')
+    this.installationLogger.info('Created configuration files for Firefox')
   }
 
   async getLastVersionFirefox() {
@@ -433,7 +429,7 @@ pref("extensions.startupScanScopes", 15);
             const json = JSON.parse(data)
             resolve(json.LATEST_FIREFOX_VERSION)
           } catch (error: any) {
-            console.error(error.message)
+            logger.error(error.message)
           }
         })
       })

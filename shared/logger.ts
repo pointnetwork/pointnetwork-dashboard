@@ -1,27 +1,38 @@
-import { BrowserWindow } from 'electron'
+import { BrowserWindow } from 'electron';
+import helpers from './helpers';
+import path from 'path';
+import logger from 'electron-log';
+
+const homePath = helpers.getHomePath()
+const DEFAULT_LEVEL = 'info';
+logger.transports.console.level = DEFAULT_LEVEL;
+logger.transports.file.level = DEFAULT_LEVEL;
+logger.transports.file.resolvePath = () => path.join(homePath, '.point', 'pointdashboard.log');
 
 type LoggerConstructorArgs = {
   window: BrowserWindow
   channel: string
 }
 
-class Logger {
-  private window: BrowserWindow
-  private channel: string
+const defaultOptions: Partial<LoggerConstructorArgs> = {};
 
-  constructor({ window, channel }: LoggerConstructorArgs) {
+class Logger {
+  private window?: BrowserWindow
+  private channel?: string
+
+  constructor({ window, channel } = defaultOptions) {
     this.window = window
     this.channel = channel
   }
 
-  log = (...log: string[]) => {
-    console.log(...log)
-    this.window.webContents.send(`${this.channel}:log`, log)
+  info = (...log: string[]) => {
+    logger.info(...log)
+    this.window?.webContents.send(`${this.channel}:log`, log)
   }
 
   error = (...err: any[]) => {
-    console.error(...err)
-    this.window.webContents.send(`${this.channel}:error`, err)
+    logger.error(...err)
+    this.window?.webContents.send(`${this.channel}:error`, err)
   }
 }
 
