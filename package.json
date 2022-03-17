@@ -11,6 +11,7 @@
     "release": "ele ctron-forge publish",
     "lint": "eslint . --ext js,ts",
     "test": "jest",
+    "test:watch": "jest --watch",
     "create-installer-win": "node build_installer_win.js",
     "create-installer-mac": "electron-installer-dmg ./out/pointnetwork-dashboard-darwin-x64/pointnetwork-dashboard.app pointnetwork-dashboard --out=out --overwrite --icon=assets/icon.icns"
   },
@@ -42,6 +43,7 @@
     "nanoid": "^3.3.1",
     "npm": "^8.5.0",
     "pify": "^5.0.0",
+    "progress-stream": "^2.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-hot-loader": "4.13.0",
@@ -71,6 +73,7 @@
     "@types/follow-redirects": "^1.14.0",
     "@types/jest": "26.0.23",
     "@types/lodash": "^4.14.178",
+    "@types/progress-stream": "^2.0.2",
     "@types/react": "17.0.11",
     "@types/react-dom": "17.0.8",
     "@types/styled-components": "5.1.10",

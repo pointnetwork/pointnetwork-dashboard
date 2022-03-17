@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useReducer, useState } from 'react'
 // MAterial UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -7,11 +7,13 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 // Theme provider
 import UIThemeProvider from '../../../shared/UIThemeProvider'
+import { InstallationStepsEnum } from '../../@types/installation'
+import { installationLogReducer, initialState } from '../reducer'
+import Logs from './Logs'
+import { parseLog } from '../helpers'
 
 export default function App() {
-  const logsElementRef = useRef<HTMLElement>(null)
-
-  const [logs, setLogs] = useState<string[]>([])
+  const [logs, dispatch] = useReducer(installationLogReducer, initialState)
   const [installing, setInstalling] = useState<boolean>(false)
 
   function sendStartInstallation() {
@@ -19,8 +21,13 @@ export default function App() {
     setInstalling(true)
 
     window.Installer.on('installer:log', (log: string[]) => {
-      setLogs(prev => [...prev, `${log.join(' ')}`])
-      logsElementRef.current!.scroll(0, logsElementRef.current!.scrollHeight)
+      const { category, progress, message } = parseLog(log)
+
+      // The UI will only display logs associated to a category.
+      if (category) {
+        const payload = { message, progress }
+        dispatch({ type: category, payload })
+      }
     })
   }
 
@@ -59,12 +66,24 @@ export default function App() {
           sx={{ p: '1rem', mt: '.5rem', overflowY: 'auto' }}
           bgcolor="primary.light"
           borderRadius={2}
-          ref={logsElementRef}
           display={installing ? 'block' : 'none'}
         >
-          {logs.map((log, index) => (
-            <Typography key={index}>{log}</Typography>
-          ))}
+          <Logs
+            stepCategory={InstallationStepsEnum.DIRECTORIES}
+            log={logs[InstallationStepsEnum.DIRECTORIES]}
+          />
+          <Logs
+            stepCategory={InstallationStepsEnum.CODE}
+            log={logs[InstallationStepsEnum.CODE]}
+          />
+          <Logs
+            stepCategory={InstallationStepsEnum.BROWSER}
+            log={logs[InstallationStepsEnum.BROWSER]}
+          />
+          <Logs
+            stepCategory={InstallationStepsEnum.POINT_NODE}
+            log={logs[InstallationStepsEnum.POINT_NODE]}
+          />
         </Box>
       </Box>
     </UIThemeProvider>

@@ -26,7 +26,7 @@ export default function () {
     mainWindow = new BrowserWindow({
       ...baseWindowConfig,
       width: 640,
-      height: 440,
+      height: 480,
       webPreferences: {
         ...baseWindowConfig.webPreferences,
         preload: INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY,

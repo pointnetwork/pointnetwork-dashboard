@@ -5,7 +5,7 @@ import os from 'os'
 import { platform, arch } from 'process'
 import welcome from '../src/welcome'
 import axios from 'axios'
-const rimraf = require("rimraf");
+const rimraf = require('rimraf')
 
 const getOSAndArch = () => {
   // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
@@ -42,12 +42,13 @@ const getPlatform = () => {
   }
 }
 
-const getlatestReleaseVersion  = async () => {
-  const url = 'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
+const getlatestReleaseVersion = async () => {
+  const url =
+    'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
   const headers = { 'user-agent': 'node.js' }
   const res = await axios.get(url, {
-    headers: headers
-  });
+    headers: headers,
+  })
 
   console.log('last version', res.data.tag_name)
   return res.data.tag_name
@@ -112,7 +113,7 @@ const isLoggedIn = () => {
   return fs.existsSync(getKeyFileName())
 }
 
-const getInstalledVersion = () =>{
+const getInstalledVersion = () => {
   const pointPath = getPointPath()
   try {
     const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
@@ -121,16 +122,16 @@ const getInstalledVersion = () =>{
     return installedVersion
   } catch (error) {
     return {
-      installedReleaseVersion: 'old'
+      installedReleaseVersion: 'old',
     }
   }
-
 }
 
 const logout = () => {
   const pointPath = getPointPath()
   // Removing key files.
-  if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
+  if (fs.existsSync(path.join(pointPath, 'contracts')))
+    rimraf.sync(path.join(pointPath, 'contracts'))
   fs.unlinkSync(getKeyFileName())
   fs.unlinkSync(getArweaveKeyFileName())
   // Relaunching the dashboard to ask for key or generate a new one.
@@ -206,6 +207,23 @@ const getBinPath = () => {
 
 function noop():void { };
 
+const countFilesinDir = async (dir: string): Promise<number> => {
+  let fileCount = 0
+  const entries = await fs.readdir(dir)
+
+  for (const entry of entries) {
+    const fullpath = path.resolve(dir, entry)
+    const stats = await fs.stat(fullpath)
+    if (stats.isDirectory()) {
+      fileCount += await countFilesinDir(fullpath)
+    } else {
+      fileCount++
+    }
+  }
+
+  return fileCount
+}
+
 export default Object.freeze({
   noop,
   getOSAndArch,
@@ -234,4 +252,5 @@ export default Object.freeze({
   getlatestReleaseVersion,
   getInstalledVersion,
   getLiveDirectoryPathResources,
+  countFilesinDir,
 })
