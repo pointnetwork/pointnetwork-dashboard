@@ -205,6 +205,8 @@ const getBinPath = () => {
   return dir
 }
 
+function noop():void { };
+
 const countFilesinDir = async (dir: string): Promise<number> => {
   let fileCount = 0
   const entries = await fs.readdir(dir)
@@ -223,6 +225,7 @@ const countFilesinDir = async (dir: string): Promise<number> => {
 }
 
 export default Object.freeze({
+  noop,
   getOSAndArch,
   getPlatform,
   getHTTPorHTTPs,

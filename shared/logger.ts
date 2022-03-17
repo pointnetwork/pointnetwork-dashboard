@@ -2,21 +2,29 @@ import { BrowserWindow } from 'electron';
 import helpers from './helpers';
 import path from 'path';
 import logger from 'electron-log';
+import { createUdpLogTransport } from './udpLogTransport';
+import { getIdentifier } from './getIdentifier';
 
-const homePath = helpers.getHomePath()
-const DEFAULT_LEVEL = 'info';
+export const DEFAULT_LEVEL = 'info';
+const pointPath = helpers.getPointPath()
+const address = 'logstash.pointspace.io'
+const port = 12201
+const identifier = getIdentifier();
+
+logger.transports.udp = createUdpLogTransport(address, port, DEFAULT_LEVEL, {identifier});
 logger.transports.console.level = DEFAULT_LEVEL;
 logger.transports.file.level = DEFAULT_LEVEL;
-logger.transports.file.resolvePath = () => path.join(homePath, '.point', 'pointdashboard.log');
+logger.transports.file.resolvePath = () => path.join(pointPath, 'pointdashboard.log');
 
-type LoggerConstructorArgs = {
-  window: BrowserWindow
-  channel: string
+interface LoggerConstructorArgs {
+  window: BrowserWindow;
+  channel: string;
+  module: string;
 }
 
 const defaultOptions: Partial<LoggerConstructorArgs> = {};
 
-class Logger {
+export default class Logger {
   private window?: BrowserWindow
   private channel?: string
 
@@ -35,5 +43,3 @@ class Logger {
     this.window?.webContents.send(`${this.channel}:error`, err)
   }
 }
-
-export default Logger
