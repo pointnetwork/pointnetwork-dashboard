@@ -263,7 +263,7 @@ export default Object.freeze({
   getPointPath,
   getlatestReleaseVersion,
   getInstalledVersion,
-  getInstalledFirefoxVersion
+  getInstalledFirefoxVersion,
   getLiveDirectoryPathResources,
   countFilesinDir,
 })
