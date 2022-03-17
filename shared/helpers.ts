@@ -204,7 +204,10 @@ const getBinPath = () => {
   return dir
 }
 
+function noop():void { };
+
 export default Object.freeze({
+  noop,
   getOSAndArch,
   getPlatform,
   getHTTPorHTTPs,
