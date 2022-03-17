@@ -9,13 +9,15 @@ import https from 'follow-redirects'
 import { BrowserWindow } from 'electron'
 import Logger from '../../shared/logger'
 import type { Process } from '../@types/process'
+import { InstallationStepsEnum } from '../@types/installation'
+import progress from 'progress-stream'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
 const find = require('find-process')
 const exec = util.promisify(require('child_process').exec)
 
-const logger = new Logger();
+const logger = new Logger()
 export default class {
   private window
   private installationLogger
@@ -61,14 +63,21 @@ export default class {
   download = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
-      this.installationLogger.info('Starting Firefox installation...')
+      this.installationLogger.info(
+        InstallationStepsEnum.BROWSER,
+        'Starting Firefox installation...'
+      )
 
       const language = 'en-US'
       const version = await this.getLastVersionFirefox() // '93.0b4'//
       const osAndArch = helpers.getOSAndArch()
       const browserDir = helpers.getBrowserFolderPath()
       const pacFile = url.pathToFileURL(
-        path.join(helpers.getLiveDirectoryPathResources(), 'resources', 'pac.js')
+        path.join(
+          helpers.getLiveDirectoryPathResources(),
+          'resources',
+          'pac.js'
+        )
       )
       const filename = this.getFileName(version)
       const releasePath = path.join(browserDir, filename)
@@ -81,7 +90,10 @@ export default class {
       }
 
       https.https.get(firefoxURL, async response => {
-        this.installationLogger.info('Downloading Firefox...')
+        this.installationLogger.info(
+          InstallationStepsEnum.BROWSER,
+          'Downloading Firefox...'
+        )
         await response.pipe(firefoxRelease)
 
         const total = response.headers['content-length']
@@ -94,15 +106,24 @@ export default class {
           temp = Math.round((downloaded * 100) / Number(total))
           if (temp !== percentage) {
             percentage = temp
+
+            // Downloading is the first half of the process (second is unpacking),
+            // hence the division by 2.
+            const progress = Math.round(Number(percentage) / 2)
+
             this.installationLogger.info(
-              `Downloaded: ${Number(percentage).toFixed(0)}%`
+              `${InstallationStepsEnum.BROWSER}:${progress}`,
+              'Downloading'
             )
           }
         })
       })
 
       firefoxRelease.on('finish', () => {
-        this.installationLogger.info('Downloaded Firefox')
+        this.installationLogger.info(
+          InstallationStepsEnum.BROWSER,
+          'Downloaded Firefox'
+        )
         const cb = async () => {
           fs.unlink(releasePath, err => {
             if (err) {
@@ -111,7 +132,10 @@ export default class {
             } else {
               this.installationLogger.info(`\nDeleted file: ${releasePath}`)
               resolve(
-                this.installationLogger.info('Installed Firefox successfully')
+                this.installationLogger.info(
+                  `${InstallationStepsEnum.BROWSER}:100`,
+                  'Installed Firefox successfully'
+                )
               )
             }
           })
@@ -171,39 +195,94 @@ export default class {
     browserDir: string,
     cb: { (): Promise<void>; (): void }
   ) {
-    this.installationLogger.info('Unpacking Firefox...')
+    this.installationLogger.info(
+      InstallationStepsEnum.BROWSER,
+      'Unpacking Firefox (this can take a few minutes)'
+    )
     if (global.platform.win32) {
       try {
-        await extract(releasePath, { dir: browserDir })
-        this.installationLogger.info('Extraction complete')
+        await extract(releasePath, {
+          dir: browserDir,
+          onEntry: (_, zipfile) => {
+            const extracted = zipfile.entriesRead
+            const total = zipfile.entryCount
+
+            // Unpacking is the second half of the process (first is downloading),
+            // hence the division by 2 and the plus 50.
+            const progress = Math.round(((extracted / total) * 100) / 2 + 50)
+
+            this.installationLogger.info(
+              `${InstallationStepsEnum.BROWSER}:${progress}`,
+              'Unpacking Firefox'
+            )
+          },
+        })
+        this.installationLogger.info(
+          InstallationStepsEnum.BROWSER,
+          'Extraction complete'
+        )
         cb()
       } catch (err: any) {
         logger.info(err)
       }
     }
     if (global.platform.darwin) {
-      dmg.mount(releasePath, (_err: any, dmgPath: any) => {
-        fs.copy(`${dmgPath}/Firefox.app`, `${browserDir}/Firefox.app`, err => {
-          if (err) {
-            logger.info(`Error Found: ${err}`)
-            dmg.unmount(dmgPath, (err: any) => {
-              if (err) throw err
-            })
-            return
-          }
+      dmg.mount(releasePath, async (_err: any, dmgPath: any) => {
+        try {
+          const src = `${dmgPath}/Firefox.app`
+          const dst = `${browserDir}/Firefox.app`
+
+          const totalFiles = await helpers.countFilesinDir(src)
+          let filesCopied = 0
+
+          await fs.copy(src, dst, {
+            filter: src => {
+              if (fs.statSync(src).isFile()) {
+                filesCopied++
+
+                // Unpacking is the second half of the process (first is downloading),
+                // hence the division by 2 and the plus 50.
+                const progress = Math.round(
+                  ((filesCopied / totalFiles) * 100) / 2 + 50
+                )
+
+                this.installationLogger.info(
+                  `${InstallationStepsEnum.BROWSER}:${progress}`,
+                  'Unpacking Firefox'
+                )
+              }
+              return true // To actually copy the file
+            },
+          })
+        } catch (err) {
+          logger.info('Error Unpacking Firefox:', err)
+        } finally {
           dmg.unmount(dmgPath, (err: any) => {
             if (err) throw err
             cb()
           })
-        })
+        }
       })
-      return
     }
     if (global.platform.linux || global.platform.linux) {
+      const stats = fs.statSync(releasePath)
+      const progressStream = progress({ length: stats.size, time: 250 })
+      progressStream.on('progress', p => {
+        // Unpacking is the second half of the process (first is downloading),
+        // hence the division by 2 and the plus 50.
+        const progress = Math.round(p.percentage / 2 + 50)
+        this.installationLogger.info(
+          `${InstallationStepsEnum.BROWSER}:${progress}`,
+          'Unpacking Firefox'
+        )
+      })
+
       const readStream = fs
         .createReadStream(releasePath)
+        .pipe(progressStream)
         .pipe(bz2())
         .pipe(tarfs.extract(browserDir))
+
       readStream.on('finish', cb)
     }
   }
@@ -270,7 +349,7 @@ export default class {
 
   async getPoliciesPath() {
     const rootPath = await this.getRootPath()
-    let distributionPath;
+    let distributionPath
 
     if (global.platform.win32 || global.platform.darwin) {
       let appPath = ''
@@ -281,7 +360,7 @@ export default class {
       }
 
       distributionPath = path.join(appPath, 'distribution')
-    }else{
+    } else {
       // linux
       distributionPath = path.join(rootPath, 'distribution')
     }
@@ -357,12 +436,11 @@ pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
 pref("extensions.startupScanScopes", 15);
 `
-    const policiesCfgContent =
-`{
+    const policiesCfgContent = `{
   "policies": {
       "DisableAppUpdate": true
     }
-}`;
+}`
 
     const prefPath = await this.getPrefPath()
     const appPath = await this.getAppPath()
@@ -373,10 +451,7 @@ pref("extensions.startupScanScopes", 15);
       //
       // Portapps also creates `portapps.cfg`, which is equivalent to *nix's firefox.cfg.
       // We're just appending our preferences.
-      fs.writeFileSync(
-        path.join(appPath, 'portapps.cfg'),
-        firefoxCfgContent,
-      )
+      fs.writeFileSync(path.join(appPath, 'portapps.cfg'), firefoxCfgContent)
     }
     if (global.platform.linux || global.platform.darwin) {
       fs.writeFile(
@@ -405,7 +480,7 @@ pref("extensions.startupScanScopes", 15);
       policiesCfgContent,
       err => {
         if (err) {
-          logger.error("Error writing browser settings: " + err)
+          logger.error('Error writing browser settings: ' + err)
         }
       }
     )

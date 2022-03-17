@@ -6,12 +6,13 @@ import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
 import axios from 'axios'
+import { InstallationStepsEnum } from '../@types/installation'
 
-const rimraf = require("rimraf");
+const rimraf = require('rimraf')
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const find = require('find-process')
-const logger = new Logger();
+const logger = new Logger()
 const exec = util.promisify(require('child_process').exec)
 export default class Node {
   private installationLogger
@@ -26,12 +27,10 @@ export default class Node {
   }
 
   getURL(filename: string, version: string) {
-
     return `https://github.com/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
   getNodeFileName(version: string) {
-
     if (global.platform.win32) return `point-win-${version}.tar.gz`
 
     if (global.platform.darwin) return `point-macos-${version}.tar.gz`
@@ -79,7 +78,11 @@ export default class Node {
       const downloadUrl = this.getURL(filename, version)
 
       https.get(downloadUrl, async response => {
-        this.installationLogger.info('Downloading Node...')
+        this.installationLogger.info(
+          InstallationStepsEnum.POINT_NODE,
+          'Downloading Node...'
+        )
+
         await response.pipe(downloadStream)
 
         const total = response.headers['content-length']
@@ -92,33 +95,52 @@ export default class Node {
           temp = Math.round((downloaded * 100) / Number(total))
           if (temp !== percentage) {
             percentage = temp
-            this.installationLogger.info(
-              `Downloaded: ${Number(percentage).toFixed(0)}%`
-            )
 
+            // Don't let this progress reach 100% as there are some minor final tasks after.
+            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
+
+            this.installationLogger.info(
+              `${InstallationStepsEnum.POINT_NODE}:${progress}`,
+              'Downloading'
+            )
           }
         })
       })
 
       downloadStream.on('close', async () => {
-        this.installationLogger.info('Downloaded Node')
+        this.installationLogger.info(
+          `${InstallationStepsEnum.POINT_NODE}:100`,
+          'Downloaded Node'
+        )
+
         decompress(downloadPath, helpers.getPointPath(), {
           plugins: [decompressTargz()],
         }).then(() => {
           fs.unlinkSync(downloadPath)
           this.window.webContents.send('pointNode:finishDownload', true)
-          resolve(this.installationLogger.info('Files decompressed'))
+          resolve(
+            this.installationLogger.info(
+              InstallationStepsEnum.POINT_NODE,
+              'Files decompressed'
+            )
+          )
 
           // stringify JSON Object
-          fs.writeFile(path.join(pointPath, 'infoNode.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', function (err: any) {
-            if (err) {
-              logger.info("An error occured while writing JSON Object to File.")
-              return logger.info(err);
+          fs.writeFile(
+            path.join(pointPath, 'infoNode.json'),
+            JSON.stringify({ installedReleaseVersion: version }),
+            'utf8',
+            function (err: any) {
+              if (err) {
+                logger.info(
+                  'An error occured while writing JSON Object to File.'
+                )
+                return logger.info(err)
+              }
+
+              logger.info('JSON file has been saved.')
             }
-
-            logger.info("JSON file has been saved.");
-          })
-
+          )
         })
       })
     })
@@ -159,18 +181,21 @@ export default class Node {
   async pointNodeCheck(): Promise<boolean> {
     try {
       const httpsAgent = new https.Agent({
-        rejectUnauthorized: false
-      });
+        rejectUnauthorized: false,
+      })
       const res = await axios.get('https://point/v1/api/status/meta', {
         timeout: 3000,
         proxy: {
           host: 'localhost',
           port: 8666,
-          protocol: 'https'
+          protocol: 'https',
         },
-        httpsAgent
+        httpsAgent,
       })
-      this.window.webContents.send('pointNode:checked', res.data.data.pointNodeVersion)
+      this.window.webContents.send(
+        'pointNode:checked',
+        res.data.data.pointNodeVersion
+      )
       return true
     } catch (e: any) {
       if (e.message.match('ECONNREFUSED')) {
@@ -202,36 +227,33 @@ export default class Node {
       logger.info(`Stopping Node... ${this.killCmd}`)
       this.killCmd.forEach(async cmd => {
         const result = await exec(cmd)
-        logger.info(`Stopped Message ${result}`);
-      });
-
+        logger.info(`Stopped Message ${result}`)
+      })
     }
   }
 
   async checkNodeVersion() {
-
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledVersion()
 
     const latestReleaseVersion = await helpers.getlatestReleaseVersion()
 
-
-    logger.info('installed',installedVersion.installedReleaseVersion  )
-    logger.info('last',latestReleaseVersion )
+    logger.info('installed', installedVersion.installedReleaseVersion)
+    logger.info('last', latestReleaseVersion)
     if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
       logger.info('Node Update need it')
       this.window.webContents.send('node:update', true)
       await this.getProcess()
       setTimeout(() => {
         this.stopNode().then(() => {
-          if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'contracts'));
-          if (fs.existsSync(path.join(pointPath, 'bin'))) rimraf.sync(path.join(pointPath, 'bin'));
+          if (fs.existsSync(path.join(pointPath, 'contracts')))
+            rimraf.sync(path.join(pointPath, 'contracts'))
+          if (fs.existsSync(path.join(pointPath, 'bin')))
+            rimraf.sync(path.join(pointPath, 'bin'))
         })
-      }, 500);
+      }, 500)
     } else {
       this.window.webContents.send('node:update', false)
     }
   }
 }
-
-
