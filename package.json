@@ -1,16 +1,19 @@
 {
   "name": "pointnetwork-dashboard",
   "author": "Point Labs",
-  "version": "0.2.7",
+  "version": "0.2.9",
   "description": "PointNetwork",
   "main": "./.webpack/main",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "release": "electron-forge publish",
+    "release": "ele ctron-forge publish",
     "lint": "eslint . --ext js,ts",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "create-installer-win": "node build_installer_win.js",
+    "create-installer-mac": "electron-installer-dmg ./out/pointnetwork-dashboard-darwin-x64/pointnetwork-dashboard.app pointnetwork-dashboard --out=out --overwrite --icon=assets/icon.icns"
   },
   "keywords": [],
   "license": "MIT",
@@ -30,6 +33,7 @@
     "decompress-targz": "^4.1.1",
     "dmg": "^0.1.0",
     "docker-compose": "^0.23.17",
+    "electron-log": "^4.4.6",
     "extract-zip": "^2.0.1",
     "find-process": "^1.4.7",
     "fs-extra": "8.1.0",
@@ -38,6 +42,7 @@
     "lodash": "^4.17.21",
     "npm": "^8.5.0",
     "pify": "^5.0.0",
+    "progress-stream": "^2.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-hot-loader": "4.13.0",
@@ -67,6 +72,7 @@
     "@types/follow-redirects": "^1.14.0",
     "@types/jest": "26.0.23",
     "@types/lodash": "^4.14.178",
+    "@types/progress-stream": "^2.0.2",
     "@types/react": "17.0.11",
     "@types/react-dom": "17.0.8",
     "@types/styled-components": "5.1.10",
@@ -78,6 +84,8 @@
     "cross-env": "7.0.3",
     "css-loader": "^6.6.0",
     "electron": "^17.1.0",
+    "electron-installer-dmg": "^3.0.0",
+    "electron-wix-msi": "3.0.0",
     "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-config-standard": "16.0.3",
@@ -158,11 +166,15 @@
         },
         {
           "name": "@electron-forge/maker-deb",
-          "config": {}
+          "config": {
+            "icon": "assets/icon.png"
+          }
         },
         {
           "name": "@electron-forge/maker-rpm",
-          "config": {}
+          "config": {
+            "icon": "assets/icon.png"
+          }
         }
       ]
     }

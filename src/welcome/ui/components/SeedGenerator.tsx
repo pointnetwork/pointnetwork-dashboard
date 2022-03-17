@@ -1,4 +1,4 @@
-import { MouseEventHandler, useEffect } from 'react'
+import { MouseEventHandler, useEffect, useState } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -15,14 +15,26 @@ export default function SeedGenerator(props: {
   confirm: MouseEventHandler
   login: MouseEventHandler
 }) {
+
+  const [isCopied, setIsCopied] = useState<boolean>(false)
+
   useEffect(() => {
     window.Welcome.on('welcome:mnemonic_generated', (seed: string) => {
       props.setSeed(seed)
     })
+
+    window.Welcome.on('welcome:mnemonic_copied', () => {      
+      setIsCopied(true)
+    })
+
   }, [])
 
   const generate = () => {
     window.Welcome.generateMnemonic()
+  }
+
+  const copyToClipboard = () => {
+    window.Welcome.copyMnemonic(props.seed)
   }
 
   return (
@@ -56,6 +68,17 @@ export default function SeedGenerator(props: {
       >
         Generate
       </Button>
+
+      {props.seed && (
+        <Button
+        sx={{ mx: '.8rem' }}
+        variant={isCopied ? 'contained' : 'outlined'}
+        onClick={copyToClipboard}
+        >
+          {isCopied ? 'Copied': 'Copy'}
+        </Button>
+      )}
+      
       {props.seed && (
         <Button
           sx={{ mx: '.8rem' }}

@@ -20,6 +20,9 @@ export const api = {
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
   },
+  copyMnemonic: (value: any) => {
+    ipcRenderer.send('welcome:copy_mnemonic', value)
+  },
 }
 
 contextBridge.exposeInMainWorld('Welcome', api)

@@ -11,6 +11,8 @@ import { http } from 'follow-redirects'
 import Logger from '../../shared/logger'
 const dmg = require('dmg')
 
+const logger = new Logger();
+
 export default class {
     private window
     private execPromBeforeWrapper = util.promisify(require('child_process').exec)
@@ -21,11 +23,11 @@ export default class {
                 try {
                     const sudo = require('sudo-prompt');
                     const cb = (error: any, stdout: any, stderr: any) => {
-                        if (error) {
+                      if (error) {
+                            logger.error(stderr)
                             reject(error)
                         } else {
-                            console.log(stdout)
-                            console.error(stderr)
+                            logger.info(stdout)
                         }
                         resolve(true)
                     }
@@ -88,9 +90,9 @@ export default class {
 
                     fs.unlink(releasePath, (err) => {
                         if (err) {
-                            console.log(err);
+                            logger.info(err);
                         } else {
-                            console.log(`\nDeleted file: ${releasePath}`);
+                            logger.info(`\nDeleted file: ${releasePath}`);
                         }
                     });
 
@@ -131,7 +133,7 @@ export default class {
             dmg.mount(releasePath, (_err: any, dmgPath: any) => {
                 fs.copy(`${dmgPath}/Docker.app`, `${browserDir}/Docker.app`, (err: any) => {
                     if (err) {
-                        console.log('Error Found:', err);
+                        logger.info('Error Found:', err);
                         dmg.unmount(dmgPath, (err: any) => { if (err) throw err; });
                         return;
                     }
@@ -221,7 +223,7 @@ export default class {
         }
 
         try {
-            console.log(cmd)
+            logger.info(cmd)
             await this.execProm(cmd);
             return true;
         } catch (e) {
@@ -234,7 +236,7 @@ export default class {
         await compose.upAll({
             cwd: composePath,
             callback: (chunk) => {
-                console.log('job in progres: ', chunk.toString('utf8'));
+                logger.info('job in progres: ', chunk.toString('utf8'));
                 this.window.webContents.send('docker:log',
                     {
                         log: chunk.toString('utf8'),
@@ -244,26 +246,25 @@ export default class {
         })
             .then(
                 () => {
-                    console.log('job done')
+                    logger.info('job done')
                     this.window.webContents.send('point-node-check');
                 },
-                (err: { message: any; }) => { console.log('something went wrong:', err.message) }
+                (err: { message: any; }) => { logger.info('something went wrong:', err.message) }
             );
     }
 
     async getLogsNode(child: BrowserWindow) {
-        const logger = new Logger({ window: child, channel: 'docker' })
+        const getLogslogger = new Logger({ window: child, channel: 'docker' })
         const composePath = await this.getComposePath();
         await compose.logs('point_node', {
             follow: true,
             cwd: composePath,
             callback: (chunk) => {
-                console.log('Log: ', chunk.toString('utf8'));
-                logger.log(chunk.toString('utf8'))
+              getLogslogger.info(chunk.toString('utf8'))
             }
         })
             .then(
-                err => console.log('something went wrong:', err)
+                err => logger.info('something went wrong:', err)
             );
     }
 
@@ -272,7 +273,7 @@ export default class {
         await compose.stop({
             cwd: composePath,
             callback: (chunk) => {
-                console.log('job in progres: ', chunk.toString('utf8'));
+                logger.info('job in progres: ', chunk.toString('utf8'));
                 this.window.webContents.send('docker-log',
                     {
                         log: chunk.toString('utf8'),
@@ -282,20 +283,20 @@ export default class {
         })
             .then(
                 () => {
-                    console.log('docker stop');
+                    logger.info('docker stop');
                     this.window.webContents.send('point-node-check');
                 },
-                (err: { message: any; }) => { console.log('something went wrong:', err.message) }
+                (err: { message: any; }) => { logger.info('something went wrong:', err.message) }
             );
     }
 
     pointNodeCheck() {
-        console.log('node check')
+        logger.info('node check')
         http.get("http://localhost:2468/v1/api/status/ping", (res) => {
             this.window.webContents.send("pointNode:checked", true)
-            console.log('node running')
+            logger.info('node running')
         }).on('error', err => {
-            console.log(err);
+            logger.info(err);
             this.window.webContents.send("pointNode:checked", false)
         });
     }
