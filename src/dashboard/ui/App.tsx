@@ -108,7 +108,9 @@ export default function App() {
     window.Dashboard.checkNode()
   }
   const openFirefox = () => {
-    window.Dashboard.openFirefox()
+    if(!isFirefoxUpdating){
+      window.Dashboard.openFirefox()
+    }
   }
   const requestYPoints = () => {
     setIsLoadingWalletInfo(true)
