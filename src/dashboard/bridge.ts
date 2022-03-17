@@ -23,6 +23,9 @@ export const api = {
   openFirefox: () => {
     ipcRenderer.send('firefox:launch')
   },
+  getDashboardVersion: () => {
+    ipcRenderer.send('node:getDashboardVersion')
+  },
   changeFirefoxStatus: (isRunning: boolean) => {
     ipcRenderer.send('firefox:status', isRunning)
   },
@@ -31,6 +34,9 @@ export const api = {
   },
   checkUpdate: () => {
     ipcRenderer.send('node:checkUpdate')
+  },
+  getIdentity: () => {
+    ipcRenderer.send('node:getIdentity')
   },
   checkBalanceAndAirdrop: () => {
     ipcRenderer.send('node:check_balance_and_airdrop')

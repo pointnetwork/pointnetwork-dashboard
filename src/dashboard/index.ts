@@ -155,6 +155,19 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'node:getIdentity',
+      listener() {
+        node!.getIdentity()
+      },
+    },
+    {
+      channel: 'node:getDashboardVersion',
+      listener() {
+        node!.getDashboardVersion()
+      },
+    },
+    
+    {
       channel: 'logOut',
       async listener() {
         const confirmationAnswer = dialog.showMessageBoxSync({
@@ -207,7 +220,7 @@ export default function (isExplicitRun = false) {
 
           const requestAirdrop = async () => {
             logger.info(
-              '[node:check_balance_and_airdrop] Airdropping wallet address with yPoints'
+              '[node:check_balance_and_airdrop] Airdropping wallet address with POINTS'
             )
             try {
               await axios.get(
