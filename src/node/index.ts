@@ -256,4 +256,28 @@ export default class Node {
       this.window.webContents.send('node:update', false)
     }
   }
+
+  async getIdentity(){
+    logger.info('Get Identity')
+    const addressRes = await axios.get(
+      'http://localhost:2468/v1/api/wallet/address'
+    )
+    const address = addressRes.data.data.address
+    logger.info('Get Identity adress', address)
+    try {
+      console.log(`http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`)
+      const identity = await axios.get(
+        `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
+      )
+      this.window.webContents.send('node:identity', identity.data.data.identity)
+    } catch (e) {
+      logger.error(e)
+    }
+  }
+
+  async getDashboardVersion(){
+    var pjson = require('../../package.json');
+    console.log('json vetrsion',pjson.version);
+    this.window.webContents.send('node:getDashboardVersion', pjson.version)
+  }
 }
