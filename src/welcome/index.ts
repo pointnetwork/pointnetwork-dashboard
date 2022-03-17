@@ -1,7 +1,10 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain} from 'electron'
 import WelcomeService from './services'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
+import Logger from '../../shared/logger'
+
+const logger = new Logger();
 
 let mainWindow: BrowserWindow | null
 let welcomeService: WelcomeService | null
@@ -33,10 +36,10 @@ export default function (isExplicitRun = false) {
     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('close', () => {
-      console.log('Closed Welcome Window')
+      logger.info('Closed Welcome Window')
       events.forEach(event => {
         ipcMain.removeListener(event.channel, event.listener)
-        console.log('[welcome:index.ts] Removed event', event.channel)
+        logger.info('[welcome:index.ts] Removed event', event.channel)
       })
     })
     mainWindow.on('closed', () => {
@@ -59,6 +62,12 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'welcome:copy_mnemonic',
+      listener(_: any, message: string) {
+        welcomeService!.copy(message)
+      },
+    },
+    {
       channel: 'welcome:login',
       async listener(_: any, message: string) {
         const result = await welcomeService!.login(message)
@@ -73,7 +82,7 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
-      console.log('[welcome:index.ts] Registered event', event.channel)
+      logger.info('[welcome:index.ts] Registered event', event.channel)
     })
   }
 
@@ -87,7 +96,7 @@ export default function (isExplicitRun = false) {
       .on('ready', createWindow)
       .whenReady()
       .then(registerListeners)
-      .catch(e => console.error(e))
+      .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {

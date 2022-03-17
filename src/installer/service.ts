@@ -3,6 +3,8 @@ import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import Firefox from '../firefox'
 import Node from '../node'
+import { InstallationStepsEnum } from '../@types/installation'
+import { getProgressFromGithubMsg } from './helpers'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -10,16 +12,11 @@ const http = require('isomorphic-git/http/node')
 const fs = require('fs')
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
-const POINT_DASHBOARD_DIR = helpers.getDashboardPath()
 const POINT_LIVE_DIR = helpers.getLiveDirectoryPath()
 
-const DIRECTORIES = [
-  POINT_DASHBOARD_DIR,
-  helpers.getPointSoftwarePath(),
-  POINT_LIVE_DIR,
-]
+const DIRECTORIES = [helpers.getPointSoftwarePath(), POINT_LIVE_DIR]
 
-const REPOSITORIES = ['pointnetwork-dashboard']
+const REPOSITORIES = ['liveprofile']
 
 class Installer {
   private logger: Logger
@@ -51,7 +48,7 @@ class Installer {
     }
   }
 
-  createWindow = async () => { }
+  createWindow = async () => {}
 
   start = async () => {
     if (Installer.isInstalled()) {
@@ -61,17 +58,29 @@ class Installer {
     }
   }
 
-
   install = async () => {
-    this.logger.log('Starting installation')
+    this.logger.info('Starting installation')
 
     // Create the appropriate directories
-    this.logger.log('Creating directories...')
+    this.logger.info(
+      `${InstallationStepsEnum.DIRECTORIES}:1`,
+      'Creating directories'
+    )
+
     DIRECTORIES.forEach(dir => {
+      const total = DIRECTORIES.length
+      let created = 0
+
       try {
-        this.logger.log('Creating:', dir)
+        this.logger.info(InstallationStepsEnum.DIRECTORIES, 'Creating:', dir)
         fs.mkdirSync(dir, { recursive: true })
-        this.logger.log('Created:', dir)
+        created++
+        const progress = Math.round((created / total) * 100)
+        this.logger.info(
+          `${InstallationStepsEnum.DIRECTORIES}:${progress}`,
+          'Created:',
+          dir
+        )
       } catch (error) {
         this.logger.error(error)
       }
@@ -83,34 +92,51 @@ class Installer {
       JSON.stringify({ isInstalled: false })
     )
 
-    this.logger.log('Created required directories')
+    this.logger.info(
+      `${InstallationStepsEnum.DIRECTORIES}:100`,
+      'Created required directories'
+    )
+
     // Clone the repos
-    this.logger.log('Cloning the repositores')
+    this.logger.info(InstallationStepsEnum.CODE, 'Cloning the repositores')
     await Promise.all(
       REPOSITORIES.map(async repo => {
         const dir = path.join(POINT_SRC_DIR, repo)
         const url = `https://github.com/pointnetwork/${repo}`
 
-        this.logger.log('Cloning', url)
+        this.logger.info(InstallationStepsEnum.CODE, 'Cloning', url)
         await git.clone({
           fs,
           http,
           dir,
-          onMessage: this.logger.log,
           url,
+          onMessage: (msg: string) => {
+            const progressData = getProgressFromGithubMsg(msg)
+            if (progressData) {
+              const cap = 90 // Don't go to 100% since there are further steps.
+              const progress =
+                progressData.progress <= cap ? progressData.progress : cap
+
+              this.logger.info(
+                `${InstallationStepsEnum.CODE}:${progress}`,
+                progressData.message
+              )
+            } else {
+              this.logger.info(msg)
+            }
+          },
         })
-        this.logger.log('Cloned', url)
-        if (dir.includes('dashboard')) {
-          this.logger.log('Copying liveprofile')
-          helpers.copyFolderRecursiveSync(
-            path.join(POINT_DASHBOARD_DIR, 'liveprofile'),
-            POINT_LIVE_DIR
-          )
-        }
+        this.logger.info(InstallationStepsEnum.CODE, 'Cloned', url)
+        this.logger.info(InstallationStepsEnum.CODE, 'Copying liveprofile')
+        helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
+        this.logger.info(
+          `${InstallationStepsEnum.CODE}:99`,
+          'Copied liveprofile'
+        )
       })
     )
 
-    this.logger.log('Cloned repositories')
+    this.logger.info(`${InstallationStepsEnum.CODE}:100`, 'Cloned repositories')
 
     await this.firefox.download()
     await this.node.download()
@@ -120,7 +146,7 @@ class Installer {
       Installer.installationJsonFilePath,
       JSON.stringify({ isInstalled: true })
     )
-    this.logger.log('Installation complete')
+    this.logger.info('Installation complete')
   }
 
   close() {
@@ -128,13 +154,13 @@ class Installer {
   }
 
   upgrade = async () => {
-    this.logger.log('Already installed')
+    this.logger.info('Already installed')
 
     // Pull the latest code
-    this.logger.log('Pulling the repositories')
+    this.logger.info(InstallationStepsEnum.CODE, 'Pulling the repositories')
     await Promise.all(
       REPOSITORIES.map(async repo => {
-        this.logger.log('Pulling', repo)
+        this.logger.info(InstallationStepsEnum.CODE, 'Pulling', repo)
 
         const dir = path.join(POINT_SRC_DIR, repo)
         await git.pull({
@@ -146,10 +172,8 @@ class Installer {
       })
     )
 
-    this.logger.log('Pull Complete')
+    this.logger.info(InstallationStepsEnum.CODE, 'Pull Complete')
   }
 }
 
 export default Installer
-
-

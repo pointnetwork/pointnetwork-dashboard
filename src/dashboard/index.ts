@@ -4,6 +4,9 @@ import Node from '../node'
 import helpers from '../../shared/helpers'
 import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
+import Logger from '../../shared/logger'
+
+const logger = new Logger();
 
 let mainWindow: BrowserWindow | null
 
@@ -57,6 +60,7 @@ export default function (isExplicitRun = false) {
     isLoggingOut = false
 
     node = new Node(mainWindow!)
+    await node.checkNodeVersion()
     // if (!(await node.pointNodeCheck())) node.launch()
 
     firefox = new Firefox(mainWindow!)
@@ -90,16 +94,16 @@ export default function (isExplicitRun = false) {
       }
 
       if (quit) {
-        console.log('Closed Dashboard Window')
+        logger.info('Closed Dashboard Window')
         events.forEach(event => {
           ipcMain.removeListener(event.channel, event.listener)
-          console.log('[dashboard:index.ts] Removed event', event.channel)
+          logger.info('[dashboard:index.ts] Removed event', event.channel)
         })
 
         try {
           await Promise.all([firefox?.close(), node?.stopNode()])
         } catch (err) {
-          console.error('[dashboard:index.ts] Error in `close` handler', err)
+          logger.error('[dashboard:index.ts] Error in `close` handler', err)
         } finally {
           mainWindow?.destroy()
         }
@@ -208,14 +212,14 @@ export default function (isExplicitRun = false) {
         const start = new Date().getTime()
         try {
           let balance = 0
-          console.log('[node:check_balance_and_airdrop] Getting wallet address')
+          logger.info('[node:check_balance_and_airdrop] Getting wallet address')
           const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
           )
           const address = addressRes.data.data.address
 
           const requestAirdrop = async () => {
-            console.log(
+            logger.info(
               '[node:check_balance_and_airdrop] Airdropping wallet address with yPoints'
             )
             try {
@@ -223,12 +227,12 @@ export default function (isExplicitRun = false) {
                 `https://point-faucet.herokuapp.com/airdrop?address=${address}`
               )
             } catch (e) {
-              console.error(e)
+              logger.error(e)
             }
           }
 
           const checkBalance = async () => {
-            console.log(
+            logger.info(
               `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
             )
             try {
@@ -236,15 +240,15 @@ export default function (isExplicitRun = false) {
                 `https://point-faucet.herokuapp.com/balance?address=${address}`
               )
               if (res.data?.balance && !isNaN(res.data.balance)) {
-                console.log(
+                logger.info(
                   `[node:check_balance_and_airdrop] Balance: ${res.data.balance}`
                 )
                 balance = res.data.balance
               } else {
-                console.error(`Unexpected balance response: ${res.data}`)
+                logger.error(`Unexpected balance response: ${res.data}`)
               }
             } catch (e) {
-              console.error(e)
+              logger.error(e)
             }
           }
 
@@ -271,7 +275,7 @@ export default function (isExplicitRun = false) {
             JSON.stringify({ balance, address })
           )
         } catch (error) {
-          console.error(error)
+          logger.error(error)
         }
       },
     },
@@ -280,7 +284,7 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
-      console.log('[dashboard:index.ts] Registered event', event.channel)
+      logger.info('[dashboard:index.ts] Registered event', event.channel)
     })
   }
 
@@ -292,7 +296,7 @@ export default function (isExplicitRun = false) {
   app.on('will-quit', async function () {
     // This is a good place to add tests insuring the app is still
     // responsive and all windows are closed.
-    console.log('Dashboard Window "will-quit" event')
+    logger.info('Dashboard Window "will-quit" event')
   })
 
   if (!isExplicitRun) {
@@ -300,7 +304,7 @@ export default function (isExplicitRun = false) {
       .on('ready', createWindow)
       .whenReady()
       .then(registerListeners)
-      .catch(e => console.error(e))
+      .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {

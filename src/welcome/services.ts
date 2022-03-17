@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import helpers from '../../shared/helpers'
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, clipboard } from 'electron'
 
 const Mnemonic = require('bitcore-mnemonic')
 const { getKeyFromMnemonic } = require('arweave-mnemonic-keys')
@@ -47,6 +47,11 @@ class WelcomeService {
       'welcome:mnemonic_validated',
       Mnemonic.isValid(message)
     )
+  }
+
+  async copy(message: string) {
+    clipboard.writeText(message)
+    this.win.webContents.send('welcome:mnemonic_copied')
   }
 
   close() {
