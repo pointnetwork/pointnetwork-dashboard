@@ -38,11 +38,11 @@ export default function App() {
 
   const monospace = {
     fontFamily: 'monospace',
-     fontSize: '14px',
-     fontStyle: 'normal',
-     fontVariant: 'normal',
-     fontWeight: '700',
-     lineHeight: '26.4px',
+    fontSize: '14px',
+    fontStyle: 'normal',
+    fontVariant: 'normal',
+    fontWeight: '700',
+    lineHeight: '26.4px',
   }
 
   useEffect(() => {
@@ -130,12 +130,24 @@ export default function App() {
           sx={{ mt: '-3%', mb: '-1%' }}
         >
         </Box>
+        <Grid
+              container
+            >
+              <Grid item xs={4} marginBottom={1}>
         <Typography variant="h4" component="h1">
-          Welcome to Point Dashboard
+          Point Dashboard
         </Typography>
+        </Grid>
+        <Grid item xs={6} marginTop={2.5}>
+        <Typography variant="caption" display="block" gutterBottom style={{ float: 'none' }}>
+          v{dashboardVersion}
+        </Typography>
+        </Grid>
+        </Grid>
         <Typography color="text.secondary">
           Manage and control Point Network components from here
         </Typography>
+
         {isLoading ?
           isUpdating ? (
             <Box display="flex" sx={{ mt: '2rem' }}>
@@ -174,7 +186,7 @@ export default function App() {
               </Grid>
               <Grid item xs={11}>
                 <Typography variant="h6" component="h2" marginBottom={'2px'}>
-                  You are logged in as {identity}
+                  <>You are logged in as <span style={balanceStyle}>@{identity}</span></>
                 </Typography>
               </Grid>
               {isLoadingWalletInfo ? (
@@ -206,7 +218,7 @@ export default function App() {
                   <Grid item xs={8} marginBottom={2}>
                     <Typography variant="subtitle2">
                       {walletInfo.balance ?
-                        <><span style={balanceStyle}>{walletInfo.balance}</span>POINT</> : ('N/A')
+                        <><span style={balanceStyle}>{walletInfo.balance}</span> yPOINT</> : ('N/A')
                       }
 
 
@@ -255,9 +267,6 @@ export default function App() {
             isLoading={isLoading || isUpdating}
           />
         </Box>
-        <Typography variant="caption" display="block" gutterBottom>
-          Dashboard:v{dashboardVersion}
-        </Typography>
       </Box>
     </UIThemeProvider>
   )
