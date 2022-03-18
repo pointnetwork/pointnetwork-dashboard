@@ -1,8 +1,8 @@
 import * as fs from 'fs'
 import helpers from '../../shared/helpers'
 import { BrowserWindow, clipboard } from 'electron'
+import { generatePhrase, validatePhrase, getDictionary } from './helpers'
 
-const Mnemonic = require('bitcore-mnemonic')
 const { getKeyFromMnemonic } = require('arweave-mnemonic-keys')
 
 class WelcomeService {
@@ -36,22 +36,23 @@ class WelcomeService {
   }
 
   async generate() {
-    this.win.webContents.send(
-      'welcome:mnemonic_generated',
-      new Mnemonic().toString()
-    )
+    this.win.webContents.send('welcome:mnemonic_generated', generatePhrase())
   }
 
-  async validate(message: any) {
+  async validate(message: string) {
     this.win.webContents.send(
       'welcome:mnemonic_validated',
-      Mnemonic.isValid(message)
+      validatePhrase(message)
     )
   }
 
   async copy(message: string) {
     clipboard.writeText(message)
     this.win.webContents.send('welcome:mnemonic_copied')
+  }
+
+  async getDictionary() {
+    this.win.webContents.send('welcome:set_dictionary', getDictionary())
   }
 
   close() {
