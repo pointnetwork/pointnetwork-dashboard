@@ -36,6 +36,11 @@ export default function App() {
     fontSize: '18px'
   }
 
+  const link = {
+    fontWeight: 'bold',
+    color: '#401E84'
+  }
+
   const monospace = {
     fontFamily: 'monospace',
     fontSize: '14px',
@@ -112,6 +117,7 @@ export default function App() {
       checkStartTime.current = new Date().getTime()
     }
     window.Dashboard.checkNode()
+    window.Dashboard.getIdentity()
   }
   const openFirefox = () => {
     window.Dashboard.openFirefox()
@@ -185,9 +191,19 @@ export default function App() {
                 )}
               </Grid>
               <Grid item xs={11}>
-                <Typography variant="h6" component="h2" marginBottom={'2px'}>
+                {identity?
+                  <Typography variant="h6" component="h2" marginBottom={'2px'}>
                   <>You are logged in as <span style={balanceStyle}>@{identity}</span></>
                 </Typography>
+                 :
+                  <Typography variant="h6" component="h2" marginBottom={'2px'}>
+                  <>Please create an identity at <span style={link}>https://point</span></>
+                </Typography>
+                }
+                
+
+
+                
               </Grid>
               {isLoadingWalletInfo ? (
                 <Grid item xs={12} display="flex" marginY={2}>
