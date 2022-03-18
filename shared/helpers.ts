@@ -5,6 +5,7 @@ import os from 'os'
 import { platform, arch } from 'process'
 import welcome from '../src/welcome'
 import axios from 'axios'
+import type { GithubRelease } from '../src/@types/github-release'
 const rimraf = require('rimraf')
 
 const getOSAndArch = () => {
@@ -52,6 +53,29 @@ const getlatestReleaseVersion = async () => {
 
   console.log('last version', res.data.tag_name)
   return res.data.tag_name
+}
+
+const getPortableDownloadURL = async () => {
+  const owner = 'pointnetwork'
+  const repo = 'phyrox-esr-portable'
+  const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`
+  const fallback = `https://github.com/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`
+  const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/
+
+  try {
+    const { data } = await axios.get<GithubRelease>(url)
+    const browserAsset = data.assets.find(a => re.test(a.name))
+
+    if (!browserAsset) {
+      console.log(`No release found in "${url}"`)
+      return fallback
+    }
+
+    return browserAsset.browser_download_url
+  } catch (err) {
+    console.log(`Error getting latest release from "${url}"`, err)
+    return fallback
+  }
 }
 
 const getHTTPorHTTPs = () => {
@@ -205,7 +229,7 @@ const getBinPath = () => {
   return dir
 }
 
-function noop():void { };
+function noop(): void {}
 
 const countFilesinDir = async (dir: string): Promise<number> => {
   let fileCount = 0
@@ -253,4 +277,5 @@ export default Object.freeze({
   getInstalledVersion,
   getLiveDirectoryPathResources,
   countFilesinDir,
+  getPortableDownloadURL,
 })
