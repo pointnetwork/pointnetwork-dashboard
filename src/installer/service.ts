@@ -110,6 +110,7 @@ class Installer {
           http,
           dir,
           url,
+          depth: 1,
           onMessage: (msg: string) => {
             const progressData = getProgressFromGithubMsg(msg)
             if (progressData) {
