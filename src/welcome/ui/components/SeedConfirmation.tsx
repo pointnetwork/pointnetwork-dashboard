@@ -33,6 +33,10 @@ export default function SeedConfirmation(props: {
     setIsSeedsMatch(userInput.trim() === props.seed)
   }, [userInput])
 
+  const paste = () => {
+    setUserInput(props.seed.trim())
+  }
+
   return (
     <Box display="flex" flexDirection="column">
       {!props.isLoggingIn ? (
@@ -52,15 +56,19 @@ export default function SeedConfirmation(props: {
         placeholder="Enter secret phrase here"
         color={isSeedsMatch ? 'success' : 'primary'}
         sx={{ fontSize: 22, color: 'green', mt: '.4rem', mb: '1rem' }}
+        value={userInput}
         onChange={e => setUserInput(e.currentTarget.value)}
       />
 
       <Box>
-        <Button variant="contained" onClick={validate}>
-          Confirm
-        </Button>
-        <Button variant="outlined" onClick={props.goBack} sx={{ mx: '.7rem' }}>
+      <Button variant="outlined" onClick={props.goBack} >
           Go Back
+        </Button>
+        <Button variant="outlined" onClick={paste} sx={{ mx: '.3rem' }}>
+          Paste
+        </Button>
+        <Button variant="contained" onClick={validate} sx={{ mx: '.3rem' }}>
+          Confirm
         </Button>
       </Box>
 
