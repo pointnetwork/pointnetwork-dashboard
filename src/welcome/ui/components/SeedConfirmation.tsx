@@ -1,74 +1,110 @@
-import { MouseEventHandler, useEffect, useState } from 'react'
+import { MouseEventHandler, useState, useEffect } from 'react'
+import { pickMultipleRandomly } from '../../helpers/random'
 // Material UI
-import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 // Components
 import NoShareWarning from './NoShareWarning'
+import WordInput from './WordInput'
 
-export default function SeedConfirmation(props: {
+const WORDS_TO_CONFIRM = 3
+
+interface Props {
   seed: string
   goBack: MouseEventHandler
-  isLoggingIn: boolean
-}) {
-  const [userInput, setUserInput] = useState<string>('')
-  const [isSeedsMatch, setIsSeedsMatch] = useState<boolean>(false)
+}
 
-  const validate = () => {
-    const trimmedSeed = userInput.trim()
-    if (!props.isLoggingIn && props.seed.trim() !== trimmedSeed) return
+type WordState = {
+  wordIdx: number
+  word: string
+  userInput: string
+}
 
-    window.Welcome.validateMnemonic(trimmedSeed)
-    window.Welcome.on('welcome:mnemonic_validated', (seedValid: any) => {
-      if (seedValid && (props.seed === trimmedSeed || props.isLoggingIn)) {
-        window.Welcome.login({ phrase: trimmedSeed })
-      }
-    })
-  }
+type State = Record<number, WordState>
+
+function generateInitialState(seed: string): State {
+  const words = seed.split(' ')
+  const state: State = {}
+  const picks = pickMultipleRandomly(words, WORDS_TO_CONFIRM)
+  picks.forEach(pick => {
+    const wordIdx = words.findIndex(w => w === pick)
+    state[wordIdx] = { wordIdx, word: pick, userInput: '' }
+  })
+  return state
+}
+
+export default function SeedConfirmation({ seed, goBack }: Props) {
+  const [state, setState] = useState<State>(() => generateInitialState(seed))
+  const [areAllCorrect, setAreAllCorrect] = useState(false)
+  const [dictionary, setDictionary] = useState<string[]>([])
 
   useEffect(() => {
-    setIsSeedsMatch(userInput.trim() === props.seed)
-  }, [userInput])
+    window.Welcome.getDictionary()
+    window.Welcome.on('welcome:set_dictionary', (d: string[]) => {
+      setDictionary(d)
+    })
+  }, [])
 
-  const paste = () => {
-    setUserInput(props.seed.trim())
+  useEffect(() => {
+    setAreAllCorrect(Object.values(state).every(i => i.word === i.userInput))
+  }, [state])
+
+  const validate = () => {
+    if (areAllCorrect) {
+      window.Welcome.login({ phrase: seed })
+    }
+  }
+
+  const changeHandler = (wordIdx: number, value: string) => {
+    setState(prev => ({
+      ...prev,
+      [wordIdx]: {
+        ...prev[wordIdx],
+        userInput: value,
+      },
+    }))
   }
 
   return (
     <Box display="flex" flexDirection="column">
-      {!props.isLoggingIn ? (
-        <Alert
-          severity={isSeedsMatch ? 'success' : 'warning'}
-          sx={{ mt: '.7rem', mb: '1.2rem' }}
-          variant={isSeedsMatch ? 'filled' : 'standard'}
-        >
-          The seed phrases {!isSeedsMatch ? 'do not' : ''} match
-        </Alert>
-      ) : null}
       <Typography>
-        Please enter the secret phrase you have written down:
+        Please enter the requested words from your secret phrase to make sure
+        you got it right:
       </Typography>
 
-      <TextField
-        placeholder="Enter secret phrase here"
-        color={isSeedsMatch ? 'success' : 'primary'}
-        sx={{ fontSize: 22, color: 'green', mt: '.4rem', mb: '1rem' }}
-        value={userInput}
-        onChange={e => setUserInput(e.currentTarget.value)}
-      />
+      <Grid
+        container
+        sx={{ py: 4, px: 2 }}
+        display="flex"
+        flexDirection="row"
+        justifyContent="space-between"
+        rowSpacing={3}
+      >
+        {Object.values(state).map(v => (
+          <WordInput
+            dictionary={dictionary}
+            key={v.wordIdx}
+            wordIdx={v.wordIdx}
+            value={v.userInput}
+            onChange={changeHandler}
+            isCorrect={v.userInput === v.word}
+          />
+        ))}
+      </Grid>
 
       <Box>
-      <Button variant="outlined" onClick={props.goBack} >
-          Go Back
-        </Button>
-        <Button variant="outlined" onClick={paste} sx={{ mx: '.3rem' }}>
-          Paste
-        </Button>
-        <Button variant="contained" onClick={validate} sx={{ mx: '.3rem' }}>
+        <Button
+          variant="contained"
+          onClick={validate}
+          disabled={!areAllCorrect}
+        >
           Confirm
+        </Button>
+        <Button variant="outlined" onClick={goBack} sx={{ mx: '.7rem' }}>
+          Go Back
         </Button>
       </Box>
 
