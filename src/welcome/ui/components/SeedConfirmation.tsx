@@ -106,9 +106,6 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
         <Button variant="outlined" onClick={goBack} sx={{ mx: '.7rem' }}>
           Go Back
         </Button>
-        <Button variant="contained" onClick={validate} sx={{ mx: '.3rem' }}>
-          Confirm
-        </Button>
       </Box>
 
       <Divider sx={{ mt: '1.5rem', mb: '.7rem' }} />
