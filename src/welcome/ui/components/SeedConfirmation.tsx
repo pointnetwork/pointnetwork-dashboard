@@ -44,21 +44,6 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
   
 
   useEffect(() => {
-    window.Welcome.on('welcome:mnemonic_pasted', (message: string) => {      
-      const messageArray: string[] = message.split(' ')
-      console.log(state)
-      const tmpstate =_.cloneDeep(state);
-      Object.keys(state).forEach((idx: string) =>{
-        const x = idx;
-        const y: number = +x;
-        messageArray[y]
-        tmpstate[y].userInput = messageArray[y]
-      });
-      setState(tmpstate)
-    })
-  }, [])
-
-  useEffect(() => {
     window.Welcome.getDictionary()
     window.Welcome.on('welcome:set_dictionary', (d: string[]) => {
       setDictionary(d)
@@ -83,10 +68,6 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
         userInput: value,
       },
     }))
-  }
-
-  const pasteFromClipboard = () => {
-    window.Welcome.pasteMnemonic()
   }
 
   return (
@@ -129,15 +110,6 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
         >
           Confirm
         </Button>
-        <Button
-          variant="contained"
-          onClick={pasteFromClipboard}
-         
-        >
-          Paste
-        </Button>
-
-
       </Box>
 
       <Divider sx={{ mt: '1.5rem', mb: '.7rem' }} />
