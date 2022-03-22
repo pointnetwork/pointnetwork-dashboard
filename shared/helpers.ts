@@ -43,19 +43,23 @@ const getPlatform = () => {
   }
 }
 
-const getlatestReleaseVersion = async () => {
-  const url =
-    'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
-  const headers = { 'user-agent': 'node.js' }
-  const res = await axios.get(url, {
-    headers: headers,
-  })
+const getlatestNodeReleaseVersion = async () => {
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
 
-  console.log('last version', res.data.tag_name)
-  return res.data.tag_name
+    console.log('Lastest Node version', res.data.tag_name)
+    return res.data.tag_name
+  } catch (error) {
+    console.error(error)
+  }
 }
 
-const getPortableDownloadURL = async () => {
+const getPortableDashboardDownloadURL = async () => {
   return 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.1.0/point-browser.zip'
   const owner = 'pointnetwork'
   const repo = 'phyrox-esr-portable'
@@ -98,18 +102,6 @@ const getHomePath = () => {
   return os.homedir()
 }
 
-const getPNPath = () => {
-  return path.join(getHomePath(), '.point', 'src', 'pointnetwork')
-}
-
-const getDashboardPath = () => {
-  return path.join(getHomePath(), '.point', 'src', 'pointnetwork-dashboard')
-}
-
-const getSDKPath = () => {
-  return path.join(getHomePath(), '.point', 'src', 'pointsdk')
-}
-
 const getBrowserFolderPath = () => {
   const browserDir = path.join(getHomePath(), '.point', 'src', 'point-browser')
   if (!fs.existsSync(browserDir)) {
@@ -138,13 +130,11 @@ const isLoggedIn = () => {
   return fs.existsSync(getKeyFileName())
 }
 
-const getInstalledVersion = () => {
+const getInstalledNodeVersion = () => {
   const pointPath = getPointPath()
   try {
     const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
-    const version = versionData.toString()
-    const installedVersion = JSON.parse(version)
-    return installedVersion
+    return JSON.parse(versionData.toString())
   } catch (error) {
     return {
       installedReleaseVersion: 'old',
@@ -173,18 +163,6 @@ const getPointSrcPath = () => {
 
 const getPointSoftwarePath = () => {
   return path.join(getPointPath(), 'software')
-}
-
-const isPNCloned = () => {
-  return fs.existsSync(getPNPath())
-}
-
-const isDashboardCloned = () => {
-  return fs.existsSync(getDashboardPath())
-}
-
-const isSDKCloned = () => {
-  return fs.existsSync(getSDKPath())
 }
 
 const copyFileSync = (source: string, target: string) => {
@@ -249,15 +227,43 @@ const countFilesinDir = async (dir: string): Promise<number> => {
   return fileCount
 }
 
+const getInstalledDashboardVersion = () => {
+  const pjson = require('../package.json')
+  return pjson.version
+}
+
+const isNewDashboardReleaseAvailable = async () => {
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointnetwork-dashboard/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
+    const latestVersion = res.data.tag_name
+
+    if (latestVersion.slice(1) > getInstalledDashboardVersion()) {
+      return {
+        isUpdateAvailable: true,
+        latestVersion,
+      }
+    }
+
+    return {
+      isUpdateAvailable: false,
+      latestVersion,
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export default Object.freeze({
   noop,
   getOSAndArch,
   getPlatform,
   getHTTPorHTTPs,
   fixPath,
-  getPNPath,
-  getDashboardPath,
-  getSDKPath,
   getBrowserFolderPath,
   getHomePath,
   getLiveDirectoryPath,
@@ -267,16 +273,15 @@ export default Object.freeze({
   logout,
   getPointSrcPath,
   getPointSoftwarePath,
-  isPNCloned,
-  isDashboardCloned,
-  isSDKCloned,
   getBinPath,
   copyFileSync,
   copyFolderRecursiveSync,
   getPointPath,
-  getlatestReleaseVersion,
-  getInstalledVersion,
+  getlatestNodeReleaseVersion,
+  getInstalledNodeVersion,
   getLiveDirectoryPathResources,
   countFilesinDir,
-  getPortableDownloadURL,
+  getPortableDashboardDownloadURL,
+  getInstalledDashboardVersion,
+  isNewDashboardReleaseAvailable,
 })
