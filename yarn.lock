@@ -2686,6 +2686,13 @@
   "resolved" "https://registry.npmjs.org/@types/prettier/-/prettier-2.4.4.tgz"
   "version" "2.4.4"
 
+"@types/progress-stream@^2.0.2":
+  "integrity" "sha512-u9N40mYX/Nx/Pmt847+G2N72s5QL2jwgXrVKCIcxgOdMBdIzY+e/m3m1gQBNPmgvQQBO79EisLAcVJ/p0qKuvA=="
+  "resolved" "https://registry.npmjs.org/@types/progress-stream/-/progress-stream-2.0.2.tgz"
+  "version" "2.0.2"
+  dependencies:
+    "@types/node" "*"
+
 "@types/prop-types@*", "@types/prop-types@^15.7.4":
   "integrity" "sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ=="
   "resolved" "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.4.tgz"
@@ -6791,11 +6798,6 @@
   "resolved" "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   "version" "1.0.0"
 
-"fsevents@^2.3.2", "fsevents@~2.3.2":
-  "integrity" "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA=="
-  "resolved" "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz"
-  "version" "2.3.2"
-
 "function-bind@^1.1.1":
   "integrity" "sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A=="
   "resolved" "https://registry.npmjs.org/function-bind/-/function-bind-1.1.1.tgz"
@@ -10832,6 +10834,14 @@
     "speedometer" "~0.1.2"
     "through2" "~0.2.3"
 
+"progress-stream@^2.0.0":
+  "integrity" "sha1-+sY6Cz0R3qy7CWmrzJOyFLzhntU="
+  "resolved" "https://registry.npmjs.org/progress-stream/-/progress-stream-2.0.0.tgz"
+  "version" "2.0.0"
+  dependencies:
+    "speedometer" "~1.0.0"
+    "through2" "~2.0.3"
+
 "progress@^2.0.0", "progress@^2.0.3":
   "integrity" "sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA=="
   "resolved" "https://registry.npmjs.org/progress/-/progress-2.0.3.tgz"
@@ -12141,6 +12151,11 @@
   "resolved" "https://registry.npmjs.org/speedometer/-/speedometer-0.1.4.tgz"
   "version" "0.1.4"
 
+"speedometer@~1.0.0":
+  "integrity" "sha1-zWccsGdSwivKM3Di8zREC+T8YuI="
+  "resolved" "https://registry.npmjs.org/speedometer/-/speedometer-1.0.0.tgz"
+  "version" "1.0.0"
+
 "split@~0.3.3":
   "integrity" "sha1-zQ7qXmOiEd//frDwkcQTPi0N0o8="
   "resolved" "https://registry.npmjs.org/split/-/split-0.3.3.tgz"
@@ -12667,6 +12682,14 @@
   dependencies:
     "readable-stream" "~1.1.9"
     "xtend" "~2.1.1"
+
+"through2@~2.0.3":
+  "integrity" "sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ=="
+  "resolved" "https://registry.npmjs.org/through2/-/through2-2.0.5.tgz"
+  "version" "2.0.5"
+  dependencies:
+    "readable-stream" "~2.3.6"
+    "xtend" "~4.0.1"
 
 "thunky@^1.0.2":
   "integrity" "sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA=="
@@ -13597,7 +13620,7 @@
   "resolved" "https://registry.npmjs.org/xmlchars/-/xmlchars-2.2.0.tgz"
   "version" "2.2.0"
 
-"xtend@^4.0.0":
+"xtend@^4.0.0", "xtend@~4.0.1":
   "integrity" "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ=="
   "resolved" "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz"
   "version" "4.0.2"

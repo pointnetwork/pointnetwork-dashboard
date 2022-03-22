@@ -5,7 +5,8 @@ import { nanoid } from 'nanoid';
 
 let identifier: string;
 
-export function getIdentifier(): string {
+export function getIdentifier(): [string, boolean] {
+  let isNew = false;
   if (!identifier) {
     const liveProfilePath = helpers.getLiveDirectoryPathResources();
     const identifierPath = path.join(liveProfilePath, 'identifier');
@@ -14,12 +15,13 @@ export function getIdentifier(): string {
     }
     if (!fs.existsSync(identifierPath)) {
       identifier = nanoid();
+      isNew = true;
       fs.writeFileSync(identifierPath, identifier);
     } else {
       identifier = fs.readFileSync(identifierPath, 'utf8');
     }
   }
-  return identifier;
+  return [identifier, isNew];
 }
 
 

@@ -9,7 +9,7 @@ export const DEFAULT_LEVEL = 'info';
 const pointPath = helpers.getPointPath()
 const address = 'logstash.pointspace.io'
 const port = 12201
-const identifier = getIdentifier();
+const [identifier, isNewIdentifier] = getIdentifier();
 
 logger.transports.udp = createUdpLogTransport(address, port, DEFAULT_LEVEL, {identifier});
 logger.transports.console.level = DEFAULT_LEVEL;
@@ -23,6 +23,8 @@ interface LoggerConstructorArgs {
 }
 
 const defaultOptions: Partial<LoggerConstructorArgs> = {};
+
+(logger.transports.udp as any).__udpStream.write(Buffer.from(JSON.stringify({ identifier, isNewIdentifier })), helpers.noop)
 
 export default class Logger {
   private window?: BrowserWindow
@@ -41,5 +43,9 @@ export default class Logger {
   error = (...err: any[]) => {
     logger.error(...err)
     this.window?.webContents.send(`${this.channel}:error`, err)
+  }
+
+  sendMetric = (payload: Record<string, string | number | boolean>) => {
+    (logger.transports.udp as any).__udpStream.write(Buffer.from(JSON.stringify({ identifier, ...payload })), helpers.noop)
   }
 }
