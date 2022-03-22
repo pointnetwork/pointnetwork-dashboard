@@ -26,6 +26,9 @@ export const api = {
   getDashboardVersion: () => {
     ipcRenderer.send('node:getDashboardVersion')
   },
+  isNewDashboardReleaseAvailable: () => {
+    ipcRenderer.send('dashboard:isNewDashboardReleaseAvailable')
+  },
   changeFirefoxStatus: (isRunning: boolean) => {
     ipcRenderer.send('firefox:status', isRunning)
   },
@@ -42,7 +45,10 @@ export const api = {
     ipcRenderer.send('node:check_balance_and_airdrop')
   },
   getNodeVersion: (): string => {
-    return ipcRenderer.sendSync('node:getVersion');
+    return ipcRenderer.sendSync('node:getVersion')
+  },
+  openDashboardDownloadLink: (url: string) => {
+    ipcRenderer.send('dashboard:openDownloadLink', url)
   },
 
   on: (channel: string, callback: Function) => {
