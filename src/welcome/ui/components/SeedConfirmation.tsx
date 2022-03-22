@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 // Components
 import NoShareWarning from './NoShareWarning'
 import WordInput from './WordInput'
+import _ from 'lodash'
 
 const WORDS_TO_CONFIRM = 3
 
@@ -40,6 +41,22 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
   const [state, setState] = useState<State>(() => generateInitialState(seed))
   const [areAllCorrect, setAreAllCorrect] = useState(false)
   const [dictionary, setDictionary] = useState<string[]>([])
+  
+
+  useEffect(() => {
+    window.Welcome.on('welcome:mnemonic_pasted', (message: string) => {      
+      const messageArray: string[] = message.split(' ')
+      console.log(state)
+      const tmpstate =_.cloneDeep(state);
+      Object.keys(state).forEach((idx: string) =>{
+        const x = idx;
+        const y: number = +x;
+        messageArray[y]
+        tmpstate[y].userInput = messageArray[y]
+      });
+      setState(tmpstate)
+    })
+  }, [])
 
   useEffect(() => {
     window.Welcome.getDictionary()
@@ -66,6 +83,10 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
         userInput: value,
       },
     }))
+  }
+
+  const pasteFromClipboard = () => {
+    window.Welcome.pasteMnemonic()
   }
 
   return (
@@ -96,16 +117,27 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
       </Grid>
 
       <Box>
+      <Button variant="outlined" onClick={goBack}>
+          Go Back
+        </Button>
+
         <Button
           variant="contained"
           onClick={validate}
           disabled={!areAllCorrect}
+          sx={{ mx: '.7rem' }}
         >
           Confirm
         </Button>
-        <Button variant="outlined" onClick={goBack} sx={{ mx: '.7rem' }}>
-          Go Back
+        <Button
+          variant="contained"
+          onClick={pasteFromClipboard}
+         
+        >
+          Paste
         </Button>
+
+
       </Box>
 
       <Divider sx={{ mt: '1.5rem', mb: '.7rem' }} />

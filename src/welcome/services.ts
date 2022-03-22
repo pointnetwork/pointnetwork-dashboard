@@ -51,6 +51,12 @@ class WelcomeService {
     this.win.webContents.send('welcome:mnemonic_copied')
   }
 
+  async paste() {
+    const message = clipboard.readText("clipboard")
+    console.log('message', message)
+    this.win.webContents.send('welcome:mnemonic_pasted', message)
+  }
+
   async getDictionary() {
     this.win.webContents.send('welcome:set_dictionary', getDictionary())
   }

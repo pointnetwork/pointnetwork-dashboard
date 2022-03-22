@@ -16,7 +16,7 @@ import Stack from '@mui/material/Stack'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [identity, setIdentity] = useState<string>('waiting...')
+  const [identity, setIdentity] = useState<string|null>(null)
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
