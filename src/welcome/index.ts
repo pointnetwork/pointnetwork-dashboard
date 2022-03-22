@@ -30,7 +30,7 @@ export default function (isExplicitRun = false) {
     })
 
     // debug
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
     welcomeService = new WelcomeService(mainWindow!)
 
     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
