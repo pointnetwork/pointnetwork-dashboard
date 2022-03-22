@@ -66,7 +66,7 @@ export default class Node {
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
-      const version = await helpers.getlatestReleaseVersion()
+      const version = await helpers.getlatestNodeReleaseVersion()
       const pointPath = helpers.getPointPath()
       const filename = this.getNodeFileName(version)
 
@@ -234,9 +234,9 @@ export default class Node {
 
   async checkNodeVersion() {
     const pointPath = helpers.getPointPath()
-    const installedVersion = helpers.getInstalledVersion()
+    const installedVersion = helpers.getInstalledNodeVersion()
 
-    const latestReleaseVersion = await helpers.getlatestReleaseVersion()
+    const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
     logger.info('installed', installedVersion.installedReleaseVersion)
     logger.info('last', latestReleaseVersion)
@@ -257,7 +257,7 @@ export default class Node {
     }
   }
 
-  async getIdentity(){
+  async getIdentity() {
     logger.info('Get Identity')
     const addressRes = await axios.get(
       'http://localhost:2468/v1/api/wallet/address'
@@ -265,7 +265,9 @@ export default class Node {
     const address = addressRes.data.data.address
     logger.info('Get Identity adress', address)
     try {
-      console.log(`http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`)
+      console.log(
+        `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
+      )
       const identity = await axios.get(
         `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
       )
@@ -273,11 +275,5 @@ export default class Node {
     } catch (e) {
       logger.error(e)
     }
-  }
-
-  async getDashboardVersion(){
-    var pjson = require('../../package.json');
-    console.log('json vetrsion',pjson.version);
-    this.window.webContents.send('node:getDashboardVersion', pjson.version)
   }
 }

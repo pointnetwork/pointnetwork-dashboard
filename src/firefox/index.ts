@@ -49,7 +49,7 @@ export default class {
   }
 
   async getURLWindows() {
-    const url = await helpers.getPortableDownloadURL()
+    const url = await helpers.getPortableDashboardDownloadURL()
     return url
   }
 
