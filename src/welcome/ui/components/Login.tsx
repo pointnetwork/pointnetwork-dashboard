@@ -1,4 +1,4 @@
-import { MouseEventHandler, useState } from 'react'
+import { MouseEventHandler, useState, useEffect } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -30,6 +30,17 @@ export default function Login({ goBack }: Props) {
     })
   }
 
+  useEffect(() => {
+    window.Welcome.on('welcome:mnemonic_pasted', (message: string) => { 
+      console.log('message',message)     
+      setUserInput(message)
+    })
+  }, [])
+
+  const pasteFromClipboard = () => {
+    window.Welcome.pasteMnemonic()
+  }
+
   return (
     <Box display="flex" flexDirection="column">
       <Typography>
@@ -42,13 +53,17 @@ export default function Login({ goBack }: Props) {
         onChange={e => setUserInput(e.currentTarget.value)}
         error={!!validationError}
         helperText={validationError}
+        value={userInput}
       />
 
       <Box>
         <Button variant="contained" onClick={validate}>
           Confirm
         </Button>
-        <Button variant="outlined" onClick={goBack} sx={{ mx: '.7rem' }}>
+        <Button variant="outlined" onClick={pasteFromClipboard} sx={{ mx: '.7rem' }}>
+          Paste
+        </Button>
+        <Button variant="outlined" onClick={goBack} >
           Go Back
         </Button>
       </Box>
