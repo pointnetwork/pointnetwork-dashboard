@@ -1,7 +1,7 @@
 {
   "name": "pointnetwork-dashboard",
   "author": "Point Labs",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "PointNetwork",
   "main": "./.webpack/main",
   "scripts": {
