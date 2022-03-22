@@ -1,4 +1,11 @@
-import { app, BrowserWindow, ipcMain, dialog, IpcMainEvent } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  IpcMainEvent,
+  shell,
+} from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
@@ -6,7 +13,7 @@ import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 import Logger from '../../shared/logger'
 
-const logger = new Logger();
+const logger = new Logger()
 
 let mainWindow: BrowserWindow | null
 
@@ -161,12 +168,33 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'node:getDashboardVersion',
-      listener() {
-        node!.getDashboardVersion()
+      channel: 'dashboard:openDownloadLink',
+      listener(event: IpcMainEvent, url: string) {
+        try {
+          shell.openExternal(url)
+        } catch (error) {
+          logger.error(error)
+        }
       },
     },
-    
+    {
+      channel: 'dashboard:isNewDashboardReleaseAvailable',
+      async listener() {
+        mainWindow!.webContents.send(
+          'dashboard:isNewDashboardReleaseAvailable',
+          await helpers.isNewDashboardReleaseAvailable()
+        )
+      },
+    },
+    {
+      channel: 'node:getDashboardVersion',
+      listener() {
+        mainWindow!.webContents.send(
+          'node:getDashboardVersion',
+          helpers.getInstalledDashboardVersion()
+        )
+      },
+    },
     {
       channel: 'logOut',
       async listener() {
@@ -198,7 +226,7 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:getVersion',
       async listener(event: IpcMainEvent) {
-        event.returnValue = await helpers.getInstalledVersion()
+        event.returnValue = await helpers.getInstalledNodeVersion()
       },
     },
     {
