@@ -26,6 +26,7 @@ function getLogLevel(level: string): number {
 }
 
 function createUdpStream(options: {
+
   address: string;
   port: number;
 }) {
@@ -52,6 +53,7 @@ export function createUdpLogTransport(address: string, port: number, level: Leve
     udpStream.write(Buffer.from(JSON.stringify(payload)), helpers.noop)
   }
   udpLogTransport.level = level;
+  (udpLogTransport as any).__udpStream = udpStream;
   return udpLogTransport;
 }
 
