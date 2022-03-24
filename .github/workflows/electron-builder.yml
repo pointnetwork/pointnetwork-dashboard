@@ -34,7 +34,7 @@ jobs:
       with:
         node-version: 14
     - name: Install dependencies
-      run: npm install
+      run: npm cache --force clean && npm install --force
     - name: Build executables
       run: npm run make
 

@@ -40,24 +40,25 @@ export default class {
     return false
   }
 
-  getURL(version: unknown, osAndArch: any, language: string, filename: string) {
-    if (global.platform.win32) {
-      return 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.1.0/point-browser.zip'
-    }
-    // linux & mac
+  getURLMacAndLinux(
+    version: unknown,
+    osAndArch: any,
+    language: string,
+    filename: string
+  ) {
     return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`
   }
 
+  async getURLWindows() {
+    const url = await helpers.getPortableDashboardDownloadURL()
+    return url
+  }
+
   getFileName(version: unknown) {
-    if (global.platform.win32) {
-      // TODO: Still unsure about this: we need to decide on the name
-      // of the browser, check how we get the version, etc.
-      return `point-browser.zip`
-    }
     if (global.platform.darwin) {
       return `Firefox%20${version}.dmg`
     }
-    // linux & mac
+    // linux
     return `firefox-${version}.tar.bz2`
   }
 
@@ -81,10 +82,24 @@ export default class {
           'pac.js'
         )
       )
-      const filename = this.getFileName(version)
+
+      let firefoxURL = ''
+      let filename = ''
+      if (global.platform.win32) {
+        firefoxURL = await this.getURLWindows()
+        filename = firefoxURL.split('/').pop()!
+      } else {
+        filename = this.getFileName(version)
+        firefoxURL = this.getURLMacAndLinux(
+          version,
+          osAndArch,
+          language,
+          filename
+        )
+      }
+
       const releasePath = path.join(browserDir, filename)
       const firefoxRelease = fs.createWriteStream(releasePath)
-      const firefoxURL = this.getURL(version, osAndArch, language, filename)
 
       if (!fs.existsSync(browserDir)) {
         this.installationLogger.info('Creating browser directory')
@@ -136,7 +151,7 @@ export default class {
               this.window.webContents.send('firefox:setVersion', version)
               this.window.webContents.send('firefox:finishDownload', true)
               // write firefox version to a file
-              fs.writeFile(path.join(pointPath, 'infoFirefox.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', function (err) {
+              fs.writeFile(path.join(pointPath, 'infoFirefox.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', (err) => {
                 if (err) {
                   this.installationLogger.error("An error occured while infoFirefox.json JSON Object to File.")
                   return console.log(err);
@@ -531,11 +546,11 @@ pref("extensions.startupScanScopes", 15);
 
     const latestReleaseVersion = await this.getLastVersionFirefox()
     
-    console.log('firefox version installed',installedVersion.installedReleaseVersion  )
+    this.installationLogger.info('firefox version installed', installedVersion.installedReleaseVersion)
     this.window.webContents.send('firefox:setVersion', installedVersion.installedReleaseVersion)
-    console.log('firefox last version',latestReleaseVersion )
+    this.installationLogger.info('firefox last version', String(latestReleaseVersion) )
     if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
-      console.log('Firefox Update need it')
+      this.installationLogger.info('Firefox Update need it')
       this.window.webContents.send('firefox:update', true)
       
       //closes firefox

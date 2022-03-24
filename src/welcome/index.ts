@@ -1,10 +1,10 @@
-import { app, BrowserWindow, ipcMain} from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import WelcomeService from './services'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 
-const logger = new Logger();
+const logger = new Logger()
 
 let mainWindow: BrowserWindow | null
 let welcomeService: WelcomeService | null
@@ -30,7 +30,7 @@ export default function (isExplicitRun = false) {
     })
 
     // debug
-    //  mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
     welcomeService = new WelcomeService(mainWindow!)
 
     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
@@ -68,6 +68,12 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'welcome:paste_mnemonic',
+      listener(_: any) {
+        welcomeService!.paste()
+      },
+    },
+    {
       channel: 'welcome:login',
       async listener(_: any, message: string) {
         const result = await welcomeService!.login(message)
@@ -75,6 +81,12 @@ export default function (isExplicitRun = false) {
           dashboard(true)
           welcomeService!.close()
         }
+      },
+    },
+    {
+      channel: 'welcome:get_dictionary',
+      listener() {
+        welcomeService!.getDictionary()
       },
     },
   ]

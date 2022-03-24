@@ -5,6 +5,7 @@ import os from 'os'
 import { platform, arch } from 'process'
 import welcome from '../src/welcome'
 import axios from 'axios'
+import type { GithubRelease } from '../src/@types/github-release'
 const rimraf = require('rimraf')
 
 const getOSAndArch = () => {
@@ -42,16 +43,44 @@ const getPlatform = () => {
   }
 }
 
-const getlatestReleaseVersion = async () => {
-  const url =
-    'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
-  const headers = { 'user-agent': 'node.js' }
-  const res = await axios.get(url, {
-    headers: headers,
-  })
+const getlatestNodeReleaseVersion = async () => {
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
 
-  console.log('last version', res.data.tag_name)
-  return res.data.tag_name
+    console.log('Lastest Node version', res.data.tag_name)
+    return res.data.tag_name
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const getPortableDashboardDownloadURL = async () => {
+  return 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.1.0/point-browser.zip'
+  const owner = 'pointnetwork'
+  const repo = 'phyrox-esr-portable'
+  const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`
+  const fallback = `https://github.com/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`
+  const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/
+
+  try {
+    const { data } = await axios.get<GithubRelease>(url)
+    const browserAsset = data.assets.find(a => re.test(a.name))
+
+    if (!browserAsset) {
+      console.log(`No release found in "${url}"`)
+      return fallback
+    }
+
+    return browserAsset.browser_download_url
+  } catch (err) {
+    console.log(`Error getting latest release from "${url}"`, err)
+    return fallback
+  }
 }
 
 const getHTTPorHTTPs = () => {
@@ -71,18 +100,6 @@ const fixPath = (pathStr: string) => {
 
 const getHomePath = () => {
   return os.homedir()
-}
-
-const getPNPath = () => {
-  return path.join(getHomePath(), '.point', 'src', 'pointnetwork')
-}
-
-const getDashboardPath = () => {
-  return path.join(getHomePath(), '.point', 'src', 'pointnetwork-dashboard')
-}
-
-const getSDKPath = () => {
-  return path.join(getHomePath(), '.point', 'src', 'pointsdk')
 }
 
 const getBrowserFolderPath = () => {
@@ -113,13 +130,11 @@ const isLoggedIn = () => {
   return fs.existsSync(getKeyFileName())
 }
 
-const getInstalledVersion = () => {
+const getInstalledNodeVersion = () => {
   const pointPath = getPointPath()
   try {
     const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
-    const version = versionData.toString()
-    const installedVersion = JSON.parse(version)
-    return installedVersion
+    return JSON.parse(versionData.toString())
   } catch (error) {
     return {
       installedReleaseVersion: 'old',
@@ -165,18 +180,6 @@ const getPointSoftwarePath = () => {
   return path.join(getPointPath(), 'software')
 }
 
-const isPNCloned = () => {
-  return fs.existsSync(getPNPath())
-}
-
-const isDashboardCloned = () => {
-  return fs.existsSync(getDashboardPath())
-}
-
-const isSDKCloned = () => {
-  return fs.existsSync(getSDKPath())
-}
-
 const copyFileSync = (source: string, target: string) => {
   let targetFile = target
 
@@ -220,6 +223,8 @@ const getBinPath = () => {
   return dir
 }
 
+function noop(): void {}
+
 const countFilesinDir = async (dir: string): Promise<number> => {
   let fileCount = 0
   const entries = await fs.readdir(dir)
@@ -237,14 +242,43 @@ const countFilesinDir = async (dir: string): Promise<number> => {
   return fileCount
 }
 
+const getInstalledDashboardVersion = () => {
+  const pjson = require('../package.json')
+  return pjson.version
+}
+
+const isNewDashboardReleaseAvailable = async () => {
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointnetwork-dashboard/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
+    const latestVersion = res.data.tag_name
+
+    if (latestVersion.slice(1) > getInstalledDashboardVersion()) {
+      return {
+        isUpdateAvailable: true,
+        latestVersion,
+      }
+    }
+
+    return {
+      isUpdateAvailable: false,
+      latestVersion,
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export default Object.freeze({
+  noop,
   getOSAndArch,
   getPlatform,
   getHTTPorHTTPs,
   fixPath,
-  getPNPath,
-  getDashboardPath,
-  getSDKPath,
   getBrowserFolderPath,
   getHomePath,
   getLiveDirectoryPath,
@@ -254,16 +288,16 @@ export default Object.freeze({
   logout,
   getPointSrcPath,
   getPointSoftwarePath,
-  isPNCloned,
-  isDashboardCloned,
-  isSDKCloned,
   getBinPath,
   copyFileSync,
   copyFolderRecursiveSync,
   getPointPath,
-  getlatestReleaseVersion,
-  getInstalledVersion,
   getInstalledFirefoxVersion,
+  getlatestNodeReleaseVersion,
+  getInstalledNodeVersion,
   getLiveDirectoryPathResources,
   countFilesinDir,
+  getPortableDashboardDownloadURL,
+  getInstalledDashboardVersion,
+  isNewDashboardReleaseAvailable,
 })

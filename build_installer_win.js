@@ -12,6 +12,10 @@ const APP_DIR = path.resolve(__dirname, './out/pointnetwork-dashboard-win32-x64'
 // outputDirectory: "C:\\Users\sdkca\Desktop\windows_installer", 
 const OUT_DIR = path.resolve(__dirname, './out/pointDashboard_windows_installer');
 
+const ICON_DIR = path.resolve(__dirname, './assets/multiformat.ico');
+const BACKG_DIR_JPG = path.resolve(__dirname, './assets/background.jpg');
+const BANNER_DIR_JPG = path.resolve(__dirname, './assets/banner.jpg');
+
 // 3. Instantiate the MSICreator
 const msiCreator = new MSICreator({
     appDirectory: APP_DIR,
@@ -23,10 +27,15 @@ const msiCreator = new MSICreator({
     name: 'Point Dashboard',
     manufacturer: 'PointNetwork',
     version: '1.0.0',
+    appIconPath : ICON_DIR,
 
     // Configure installer User Interface
     ui: {
-        chooseDirectory: true
+        chooseDirectory: true,
+        images : {
+            background: BACKG_DIR_JPG,
+            banner: BANNER_DIR_JPG,
+        }
     },
 });
 

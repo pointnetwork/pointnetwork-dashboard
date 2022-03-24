@@ -1,10 +1,12 @@
-import {MouseEventHandler, useEffect, useState, Fragment, useRef} from 'react'
+import { MouseEventHandler, useEffect, useState, Fragment, useRef } from 'react'
 // Material UI
 import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
 // Icons
@@ -15,6 +17,8 @@ import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [identity, setIdentity] = useState<string | null>(null)
+  const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
@@ -28,9 +32,37 @@ export default function App() {
   })
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
   const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
+  const [isNewDashboardReleaseAvailable, setIsNewDashboardReleaseAvailable] =
+    useState<{
+      isUpdateAvailable: boolean
+      latestVersion: string
+    }>({
+      isUpdateAvailable: false,
+      latestVersion: '',
+    })
   const checkStartTime = useRef(0)
 
+  const balanceStyle = {
+    fontWeight: 'bold',
+    fontSize: '18px',
+  }
+
+  const link = {
+    fontWeight: 'bold',
+    color: '#401E84',
+  }
+
+  const monospace = {
+    fontFamily: 'monospace',
+    fontSize: '14px',
+    fontStyle: 'normal',
+    fontVariant: 'normal',
+    fontWeight: '700',
+    lineHeight: '26.4px',
+  }
+
   useEffect(() => {
+    window.Dashboard.getDashboardVersion()
     window.Dashboard.on('node:update', (status: boolean) => {
       setIsUpdating(status)
       if (status) {
@@ -65,9 +97,18 @@ export default function App() {
       openFirefox();
     })
 
+    window.Dashboard.on('node:identity', (identity: string) => {
+      setIdentity(identity)
+    })
+
+    window.Dashboard.on('node:getDashboardVersion', (dversion: string) => {
+      setDashboardVersion(dversion)
+    })
+
     window.Dashboard.on('firefox:active', (status: boolean) => {
       setIsFirefoxRunning(status)
       window.Dashboard.changeFirefoxStatus(status)
+      window.Dashboard.getIdentity()
     })
 
     window.Dashboard.on('pointNode:checked', (version: string | null) => {
@@ -89,11 +130,26 @@ export default function App() {
       setIsLoadingWalletInfo(false)
     })
 
+    window.Dashboard.on(
+      'dashboard:isNewDashboardReleaseAvailable',
+      (message: { isUpdateAvailable: boolean; latestVersion: string }) => {
+        console.log('dashboard:isNewDashboardReleaseAvailable', message)
+        setIsNewDashboardReleaseAvailable(message)
+      }
+    )
+
     window.Dashboard.checkUpdate()
+    window.Dashboard.isNewDashboardReleaseAvailable()
   }, [])
 
   useEffect(() => {
-    if (nodeVersion && isFirefoxRunning && !isLoadingWalletInfo && !isUpdating && !isFirefoxUpdating) {
+    if (
+      nodeVersion &&
+      isFirefoxRunning &&
+      !isLoadingWalletInfo &&
+      !isUpdating &&
+      !isFirefoxUpdating
+    ) {
       setIsLoading(false)
     }
   }, [isFirefoxUpdating, isUpdating, nodeVersion, isFirefoxRunning, isLoadingWalletInfo])
@@ -101,40 +157,69 @@ export default function App() {
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
   }
+
   const checkNode = () => {
     if (checkStartTime.current === 0) {
       checkStartTime.current = new Date().getTime()
     }
     window.Dashboard.checkNode()
+    window.Dashboard.getIdentity()
   }
+
   const openFirefox = () => {
     if(!isFirefoxUpdating){
       window.Dashboard.openFirefox()
     }
   }
+
   const requestYPoints = () => {
     setIsLoadingWalletInfo(true)
     window.Dashboard.checkBalanceAndAirdrop()
   }
 
+  const openDonwloadLink = () => {
+    window.Dashboard.openDashboardDownloadLink(
+      `https://github.com/pointnetwork/pointnetwork-dashboard/releases/tag/${isNewDashboardReleaseAvailable.latestVersion}`
+    )
+  }
+
   return (
     <UIThemeProvider>
-      <Box sx={{ px: '3.5%', pt: '3.5%' }}>
-        <Box
-          display={'flex'}
-          flexDirection="row-reverse"
-          sx={{ mt: '-3%', mb: '-1%' }}
-        >
-          <Button variant="contained" onClick={logout}>
-            Logout
-          </Button>
-        </Box>
-        <Typography variant="h4" component="h1">
-          Welcome to Point Dashboard
-        </Typography>
+      <Box sx={{ px: '3.5%', pt: '3%' }}>
+        {isNewDashboardReleaseAvailable.isUpdateAvailable && (
+          <Alert
+            sx={{ position: 'absolute', right: '2.5%', top: '2.5%' }}
+            severity="info"
+          >
+            <AlertTitle>New Update Available</AlertTitle>
+            Click{' '}
+            <strong style={{ cursor: 'pointer' }} onClick={openDonwloadLink}>
+              here
+            </strong>{' '}
+            to download the latest version
+          </Alert>
+        )}
+        <Grid container>
+          <Grid item xs={4} marginBottom={1}>
+            <Typography variant="h4" component="h1">
+              Point Dashboard
+            </Typography>
+          </Grid>
+          <Grid item xs={6} marginTop={2.5}>
+            <Typography
+              variant="caption"
+              display="block"
+              gutterBottom
+              style={{ float: 'none' }}
+            >
+              v{dashboardVersion}
+            </Typography>
+          </Grid>
+        </Grid>
         <Typography color="text.secondary">
-          Manage the various point components from here
+          Manage and control Point Network components from here
         </Typography>
+
         {isLoading ?
           isUpdating || isFirefoxUpdating ? (
             <Box display="flex" sx={{ mt: '2rem' }}>
@@ -150,61 +235,87 @@ export default function App() {
                 Starting up Node and Browser...
               </Typography>
             </Box>
-          ) : (
-            <Grid
-              container
-              sx={{
-                my: '.65rem',
-                p: '1rem',
-                pt: '.75rem',
-                opacity: isLoading ? 0.2 : 1,
-              }}
-              borderRadius={2}
-              border={'2px dashed'}
-              borderColor="primary.light"
-            >
-              <Grid item xs={12} marginBottom={1}>
-                {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
-                  <Alert severity="info">
-                    You need yPoints to be able to browse the Web3.0. Click
-                    "Request yPoints" button to get some yPoints.
-                  </Alert>
-                )}
-              </Grid>
-              <Grid item xs={11}>
+        ) : (
+          <Grid
+            container
+            sx={{
+              my: '.65rem',
+              p: '1rem',
+              pt: '.75rem',
+              opacity: isLoading ? 0.2 : 1,
+            }}
+            borderRadius={2}
+            border={'2px dashed'}
+            borderColor="primary.light"
+          >
+            <Grid item xs={12} marginBottom={1}>
+              {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
+                <Alert severity="info">
+                  You need POINTS to be able to browse the Web3.0. Click
+                  "Request POINTS" button to get some POINTS.
+                </Alert>
+              )}
+            </Grid>
+            <Grid item xs={11}>
+              {identity ? (
                 <Typography variant="h6" component="h2" marginBottom={'2px'}>
-                  Your Wallet Info
+                  <>
+                    You are logged in as{' '}
+                    <span style={balanceStyle}>@{identity}</span>
+                  </>
+                </Typography>
+              ) : (
+                <Typography variant="h6" component="h2" marginBottom={'2px'}>
+                  <>
+                    Please create an identity at{' '}
+                    <span style={link}>https://point</span>
+                  </>
+                </Typography>
+              )}
+            </Grid>
+            {isLoadingWalletInfo ? (
+              <Grid item xs={12} display="flex" marginY={2}>
+                <CircularProgress size={20} />
+                <Typography sx={{ ml: '.6rem' }}>
+                  Getting Wallet Info...
                 </Typography>
               </Grid>
-              {isLoadingWalletInfo ? (
-                <Grid item xs={12} display="flex" marginY={2}>
-                  <CircularProgress size={20} />
-                  <Typography sx={{ ml: '.6rem' }}>
-                    Getting Wallet Info...
+            ) : (
+              <Fragment>
+                <Grid item xs={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Wallet Address
                   </Typography>
                 </Grid>
-              ) : (
-                <Fragment>
-                  <Grid item xs={3}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Wallet Address
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={8}>
-                    <Typography variant="subtitle2">
-                      {walletInfo.address || 'N/A'}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Balance
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={8} marginBottom={2}>
-                    <Typography variant="subtitle2">
-                      {`${walletInfo.balance} yPoints` || 'N/A'}
-                    </Typography>
-                  </Grid>
+                <Grid item xs={8}>
+                  <Typography variant="subtitle2">
+                    {walletInfo.address ? (
+                      <>
+                        <span style={monospace}>{walletInfo.address}</span>
+                      </>
+                    ) : (
+                      'N/A'
+                    )}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Balance
+                  </Typography>
+                </Grid>
+                <Grid item xs={8} marginBottom={2}>
+                  <Typography variant="subtitle2">
+                    {walletInfo.balance ? (
+                      <>
+                        <span style={balanceStyle}>{walletInfo.balance}</span>{' '}
+                        yPOINT
+                      </>
+                    ) : (
+                      'N/A'
+                    )}
+                  </Typography>
+                </Grid>
+                <Stack direction="row" spacing={2}>
                   <Button
                     variant="contained"
                     disabled={Number(walletInfo.balance) > 0}
@@ -212,10 +323,18 @@ export default function App() {
                   >
                     Request yPoints
                   </Button>
-                </Fragment>
-              )}
-            </Grid>
-          )}
+                  <Button
+                    variant="contained"
+                    onClick={logout}
+                    style={{ marginRight: '5px' }}
+                  >
+                    Logout
+                  </Button>
+                </Stack>
+              </Fragment>
+            )}
+          </Grid>
+        )}
         <Box
           sx={{
             opacity: isLoading || isUpdating || isFirefoxUpdating ? 0.2 : 1,
@@ -231,7 +350,7 @@ export default function App() {
             onClick={openFirefox}
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
-            isLoading={isLoading|| isUpdating  || isFirefoxUpdating}
+            isLoading={isLoading || isUpdating || isFirefoxUpdating}
             version={firefoxVersion}
           />
           <ResourceItemCard

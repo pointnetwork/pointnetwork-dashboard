@@ -23,6 +23,12 @@ export const api = {
   copyMnemonic: (value: any) => {
     ipcRenderer.send('welcome:copy_mnemonic', value)
   },
+  pasteMnemonic: () => {
+    ipcRenderer.send('welcome:paste_mnemonic')
+  },
+  getDictionary: () => {
+    ipcRenderer.send('welcome:get_dictionary')
+  },
 }
 
 contextBridge.exposeInMainWorld('Welcome', api)
