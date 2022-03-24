@@ -20,6 +20,7 @@ export default function App() {
   const [identity, setIdentity] = useState<string | null>(null)
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
+  const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
   const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(true)
   const [walletInfo, setWalletInfo] = useState<{
@@ -30,6 +31,7 @@ export default function App() {
     balance: '',
   })
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
+  const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
   const [isNewDashboardReleaseAvailable, setIsNewDashboardReleaseAvailable] =
     useState<{
       isUpdateAvailable: boolean
@@ -70,10 +72,29 @@ export default function App() {
       }
     })
 
+    window.Dashboard.on('firefox:update', (status: boolean) => {
+      setIsFirefoxUpdating(status)
+      if (status) {
+        window.Dashboard.DownloadFirefox()
+      } //else {
+        //openFirefox()
+      //}
+    })
+
+    window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
+      setFirefoxVersion(firefoxVersion);
+    })
+    
+
     window.Dashboard.on('pointNode:finishDownload', () => {
       setIsUpdating(false)
       window.Dashboard.launchNode()
       checkNode()
+    })
+
+    window.Dashboard.on('firefox:finishDownload', () => {
+      setIsFirefoxUpdating(false)
+      openFirefox();
     })
 
     window.Dashboard.on('node:identity', (identity: string) => {
@@ -126,11 +147,12 @@ export default function App() {
       nodeVersion &&
       isFirefoxRunning &&
       !isLoadingWalletInfo &&
-      !isUpdating
+      !isUpdating &&
+      !isFirefoxUpdating
     ) {
       setIsLoading(false)
     }
-  }, [isUpdating, nodeVersion, isFirefoxRunning, isLoadingWalletInfo])
+  }, [isFirefoxUpdating, isUpdating, nodeVersion, isFirefoxRunning, isLoadingWalletInfo])
 
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
@@ -145,7 +167,9 @@ export default function App() {
   }
 
   const openFirefox = () => {
-    window.Dashboard.openFirefox()
+    if(!isFirefoxUpdating){
+      window.Dashboard.openFirefox()
+    }
   }
 
   const requestYPoints = () => {
@@ -196,12 +220,12 @@ export default function App() {
           Manage and control Point Network components from here
         </Typography>
 
-        {isLoading ? (
-          isUpdating ? (
+        {isLoading ?
+          isUpdating || isFirefoxUpdating ? (
             <Box display="flex" sx={{ mt: '2rem' }}>
               <CircularProgress size={20} />
               <Typography sx={{ ml: '.6rem' }}>
-                Point Node is updating... Please wait
+                { (isUpdating ? 'Point Node ' : 'Firefox') +  ' updating... Please wait'}
               </Typography>
             </Box>
           ) : (
@@ -211,7 +235,6 @@ export default function App() {
                 Starting up Node and Browser...
               </Typography>
             </Box>
-          )
         ) : (
           <Grid
             container
@@ -314,7 +337,7 @@ export default function App() {
         )}
         <Box
           sx={{
-            opacity: isLoading || isUpdating ? 0.2 : 1,
+            opacity: isLoading || isUpdating || isFirefoxUpdating ? 0.2 : 1,
             my: '1.5rem',
             display: 'grid',
             gridTemplateColumns: { sm: '1fr 1fr' },
@@ -327,15 +350,17 @@ export default function App() {
             onClick={openFirefox}
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
-            isLoading={isLoading || isUpdating}
+            isLoading={isLoading || isUpdating || isFirefoxUpdating}
+            version={firefoxVersion}
           />
           <ResourceItemCard
-            title={'Point Node ' + nodeVersion}
+            title="Point Node"
             status={!!nodeVersion}
             onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
-            isLoading={isLoading || isUpdating}
+            isLoading={isLoading || isUpdating  || isFirefoxUpdating}
+            version={nodeVersion}
           />
         </Box>
       </Box>
@@ -350,13 +375,15 @@ const ResourceItemCard = ({
   status,
   icon,
   isLoading,
+  version
 }: {
   title: string
   buttonLabel: string
   onClick: any
   icon: any
   status: boolean
-  isLoading: boolean
+  isLoading: boolean,
+  version: string | null
 }) => {
   return (
     <Box
@@ -378,6 +405,11 @@ const ResourceItemCard = ({
           ) : (
             <CancelIcon color="error" />
           )}
+        </Box>
+        <Box display="flex" alignItems="center">
+          <Typography color="text.secondary" sx={{ mr: 0.5 }}>
+            Version: {version}
+          </Typography>
         </Box>
         <Button
           variant="contained"

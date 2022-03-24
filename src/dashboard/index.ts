@@ -162,6 +162,19 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'firefox:checkUpdate',
+      listener() {
+        firefox!.checkFirefoxVersion()
+      },
+    },
+    {
+      channel: 'firefox:download',
+      listener() {
+        console.log('listener firefox!.download() called')
+        firefox!.download()
+      },
+    },
+    {
       channel: 'node:getIdentity',
       listener() {
         node!.getIdentity()

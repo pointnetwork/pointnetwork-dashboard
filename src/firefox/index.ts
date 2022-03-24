@@ -12,6 +12,7 @@ import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
 
+const rimraf = require("rimraf")
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
 const find = require('find-process')
@@ -73,6 +74,7 @@ export default class {
       const version = await this.getLastVersionFirefox() // '93.0b4'//
       const osAndArch = helpers.getOSAndArch()
       const browserDir = helpers.getBrowserFolderPath()
+      const pointPath = helpers.getPointPath()
       const pacFile = url.pathToFileURL(
         path.join(
           helpers.getLiveDirectoryPathResources(),
@@ -146,6 +148,17 @@ export default class {
               reject(err)
             } else {
               this.installationLogger.info(`\nDeleted file: ${releasePath}`)
+              this.window.webContents.send('firefox:setVersion', version)
+              this.window.webContents.send('firefox:finishDownload', true)
+              // write firefox version to a file
+              fs.writeFile(path.join(pointPath, 'infoFirefox.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', (err) => {
+                if (err) {
+                  this.installationLogger.error("An error occured while infoFirefox.json JSON Object to File.")
+                  return console.log(err);
+                }
+
+                this.installationLogger.info("infoFirefox.json file has been saved.");
+              })
               resolve(
                 this.installationLogger.info(
                   `${InstallationStepsEnum.BROWSER}:100`,
@@ -525,4 +538,32 @@ pref("extensions.startupScanScopes", 15);
       })
     })
   }
+
+  async checkFirefoxVersion() {
+
+    const pointPath = helpers.getPointPath()
+    const installedVersion = helpers.getInstalledFirefoxVersion()
+
+    const latestReleaseVersion = await this.getLastVersionFirefox()
+    
+    this.installationLogger.info('firefox version installed', installedVersion.installedReleaseVersion)
+    this.window.webContents.send('firefox:setVersion', installedVersion.installedReleaseVersion)
+    this.installationLogger.info('firefox last version', String(latestReleaseVersion) )
+    if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
+      this.installationLogger.info('Firefox Update need it')
+      this.window.webContents.send('firefox:update', true)
+      
+      //closes firefox
+      this.close().then(() =>
+        //delete firefox folder
+        setTimeout(() => {
+          if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'src', 'point-browser', 'firefox'));
+        }, 500)
+      )
+    }else{
+      this.window.webContents.send('firefox:update', false)
+    }
+    
+  }
+
 }

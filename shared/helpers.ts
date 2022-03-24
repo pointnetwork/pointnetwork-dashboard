@@ -142,6 +142,21 @@ const getInstalledNodeVersion = () => {
   }
 }
 
+const getInstalledFirefoxVersion = () =>{
+  const pointPath = getPointPath()
+  try {
+    const versionData = fs.readFileSync(path.join(pointPath, 'infoFirefox.json'))
+    const version = versionData.toString()
+    const installedVersion = JSON.parse(version)
+    return installedVersion
+  } catch (error) {
+    return {
+      installedReleaseVersion: 'old'
+    }
+  }
+
+}
+
 const logout = () => {
   const pointPath = getPointPath()
   // Removing key files.
@@ -277,6 +292,7 @@ export default Object.freeze({
   copyFileSync,
   copyFolderRecursiveSync,
   getPointPath,
+  getInstalledFirefoxVersion,
   getlatestNodeReleaseVersion,
   getInstalledNodeVersion,
   getLiveDirectoryPathResources,

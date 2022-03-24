@@ -23,6 +23,9 @@ export const api = {
   openFirefox: () => {
     ipcRenderer.send('firefox:launch')
   },
+  DownloadFirefox: () => {
+    ipcRenderer.send('firefox:download')
+  },
   getDashboardVersion: () => {
     ipcRenderer.send('node:getDashboardVersion')
   },
@@ -37,6 +40,7 @@ export const api = {
   },
   checkUpdate: () => {
     ipcRenderer.send('node:checkUpdate')
+    ipcRenderer.send('firefox:checkUpdate')
   },
   getIdentity: () => {
     ipcRenderer.send('node:getIdentity')
