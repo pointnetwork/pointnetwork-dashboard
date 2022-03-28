@@ -164,7 +164,7 @@ export default class Node {
       file = path.join(pointPath, 'bin', 'macos', 'point')
 
     let cmd = `NODE_ENV=production ${file}`
-    if (global.platform.win32) cmd = `set NODE_ENV=production && ${file}`
+    if (global.platform.win32) cmd = `set NODE_ENV=production&&${file}`
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       logger.info('Launched Node')
