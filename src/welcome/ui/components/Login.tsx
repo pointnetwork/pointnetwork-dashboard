@@ -31,8 +31,7 @@ export default function Login({ goBack }: Props) {
   }
 
   useEffect(() => {
-    window.Welcome.on('welcome:mnemonic_pasted', (message: string) => { 
-      console.log('message',message)     
+    window.Welcome.on('welcome:mnemonic_pasted', (message: string) => {
       setUserInput(message)
     })
   }, [])
@@ -50,7 +49,7 @@ export default function Login({ goBack }: Props) {
       <TextField
         placeholder="Enter secret phrase here"
         sx={{ fontSize: 22, color: 'green', mt: '.4rem', mb: '1rem' }}
-        onChange={e => setUserInput(e.currentTarget.value)}
+        onChange={e => setUserInput(e.currentTarget.value.toLowerCase())}
         error={!!validationError}
         helperText={validationError}
         value={userInput}
@@ -60,10 +59,14 @@ export default function Login({ goBack }: Props) {
         <Button variant="contained" onClick={validate}>
           Confirm
         </Button>
-        <Button variant="outlined" onClick={pasteFromClipboard} sx={{ mx: '.7rem' }}>
+        <Button
+          variant="outlined"
+          onClick={pasteFromClipboard}
+          sx={{ mx: '.7rem' }}
+        >
           Paste
         </Button>
-        <Button variant="outlined" onClick={goBack} >
+        <Button variant="outlined" onClick={goBack}>
           Go Back
         </Button>
       </Box>
