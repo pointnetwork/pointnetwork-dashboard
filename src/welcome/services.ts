@@ -52,8 +52,7 @@ class WelcomeService {
   }
 
   async paste() {
-    const message = clipboard.readText("clipboard")
-    console.log('message', message)
+    const message = clipboard.readText('clipboard').toLowerCase()
     this.win.webContents.send('welcome:mnemonic_pasted', message)
   }
 
