@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { MouseEventHandler, useState, useEffect } from 'react'
 import { pickMultipleRandomly } from '../../helpers/random'
 // Material UI
@@ -9,7 +10,6 @@ import Typography from '@mui/material/Typography'
 // Components
 import NoShareWarning from './NoShareWarning'
 import WordInput from './WordInput'
-import _ from 'lodash'
 
 const WORDS_TO_CONFIRM = 3
 
@@ -41,7 +41,6 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
   const [state, setState] = useState<State>(() => generateInitialState(seed))
   const [areAllCorrect, setAreAllCorrect] = useState(false)
   const [dictionary, setDictionary] = useState<string[]>([])
-  
 
   useEffect(() => {
     window.Welcome.getDictionary()
@@ -65,7 +64,7 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
       ...prev,
       [wordIdx]: {
         ...prev[wordIdx],
-        userInput: value,
+        userInput: value.toLowerCase(),
       },
     }))
   }
@@ -98,7 +97,7 @@ export default function SeedConfirmation({ seed, goBack }: Props) {
       </Grid>
 
       <Box>
-      <Button variant="outlined" onClick={goBack}>
+        <Button variant="outlined" onClick={goBack}>
           Go Back
         </Button>
 
