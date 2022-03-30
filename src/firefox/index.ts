@@ -12,7 +12,7 @@ import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
 
-const rimraf = require("rimraf")
+const rimraf = require('rimraf')
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
 const find = require('find-process')
@@ -151,14 +151,23 @@ export default class {
               this.window.webContents.send('firefox:setVersion', version)
               this.window.webContents.send('firefox:finishDownload', true)
               // write firefox version to a file
-              fs.writeFile(path.join(pointPath, 'infoFirefox.json'),  JSON.stringify({installedReleaseVersion: version}), 'utf8', (err) => {
-                if (err) {
-                  this.installationLogger.error("An error occured while infoFirefox.json JSON Object to File.")
-                  return console.log(err);
-                }
+              fs.writeFile(
+                path.join(pointPath, 'infoFirefox.json'),
+                JSON.stringify({ installedReleaseVersion: version }),
+                'utf8',
+                err => {
+                  if (err) {
+                    this.installationLogger.error(
+                      'An error occured while infoFirefox.json JSON Object to File.'
+                    )
+                    return console.log(err)
+                  }
 
-                this.installationLogger.info("infoFirefox.json file has been saved.");
-              })
+                  this.installationLogger.info(
+                    'infoFirefox.json file has been saved.'
+                  )
+                }
+              )
               resolve(
                 this.installationLogger.info(
                   `${InstallationStepsEnum.BROWSER}:100`,
@@ -423,12 +432,6 @@ export default class {
     if (!pacFile)
       throw Error('pacFile sent to createConfigFiles is undefined or null!')
 
-    let networkProxyType = ''
-    if (global.platform.win32) {
-      networkProxyType = '1'
-    }
-    networkProxyType = '2'
-
     const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
 pref("general.config.obscure_value", 0);
 `
@@ -438,7 +441,7 @@ pref("general.config.obscure_value", 0);
 pref("intl.locale.requested", "en-US");
 pref("browser.rights.3.shown", true);
 pref("browser.startup.homepage_override.mstone", "ignore");
-pref('network.proxy.type', ${networkProxyType})
+pref('network.proxy.type', 2)
 pref('network.proxy.http', 'localhost')
 pref('network.proxy.http_port', 8666)
 pref('browser.startup.homepage', 'https://point')
@@ -540,30 +543,37 @@ pref("extensions.startupScanScopes", 15);
   }
 
   async checkFirefoxVersion() {
-
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledFirefoxVersion()
 
     const latestReleaseVersion = await this.getLastVersionFirefox()
-    
-    this.installationLogger.info('firefox version installed', installedVersion.installedReleaseVersion)
-    this.window.webContents.send('firefox:setVersion', installedVersion.installedReleaseVersion)
-    this.installationLogger.info('firefox last version', String(latestReleaseVersion) )
-    if (installedVersion.installedReleaseVersion  !== latestReleaseVersion ) {
+
+    this.installationLogger.info(
+      'firefox version installed',
+      installedVersion.installedReleaseVersion
+    )
+    this.window.webContents.send(
+      'firefox:setVersion',
+      installedVersion.installedReleaseVersion
+    )
+    this.installationLogger.info(
+      'firefox last version',
+      String(latestReleaseVersion)
+    )
+    if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
       this.installationLogger.info('Firefox Update need it')
       this.window.webContents.send('firefox:update', true)
-      
-      //closes firefox
+
+      // Closes firefox
       this.close().then(() =>
-        //delete firefox folder
+        // Delete firefox folder
         setTimeout(() => {
-          if (fs.existsSync(path.join(pointPath, 'contracts'))) rimraf.sync(path.join(pointPath, 'src', 'point-browser', 'firefox'));
+          if (fs.existsSync(path.join(pointPath, 'contracts')))
+            rimraf.sync(path.join(pointPath, 'src', 'point-browser', 'firefox'))
         }, 500)
       )
-    }else{
+    } else {
       this.window.webContents.send('firefox:update', false)
     }
-    
   }
-
 }
