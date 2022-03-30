@@ -25,5 +25,5 @@ Any troubles? Ask us in our Telegram group: [https://t.me/pointnetworkchat](http
 ## After Installation
 
 1. Just follow the instructions for Point Dashboard
-2. When you register a new secret phrase, and you want to test it again, don't lose it - it will qualify you to be on the list of alpha testers. Next time, you can just *log in* with this phrase instead of registering more one
+2. When you register a new secret phrase, and you want to test it again, don't lose it - it will qualify you to be on the list of alpha testers. Next time, you can just *log in* with this phrase instead of registering another one
 3. Please report back to the group with screenshots, everyone would love to see each other's progress! https://t.me/pointnetworkchat
