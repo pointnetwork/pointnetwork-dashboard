@@ -37,6 +37,43 @@ Start the dashboard:
 npm start
 ```
 
+## Test GitHub Actions
+
+To test github workflows you need to create a new branch based on 'develop' or other branch you need to test, 
+
+### Step 1
+``` bash
+git checkout -b _BranchName_
+```
+
+### Step 2
+
+Comment lines 4 and 5 on file .github/workflows/electron-builder.yml
+# tags:
+#    - 'v*'
+
+### Step 3
+ran a normal workflow to push adding HEAD: to the name of the branch 
+``` bash
+git add .
+git commit -m 'message'
+git push origin HEAD:_BranchName_
+```
+
+### Step 4
+the previous actions will create a github action execution on 'https://github.com/pointnetwork/pointnetwork/actions':
+
+create_release
+build_on_linux
+build_on_mac
+build_on_win
+
+after each build a release (windows, mac , linux) will be add it to a folder with the same tag name as your branch on
+  'https://github.com/pointnetwork/pointnetwork/tags'
+
+### Step5
+
+To run again you will need to delete the releases and tag folder, after that follow  step 3
 ## Contributing
 
 Pull requests are always welcome 😃.
