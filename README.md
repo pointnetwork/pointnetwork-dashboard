@@ -49,9 +49,10 @@ git checkout -b _BranchName_
 ### Step 2
 
 Comment lines 4 and 5 on file .github/workflows/electron-builder.yml
+``` bash
 # tags:
 #    - 'v*'
-
+```
 ### Step 3
 ran a normal workflow to push adding HEAD: to the name of the branch 
 ``` bash
@@ -61,7 +62,7 @@ git push origin HEAD:_BranchName_
 ```
 
 ### Step 4
-the previous actions will create a github action execution on 'https://github.com/pointnetwork/pointnetwork/actions':
+the previous actions will create a github action execution on 'https://github.com/pointnetwork/pointnetwork-dashboard/actions':
 
 create_release
 build_on_linux
@@ -69,7 +70,7 @@ build_on_mac
 build_on_win
 
 after each build a release (windows, mac , linux) will be add it to a folder with the same tag name as your branch on
-  'https://github.com/pointnetwork/pointnetwork/tags'
+  'https://github.com/pointnetwork/pointnetwork-dashboard/tags'
 
 ### Step5
 
