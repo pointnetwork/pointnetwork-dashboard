@@ -1,8 +1,8 @@
 name: Build
 on:
   push:
-    tags:
-      - 'v*'
+  #  tags:
+  #    - 'v*'
 
 jobs:
   create_release:
@@ -132,17 +132,17 @@ jobs:
         WINDOWS_PFX_FILE: ${{ steps.write_file.outputs.filePath }}
         WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
 
-    - name: Compress and package executables
-      run: bash ./scripts/package_win_executables.sh
-    - name: Upload win executable
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/win_executables/point-dashboard.zip
-        asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-portable.zip
-        asset_content_type: application/gzip
+    # - name: Compress and package executables
+    #   run: bash ./scripts/package_win_executables.sh
+    # - name: Upload win executable
+    #  uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ github.token }}
+    #   with:
+    #     upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+    #     asset_path: ./out/win_executables/point-dashboard.zip
+    #     asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-portable.zip
+    #     asset_content_type: application/gzip
 
     - name: Compress and package installer
       run: bash ./scripts/package_win_installer.sh
