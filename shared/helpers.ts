@@ -98,8 +98,13 @@ const fixPath = (pathStr: string) => {
   return pathStr
 }
 
+const pathWithSpaces = (path: string) => {
+  if (path.includes(' ')) return `"${path}"`
+  return path
+}
+
 const getHomePath = () => {
-  return os.homedir()
+  return pathWithSpaces(os.homedir())
 }
 
 const getBrowserFolderPath = () => {
@@ -107,23 +112,25 @@ const getBrowserFolderPath = () => {
   if (!fs.existsSync(browserDir)) {
     fs.mkdirpSync(browserDir)
   }
-  return browserDir
+  return pathWithSpaces(browserDir)
 }
 
 const getLiveDirectoryPath = () => {
-  return path.join(getHomePath(), '.point', 'keystore')
+  return pathWithSpaces(path.join(getHomePath(), '.point', 'keystore'))
 }
 
 const getLiveDirectoryPathResources = () => {
-  return path.join(getHomePath(), '.point', 'keystore', 'liveprofile')
+  return pathWithSpaces(
+    path.join(getHomePath(), '.point', 'keystore', 'liveprofile')
+  )
 }
 
 const getKeyFileName = () => {
-  return path.join(getLiveDirectoryPath(), 'key.json')
+  return pathWithSpaces(path.join(getLiveDirectoryPath(), 'key.json'))
 }
 
 const getArweaveKeyFileName = () => {
-  return path.join(getLiveDirectoryPath(), 'arweave.json')
+  return pathWithSpaces(path.join(getLiveDirectoryPath(), 'arweave.json'))
 }
 
 const isLoggedIn = () => {
@@ -142,19 +149,20 @@ const getInstalledNodeVersion = () => {
   }
 }
 
-const getInstalledFirefoxVersion = () =>{
+const getInstalledFirefoxVersion = () => {
   const pointPath = getPointPath()
   try {
-    const versionData = fs.readFileSync(path.join(pointPath, 'infoFirefox.json'))
+    const versionData = fs.readFileSync(
+      path.join(pointPath, 'infoFirefox.json')
+    )
     const version = versionData.toString()
     const installedVersion = JSON.parse(version)
     return installedVersion
   } catch (error) {
     return {
-      installedReleaseVersion: 'old'
+      installedReleaseVersion: 'old',
     }
   }
-
 }
 
 const logout = () => {
@@ -169,15 +177,15 @@ const logout = () => {
 }
 
 const getPointPath = () => {
-  return path.join(getHomePath(), '.point')
+  return pathWithSpaces(path.join(getHomePath(), '.point'))
 }
 
 const getPointSrcPath = () => {
-  return path.join(getPointPath(), 'src')
+  return pathWithSpaces(path.join(getPointPath(), 'src'))
 }
 
 const getPointSoftwarePath = () => {
-  return path.join(getPointPath(), 'software')
+  return pathWithSpaces(path.join(getPointPath(), 'software'))
 }
 
 const copyFileSync = (source: string, target: string) => {
@@ -220,7 +228,7 @@ const getBinPath = () => {
   if (!fs.existsSync(dir)) {
     fs.mkdirpSync(dir)
   }
-  return dir
+  return pathWithSpaces(dir)
 }
 
 function noop(): void {}
@@ -300,4 +308,5 @@ export default Object.freeze({
   getPortableDashboardDownloadURL,
   getInstalledDashboardVersion,
   isNewDashboardReleaseAvailable,
+  pathWithSpaces,
 })
