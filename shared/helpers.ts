@@ -98,39 +98,38 @@ const fixPath = (pathStr: string) => {
   return pathStr
 }
 
-const pathWithSpaces = (path: string) => {
-  if (path.includes(' ')) return `"${path}"`
-  return path
+const joinPaths = (...args: string[]) => {
+  const pth = path.join(...args)
+  if (pth.includes(' ')) return `"${pth}"`
+  return pth
 }
 
 const getHomePath = () => {
-  return pathWithSpaces(os.homedir())
+  return joinPaths(os.homedir())
 }
 
 const getBrowserFolderPath = () => {
-  const browserDir = path.join(getHomePath(), '.point', 'src', 'point-browser')
+  const browserDir = joinPaths(getHomePath(), '.point', 'src', 'point-browser')
   if (!fs.existsSync(browserDir)) {
     fs.mkdirpSync(browserDir)
   }
-  return pathWithSpaces(browserDir)
+  return browserDir
 }
 
 const getLiveDirectoryPath = () => {
-  return pathWithSpaces(path.join(getHomePath(), '.point', 'keystore'))
+  return joinPaths(getHomePath(), '.point', 'keystore')
 }
 
 const getLiveDirectoryPathResources = () => {
-  return pathWithSpaces(
-    path.join(getHomePath(), '.point', 'keystore', 'liveprofile')
-  )
+  return joinPaths(getHomePath(), '.point', 'keystore', 'liveprofile')
 }
 
 const getKeyFileName = () => {
-  return pathWithSpaces(path.join(getLiveDirectoryPath(), 'key.json'))
+  return joinPaths(getLiveDirectoryPath(), 'key.json')
 }
 
 const getArweaveKeyFileName = () => {
-  return pathWithSpaces(path.join(getLiveDirectoryPath(), 'arweave.json'))
+  return joinPaths(getLiveDirectoryPath(), 'arweave.json')
 }
 
 const isLoggedIn = () => {
@@ -140,7 +139,7 @@ const isLoggedIn = () => {
 const getInstalledNodeVersion = () => {
   const pointPath = getPointPath()
   try {
-    const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
+    const versionData = fs.readFileSync(joinPaths(pointPath, 'infoNode.json'))
     return JSON.parse(versionData.toString())
   } catch (error) {
     return {
@@ -153,7 +152,7 @@ const getInstalledFirefoxVersion = () => {
   const pointPath = getPointPath()
   try {
     const versionData = fs.readFileSync(
-      path.join(pointPath, 'infoFirefox.json')
+      joinPaths(pointPath, 'infoFirefox.json')
     )
     const version = versionData.toString()
     const installedVersion = JSON.parse(version)
@@ -168,8 +167,8 @@ const getInstalledFirefoxVersion = () => {
 const logout = () => {
   const pointPath = getPointPath()
   // Removing key files.
-  if (fs.existsSync(path.join(pointPath, 'contracts')))
-    rimraf.sync(path.join(pointPath, 'contracts'))
+  if (fs.existsSync(joinPaths(pointPath, 'contracts')))
+    rimraf.sync(joinPaths(pointPath, 'contracts'))
   fs.unlinkSync(getKeyFileName())
   fs.unlinkSync(getArweaveKeyFileName())
   // Relaunching the dashboard to ask for key or generate a new one.
@@ -177,15 +176,15 @@ const logout = () => {
 }
 
 const getPointPath = () => {
-  return pathWithSpaces(path.join(getHomePath(), '.point'))
+  return joinPaths(getHomePath(), '.point')
 }
 
 const getPointSrcPath = () => {
-  return pathWithSpaces(path.join(getPointPath(), 'src'))
+  return joinPaths(getPointPath(), 'src')
 }
 
 const getPointSoftwarePath = () => {
-  return pathWithSpaces(path.join(getPointPath(), 'software'))
+  return joinPaths(getPointPath(), 'software')
 }
 
 const copyFileSync = (source: string, target: string) => {
@@ -224,11 +223,11 @@ const copyFolderRecursiveSync = (source: string, target: string) => {
 }
 
 const getBinPath = () => {
-  const dir = path.join(getHomePath(), '.point', 'bin')
+  const dir = joinPaths(getHomePath(), '.point', 'bin')
   if (!fs.existsSync(dir)) {
     fs.mkdirpSync(dir)
   }
-  return pathWithSpaces(dir)
+  return dir
 }
 
 function noop(): void {}
@@ -308,5 +307,5 @@ export default Object.freeze({
   getPortableDashboardDownloadURL,
   getInstalledDashboardVersion,
   isNewDashboardReleaseAvailable,
-  pathWithSpaces,
+  joinPaths,
 })

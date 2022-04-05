@@ -1,5 +1,4 @@
 import fs from 'fs-extra'
-import path from 'path'
 import extract from 'extract-zip'
 import tarfs from 'tar-fs'
 import url from 'url'
@@ -76,7 +75,7 @@ export default class {
       const browserDir = helpers.getBrowserFolderPath()
       const pointPath = helpers.getPointPath()
       const pacFile = url.pathToFileURL(
-        path.join(
+        helpers.joinPaths(
           helpers.getLiveDirectoryPathResources(),
           'resources',
           'pac.js'
@@ -98,7 +97,7 @@ export default class {
         )
       }
 
-      const releasePath = path.join(browserDir, filename)
+      const releasePath = helpers.joinPaths(browserDir, filename)
       const firefoxRelease = fs.createWriteStream(releasePath)
 
       if (!fs.existsSync(browserDir)) {
@@ -152,7 +151,7 @@ export default class {
               this.window.webContents.send('firefox:finishDownload', true)
               // write firefox version to a file
               fs.writeFile(
-                path.join(pointPath, 'infoFirefox.json'),
+                helpers.joinPaths(pointPath, 'infoFirefox.json'),
                 JSON.stringify({ installedReleaseVersion: version }),
                 'utf8',
                 err => {
@@ -191,7 +190,7 @@ export default class {
     //   return
     // }
     const cmd = await this.getBinPath()
-    const profilePath = path.join(
+    const profilePath = helpers.joinPaths(
       helpers.getHomePath(),
       '.point/keystore/liveprofile'
     )
@@ -326,10 +325,10 @@ export default class {
 
   async getRootPath() {
     if (global.platform.win32 || global.platform.darwin) {
-      return path.join(helpers.getBrowserFolderPath())
+      return helpers.joinPaths(helpers.getBrowserFolderPath())
     }
     // linux
-    return path.join(helpers.getBrowserFolderPath(), 'firefox')
+    return helpers.joinPaths(helpers.getBrowserFolderPath(), 'firefox')
   }
 
   async getAppPath() {
@@ -338,9 +337,14 @@ export default class {
     if (global.platform.win32 || global.platform.darwin) {
       let appPath = ''
       if (global.platform.darwin) {
-        appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
+        appPath = helpers.joinPaths(
+          rootPath,
+          'Firefox.app',
+          'Contents',
+          'Resources'
+        )
       } else {
-        appPath = path.join(rootPath, 'app')
+        appPath = helpers.joinPaths(rootPath, 'app')
       }
 
       if (!fs.existsSync(appPath)) {
@@ -360,13 +364,18 @@ export default class {
     if (global.platform.win32 || global.platform.darwin) {
       let appPath = ''
       if (global.platform.darwin) {
-        appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
+        appPath = helpers.joinPaths(
+          rootPath,
+          'Firefox.app',
+          'Contents',
+          'Resources'
+        )
       } else {
-        appPath = path.join(rootPath, 'app')
+        appPath = helpers.joinPaths(rootPath, 'app')
       }
 
-      const defaultsPath = path.join(appPath, 'defaults')
-      const prefPath = path.join(defaultsPath, 'pref')
+      const defaultsPath = helpers.joinPaths(appPath, 'defaults')
+      const prefPath = helpers.joinPaths(defaultsPath, 'pref')
 
       if (!fs.existsSync(appPath)) {
         fs.mkdirSync(appPath)
@@ -381,7 +390,7 @@ export default class {
       return prefPath
     }
     // linux. all directories already exist.
-    return path.join(rootPath, 'defaults', 'pref')
+    return helpers.joinPaths(rootPath, 'defaults', 'pref')
   }
 
   async getPoliciesPath() {
@@ -391,15 +400,20 @@ export default class {
     if (global.platform.win32 || global.platform.darwin) {
       let appPath = ''
       if (global.platform.darwin) {
-        appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
+        appPath = helpers.joinPaths(
+          rootPath,
+          'Firefox.app',
+          'Contents',
+          'Resources'
+        )
       } else {
-        appPath = path.join(rootPath, 'app')
+        appPath = helpers.joinPaths(rootPath, 'app')
       }
 
-      distributionPath = path.join(appPath, 'distribution')
+      distributionPath = helpers.joinPaths(appPath, 'distribution')
     } else {
       // linux
-      distributionPath = path.join(rootPath, 'distribution')
+      distributionPath = helpers.joinPaths(rootPath, 'distribution')
     }
 
     if (!fs.existsSync(distributionPath)) {
@@ -411,11 +425,11 @@ export default class {
   async getBinPath() {
     const rootPath = await this.getRootPath()
     if (global.platform.win32) {
-      // return path.join(rootPath, 'point-browser-portable.exe')
-      return path.join(rootPath, 'app', 'firefox.exe')
+      // return helpers.joinPaths(rootPath, 'point-browser-portable.exe')
+      return helpers.joinPaths(rootPath, 'app', 'firefox.exe')
     }
     if (global.platform.darwin) {
-      return `${path.join(
+      return `${helpers.joinPaths(
         rootPath,
         'Firefox.app',
         'Contents',
@@ -424,7 +438,7 @@ export default class {
       )}`
     }
     // linux
-    return path.join(rootPath, 'firefox')
+    return helpers.joinPaths(rootPath, 'firefox')
   }
 
   async createConfigFiles(pacFile: url.URL) {
@@ -482,11 +496,14 @@ pref("extensions.startupScanScopes", 15);
       //
       // Portapps also creates `portapps.cfg`, which is equivalent to *nix's firefox.cfg.
       // We're just appending our preferences.
-      fs.writeFileSync(path.join(appPath, 'portapps.cfg'), firefoxCfgContent)
+      fs.writeFileSync(
+        helpers.joinPaths(appPath, 'portapps.cfg'),
+        firefoxCfgContent
+      )
     }
     if (global.platform.linux || global.platform.darwin) {
       fs.writeFile(
-        path.join(prefPath, 'autoconfig.js'),
+        helpers.joinPaths(prefPath, 'autoconfig.js'),
         autoconfigContent,
         err => {
           if (err) {
@@ -496,7 +513,7 @@ pref("extensions.startupScanScopes", 15);
       )
 
       fs.writeFile(
-        path.join(appPath, 'firefox.cfg'),
+        helpers.joinPaths(appPath, 'firefox.cfg'),
         firefoxCfgContent,
         err => {
           if (err) {
@@ -507,7 +524,7 @@ pref("extensions.startupScanScopes", 15);
     }
 
     fs.writeFile(
-      path.join(policiesPath, 'policies.json'),
+      helpers.joinPaths(policiesPath, 'policies.json'),
       policiesCfgContent,
       err => {
         if (err) {
@@ -568,8 +585,10 @@ pref("extensions.startupScanScopes", 15);
       this.close().then(() =>
         // Delete firefox folder
         setTimeout(() => {
-          if (fs.existsSync(path.join(pointPath, 'contracts')))
-            rimraf.sync(path.join(pointPath, 'src', 'point-browser', 'firefox'))
+          if (fs.existsSync(helpers.joinPaths(pointPath, 'contracts')))
+            rimraf.sync(
+              helpers.joinPaths(pointPath, 'src', 'point-browser', 'firefox')
+            )
         }, 500)
       )
     } else {

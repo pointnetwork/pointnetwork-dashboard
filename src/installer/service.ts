@@ -6,7 +6,6 @@ import Node from '../node'
 import { InstallationStepsEnum } from '../@types/installation'
 import { getProgressFromGithubMsg } from './helpers'
 
-const path = require('path')
 const git = require('isomorphic-git')
 const http = require('isomorphic-git/http/node')
 const fs = require('fs')
@@ -23,7 +22,7 @@ class Installer {
   private window: BrowserWindow
   private firefox: Firefox
   private node: Node
-  private static installationJsonFilePath: string = path.join(
+  private static installationJsonFilePath: string = helpers.joinPaths(
     helpers.getPointPath(),
     'installer.json'
   )
@@ -101,7 +100,7 @@ class Installer {
     this.logger.info(InstallationStepsEnum.CODE, 'Cloning the repositores')
     await Promise.all(
       REPOSITORIES.map(async repo => {
-        const dir = path.join(POINT_SRC_DIR, repo)
+        const dir = helpers.joinPaths(POINT_SRC_DIR, repo)
         const url = `https://github.com/pointnetwork/${repo}`
 
         this.logger.info(InstallationStepsEnum.CODE, 'Cloning', url)
@@ -163,7 +162,7 @@ class Installer {
       REPOSITORIES.map(async repo => {
         this.logger.info(InstallationStepsEnum.CODE, 'Pulling', repo)
 
-        const dir = path.join(POINT_SRC_DIR, repo)
+        const dir = helpers.joinPaths(POINT_SRC_DIR, repo)
         await git.pull({
           fs,
           http,

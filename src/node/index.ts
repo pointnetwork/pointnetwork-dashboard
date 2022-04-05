@@ -3,7 +3,6 @@ import { https } from 'follow-redirects'
 import Logger from '../../shared/logger'
 import fs from 'fs-extra'
 import helpers from '../../shared/helpers'
-import path from 'path'
 import util from 'util'
 import axios from 'axios'
 import { InstallationStepsEnum } from '../@types/installation'
@@ -38,22 +37,22 @@ export default class Node {
     return `point-linux-${version}.tar.gz`
   }
 
-  async getBinPath() {
-    const binPath = await helpers.getBinPath()
+  getBinPath() {
+    const binPath = helpers.getBinPath()
     if (global.platform.win32) {
-      return path.join(binPath, 'win', 'point.exe')
+      return helpers.joinPaths(binPath, 'win', 'point.exe')
     }
     if (global.platform.darwin) {
-      return `${path.join(binPath, 'macos', 'point')}`
+      return `${helpers.joinPaths(binPath, 'macos', 'point')}`
     }
     // linux
-    return path.join(binPath, 'linux', 'point')
+    return helpers.joinPaths(binPath, 'linux', 'point')
   }
 
   async isInstalled(): Promise<boolean> {
     this.installationLogger.info('Checking PointNode exists or node')
 
-    const binPath = await this.getBinPath()
+    const binPath = this.getBinPath()
     if (fs.existsSync(binPath)) {
       this.installationLogger.info('PointNode already downloaded')
       return true
@@ -70,7 +69,7 @@ export default class Node {
       const pointPath = helpers.getPointPath()
       const filename = this.getNodeFileName(version)
 
-      const downloadPath = path.join(pointPath, filename)
+      const downloadPath = helpers.joinPaths(pointPath, filename)
       if (!downloadPath) {
         fs.mkdirpSync(downloadPath)
       }
@@ -127,7 +126,7 @@ export default class Node {
 
           // stringify JSON Object
           fs.writeFile(
-            path.join(pointPath, 'infoNode.json'),
+            helpers.joinPaths(pointPath, 'infoNode.json'),
             JSON.stringify({ installedReleaseVersion: version }),
             'utf8',
             function (err: any) {
@@ -157,11 +156,11 @@ export default class Node {
     }
     const pointPath = helpers.getPointPath()
 
-    let file = path.join(pointPath, 'bin', 'linux', 'point')
+    let file = helpers.joinPaths(pointPath, 'bin', 'linux', 'point')
     if (global.platform.win32)
-      file = `"${path.join(pointPath, 'bin', 'win', 'point')}"`
+      file = `"${helpers.joinPaths(pointPath, 'bin', 'win', 'point')}"`
     if (global.platform.darwin)
-      file = path.join(pointPath, 'bin', 'macos', 'point')
+      file = helpers.joinPaths(pointPath, 'bin', 'macos', 'point')
 
     let cmd = `NODE_ENV=production ${file}`
     if (global.platform.win32) cmd = `set NODE_ENV=production&&${file}`
@@ -246,10 +245,10 @@ export default class Node {
       await this.getProcess()
       setTimeout(() => {
         this.stopNode().then(() => {
-          if (fs.existsSync(path.join(pointPath, 'contracts')))
-            rimraf.sync(path.join(pointPath, 'contracts'))
-          if (fs.existsSync(path.join(pointPath, 'bin')))
-            rimraf.sync(path.join(pointPath, 'bin'))
+          if (fs.existsSync(helpers.joinPaths(pointPath, 'contracts')))
+            rimraf.sync(helpers.joinPaths(pointPath, 'contracts'))
+          if (fs.existsSync(helpers.joinPaths(pointPath, 'bin')))
+            rimraf.sync(helpers.joinPaths(pointPath, 'bin'))
         })
       }, 500)
     } else {
