@@ -99,7 +99,7 @@ const fixPath = (pathStr: string) => {
 }
 
 const joinPaths = (...args: string[]) => {
-  const pth = path.join(...args)
+  const pth = path.join(...args).replace('"', '')
   if (pth.includes(' ')) return `"${pth}"`
   return pth
 }
