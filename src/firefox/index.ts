@@ -183,6 +183,114 @@ export default class {
       })
     })
 
+    getIdExtension = async () =>
+       // eslint-disable-next-line no-async-promise-executor
+      new Promise(async (resolve, reject) => {
+      const version = await helpers.getlatestSDKReleaseVersion()
+      const extensionPath = helpers.getPointPath()
+      const downloadManifest = this.getURL('manifest.json', version)
+      const downloadPathManifest = path.join(extensionPath, 'manifest.json')
+      const manifest = fs.createWriteStream(downloadPathManifest);
+      https.https.get(downloadManifest, function(response) {
+         response.pipe(manifest);
+      });
+      manifest.on("finish", async () => {
+        manifest.close();
+         console.log("Download Manifest Completed");
+         resolve(true)
+     });
+    })
+    
+
+  downloadInstallPointSDK = async () =>
+    // eslint-disable-next-line no-async-promise-executor
+    new Promise(async (resolve, reject) => {
+      const pointPath = helpers.getPointPath()
+      const version = await helpers.getlatestSDKReleaseVersion()
+      const extensionPath = helpers.getLiveExtensionsDirectoryPathResources()
+      const filename = helpers.getSDKFileName(version)
+      const manifestPath = helpers.getPointPath()
+      const downloadPathManifest = path.join(manifestPath, 'manifest.json')
+
+      const man = await fs.readFile(downloadPathManifest, 'utf8')
+      const idExtension = JSON.parse(man).browser_specific_settings.gecko.id
+      const downloadPath = path.join(extensionPath, `${idExtension}.xpi`)
+      if (fs.existsSync(downloadPath)) { 
+          fs.unlink(downloadPath)
+      } 
+      const downloadStream = fs.createWriteStream(downloadPath)
+      const downloadUrl = this.getURL(filename, version)
+
+      https.https.get(downloadUrl, async response => {
+        this.installationLogger.info(
+          InstallationStepsEnum.POINT_SDK,
+          'Downloading PointSDK...'
+        )
+
+        await response.pipe(downloadStream)
+
+        const total = response.headers['content-length']
+        let downloaded = 0
+        let percentage = 0
+        let temp = 0
+        response.on('data', chunk => {
+          downloaded += Buffer.from(chunk).length
+
+          temp = Math.round((downloaded * 100) / Number(total))
+          if (temp !== percentage) {
+            percentage = temp
+
+            // Don't let this progress reach 100% as there are some minor final tasks after.
+            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
+
+            this.installationLogger.info(
+              `${InstallationStepsEnum.POINT_SDK}:${progress}`,
+              'Downloading'
+            )
+          }
+        })
+      })
+
+      downloadStream.on('close', async () => {
+        this.installationLogger.info(
+          `${InstallationStepsEnum.POINT_SDK}:100`,
+          'Downloaded SDK'
+        )
+        this.window.webContents.send('pointSDK:finishDownload', true)
+
+
+        // stringify JSON Object
+        fs.writeFile(
+          path.join(pointPath, 'infoSDK.json'),
+          JSON.stringify({ installedReleaseVersion: version }),
+          'utf8',
+          function (err: any) {
+            if (err) {
+              logger.info(
+                'An error occured while writing JSON Object to File.'
+              )
+              return logger.info(err)
+            }
+
+            logger.info('JSON file has been saved.')
+          }
+        )
+        resolve(
+          this.installationLogger.info(
+            `${InstallationStepsEnum.POINT_SDK}:100`,
+            'Installed Firefox successfully'
+          )
+        )
+
+      })
+    })
+
+
+
+  getURL(filename: string, version: string) {
+    return `https://github.com/pointnetwork/pointsdk/releases/download/${version}/${filename}`
+  }
+
   async launch() {
     // const isRunning = await find('name', /firefox*/gi)
     // if (isRunning.length > 0) {

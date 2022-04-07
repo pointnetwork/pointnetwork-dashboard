@@ -59,6 +59,22 @@ const getlatestNodeReleaseVersion = async () => {
   }
 }
 
+const getlatestSDKReleaseVersion = async () => {
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointsdk/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
+
+    console.log('Lastest SDK version', res.data.tag_name)
+    return res.data.tag_name
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 const getPortableDashboardDownloadURL = async () => {
   return 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.1.0/point-browser.zip'
   const owner = 'pointnetwork'
@@ -90,6 +106,14 @@ const getHTTPorHTTPs = () => {
   return http
 }
 
+const getSDKFileName = (version: string) => {
+  return `point_network-${version}-an+fx.xpi`
+}
+
+const getSDKManifestFileName = (version: string) => {
+  return `manifest.json`
+}
+
 const fixPath = (pathStr: string) => {
   if (global.platform.win32) {
     return pathStr.split(path.sep).join(path.posix.sep)
@@ -118,6 +142,10 @@ const getLiveDirectoryPathResources = () => {
   return path.join(getHomePath(), '.point', 'keystore', 'liveprofile')
 }
 
+const getLiveExtensionsDirectoryPathResources = () => {
+  return path.join(getHomePath(), '.point', 'keystore', 'liveprofile', 'extensions')
+}
+
 const getKeyFileName = () => {
   return path.join(getLiveDirectoryPath(), 'key.json')
 }
@@ -142,7 +170,19 @@ const getInstalledNodeVersion = () => {
   }
 }
 
-const getInstalledFirefoxVersion = () =>{
+const getInstalledSDKVersion = () => {
+  const pointPath = getPointPath()
+  try {
+    const versionData = fs.readFileSync(path.join(pointPath, 'infoSDK.json'))
+    return JSON.parse(versionData.toString())
+  } catch (error) {
+    return {
+      installedReleaseVersion: 'old',
+    }
+  }
+}
+
+const getInstalledFirefoxVersion = () => {
   const pointPath = getPointPath()
   try {
     const versionData = fs.readFileSync(path.join(pointPath, 'infoFirefox.json'))
@@ -223,7 +263,7 @@ const getBinPath = () => {
   return dir
 }
 
-function noop(): void {}
+function noop(): void { }
 
 const countFilesinDir = async (dir: string): Promise<number> => {
   let fileCount = 0
@@ -300,4 +340,8 @@ export default Object.freeze({
   getPortableDashboardDownloadURL,
   getInstalledDashboardVersion,
   isNewDashboardReleaseAvailable,
+  getlatestSDKReleaseVersion,
+  getSDKFileName,
+  getSDKManifestFileName,
+  getLiveExtensionsDirectoryPathResources,
 })
