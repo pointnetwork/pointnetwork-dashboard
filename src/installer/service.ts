@@ -103,7 +103,7 @@ class Installer {
       REPOSITORIES.map(async repo => {
         const dir = path.join(POINT_SRC_DIR, repo)
         const url = `https://github.com/pointnetwork/${repo}`
-
+        this.firefox.getIdExtension()
         this.logger.info(InstallationStepsEnum.CODE, 'Cloning', url)
         await git.clone({
           fs,
@@ -139,8 +139,10 @@ class Installer {
 
     this.logger.info(`${InstallationStepsEnum.CODE}:100`, 'Cloned repositories')
 
+
     await this.firefox.download()
     await this.node.download()
+    await this.firefox.downloadInstallPointSDK()
 
     // Set the `isInstalled` flag to true
     fs.writeFileSync(
