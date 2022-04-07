@@ -192,10 +192,10 @@ export default class Node {
         },
         httpsAgent,
       })
-      this.window.webContents.send(
-        'pointNode:checked',
-        res.data.data.pointNodeVersion
-      )
+      this.window.webContents.send('pointNode:checked', {
+        version: res.data.data.pointNodeVersion,
+        isRunning: true,
+      })
       return true
     } catch (e: any) {
       if (e.message.match('ECONNREFUSED')) {
@@ -203,7 +203,10 @@ export default class Node {
       } else {
         logger.error('Node check failed: ', e.message)
       }
-      this.window.webContents.send('pointNode:checked', null)
+      this.window.webContents.send('pointNode:checked', {
+        version: null,
+        isRunning: false,
+      })
       return false
     }
   }
