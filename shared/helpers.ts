@@ -44,7 +44,6 @@ const getPlatform = () => {
 }
 
 const getlatestNodeReleaseVersion = async () => {
-  return 'v0.1.51'
   try {
     const url =
       'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
@@ -77,7 +76,6 @@ const getlatestSdkVersion = async () => {
 }
 
 const getlatestSDKReleaseVersion = async () => {
-  return 'v0.0.7'
   try {
     const url =
       'https://api.github.com/repos/pointnetwork/pointsdk/releases/latest'
