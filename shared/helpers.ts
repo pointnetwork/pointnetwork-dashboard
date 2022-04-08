@@ -44,6 +44,7 @@ const getPlatform = () => {
 }
 
 const getlatestNodeReleaseVersion = async () => {
+  return 'v0.1.51'
   try {
     const url =
       'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
@@ -52,14 +53,14 @@ const getlatestNodeReleaseVersion = async () => {
       headers: headers,
     })
 
-    console.log('Lastest Node version', res.data.tag_name)
+    console.log('Latest Node version', res.data.tag_name)
     return res.data.tag_name
   } catch (error) {
     console.error(error)
   }
 }
 
-const getlatestSDKReleaseVersion = async () => {
+const getlatestSdkVersion = async () => {
   try {
     const url =
       'https://api.github.com/repos/pointnetwork/pointsdk/releases/latest'
@@ -68,7 +69,24 @@ const getlatestSDKReleaseVersion = async () => {
       headers: headers,
     })
 
-    console.log('Lastest SDK version', res.data.tag_name)
+    console.log('Latest Sdk version', res.data.tag_name)
+    return res.data.tag_name
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const getlatestSDKReleaseVersion = async () => {
+  return 'v0.0.7'
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointsdk/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
+
+    console.log('Latest SDK version', res.data.tag_name)
     return res.data.tag_name
   } catch (error) {
     console.error(error)
@@ -107,7 +125,7 @@ const getHTTPorHTTPs = () => {
 }
 
 const getSDKFileName = (version: string) => {
-  return `point_network-${version}-an+fx.xpi`
+  return `point_network-${version.replace('v', '')}-an+fx.xpi`
 }
 
 const getSDKManifestFileName = (version: string) => {
@@ -344,4 +362,6 @@ export default Object.freeze({
   getSDKFileName,
   getSDKManifestFileName,
   getLiveExtensionsDirectoryPathResources,
+  getlatestSdkVersion,
+  getInstalledSDKVersion,
 })
