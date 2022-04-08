@@ -368,7 +368,9 @@ export default function App() {
             onClick={openFirefox}
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
-            isLoading={isLoading || isUpdating || isFirefoxUpdating}
+            isLoading={
+              isLoading || isUpdating || isFirefoxUpdating || isFirefoxRunning
+            }
             version={firefoxVersion}
           />
           <ResourceItemCard
