@@ -21,6 +21,7 @@ export default function App() {
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(false)
+  const [isSdkUpdating, setIsSdkUpdating] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
   let isNodeRunning = useRef(false).current
   const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(true)
@@ -68,7 +69,14 @@ export default function App() {
       setIsUpdating(status)
       if (status) {
         window.Dashboard.DownloadNode()
-      } else {
+      } /*else {
+        checkNode()
+      }*/
+    })
+
+    window.Dashboard.on('sdk:update', (status: boolean) => {
+      setIsSdkUpdating(status)
+      if(!status){
         checkNode()
       }
     })
@@ -87,6 +95,11 @@ export default function App() {
     window.Dashboard.on('pointNode:finishDownload', () => {
       setIsUpdating(false)
       window.Dashboard.launchNode()
+      checkNode()
+    })
+
+    window.Dashboard.on('pointSDK:finishDownload', () => {
+      setIsSdkUpdating(false)
       checkNode()
     })
 
@@ -122,7 +135,9 @@ export default function App() {
         if (isRunning) {
           if (isNodeRunning !== isRunning) {
             isNodeRunning = true
-            openFirefox()
+            if(!isSdkUpdating){
+              openFirefox()
+            }
             requestYPoints()
           }
         } else if (new Date().getTime() - checkStartTime.current < 120000) {
@@ -158,7 +173,8 @@ export default function App() {
       isFirefoxRunning &&
       !isLoadingWalletInfo &&
       !isUpdating &&
-      !isFirefoxUpdating
+      !isFirefoxUpdating &&
+      !isSdkUpdating
     ) {
       setIsLoading(false)
     }
@@ -168,6 +184,7 @@ export default function App() {
     nodeVersion,
     isFirefoxRunning,
     isLoadingWalletInfo,
+    isSdkUpdating,
   ])
 
   const logout: MouseEventHandler = () => {
@@ -236,8 +253,8 @@ export default function App() {
           Manage and control Point Network components from here
         </Typography>
 
-        {isLoading ? (
-          isUpdating || isFirefoxUpdating ? (
+        {isLoading ?
+          isUpdating || isFirefoxUpdating || isSdkUpdating ? (
             <Box display="flex" sx={{ mt: '2rem' }}>
               <CircularProgress size={20} />
               <Typography sx={{ ml: '.6rem' }}>
@@ -252,8 +269,7 @@ export default function App() {
                 Starting up Node and Browser...
               </Typography>
             </Box>
-          )
-        ) : (
+          ) : (
           <Grid
             container
             sx={{

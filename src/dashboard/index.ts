@@ -150,6 +150,12 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'sdk:checkUpdate',
+      listener() {
+        firefox?.checkSDKVersion()
+      },
+    },
+    {
       channel: 'node:download',
       listener() {
         node!.download()

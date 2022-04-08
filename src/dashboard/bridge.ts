@@ -17,6 +17,9 @@ export const api = {
   checkNode: () => {
     ipcRenderer.send('node:check')
   },
+  checkSdk: () => {
+    ipcRenderer.send('sdk:check')
+  },
   logOut: () => {
     ipcRenderer.send('logOut')
   },
@@ -41,6 +44,7 @@ export const api = {
   checkUpdate: () => {
     ipcRenderer.send('node:checkUpdate')
     ipcRenderer.send('firefox:checkUpdate')
+    ipcRenderer.send('sdk:checkUpdate')
   },
   getIdentity: () => {
     ipcRenderer.send('node:getIdentity')
