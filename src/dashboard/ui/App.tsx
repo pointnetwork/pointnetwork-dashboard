@@ -22,6 +22,7 @@ export default function App() {
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(false)
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
+  let isNodeRunning = useRef(false).current
   const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(true)
   const [walletInfo, setWalletInfo] = useState<{
     address: string
@@ -76,15 +77,12 @@ export default function App() {
       setIsFirefoxUpdating(status)
       if (status) {
         window.Dashboard.DownloadFirefox()
-      } //else {
-        //openFirefox()
-      //}
+      }
     })
 
     window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
-      setFirefoxVersion(firefoxVersion);
+      setFirefoxVersion(firefoxVersion)
     })
-    
 
     window.Dashboard.on('pointNode:finishDownload', () => {
       setIsUpdating(false)
@@ -94,7 +92,7 @@ export default function App() {
 
     window.Dashboard.on('firefox:finishDownload', () => {
       setIsFirefoxUpdating(false)
-      openFirefox();
+      openFirefox()
     })
 
     window.Dashboard.on('node:identity', (identity: string) => {
@@ -111,21 +109,34 @@ export default function App() {
       window.Dashboard.getIdentity()
     })
 
-    window.Dashboard.on('pointNode:checked', (version: string | null) => {
-      setNodeVersion(version)
-      if (version) {
-        openFirefox()
-        requestYPoints()
-      } else if (new Date().getTime() - checkStartTime.current < 120000) {
-        setTimeout(checkNode, 1000)
-      } else {
-        console.error('Failed to start node in 2 minutes')
-        setIsLoading(false)
+    window.Dashboard.on(
+      'pointNode:checked',
+      ({
+        version,
+        isRunning,
+      }: {
+        version: string | null
+        isRunning: boolean
+      }) => {
+        setNodeVersion(version)
+        if (isRunning) {
+          if (isNodeRunning !== isRunning) {
+            isNodeRunning = true
+            openFirefox()
+            requestYPoints()
+          }
+        } else if (new Date().getTime() - checkStartTime.current < 120000) {
+          isNodeRunning = false
+          setTimeout(checkNode, 1000)
+        } else {
+          console.error('Failed to start node in 2 minutes')
+          isNodeRunning = false
+          setIsLoading(false)
+        }
       }
-    })
+    )
 
     window.Dashboard.on('node:wallet_info', (message: string) => {
-      console.log(message)
       setWalletInfo(JSON.parse(message))
       setIsLoadingWalletInfo(false)
     })
@@ -133,7 +144,6 @@ export default function App() {
     window.Dashboard.on(
       'dashboard:isNewDashboardReleaseAvailable',
       (message: { isUpdateAvailable: boolean; latestVersion: string }) => {
-        console.log('dashboard:isNewDashboardReleaseAvailable', message)
         setIsNewDashboardReleaseAvailable(message)
       }
     )
@@ -152,7 +162,13 @@ export default function App() {
     ) {
       setIsLoading(false)
     }
-  }, [isFirefoxUpdating, isUpdating, nodeVersion, isFirefoxRunning, isLoadingWalletInfo])
+  }, [
+    isFirefoxUpdating,
+    isUpdating,
+    nodeVersion,
+    isFirefoxRunning,
+    isLoadingWalletInfo,
+  ])
 
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
@@ -167,7 +183,7 @@ export default function App() {
   }
 
   const openFirefox = () => {
-    if(!isFirefoxUpdating){
+    if (!isFirefoxUpdating) {
       window.Dashboard.openFirefox()
     }
   }
@@ -220,12 +236,13 @@ export default function App() {
           Manage and control Point Network components from here
         </Typography>
 
-        {isLoading ?
+        {isLoading ? (
           isUpdating || isFirefoxUpdating ? (
             <Box display="flex" sx={{ mt: '2rem' }}>
               <CircularProgress size={20} />
               <Typography sx={{ ml: '.6rem' }}>
-                { (isUpdating ? 'Point Node ' : 'Firefox') +  ' updating... Please wait'}
+                {(isUpdating ? 'Point Node ' : 'Firefox') +
+                  ' updating... Please wait'}
               </Typography>
             </Box>
           ) : (
@@ -235,6 +252,7 @@ export default function App() {
                 Starting up Node and Browser...
               </Typography>
             </Box>
+          )
         ) : (
           <Grid
             container
@@ -350,7 +368,9 @@ export default function App() {
             onClick={openFirefox}
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
-            isLoading={isLoading || isUpdating || isFirefoxUpdating}
+            isLoading={
+              isLoading || isUpdating || isFirefoxUpdating || isFirefoxRunning
+            }
             version={firefoxVersion}
           />
           <ResourceItemCard
@@ -359,7 +379,7 @@ export default function App() {
             onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
-            isLoading={isLoading || isUpdating  || isFirefoxUpdating}
+            isLoading={isLoading || isUpdating || isFirefoxUpdating}
             version={nodeVersion}
           />
         </Box>
@@ -375,14 +395,14 @@ const ResourceItemCard = ({
   status,
   icon,
   isLoading,
-  version
+  version,
 }: {
   title: string
   buttonLabel: string
   onClick: any
   icon: any
   status: boolean
-  isLoading: boolean,
+  isLoading: boolean
   version: string | null
 }) => {
   return (
