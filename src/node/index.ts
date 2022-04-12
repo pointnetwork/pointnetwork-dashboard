@@ -159,12 +159,12 @@ export default class Node {
 
     let file = path.join(pointPath, 'bin', 'linux', 'point')
     if (global.platform.win32)
-      file = `"${path.join(pointPath, 'bin', 'win', 'point')}"`
+      file = path.join(pointPath, 'bin', 'win', 'point')
     if (global.platform.darwin)
       file = path.join(pointPath, 'bin', 'macos', 'point')
 
-    let cmd = `NODE_ENV=production ${file}`
-    if (global.platform.win32) cmd = `set NODE_ENV=production&&${file}`
+    let cmd = `NODE_ENV=production "${file}"`
+    if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       logger.info('Launched Node')
@@ -217,8 +217,8 @@ export default class Node {
     if (process.length > 0) {
       logger.info(`Found running process ${process}`)
       this.killCmd = process.map((obj: { pid: any }) => {
-        let command = `kill ${obj.pid}`
-        if (global.platform.win32) command = `taskkill /F /PID ${obj.pid}`
+        let command = `kill "${obj.pid}"`
+        if (global.platform.win32) command = `taskkill /F /PID "${obj.pid}"`
         return command
       })
       logger.info(`cmd: ${this.killCmd}`)

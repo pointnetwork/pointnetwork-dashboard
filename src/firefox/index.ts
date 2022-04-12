@@ -190,17 +190,16 @@ export default class {
       const extensionPath = helpers.getPointPath()
       const downloadManifest = this.getURL('manifest.json', version)
       const downloadPathManifest = path.join(extensionPath, 'manifest.json')
-      const manifest = fs.createWriteStream(downloadPathManifest);
+      const manifest = fs.createWriteStream(downloadPathManifest)
       https.https.get(downloadManifest, function (response) {
-        response.pipe(manifest);
-      });
-      manifest.on("finish", async () => {
-        manifest.close();
-        console.log("Download Manifest Completed");
+        response.pipe(manifest)
+      })
+      manifest.on('finish', async () => {
+        manifest.close()
+        console.log('Download Manifest Completed')
         resolve(true)
-      });
+      })
     })
-
 
   downloadInstallPointSDK = async () =>
     // eslint-disable-next-line no-async-promise-executor
@@ -258,7 +257,6 @@ export default class {
         )
         this.window.webContents.send('pointSDK:finishDownload', true)
 
-
         // stringify JSON Object
         fs.writeFile(
           path.join(pointPath, 'infoSDK.json'),
@@ -266,9 +264,7 @@ export default class {
           'utf8',
           function (err: any) {
             if (err) {
-              logger.info(
-                'An error occured while writing JSON Object to File.'
-              )
+              logger.info('An error occured while writing JSON Object to File.')
               return logger.info(err)
             }
 
@@ -281,7 +277,6 @@ export default class {
             'Installed Firefox successfully'
           )
         )
-
       })
     })
 
@@ -319,7 +314,7 @@ export default class {
       '.point/keystore/liveprofile'
     )
 
-    const browserCmd = `${cmd} --first-startup --profile ${profilePath} --url https://point`
+    const browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
 
     this.window.webContents.send('firefox:active', true)
     try {
@@ -331,7 +326,7 @@ export default class {
   }
 
   getKillCmd(pid: number) {
-    return global.platform.win32 ? `taskkill /F /PID ${pid}` : `kill ${pid}`
+    return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
   }
 
   async close() {
