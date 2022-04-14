@@ -56,22 +56,7 @@ const getlatestNodeReleaseVersion = async () => {
     return res.data.tag_name
   } catch (error) {
     console.error(error)
-  }
-}
-
-const getlatestSdkVersion = async () => {
-  try {
-    const url =
-      'https://api.github.com/repos/pointnetwork/pointsdk/releases/latest'
-    const headers = { 'user-agent': 'node.js' }
-    const res = await axios.get(url, {
-      headers: headers,
-    })
-
-    console.log('Latest Sdk version', res.data.tag_name)
-    return res.data.tag_name
-  } catch (error) {
-    console.error(error)
+    return 'v0.1.51'
   }
 }
 
@@ -88,6 +73,7 @@ const getlatestSDKReleaseVersion = async () => {
     return res.data.tag_name
   } catch (error) {
     console.error(error)
+    return 'v0.0.7'
   }
 }
 
