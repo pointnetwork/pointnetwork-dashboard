@@ -129,6 +129,10 @@ export default function (isExplicitRun = false) {
       channel: 'firefox:launch',
       listener() {
         firefox!.launch()
+        if (!helpers.getIsFirefoxInit()) {
+          firefox!.setDisableScopes(true)
+          helpers.setIsFirefoxInit(true)
+        }
       },
     },
     {
