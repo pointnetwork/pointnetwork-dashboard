@@ -108,7 +108,7 @@ export default function (isExplicitRun = false) {
         })
 
         try {
-          await Promise.all([firefox?.close(), node?.stopNode()])
+          await Promise.all([firefox?.close(), Node.stopNode()])
         } catch (err) {
           logger.error('[dashboard:index.ts] Error in `close` handler', err)
         } finally {
@@ -230,7 +230,7 @@ export default function (isExplicitRun = false) {
         if (confirmationAnswer === 0) {
           // User clicked 'Yes' (button at index 0)
           isLoggingOut = true
-          await node!.stopNode()
+          await Node.stopNode()
           helpers.logout()
           mainWindow!.close()
         }
@@ -239,7 +239,7 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:stop',
       async listener() {
-        await node!.stopNode()
+        await Node.stopNode()
       },
     },
     {
