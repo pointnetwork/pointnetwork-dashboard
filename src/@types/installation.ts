@@ -4,5 +4,6 @@ export enum InstallationStepsEnum {
   CODE = 'CODE',
   BROWSER = 'BROWSER',
   POINT_NODE = 'POINT_NODE',
+  POINT_UNINSTALLER= 'POINT_UNINSTALLER',
   POINT_SDK = 'POINT_SDK',
 }

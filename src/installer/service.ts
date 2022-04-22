@@ -3,6 +3,7 @@ import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import Firefox from '../firefox'
 import Node from '../node'
+import Uninstaller  from '../uninstaller'
 import { InstallationStepsEnum } from '../@types/installation'
 import { getProgressFromGithubMsg } from './helpers'
 
@@ -23,6 +24,7 @@ class Installer {
   private window: BrowserWindow
   private firefox: Firefox
   private node: Node
+  private uninstaller: Uninstaller
   private static installationJsonFilePath: string = path.join(
     helpers.getPointPath(),
     'installer.json'
@@ -33,6 +35,7 @@ class Installer {
     this.window = window
     this.firefox = new Firefox(window)
     this.node = new Node(window)
+    this.uninstaller = new Uninstaller(window)
   }
 
   static isInstalled = () => {
@@ -138,10 +141,12 @@ class Installer {
     )
 
     this.logger.info(`${InstallationStepsEnum.CODE}:100`, 'Cloned repositories')
-
+    await this.uninstaller.download()
     await this.firefox.downloadInstallPointSDK()
     await this.firefox.download()
     await this.node.download()
+    await this.node.download()
+
     
 
     // Set the `isInstalled` flag to true

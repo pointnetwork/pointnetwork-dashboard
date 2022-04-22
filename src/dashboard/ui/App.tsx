@@ -191,6 +191,10 @@ export default function App() {
     window.Dashboard.logOut()
   }
 
+  const uninstall = () => {
+    window.Dashboard.launchUninstaller()
+  }
+
   const checkNode = () => {
     if (checkStartTime.current === 0) {
       checkStartTime.current = new Date().getTime()
@@ -363,6 +367,13 @@ export default function App() {
                     style={{ marginRight: '5px' }}
                   >
                     Logout
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={uninstall}
+                    style={{ marginRight: '5px' }}
+                  >
+                    Uninstall
                   </Button>
                 </Stack>
               </Fragment>

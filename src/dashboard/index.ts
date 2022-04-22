@@ -5,6 +5,8 @@ import {
   dialog,
   IpcMainEvent,
   shell,
+  Menu, 
+  MenuItem
 } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
@@ -12,12 +14,14 @@ import helpers from '../../shared/helpers'
 import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 import Logger from '../../shared/logger'
+import Uninstaller from '../uninstaller'
 
 const logger = new Logger()
 
 let mainWindow: BrowserWindow | null
 
 let node: Node | null
+let uninstaller: Uninstaller | null
 let firefox: Firefox | null
 
 let isFirefoxRunning = false
@@ -45,6 +49,15 @@ const MESSAGES = {
       cancel: 'No',
     },
   },
+  uninstallConfirmation: {
+    title: 'Are you sure you want to launch uninstaller?',
+    message:
+      'Opening Uninstaller the Dashboard and Browser will close . Are you sure you want to close them?',
+    buttons: {
+      confirm: 'Yes',
+      cancel: 'No',
+    },
+  },
 }
 
 // const assetsPath =
@@ -54,6 +67,24 @@ const MESSAGES = {
 
 export default function (isExplicitRun = false) {
   async function createWindow() {
+
+    const template: MenuItem = [
+      {
+         label: 'File',
+         submenu: [
+            {
+               role: 'Uninstall',
+               click: () => {
+                 alert('asdf')
+               }
+            },
+         ]
+      }
+    ]
+    
+    const menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(menu)
+
     mainWindow = new BrowserWindow({
       ...baseWindowConfig,
       width: 860,
@@ -67,9 +98,9 @@ export default function (isExplicitRun = false) {
     isLoggingOut = false
 
     node = new Node(mainWindow!)
+    uninstaller = new Uninstaller(mainWindow!)
     await node.checkNodeVersion()
     // if (!(await node.pointNodeCheck())) node.launch()
-
     firefox = new Firefox(mainWindow!)
     // debug
     // mainWindow.webContents.openDevTools()
@@ -141,6 +172,41 @@ export default function (isExplicitRun = false) {
       channel: 'node:launch',
       listener() {
         node!.launch()
+      },
+    },
+    {
+      channel: 'node:launchUninstaller',
+      async listener() {
+        const confirmationAnswer = dialog.showMessageBoxSync({
+          type: 'question',
+          title: MESSAGES.uninstallConfirmation.title,
+          message: MESSAGES.uninstallConfirmation.message,
+          buttons: [
+            MESSAGES.uninstallConfirmation.buttons.confirm,
+            MESSAGES.uninstallConfirmation.buttons.cancel,
+          ],
+        })
+
+        if (confirmationAnswer === 0) {
+          // User clicked 'Yes' (button at index 0)
+          logger.info('Closed Dashboard Window')
+          events.forEach(event => {
+            ipcMain.removeListener(event.channel, event.listener)
+            logger.info('[dashboard:index.ts] Removed event', event.channel)
+          })
+  
+          try {
+            await Promise.all([firefox?.close(), node?.stopNode()])
+          } catch (err) {
+            logger.error('[dashboard:index.ts] Error in `close` handler', err)
+          } finally {
+            uninstaller!.launch()
+            mainWindow?.destroy()
+          }
+
+
+        }
+
       },
     },
     {
