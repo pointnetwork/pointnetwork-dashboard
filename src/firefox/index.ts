@@ -11,6 +11,7 @@ import Logger from '../../shared/logger'
 import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
+import moment from 'moment'
 
 const rimraf = require('rimraf')
 const dmg = require('dmg')
@@ -153,7 +154,7 @@ export default class {
               // write firefox version to a file
               fs.writeFile(
                 path.join(pointPath, 'infoFirefox.json'),
-                JSON.stringify({ installedReleaseVersion: version }),
+                JSON.stringify({ installedReleaseVersion: version, lastCheck: moment().unix() }),
                 'utf8',
                 err => {
                   if (err) {
@@ -260,7 +261,7 @@ export default class {
         // stringify JSON Object
         fs.writeFile(
           path.join(pointPath, 'infoSDK.json'),
-          JSON.stringify({ installedReleaseVersion: version }),
+          JSON.stringify({ installedReleaseVersion: version, lastCheck: moment().unix() }),
           'utf8',
           function (err: any) {
             if (err) {
@@ -282,19 +283,25 @@ export default class {
 
   async checkSDKVersion() {
     const installedVersion = helpers.getInstalledSDKVersion()
+    const lastCheck = moment.unix(installedVersion.lastCheck) 
+    if(moment().diff(lastCheck, 'hours')>= 1 ){
+      const latestReleaseVersion = await helpers.getlatestSDKReleaseVersion()
 
-    const latestReleaseVersion = await helpers.getlatestSDKReleaseVersion()
-
-    logger.info('installed', installedVersion.installedReleaseVersion)
-    logger.info('last', latestReleaseVersion)
-    if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
-      logger.info('sdk Update need it')
-      this.window.webContents.send('sdk:update', true)
-      await this.getIdExtension()
-      await this.downloadInstallPointSDK()
-    } else {
+      logger.info('installed', installedVersion.installedReleaseVersion)
+      logger.info('last', latestReleaseVersion)
+      if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
+        logger.info('sdk Update need it')
+        this.window.webContents.send('sdk:update', true)
+        await this.getIdExtension()
+        await this.downloadInstallPointSDK()
+      } else {
+        this.window.webContents.send('sdk:update', false)
+      }
+    }
+    else{
       this.window.webContents.send('sdk:update', false)
     }
+
   }
 
   getURL(filename: string, version: string) {

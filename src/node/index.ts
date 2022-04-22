@@ -7,6 +7,7 @@ import path from 'path'
 import util from 'util'
 import axios from 'axios'
 import { InstallationStepsEnum } from '../@types/installation'
+import moment from 'moment'
 
 const rimraf = require('rimraf')
 const decompress = require('decompress')
@@ -126,7 +127,10 @@ export default class Node {
           // stringify JSON Object
           fs.writeFile(
             path.join(pointPath, 'infoNode.json'),
-            JSON.stringify({ installedReleaseVersion: version }),
+            JSON.stringify({
+              installedReleaseVersion: version,
+              lastCheck: moment().unix(),
+            }),
             'utf8',
             function (err: any) {
               if (err) {
@@ -228,22 +232,26 @@ export default class Node {
   async checkNodeVersion() {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
+    const lastCheck = moment.unix(installedVersion.lastCheck)
+    if (moment().diff(lastCheck, 'hours') >= 1) {
+      const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
-    const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
-
-    logger.info('installed', installedVersion.installedReleaseVersion)
-    logger.info('last', latestReleaseVersion)
-    if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
-      logger.info('Node Update need it')
-      this.window.webContents.send('node:update', true)
-      setTimeout(() => {
-        Node.stopNode().then(() => {
-          if (fs.existsSync(path.join(pointPath, 'contracts')))
-            rimraf.sync(path.join(pointPath, 'contracts'))
-          if (fs.existsSync(path.join(pointPath, 'bin')))
-            rimraf.sync(path.join(pointPath, 'bin'))
-        })
-      }, 500)
+      logger.info('installed', installedVersion.installedReleaseVersion)
+      logger.info('last', latestReleaseVersion)
+      if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
+        logger.info('Node Update need it')
+        this.window.webContents.send('node:update', true)
+        setTimeout(() => {
+          Node.stopNode().then(() => {
+            if (fs.existsSync(path.join(pointPath, 'contracts')))
+              rimraf.sync(path.join(pointPath, 'contracts'))
+            if (fs.existsSync(path.join(pointPath, 'bin')))
+              rimraf.sync(path.join(pointPath, 'bin'))
+          })
+        }, 500)
+      } else {
+        this.window.webContents.send('node:update', false)
+      }
     } else {
       this.window.webContents.send('node:update', false)
     }
