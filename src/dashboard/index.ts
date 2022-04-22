@@ -58,6 +58,7 @@ export default function (isExplicitRun = false) {
       ...baseWindowConfig,
       width: 860,
       height: 560,
+      frame: false,
       webPreferences: {
         ...baseWindowConfig.webPreferences,
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -68,7 +69,6 @@ export default function (isExplicitRun = false) {
 
     node = new Node(mainWindow!)
     await node.checkNodeVersion()
-    // if (!(await node.pointNodeCheck())) node.launch()
 
     firefox = new Firefox(mainWindow!)
     // debug
@@ -324,6 +324,18 @@ export default function (isExplicitRun = false) {
         } catch (error) {
           logger.error(error)
         }
+      },
+    },
+    {
+      channel: 'dashboard:minimizeWindow',
+      listener() {
+        mainWindow?.minimize()
+      },
+    },
+    {
+      channel: 'dashboard:closeWindow',
+      listener() {
+        mainWindow?.close()
       },
     },
   ]

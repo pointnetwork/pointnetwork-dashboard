@@ -1,0 +1,60 @@
+import Box from '@mui/material/Box'
+// Icons
+import CloseIcon from '@mui/icons-material/Close'
+import RemoveIcon from '@mui/icons-material/Remove'
+
+const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
+  const handeClose = () => {
+    !isLoading && window.Dashboard.closeWindow()
+  }
+
+  return (
+    <Box display="flex" justifyContent="flex-end">
+      <Box flex={1} sx={{ '-webkit-app-region': 'drag' }}></Box>
+      <Box
+        sx={{
+          opacity: 0.4,
+          transition: 'all 150ms',
+          '&:hover': { opacity: 1 },
+          '&:active': { opacity: 0.5 },
+        }}
+      >
+        <Box
+          px=".75rem"
+          py=".25rem"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          bgcolor="primary.light"
+          sx={{ cursor: 'pointer' }}
+          onClick={window.Dashboard.minimizeWindow}
+        >
+          <RemoveIcon fontSize="small" />
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          opacity: 0.4,
+          transition: 'all 150ms',
+          '&:hover': { opacity: 1 },
+          '&:active': { opacity: 0.5 },
+        }}
+      >
+        <Box
+          px=".75rem"
+          py=".25rem"
+          bgcolor="red"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          sx={{ cursor: 'pointer' }}
+          onClick={handeClose}
+        >
+          <CloseIcon fontSize="small" sx={{ color: 'white' }} />
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
+export default TopBar
