@@ -182,6 +182,7 @@ export default function App() {
       !isSdkUpdating
     ) {
       setIsLoading(false)
+      setInterval(checkNode, 10000)
     }
   }, [
     isFirefoxUpdating,
@@ -398,7 +399,6 @@ export default function App() {
           <ResourceItemCard
             title="Point Node"
             status={!!nodeVersion}
-            onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
             isLoading={isLoading || isUpdating || isFirefoxUpdating}
