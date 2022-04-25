@@ -4,9 +4,7 @@ import {
   ipcMain,
   dialog,
   IpcMainEvent,
-  shell,
-  Menu, 
-  MenuItem
+  shell
 } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
@@ -19,7 +17,6 @@ import Uninstaller from '../uninstaller'
 const logger = new Logger()
 
 let mainWindow: BrowserWindow | null
-
 let node: Node | null
 let uninstaller: Uninstaller | null
 let firefox: Firefox | null
@@ -67,24 +64,6 @@ const MESSAGES = {
 
 export default function (isExplicitRun = false) {
   async function createWindow() {
-
-    const template: MenuItem = [
-      {
-         label: 'File',
-         submenu: [
-            {
-               role: 'Uninstall',
-               click: () => {
-                 alert('asdf')
-               }
-            },
-         ]
-      }
-    ]
-    
-    const menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(menu)
-
     mainWindow = new BrowserWindow({
       ...baseWindowConfig,
       width: 860,
@@ -103,7 +82,7 @@ export default function (isExplicitRun = false) {
     // if (!(await node.pointNodeCheck())) node.launch()
     firefox = new Firefox(mainWindow!)
     // debug
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
 
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 

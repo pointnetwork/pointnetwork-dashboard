@@ -7,6 +7,7 @@ import path from 'path'
 import util from 'util'
 import { InstallationStepsEnum } from '../@types/installation'
 
+const rimraf = require('rimraf')
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const logger = new Logger()
@@ -73,7 +74,7 @@ export default class Uninstaller {
       }
       const downloadStream = fs.createWriteStream(downloadPath)
       const downloadUrl = this.getURL(filename, version)
-      console.log('fileName',filename)
+      console.log('fileName', filename)
       https.get(downloadUrl, async response => {
         this.installationLogger.info(
           InstallationStepsEnum.POINT_UNINSTALLER,
@@ -110,13 +111,13 @@ export default class Uninstaller {
           'Downloaded Uninstaller'
         )
         const temp = helpers.getPointPathTemp()
-        if (!temp) {
-          fs.mkdirpSync(temp)
-        }
+        if (fs.existsSync(temp))
+          rimraf.sync(temp)
+        fs.mkdirpSync(temp)
         decompress(downloadPath, temp, {
           plugins: [decompressTargz()],
         }).then(() => {
-          // fs.unlinkSync(downloadPath)
+          fs.unlinkSync(downloadPath)
           resolve(
             this.installationLogger.info(
               InstallationStepsEnum.POINT_UNINSTALLER,
@@ -146,12 +147,12 @@ export default class Uninstaller {
 
   async launch() {
     logger.info('Launching Uninstaller')
-    const pointPath =  helpers.getPointPathTemp()
+    const pointPath = helpers.getPointPathTemp()
 
-    const file = path.join(pointPath,  'pointnetwork-uninstaller')
+    const file = path.join(pointPath, 'pointnetwork-uninstaller')
     let cmd = `${file}`
     if (global.platform.win32)
-       cmd = `${file}`
+      cmd = `${file}`
     if (global.platform.darwin)
       cmd = `open ${file}.app`
 

@@ -14,6 +14,9 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
+import SettingsIcon from '@mui/icons-material/Settings'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -42,6 +45,8 @@ export default function App() {
       isUpdateAvailable: false,
       latestVersion: '',
     })
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
   const checkStartTime = useRef(0)
 
   const balanceStyle = {
@@ -76,7 +81,7 @@ export default function App() {
 
     window.Dashboard.on('sdk:update', (status: boolean) => {
       setIsSdkUpdating(status)
-      if(!status){
+      if (!status) {
         checkNode()
       }
     })
@@ -135,7 +140,7 @@ export default function App() {
         if (isRunning) {
           if (isNodeRunning !== isRunning) {
             isNodeRunning = true
-            if(!isSdkUpdating){
+            if (!isSdkUpdating) {
               openFirefox()
             }
             requestYPoints()
@@ -186,13 +191,20 @@ export default function App() {
     isLoadingWalletInfo,
     isSdkUpdating,
   ])
-
+  const open = Boolean(anchorEl)
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget)
+  }
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
   }
 
   const uninstall = () => {
     window.Dashboard.launchUninstaller()
+    handleClose()
   }
 
   const checkNode = () => {
@@ -242,7 +254,7 @@ export default function App() {
               Point Dashboard
             </Typography>
           </Grid>
-          <Grid item xs={6} marginTop={2.5}>
+          <Grid item xs={7} marginTop={2.5}>
             <Typography
               variant="caption"
               display="block"
@@ -252,12 +264,26 @@ export default function App() {
               v{dashboardVersion}
             </Typography>
           </Grid>
+          <Grid item xs={1} marginTop={1} >
+            <SettingsIcon onClick={handleClick}></SettingsIcon>
+            <Menu
+              id="basic-menu"
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              MenuListProps={{
+                'aria-labelledby': 'basic-button',
+              }}
+            >
+              <MenuItem onClick={uninstall}>Uninstall</MenuItem>
+            </Menu>
+          </Grid>
         </Grid>
         <Typography color="text.secondary">
           Manage and control Point Network components from here
         </Typography>
 
-        {isLoading ?
+        {isLoading ? (
           isUpdating || isFirefoxUpdating || isSdkUpdating ? (
             <Box display="flex" sx={{ mt: '2rem' }}>
               <CircularProgress size={20} />
@@ -273,7 +299,8 @@ export default function App() {
                 Starting up Node and Browser...
               </Typography>
             </Box>
-          ) : (
+          )
+        ) : (
           <Grid
             container
             sx={{
@@ -367,13 +394,6 @@ export default function App() {
                     style={{ marginRight: '5px' }}
                   >
                     Logout
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={uninstall}
-                    style={{ marginRight: '5px' }}
-                  >
-                    Uninstall
                   </Button>
                 </Stack>
               </Fragment>
