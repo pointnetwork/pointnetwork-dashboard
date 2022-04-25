@@ -13,7 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "create-installer-win": "node build_installer_win.js",
-    "create-installer-mac": "electron-installer-dmg ./out/pointnetwork-dashboard-darwin-x64/pointnetwork-dashboard.app pointnetwork-dashboard --out=out --overwrite --icon=assets/icon.icns"
+    "create-installer-mac": "electron-installer-dmg ./out/pointnetwork-dashboard-darwin-x64/pointnetwork-dashboard.app pointnetwork-dashboard --out=out --overwrite --icon=assets/icon.icns --background=assets/backgrounddmg.jpg --title=Point"
   },
   "keywords": [],
   "license": "MIT",
