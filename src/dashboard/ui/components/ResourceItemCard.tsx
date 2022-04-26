@@ -17,7 +17,7 @@ const ResourceItemCard = ({
 }: {
   title: string
   buttonLabel: string
-  onClick: any
+  onClick?: any
   icon: any
   status: boolean
   isLoading: boolean
@@ -27,9 +27,8 @@ const ResourceItemCard = ({
     <Box
       display="flex"
       justifyContent="space-between"
-      alignItems="center"
       borderRadius={2}
-      sx={{ p: 2 }}
+      p={2}
       bgcolor="primary.light"
     >
       <Box flex={3}>
@@ -49,16 +48,18 @@ const ResourceItemCard = ({
             Version: {version}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          sx={{ mt: '2rem' }}
-          onClick={onClick}
-          disabled={isLoading}
-        >
-          {buttonLabel}
-        </Button>
+        {onClick && (
+          <Button
+            variant="contained"
+            sx={{ mt: '1.2rem' }}
+            onClick={onClick}
+            disabled={isLoading}
+          >
+            {buttonLabel}
+          </Button>
+        )}
       </Box>
-      <Box sx={{ opacity: status ? 1 : 0.2 }} flex={1}>
+      <Box sx={{ opacity: status ? 1 : 0.2 }} flex={1} alignSelf="center">
         {icon}
       </Box>
     </Box>

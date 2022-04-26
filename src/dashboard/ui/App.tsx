@@ -177,6 +177,7 @@ export default function App() {
       requestYPoints()
       window.Dashboard.getIdentity()
       setIsLoading(false)
+      setInterval(checkNode, 10000)
     }
   }, [isNodeRunning])
 
@@ -352,7 +353,6 @@ export default function App() {
           <ResourceItemCard
             title="Point Node"
             status={!!nodeVersion}
-            onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
             isLoading={isLoading || isNodeUpdating || isFirefoxUpdating}
