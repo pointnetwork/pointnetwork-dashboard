@@ -1,7 +1,6 @@
 import { MouseEventHandler, useEffect, useState, Fragment, useRef } from 'react'
 // Material UI
 import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -15,16 +14,23 @@ import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 // Components
 import TopBar from './components/TopBar'
 import ResourceItemCard from './components/ResourceItemCard'
+import DashboardUpdateAlert from './components/DashboardUpdateAlert'
+import DashboardTitle from './components/DashboardTitle'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [identity, setIdentity] = useState<string | null>(null)
-  const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
-  const [isUpdating, setIsUpdating] = useState<boolean>(false)
-  const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(false)
-  const [isSdkUpdating, setIsSdkUpdating] = useState<boolean>(false)
+  // Update state variables
+  const [isNodeUpdating, setIsNodeUpdating] = useState<boolean>(true)
+  const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(true)
+  const [isSdkUpdating, setIsSdkUpdating] = useState<boolean>(true)
+  // Progress state variables
+  const [nodeUpdateProgess, setNodeUpdateProgress] = useState<number>(0)
+  const [firefoxUpdateProgess, setFirefoxUpdateProgress] = useState<number>(0)
+  // Running state variables
   const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
-  let isNodeRunning = useRef(false).current
+  const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
+  // Wallet info
+  const [identity, setIdentity] = useState<string | null>(null)
   const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(true)
   const [walletInfo, setWalletInfo] = useState<{
     address: string
@@ -33,16 +39,10 @@ export default function App() {
     address: '',
     balance: '',
   })
+  // Version state variables
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
   const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
-  const [isNewDashboardReleaseAvailable, setIsNewDashboardReleaseAvailable] =
-    useState<{
-      isUpdateAvailable: boolean
-      latestVersion: string
-    }>({
-      isUpdateAvailable: false,
-      latestVersion: '',
-    })
+
   const checkStartTime = useRef(0)
 
   const balanceStyle = {
@@ -65,24 +65,27 @@ export default function App() {
   }
 
   useEffect(() => {
+    // Add custom styles to window since it's frameless
     document.body.style.margin = '0'
     document.body.style.padding = '0'
     document.body.style.minHeight = '100vh'
     document.body.style.border = '1.5px solid rgba(0, 0, 0, 0.2)'
     document.body.style.boxSizing = 'border-box'
 
-    window.Dashboard.getDashboardVersion()
+    setIsLoading(true)
+
+    // Check for updates
+    window.Dashboard.checkUpdate()
+
     window.Dashboard.on('node:update', (status: boolean) => {
-      setIsUpdating(status)
+      setIsNodeUpdating(status)
       if (status) {
         window.Dashboard.DownloadNode()
-      }
-    })
-
-    window.Dashboard.on('sdk:update', (status: boolean) => {
-      setIsSdkUpdating(status)
-      if (!status) {
-        checkNode()
+        window.Dashboard.on('installer:log', ([msg]: string[]) => {
+          if (msg.includes('POINT_NODE:')) {
+            setNodeUpdateProgress(Number(msg.replace('POINT_NODE:', '')))
+          }
+        })
       }
     })
 
@@ -90,35 +93,40 @@ export default function App() {
       setIsFirefoxUpdating(status)
       if (status) {
         window.Dashboard.DownloadFirefox()
+        window.Dashboard.on('installer:log', ([msg]: string[]) => {
+          if (msg.includes('BROWSER:')) {
+            setFirefoxUpdateProgress(Number(msg.replace('BROWSER:', '')))
+          }
+        })
       }
     })
+
+    window.Dashboard.on('sdk:update', (status: boolean) => {
+      setIsSdkUpdating(status)
+    })
+
+    // Check if updates have finished downloading
+    window.Dashboard.on('pointNode:finishDownload', () => {
+      setIsNodeUpdating(false)
+    })
+
+    window.Dashboard.on('pointSDK:finishDownload', () => {
+      setIsSdkUpdating(false)
+    })
+
+    window.Dashboard.on('firefox:finishDownload', () => {
+      setIsFirefoxUpdating(false)
+    })
+
+    // Get the versions
+    window.Dashboard.getDashboardVersion()
 
     window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
       setFirefoxVersion(firefoxVersion)
     })
 
-    window.Dashboard.on('pointNode:finishDownload', () => {
-      setIsUpdating(false)
-      window.Dashboard.launchNode()
-      checkNode()
-    })
-
-    window.Dashboard.on('pointSDK:finishDownload', () => {
-      setIsSdkUpdating(false)
-      checkNode()
-    })
-
-    window.Dashboard.on('firefox:finishDownload', () => {
-      setIsFirefoxUpdating(false)
-      openFirefox()
-    })
-
     window.Dashboard.on('node:identity', (identity: string) => {
       setIdentity(identity)
-    })
-
-    window.Dashboard.on('node:getDashboardVersion', (dversion: string) => {
-      setDashboardVersion(dversion)
     })
 
     window.Dashboard.on('firefox:active', (status: boolean) => {
@@ -127,70 +135,50 @@ export default function App() {
       window.Dashboard.getIdentity()
     })
 
-    window.Dashboard.on(
-      'pointNode:checked',
-      ({
-        version,
-        isRunning,
-      }: {
-        version: string | null
-        isRunning: boolean
-      }) => {
-        setNodeVersion(version)
-        if (isRunning) {
-          if (isNodeRunning !== isRunning) {
-            isNodeRunning = true
-            if (!isSdkUpdating) {
-              openFirefox()
-            }
-            requestYPoints()
-          }
-        } else if (new Date().getTime() - checkStartTime.current < 120000) {
-          isNodeRunning = false
-          setTimeout(checkNode, 1000)
-        } else {
-          console.error('Failed to start node in 2 minutes')
-          isNodeRunning = false
-          setIsLoading(false)
-        }
-      }
-    )
-
     window.Dashboard.on('node:wallet_info', (message: string) => {
       setWalletInfo(JSON.parse(message))
       setIsLoadingWalletInfo(false)
     })
-
-    window.Dashboard.on(
-      'dashboard:isNewDashboardReleaseAvailable',
-      (message: { isUpdateAvailable: boolean; latestVersion: string }) => {
-        setIsNewDashboardReleaseAvailable(message)
-      }
-    )
-
-    window.Dashboard.checkUpdate()
-    window.Dashboard.isNewDashboardReleaseAvailable()
   }, [])
 
   useEffect(() => {
-    if (
-      nodeVersion &&
-      isFirefoxRunning &&
-      !isLoadingWalletInfo &&
-      !isUpdating &&
-      !isFirefoxUpdating &&
-      !isSdkUpdating
-    ) {
+    if (!isFirefoxUpdating && !isNodeUpdating && !isSdkUpdating) {
+      // First, launch Node and check if it's running or not
+      window.Dashboard.launchNode()
+      checkNode()
+      window.Dashboard.on(
+        'pointNode:checked',
+        ({
+          version,
+          isRunning,
+        }: {
+          version: string | null
+          isRunning: boolean
+        }) => {
+          setNodeVersion(version)
+          setIsNodeRunning(isRunning)
+          if (
+            !isRunning &&
+            new Date().getTime() - checkStartTime.current < 120000
+          ) {
+            setTimeout(checkNode, 1000)
+          } else {
+            console.error('Failed to start node in 2 minutes')
+            setIsLoading(false)
+          }
+        }
+      )
+    }
+  }, [isFirefoxUpdating, isNodeUpdating, isSdkUpdating])
+
+  useEffect(() => {
+    if (isNodeRunning) {
+      openFirefox()
+      requestYPoints()
+      window.Dashboard.getIdentity()
       setIsLoading(false)
     }
-  }, [
-    isFirefoxUpdating,
-    isUpdating,
-    nodeVersion,
-    isFirefoxRunning,
-    isLoadingWalletInfo,
-    isSdkUpdating,
-  ])
+  }, [isNodeRunning])
 
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
@@ -201,7 +189,6 @@ export default function App() {
       checkStartTime.current = new Date().getTime()
     }
     window.Dashboard.checkNode()
-    window.Dashboard.getIdentity()
   }
 
   const openFirefox = () => {
@@ -215,58 +202,28 @@ export default function App() {
     window.Dashboard.checkBalanceAndAirdrop()
   }
 
-  const openDonwloadLink = () => {
-    window.Dashboard.openDashboardDownloadLink(
-      `https://github.com/pointnetwork/pointnetwork-dashboard/releases/tag/${isNewDashboardReleaseAvailable.latestVersion}`
-    )
-  }
-
   return (
     <UIThemeProvider>
       <TopBar isLoading={isLoading} />
+      <DashboardUpdateAlert />
 
       <Box px="3.5%" pt="3%">
-        {isNewDashboardReleaseAvailable.isUpdateAvailable && (
-          <Alert
-            sx={{ position: 'absolute', right: '2.5%', top: '2.5%' }}
-            severity="info"
-          >
-            <AlertTitle>New Update Available</AlertTitle>
-            Click{' '}
-            <strong style={{ cursor: 'pointer' }} onClick={openDonwloadLink}>
-              here
-            </strong>{' '}
-            to download the latest version
-          </Alert>
-        )}
-        <Grid container>
-          <Grid item xs={4} marginBottom={1}>
-            <Typography variant="h4" component="h1">
-              Point Dashboard
-            </Typography>
-          </Grid>
-          <Grid item xs={6} marginTop={2.5}>
-            <Typography
-              variant="caption"
-              display="block"
-              gutterBottom
-              style={{ float: 'none' }}
-            >
-              v{dashboardVersion}
-            </Typography>
-          </Grid>
-        </Grid>
-        <Typography color="text.secondary">
-          Manage and control Point Network components from here
-        </Typography>
-
+        <DashboardTitle />
         {isLoading ? (
-          isUpdating || isFirefoxUpdating || isSdkUpdating ? (
+          isNodeUpdating || isFirefoxUpdating || isSdkUpdating ? (
             <Box display="flex" mt="2rem">
-              <CircularProgress size={20} />
+              <CircularProgress
+                size={20}
+                thickness={4.2}
+                value={
+                  isNodeUpdating ? nodeUpdateProgess : firefoxUpdateProgess
+                }
+                variant="determinate"
+              />
               <Typography ml=".6rem">
-                {(isUpdating ? 'Point Node ' : 'Firefox') +
-                  ' updating... Please wait'}
+                {`${isNodeUpdating ? 'Point Node' : 'Firefox'} updating... ${
+                  isNodeUpdating ? nodeUpdateProgess : firefoxUpdateProgess
+                }%`}
               </Typography>
             </Box>
           ) : (
@@ -301,17 +258,13 @@ export default function App() {
             <Grid item xs={11}>
               {identity ? (
                 <Typography variant="h6" component="h2" marginBottom={'2px'}>
-                  <>
-                    You are logged in as{' '}
-                    <span style={balanceStyle}>@{identity}</span>
-                  </>
+                  You are logged in as{' '}
+                  <span style={balanceStyle}>@{identity}</span>
                 </Typography>
               ) : (
                 <Typography variant="h6" component="h2" marginBottom={'2px'}>
-                  <>
-                    Please create an identity at{' '}
-                    <span style={link}>https://point</span>
-                  </>
+                  Please create an identity at{' '}
+                  <span style={link}>https://point</span>
                 </Typography>
               )}
             </Grid>
@@ -330,9 +283,7 @@ export default function App() {
                 <Grid item xs={8}>
                   <Typography variant="subtitle2">
                     {walletInfo.address ? (
-                      <>
-                        <span style={monospace}>{walletInfo.address}</span>
-                      </>
+                      <span style={monospace}>{walletInfo.address}</span>
                     ) : (
                       'N/A'
                     )}
@@ -379,7 +330,7 @@ export default function App() {
           display="grid"
           my="1.5rem"
           sx={{
-            opacity: isLoading || isUpdating || isFirefoxUpdating ? 0.2 : 1,
+            opacity: isLoading || isNodeUpdating || isFirefoxUpdating ? 0.2 : 1,
             gridTemplateColumns: { sm: '1fr 1fr' },
             gap: 2,
           }}
@@ -391,7 +342,10 @@ export default function App() {
             icon={<FirefoxLogo />}
             buttonLabel="Launch Browser"
             isLoading={
-              isLoading || isUpdating || isFirefoxUpdating || isFirefoxRunning
+              isLoading ||
+              isNodeUpdating ||
+              isFirefoxUpdating ||
+              isFirefoxRunning
             }
             version={firefoxVersion}
           />
@@ -401,7 +355,7 @@ export default function App() {
             onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
-            isLoading={isLoading || isUpdating || isFirefoxUpdating}
+            isLoading={isLoading || isNodeUpdating || isFirefoxUpdating}
             version={nodeVersion}
           />
         </Box>
