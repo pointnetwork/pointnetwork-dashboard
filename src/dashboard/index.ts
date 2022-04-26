@@ -47,9 +47,9 @@ const MESSAGES = {
     },
   },
   uninstallConfirmation: {
-    title: 'Are you sure you want to launch uninstaller?',
+    title: 'Are you sure you want to uninstall Point Network??',
     message:
-      'Opening Uninstaller the Dashboard and Browser will close . Are you sure you want to close them?',
+      'Opening Uninstaller the Dashboard and Browser will close. Are you sure you want to uninstall Point Network??',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
