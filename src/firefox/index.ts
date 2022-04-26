@@ -154,7 +154,10 @@ export default class {
               // write firefox version to a file
               fs.writeFile(
                 path.join(pointPath, 'infoFirefox.json'),
-                JSON.stringify({ installedReleaseVersion: version, lastCheck: moment().unix() }),
+                JSON.stringify({
+                  installedReleaseVersion: version,
+                  lastCheck: moment().unix(),
+                }),
                 'utf8',
                 err => {
                   if (err) {
@@ -261,7 +264,10 @@ export default class {
         // stringify JSON Object
         fs.writeFile(
           path.join(pointPath, 'infoSDK.json'),
-          JSON.stringify({ installedReleaseVersion: version, lastCheck: moment().unix() }),
+          JSON.stringify({
+            installedReleaseVersion: version,
+            lastCheck: moment().unix(),
+          }),
           'utf8',
           function (err: any) {
             if (err) {
@@ -283,8 +289,8 @@ export default class {
 
   async checkSDKVersion() {
     const installedVersion = helpers.getInstalledSDKVersion()
-    const lastCheck = moment.unix(installedVersion.lastCheck) 
-    if(moment().diff(lastCheck, 'hours')>= 1 ){
+    const lastCheck = moment.unix(installedVersion.lastCheck)
+    if (moment().diff(lastCheck, 'hours') >= 1) {
       const latestReleaseVersion = await helpers.getlatestSDKReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
@@ -297,11 +303,9 @@ export default class {
       } else {
         this.window.webContents.send('sdk:update', false)
       }
-    }
-    else{
+    } else {
       this.window.webContents.send('sdk:update', false)
     }
-
   }
 
   getURL(filename: string, version: string) {
@@ -325,8 +329,8 @@ export default class {
 
     this.window.webContents.send('firefox:active', true)
     try {
-      const { stderr } = await exec(browserCmd)
-      if (stderr) this.window.webContents.send('firefox:active', false)
+      await exec(browserCmd)
+      this.window.webContents.send('firefox:active', false)
     } catch (error) {
       this.window.webContents.send('firefox:active', false)
     }
@@ -349,7 +353,7 @@ export default class {
         try {
           const cmdOutput = await exec(this.getKillCmd(p.pid))
           logger.info(`[firefox:close] Output of "kill ${p.pid}":`, cmdOutput)
-        } catch(err) {
+        } catch (err) {
           logger.error(`[firefox:close] Output of "kill ${p.pid}":`, err)
         }
       }
@@ -621,15 +625,11 @@ pref("extensions.startupScanScopes", 15);
       }
     )
 
-    fs.writeFile(
-      path.join(appPath, configFilename),
-      firefoxCfgContent,
-      err => {
-        if (err) {
-          logger.error(err)
-        }
+    fs.writeFile(path.join(appPath, configFilename), firefoxCfgContent, err => {
+      if (err) {
+        logger.error(err)
       }
-    )
+    })
 
     fs.writeFile(
       path.join(policiesPath, 'policies.json'),
