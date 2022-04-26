@@ -35,7 +35,7 @@ export default class Uninstaller {
 
     if (global.platform.darwin) return `point-uninstaller-${version}-MacOS-portable.tar.gz`
 
-    return `point-uninstaller${version}-Linux-Debian-Ubuntu.tar.gz`
+    return `point-uninstaller-${version}-Linux-Debian-Ubuntu.tar.gz`
   }
 
   async getBinPath() {
@@ -190,7 +190,7 @@ export default class Uninstaller {
       cmd = `open ${file}.app`
 
     if (global.platform.linux)
-      cmd = `./${file}`
+      cmd = `xdg-open ${file}`
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       logger.info('Launched uninstaller')
