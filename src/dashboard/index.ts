@@ -68,6 +68,7 @@ export default function (isExplicitRun = false) {
       ...baseWindowConfig,
       width: 860,
       height: 560,
+      frame: false,
       webPreferences: {
         ...baseWindowConfig.webPreferences,
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -79,7 +80,6 @@ export default function (isExplicitRun = false) {
     node = new Node(mainWindow!)
     uninstaller = new Uninstaller(mainWindow!)
     await node.checkNodeVersion()
-    // if (!(await node.pointNodeCheck())) node.launch()
     firefox = new Firefox(mainWindow!)
     // debug
     // mainWindow.webContents.openDevTools()
@@ -118,7 +118,7 @@ export default function (isExplicitRun = false) {
         })
 
         try {
-          await Promise.all([firefox?.close(), node?.stopNode()])
+          await Promise.all([firefox?.close(), Node.stopNode()])
         } catch (err) {
           logger.error('[dashboard:index.ts] Error in `close` handler', err)
         } finally {
@@ -275,7 +275,7 @@ export default function (isExplicitRun = false) {
         if (confirmationAnswer === 0) {
           // User clicked 'Yes' (button at index 0)
           isLoggingOut = true
-          await node!.stopNode()
+          await Node.stopNode()
           helpers.logout()
           mainWindow!.close()
         }
@@ -284,7 +284,7 @@ export default function (isExplicitRun = false) {
     {
       channel: 'node:stop',
       async listener() {
-        await node!.stopNode()
+        await Node.stopNode()
       },
     },
     {
@@ -369,6 +369,18 @@ export default function (isExplicitRun = false) {
         } catch (error) {
           logger.error(error)
         }
+      },
+    },
+    {
+      channel: 'dashboard:minimizeWindow',
+      listener() {
+        mainWindow?.minimize()
+      },
+    },
+    {
+      channel: 'dashboard:closeWindow',
+      listener() {
+        mainWindow?.close()
       },
     },
   ]
