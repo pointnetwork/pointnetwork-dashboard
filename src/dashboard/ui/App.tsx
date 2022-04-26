@@ -10,10 +10,11 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
 // Icons
-import CancelIcon from '@mui/icons-material/Cancel'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
+// Components
+import TopBar from './components/TopBar'
+import ResourceItemCard from './components/ResourceItemCard'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -64,19 +65,23 @@ export default function App() {
   }
 
   useEffect(() => {
+    document.body.style.margin = '0'
+    document.body.style.padding = '0'
+    document.body.style.minHeight = '100vh'
+    document.body.style.border = '1.5px solid rgba(0, 0, 0, 0.2)'
+    document.body.style.boxSizing = 'border-box'
+
     window.Dashboard.getDashboardVersion()
     window.Dashboard.on('node:update', (status: boolean) => {
       setIsUpdating(status)
       if (status) {
         window.Dashboard.DownloadNode()
-      } /*else {
-        checkNode()
-      }*/
+      }
     })
 
     window.Dashboard.on('sdk:update', (status: boolean) => {
       setIsSdkUpdating(status)
-      if(!status){
+      if (!status) {
         checkNode()
       }
     })
@@ -135,7 +140,7 @@ export default function App() {
         if (isRunning) {
           if (isNodeRunning !== isRunning) {
             isNodeRunning = true
-            if(!isSdkUpdating){
+            if (!isSdkUpdating) {
               openFirefox()
             }
             requestYPoints()
@@ -177,6 +182,7 @@ export default function App() {
       !isSdkUpdating
     ) {
       setIsLoading(false)
+      setInterval(checkNode, 10000)
     }
   }, [
     isFirefoxUpdating,
@@ -218,7 +224,9 @@ export default function App() {
 
   return (
     <UIThemeProvider>
-      <Box sx={{ px: '3.5%', pt: '3%' }}>
+      <TopBar isLoading={isLoading} />
+
+      <Box px="3.5%" pt="3%">
         {isNewDashboardReleaseAvailable.isUpdateAvailable && (
           <Alert
             sx={{ position: 'absolute', right: '2.5%', top: '2.5%' }}
@@ -253,29 +261,30 @@ export default function App() {
           Manage and control Point Network components from here
         </Typography>
 
-        {isLoading ?
+        {isLoading ? (
           isUpdating || isFirefoxUpdating || isSdkUpdating ? (
-            <Box display="flex" sx={{ mt: '2rem' }}>
+            <Box display="flex" mt="2rem">
               <CircularProgress size={20} />
-              <Typography sx={{ ml: '.6rem' }}>
+              <Typography ml=".6rem">
                 {(isUpdating ? 'Point Node ' : 'Firefox') +
                   ' updating... Please wait'}
               </Typography>
             </Box>
           ) : (
-            <Box display="flex" sx={{ mt: '1.2rem' }}>
+            <Box display="flex" mt="1.2rem">
               <CircularProgress size={20} />
-              <Typography sx={{ ml: '.6rem' }}>
+              <Typography ml=".6rem">
                 Starting up Node and Browser...
               </Typography>
             </Box>
-          ) : (
+          )
+        ) : (
           <Grid
             container
+            p="1rem"
+            pt=".75rem"
+            my=".65rem"
             sx={{
-              my: '.65rem',
-              p: '1rem',
-              pt: '.75rem',
               opacity: isLoading ? 0.2 : 1,
             }}
             borderRadius={2}
@@ -310,9 +319,7 @@ export default function App() {
             {isLoadingWalletInfo ? (
               <Grid item xs={12} display="flex" marginY={2}>
                 <CircularProgress size={20} />
-                <Typography sx={{ ml: '.6rem' }}>
-                  Getting Wallet Info...
-                </Typography>
+                <Typography ml=".6rem">Getting Wallet Info...</Typography>
               </Grid>
             ) : (
               <Fragment>
@@ -370,10 +377,10 @@ export default function App() {
           </Grid>
         )}
         <Box
+          display="grid"
+          my="1.5rem"
           sx={{
             opacity: isLoading || isUpdating || isFirefoxUpdating ? 0.2 : 1,
-            my: '1.5rem',
-            display: 'grid',
             gridTemplateColumns: { sm: '1fr 1fr' },
             gap: 2,
           }}
@@ -392,7 +399,6 @@ export default function App() {
           <ResourceItemCard
             title="Point Node"
             status={!!nodeVersion}
-            onClick={checkNode}
             icon={<PointLogo />}
             buttonLabel="Check Status"
             isLoading={isLoading || isUpdating || isFirefoxUpdating}
@@ -401,64 +407,5 @@ export default function App() {
         </Box>
       </Box>
     </UIThemeProvider>
-  )
-}
-
-const ResourceItemCard = ({
-  title,
-  buttonLabel,
-  onClick,
-  status,
-  icon,
-  isLoading,
-  version,
-}: {
-  title: string
-  buttonLabel: string
-  onClick: any
-  icon: any
-  status: boolean
-  isLoading: boolean
-  version: string | null
-}) => {
-  return (
-    <Box
-      display="flex"
-      justifyContent="space-between"
-      alignItems="center"
-      borderRadius={2}
-      sx={{ p: 2 }}
-      bgcolor="primary.light"
-    >
-      <Box flex={3}>
-        <Typography variant="h6">{title}</Typography>
-        <Box display="flex" alignItems="center">
-          <Typography color="text.secondary" sx={{ mr: 0.5 }}>
-            Status: {status ? 'Running' : 'Stopped'}
-          </Typography>
-          {status ? (
-            <CheckCircleIcon color="success" />
-          ) : (
-            <CancelIcon color="error" />
-          )}
-        </Box>
-        <Box display="flex" alignItems="center">
-          <Typography color="text.secondary" sx={{ mr: 0.5 }}>
-            Version: {version}
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          sx={{ mt: '2rem' }}
-          onClick={onClick}
-          disabled={isLoading}
-        >
-          {buttonLabel}
-        </Button>
-      </Box>
-      <Box sx={{ opacity: status ? 1 : 0.2 }} flex={1}>
-        {icon}
-      </Box>
-    </Box>
   )
 }

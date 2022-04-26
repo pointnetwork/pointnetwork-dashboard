@@ -97,7 +97,6 @@ const getlatestSDKReleaseVersion = async () => {
 }
 
 const getPortableDashboardDownloadURL = async () => {
-  return 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.1.0/point-browser.zip'
   const owner = 'pointnetwork'
   const repo = 'phyrox-esr-portable'
   const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`

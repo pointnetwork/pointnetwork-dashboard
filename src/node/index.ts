@@ -7,6 +7,7 @@ import path from 'path'
 import util from 'util'
 import axios from 'axios'
 import { InstallationStepsEnum } from '../@types/installation'
+import moment from 'moment'
 
 const rimraf = require('rimraf')
 const decompress = require('decompress')
@@ -17,8 +18,6 @@ const exec = util.promisify(require('child_process').exec)
 export default class Node {
   private installationLogger
   private window
-  private pid: string[] = []
-  private killCmd: string[] = []
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -128,7 +127,10 @@ export default class Node {
           // stringify JSON Object
           fs.writeFile(
             path.join(pointPath, 'infoNode.json'),
-            JSON.stringify({ installedReleaseVersion: version }),
+            JSON.stringify({
+              installedReleaseVersion: version,
+              lastCheck: moment().unix(),
+            }),
             'utf8',
             function (err: any) {
               if (err) {
@@ -148,12 +150,10 @@ export default class Node {
   async launch() {
     logger.info('Launching Node')
     if (await this.pointNodeCheck()) {
-      logger.info('Node is running')
-      return
+      return logger.info('Node is running')
     }
     if (!(await this.isInstalled())) {
-      logger.info('Node is not downloaded')
-      return
+      return logger.info('Node is not downloaded')
     }
     const pointPath = helpers.getPointPath()
 
@@ -175,7 +175,6 @@ export default class Node {
         logger.info(`pointnode launch exec stderr: ${stderr}`)
       }
     })
-    await this.getProcess()
   }
 
   async pointNodeCheck(): Promise<boolean> {
@@ -211,50 +210,48 @@ export default class Node {
     }
   }
 
-  async getProcess() {
-    logger.info('Checking PointNode PID')
-    const process = await find('name', 'point', true)
-    if (process.length > 0) {
-      logger.info(`Found running process ${process}`)
-      this.killCmd = process.map((obj: { pid: any }) => {
-        let command = `kill "${obj.pid}"`
-        if (global.platform.win32) command = `taskkill /F /PID "${obj.pid}"`
-        return command
-      })
-      logger.info(`cmd: ${this.killCmd}`)
-    }
+  static getKillCmd(pid: number) {
+    return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
   }
 
-  async stopNode() {
-    if (this.pid) {
-      logger.info(`Stopping Node... ${this.killCmd}`)
-      this.killCmd.forEach(async cmd => {
-        const result = await exec(cmd)
-        logger.info(`Stopped Message ${result}`)
-      })
+  static async stopNode() {
+    const process = await find('name', 'point', true)
+    if (process.length > 0) {
+      for (const p of process) {
+        logger.info(`[node:index.ts] Killing PID ${p.pid}...`)
+        try {
+          const cmdOutput = await exec(this.getKillCmd(p.pid))
+          logger.info(`[node:index.ts] Output of "kill ${p.pid}":`, cmdOutput)
+        } catch (err) {
+          logger.error(`[node:index.ts] Output of "kill ${p.pid}":`, err)
+        }
+      }
     }
   }
 
   async checkNodeVersion() {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
+    const lastCheck = moment.unix(installedVersion.lastCheck)
+    if (moment().diff(lastCheck, 'hours') >= 1) {
+      const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
-    const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
-
-    logger.info('installed', installedVersion.installedReleaseVersion)
-    logger.info('last', latestReleaseVersion)
-    if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
-      logger.info('Node Update need it')
-      this.window.webContents.send('node:update', true)
-      await this.getProcess()
-      setTimeout(() => {
-        this.stopNode().then(() => {
-          if (fs.existsSync(path.join(pointPath, 'contracts')))
-            rimraf.sync(path.join(pointPath, 'contracts'))
-          if (fs.existsSync(path.join(pointPath, 'bin')))
-            rimraf.sync(path.join(pointPath, 'bin'))
-        })
-      }, 500)
+      logger.info('installed', installedVersion.installedReleaseVersion)
+      logger.info('last', latestReleaseVersion)
+      if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
+        logger.info('Node Update need it')
+        this.window.webContents.send('node:update', true)
+        setTimeout(() => {
+          Node.stopNode().then(() => {
+            if (fs.existsSync(path.join(pointPath, 'contracts')))
+              rimraf.sync(path.join(pointPath, 'contracts'))
+            if (fs.existsSync(path.join(pointPath, 'bin')))
+              rimraf.sync(path.join(pointPath, 'bin'))
+          })
+        }, 500)
+      } else {
+        this.window.webContents.send('node:update', false)
+      }
     } else {
       this.window.webContents.send('node:update', false)
     }

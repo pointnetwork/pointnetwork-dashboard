@@ -11,6 +11,7 @@ import Logger from '../../shared/logger'
 import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
+import moment from 'moment'
 
 const rimraf = require('rimraf')
 const dmg = require('dmg')
@@ -155,6 +156,7 @@ export default class {
                 path.join(pointPath, 'infoFirefox.json'),
                 JSON.stringify({
                   installedReleaseVersion: version,
+                  lastCheck: moment().unix()
                   isInitialized: false
                 }),
                 'utf8',
@@ -268,7 +270,7 @@ export default class {
         // stringify JSON Object
         fs.writeFile(
           path.join(pointPath, 'infoSDK.json'),
-          JSON.stringify({ installedReleaseVersion: version }),
+          JSON.stringify({ installedReleaseVersion: version, lastCheck: moment().unix() }),
           'utf8',
           function (err: any) {
             if (err) {
@@ -290,19 +292,25 @@ export default class {
 
   async checkSDKVersion() {
     const installedVersion = helpers.getInstalledSDKVersion()
+    const lastCheck = moment.unix(installedVersion.lastCheck) 
+    if(moment().diff(lastCheck, 'hours')>= 1 ){
+      const latestReleaseVersion = await helpers.getlatestSDKReleaseVersion()
 
-    const latestReleaseVersion = await helpers.getlatestSDKReleaseVersion()
-
-    logger.info('installed', installedVersion.installedReleaseVersion)
-    logger.info('last', latestReleaseVersion)
-    if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
-      logger.info('sdk Update need it')
-      this.window.webContents.send('sdk:update', true)
-      await this.getIdExtension()
-      await this.downloadInstallPointSDK()
-    } else {
+      logger.info('installed', installedVersion.installedReleaseVersion)
+      logger.info('last', latestReleaseVersion)
+      if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
+        logger.info('sdk Update need it')
+        this.window.webContents.send('sdk:update', true)
+        await this.getIdExtension()
+        await this.downloadInstallPointSDK()
+      } else {
+        this.window.webContents.send('sdk:update', false)
+      }
+    }
+    else{
       this.window.webContents.send('sdk:update', false)
     }
+
   }
 
   getURL(filename: string, version: string) {
@@ -347,8 +355,12 @@ export default class {
     if (pointBrowserParentProcesses.length > 0) {
       for (const p of pointBrowserParentProcesses) {
         logger.info(`[firefox:close] Killing PID ${p.pid}...`)
-        const cmdOutput = await exec(this.getKillCmd(p.pid))
-        logger.info(`[firefox:close] Output of "kill ${p.pid}":`, cmdOutput)
+        try {
+          const cmdOutput = await exec(this.getKillCmd(p.pid))
+          logger.info(`[firefox:close] Output of "kill ${p.pid}":`, cmdOutput)
+        } catch(err) {
+          logger.error(`[firefox:close] Output of "kill ${p.pid}":`, err)
+        }
       }
     }
   }
@@ -558,7 +570,12 @@ export default class {
     if (!pacFile)
       throw Error('pacFile sent to createConfigFiles is undefined or null!')
 
-    const autoconfigContent = `pref("general.config.filename", "firefox.cfg");
+    let configFilename = 'firefox.cfg'
+    if (global.platform.win32) {
+      configFilename = 'portapps.cfg'
+    }
+
+    const autoconfigContent = `pref("general.config.filename", "${configFilename}");
 pref("general.config.obscure_value", 0);
 `
     const firefoxCfgContent = `
@@ -603,34 +620,25 @@ pref("extensions.startupScanScopes", 15);
     const appPath = await this.getAppPath()
     const policiesPath = await this.getPoliciesPath()
 
-    if (global.platform.win32) {
-      // Portapps creates `defaults/pref/autonfig.js` for us, same contents.
-      //
-      // Portapps also creates `portapps.cfg`, which is equivalent to *nix's firefox.cfg.
-      // We're just appending our preferences.
-      fs.writeFileSync(path.join(appPath, 'portapps.cfg'), firefoxCfgContent)
-    }
-    if (global.platform.linux || global.platform.darwin) {
-      fs.writeFile(
-        path.join(prefPath, 'autoconfig.js'),
-        autoconfigContent,
-        err => {
-          if (err) {
-            logger.error(err)
-          }
+    fs.writeFile(
+      path.join(prefPath, 'autoconfig.js'),
+      autoconfigContent,
+      err => {
+        if (err) {
+          logger.error(err)
         }
-      )
+      }
+    )
 
-      fs.writeFile(
-        path.join(appPath, 'firefox.cfg'),
-        firefoxCfgContent,
-        err => {
-          if (err) {
-            logger.error(err)
-          }
+    fs.writeFile(
+      path.join(appPath, configFilename),
+      firefoxCfgContent,
+      err => {
+        if (err) {
+          logger.error(err)
         }
-      )
-    }
+      }
+    )
 
     fs.writeFile(
       path.join(policiesPath, 'policies.json'),
@@ -718,7 +726,7 @@ pref("extensions.startupScanScopes", 15);
       String(latestReleaseVersion)
     )
     if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
-      this.installationLogger.info('Firefox Update need it')
+      this.installationLogger.info('Firefox Update needed')
       this.window.webContents.send('firefox:update', true)
 
       // Closes firefox

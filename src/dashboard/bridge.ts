@@ -58,6 +58,12 @@ export const api = {
   openDashboardDownloadLink: (url: string) => {
     ipcRenderer.send('dashboard:openDownloadLink', url)
   },
+  minimizeWindow: () => {
+    ipcRenderer.send('dashboard:minimizeWindow')
+  },
+  closeWindow: () => {
+    ipcRenderer.send('dashboard:closeWindow')
+  },
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
