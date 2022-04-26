@@ -35,6 +35,11 @@ const getOSAndArch = () => {
   return osAndArch
 }
 
+const defaultFirefoxInfo = {
+  installedReleaseVersion: 'old',
+  isInitialized: false
+}
+
 const getPlatform = () => {
   global.platform = {
     darwin: platform === 'darwin',
@@ -197,6 +202,42 @@ const getInstalledSDKVersion = () => {
   }
 }
 
+// Retrieves from `infoFirefox.json` if Firefox has been initialized.
+const getIsFirefoxInit = () => {
+  const pointPath = getPointPath()
+  try {
+    const info = JSON.parse(
+      fs.readFileSync(
+        path.join(pointPath, 'infoFirefox.json'))
+        .toString())
+    return info.isInitialized
+  } catch (error) {
+    return defaultFirefoxInfo
+  }
+}
+
+const setIsFirefoxInit = (value: boolean) => {
+  const infoFilename = 'infoFirefox.json'
+  const pointPath = getPointPath()
+  try {
+    const info = JSON.parse(
+      fs.readFileSync(
+        path.join(pointPath, infoFilename))
+        .toString())
+    info.isInitialized = value
+    fs.writeFile(
+      path.join(pointPath, infoFilename),
+      JSON.stringify(info),
+      'utf8',
+      err => {
+        if (err) console.log(err)
+      }
+    )
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 const getInstalledFirefoxVersion = () => {
   const pointPath = getPointPath()
   try {
@@ -205,9 +246,7 @@ const getInstalledFirefoxVersion = () => {
     const installedVersion = JSON.parse(version)
     return installedVersion
   } catch (error) {
-    return {
-      installedReleaseVersion: 'old'
-    }
+    return defaultFirefoxInfo
   }
 
 }
@@ -361,4 +400,6 @@ export default Object.freeze({
   getLiveExtensionsDirectoryPathResources,
   getlatestSdkVersion,
   getInstalledSDKVersion,
+  getIsFirefoxInit,
+  setIsFirefoxInit
 })

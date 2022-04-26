@@ -154,7 +154,11 @@ export default class {
               // write firefox version to a file
               fs.writeFile(
                 path.join(pointPath, 'infoFirefox.json'),
-                JSON.stringify({ installedReleaseVersion: version, lastCheck: moment().unix() }),
+                JSON.stringify({
+                  installedReleaseVersion: version,
+                  lastCheck: moment().unix()
+                  isInitialized: false
+                }),
                 'utf8',
                 err => {
                   if (err) {
@@ -220,6 +224,11 @@ export default class {
       }
       const downloadStream = fs.createWriteStream(downloadPath)
       const downloadUrl = this.getURL(filename, version)
+
+      // Setting `extensions.autoDisableScopes` to 0
+      // to automatically enable new PointSDK version
+      this.setDisableScopes(false)
+      helpers.setIsFirefoxInit(false)
 
       https.https.get(downloadUrl, async response => {
         this.installationLogger.info(
@@ -642,6 +651,37 @@ pref("extensions.startupScanScopes", 15);
     )
 
     this.installationLogger.info('Created configuration files for Firefox')
+  }
+
+  async setDisableScopes(flag: boolean) {
+    this.installationLogger.info('Setting extensions.autoDisableScopes to 15')
+
+    let configFilename = 'firefox.cfg'
+    if (global.platform.win32) {
+      configFilename = 'portapps.cfg'
+    }
+    const appPath = await this.getAppPath()
+    const configPath = path.join(appPath, configFilename)
+
+    fs.readFile(configPath, 'utf8', (err, data) => {
+      if (err) {
+        this.installationLogger.error(`Setting extensions.autoDisableScopes to 15, ${err}`)
+        return err;
+      }
+
+      let result
+      if (flag)
+        result = data.replace(/pref\('extensions.autoDisableScopes', 0\)/g, "pref('extensions.autoDisableScopes', 15)");
+      else
+        result = data.replace(/pref\('extensions.autoDisableScopes', 15\)/g, "pref('extensions.autoDisableScopes', 0)");
+
+      fs.writeFile(configPath, result, 'utf8', (err) => {
+        if (err) {
+          this.installationLogger.error(`Setting extensions.autoDisableScopes to 15, ${err}`)
+          return err;
+        }
+      });
+    });
   }
 
   async getLastVersionFirefox() {
