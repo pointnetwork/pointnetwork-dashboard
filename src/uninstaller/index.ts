@@ -8,6 +8,8 @@ import util from 'util'
 import { InstallationStepsEnum } from '../@types/installation'
 
 const rimraf = require('rimraf')
+const DecompressZip = require('decompress-zip');
+
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const logger = new Logger()
@@ -106,18 +108,20 @@ export default class Uninstaller {
       })
 
       downloadStream.on('close', async () => {
+        const temp = helpers.getPointPathTemp()
+        if (fs.existsSync(temp))
+          rimraf.sync(temp)
         this.installationLogger.info(
           `${InstallationStepsEnum.POINT_UNINSTALLER}:100`,
           'Downloaded Uninstaller'
         )
-        const temp = helpers.getPointPathTemp()
-        if (fs.existsSync(temp))
-          rimraf.sync(temp)
         fs.mkdirpSync(temp)
-        decompress(downloadPath, temp, {
-          plugins: [decompressTargz()],
-        }).then(() => {
-          fs.unlinkSync(downloadPath)
+        console.log('downloadPath', downloadPath)
+        if (global.platform.win32) {
+          const unzipper = new DecompressZip(downloadPath)
+          await unzipper.extract({
+            path: temp
+          })
           resolve(
             this.installationLogger.info(
               InstallationStepsEnum.POINT_UNINSTALLER,
@@ -141,7 +145,36 @@ export default class Uninstaller {
               logger.info('JSON file has been saved.')
             }
           )
-        })
+
+        } else
+          decompress(downloadPath, temp, {
+            plugins: [decompressTargz()],
+          }).then(() => {
+            fs.unlinkSync(downloadPath)
+            resolve(
+              this.installationLogger.info(
+                InstallationStepsEnum.POINT_UNINSTALLER,
+                'Files decompressed'
+              )
+            )
+
+            // stringify JSON Object
+            fs.writeFile(
+              path.join(pointPath, 'infoUninstaller.json'),
+              JSON.stringify({ installedReleaseVersion: version }),
+              'utf8',
+              function (err: any) {
+                if (err) {
+                  logger.info(
+                    'An error occured while writing JSON Object to File.'
+                  )
+                  return logger.info(err)
+                }
+
+                logger.info('JSON file has been saved.')
+              }
+            )
+          })
       })
     })
 
@@ -152,11 +185,12 @@ export default class Uninstaller {
     const file = path.join(pointPath, 'pointnetwork-uninstaller')
     let cmd = `${file}`
     if (global.platform.win32)
-      cmd = `${file}`
+      cmd = `${file}.exe`
     if (global.platform.darwin)
       cmd = `open ${file}.app`
 
-    if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
+    if (global.platform.linux)
+      cmd = `./${file}`
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       logger.info('Launched uninstaller')

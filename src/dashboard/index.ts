@@ -82,7 +82,7 @@ export default function (isExplicitRun = false) {
     // if (!(await node.pointNodeCheck())) node.launch()
     firefox = new Firefox(mainWindow!)
     // debug
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
 
     mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
