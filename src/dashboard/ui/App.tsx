@@ -120,6 +120,11 @@ export default function App() {
       setWalletInfo(JSON.parse(message))
       setIsLoadingWalletInfo(false)
     })
+
+    window.Dashboard.on('dashboard:close', () => {
+      setLoadingMessage('Closing Dashboard')
+      setIsLoading(true)
+    })
   }, [])
 
   useEffect(() => {

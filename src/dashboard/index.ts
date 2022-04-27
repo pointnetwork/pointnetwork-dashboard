@@ -101,6 +101,7 @@ export default function (isExplicitRun = false) {
       }
 
       if (quit) {
+        mainWindow?.webContents.send('dashboard:close')
         logger.info('Closed Dashboard Window')
         events.forEach(event => {
           ipcMain.removeListener(event.channel, event.listener)
