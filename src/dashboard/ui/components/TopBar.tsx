@@ -9,7 +9,8 @@ const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
   }
 
   return (
-    <Box display="flex" justifyContent="flex-end">
+    <Box display="flex" justifyContent="flex-end" 
+        sx={{ left: '2px', position: 'relative', top: '-2px' }}>
       <Box flex={1} sx={{ '-webkit-app-region': 'drag' }}></Box>
       <Box
         sx={{
