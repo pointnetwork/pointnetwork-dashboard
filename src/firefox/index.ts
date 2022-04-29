@@ -227,7 +227,7 @@ export default class {
 
       // Setting `extensions.autoDisableScopes` to 0
       // to automatically enable new PointSDK version
-      this.setDisableScopes(false)
+      // this.setDisableScopes(false)
       helpers.setIsFirefoxInit(false)
 
       https.https.get(downloadUrl, async response => {
