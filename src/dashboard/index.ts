@@ -180,7 +180,7 @@ export default function (isExplicitRun = false) {
           })
   
           try {
-            await Promise.all([firefox?.close(), node?.stopNode()])
+            await Promise.all([firefox?.close(), Node.stopNode()])
           } catch (err) {
             logger.error('[dashboard:index.ts] Error in `close` handler', err)
           } finally {
