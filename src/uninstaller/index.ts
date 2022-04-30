@@ -14,6 +14,7 @@ const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 const logger = new Logger()
 const exec = util.promisify(require('child_process').exec)
+const uninstallerName = 'uninstallerPoint.sh'
 
 export default class Uninstaller {
   private installationLogger
@@ -62,6 +63,7 @@ export default class Uninstaller {
     this.installationLogger.info('PointNode does not exist')
     return false
   }
+
 
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
@@ -117,6 +119,7 @@ export default class Uninstaller {
         )
         fs.mkdirpSync(temp)
         console.log('downloadPath', downloadPath)
+
         if (global.platform.win32) {
           const unzipper = new DecompressZip(downloadPath)
           await unzipper.extract({
@@ -129,24 +132,8 @@ export default class Uninstaller {
             )
           )
 
-          // stringify JSON Object
-          fs.writeFile(
-            path.join(pointPath, 'infoUninstaller.json'),
-            JSON.stringify({ installedReleaseVersion: version }),
-            'utf8',
-            function (err: any) {
-              if (err) {
-                logger.info(
-                  'An error occured while writing JSON Object to File.'
-                )
-                return logger.info(err)
-              }
-
-              logger.info('JSON file has been saved.')
-            }
-          )
-
-        } else
+        }
+        if (global.platform.darwin) {
           decompress(downloadPath, temp, {
             plugins: [decompressTargz()],
           }).then(() => {
@@ -157,26 +144,52 @@ export default class Uninstaller {
                 'Files decompressed'
               )
             )
-
-            // stringify JSON Object
-            fs.writeFile(
-              path.join(pointPath, 'infoUninstaller.json'),
-              JSON.stringify({ installedReleaseVersion: version }),
-              'utf8',
-              function (err: any) {
-                if (err) {
-                  logger.info(
-                    'An error occured while writing JSON Object to File.'
-                  )
-                  return logger.info(err)
-                }
-
-                logger.info('JSON file has been saved.')
-              }
-            )
           })
+        }
+        if (global.platform.linux) {
+          await this.writeLinuxScript()
+          resolve(
+            this.installationLogger.info(
+              InstallationStepsEnum.POINT_UNINSTALLER,
+              'script resolved'
+            )
+          )
+        }
+
       })
     })
+
+  async writeLinuxScript() {
+    const temp = helpers.getPointPathTemp()
+    // stringify JSON Object
+    fs.writeFile(
+      path.join(temp,  uninstallerName),
+      `#!/bin/bash
+       rm -rf $HOME/.point`,
+      'utf8',
+      function (err: any) {
+        if (err) {
+          logger.info(
+            'An error occured while writing JSON Object to File.'
+          )
+          return logger.info(err)
+        }
+        const temp = helpers.getPointPathTemp()   
+      
+        const cmd = `chmod +x ${ path.join(temp,  uninstallerName) }`
+        logger.info('Scriot linux created.')
+        exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
+          logger.info('Launched uninstaller')
+          if (error) {
+            logger.info(`uninstaller launch exec error: ${error.message}`)
+          }
+          if (stderr) {
+            logger.info(`uninstaller launch exec stderr: ${stderr}`)
+          }
+        })
+      }
+    )
+  }
 
   async launch() {
     logger.info('Launching Uninstaller')
@@ -189,8 +202,10 @@ export default class Uninstaller {
     if (global.platform.darwin)
       cmd = `open ${file}.app`
 
-    if (global.platform.linux)
-      cmd = `xdg-open ${pointPath}`
+    if (global.platform.linux) {
+      const temp = helpers.getPointPathTemp()   
+      cmd = `${ path.join(temp,  uninstallerName) }`
+    }
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       logger.info('Launched uninstaller')
