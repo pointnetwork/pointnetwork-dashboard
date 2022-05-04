@@ -4,8 +4,8 @@
 
 VERSION=$(awk -F'"' '/"version": ".+"/{ print $4; exit; }' package.json)
 
-DEB_FILE=./out/make/deb/x64/point_"$VERSION"amd64.deb
-RPM_FILE=./out/make/rpm/x64/point-"$VERSION"1.x86_64.rpm
+DEB_FILE=./out/make/deb/x64/point_"$VERSION"_amd64.deb
+RPM_FILE=./out/make/rpm/x64/point-"$VERSION"-1.x86_64.rpm
 
 mkdir -p ./out/linux_executables
 
