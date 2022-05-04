@@ -12,11 +12,14 @@ mkdir -p ./out/linux_executables
 mv $DEB_FILE ./out/linux_executables/point.deb
 mv $RPM_FILE ./out/linux_executables/point.rpm
 
-for FILE in ./out/linux_executables/*; do
-  chmod +x $FILE
-  tmp=${FILE#*-};
-  EXTENSION=${tmp#*\.};
-  mkdir -p ./out/linux_executables/$EXTENSION;
-  mv $FILE ./out/linux_executables/$EXTENSION;
-  tar -czvf ./out/linux_executables/point-dashboard-$EXTENSION.tar.gz -C ./out/linux_executables/$EXTENSION/ ./point.$EXTENSION;
-done
+
+  chmod +x ./out/linux_executables/point.deb
+  mkdir -p ./out/linux_executables/deb;
+  mv ./out/linux_executables/point.deb ./out/linux_executables/deb;
+  tar -czvf ./out/linux_executables/point-dashboard-deb.tar.gz -C ./out/linux_executables/deb/ ./point.deb;
+
+  chmod +x ./out/linux_executables/point.rpm
+  mkdir -p ./out/linux_executables/rpm;
+  mv ./out/linux_executables/point.rpm ./out/linux_executables/rpm;
+  tar -czvf ./out/linux_executables/point-dashboard-rpm.tar.gz -C ./out/linux_executables/rpm/ ./point.rpm;
+
