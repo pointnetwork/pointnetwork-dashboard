@@ -23,8 +23,8 @@ const msiCreator = new MSICreator({
 
     // Configure metadata
     description: 'Point Dashboard',
-    exe: 'pointnetwork-dashboard',
-    name: 'Point Dashboard',
+    exe: 'point',
+    name: 'Point',
     manufacturer: 'PointNetwork',
     version: '1.0.0',
     appIconPath : ICON_DIR,
