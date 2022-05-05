@@ -1,7 +1,7 @@
 module.exports = {
   packagerConfig: {
-    name: "pointnetwork-dashboard",
-    executableName: "pointnetwork-dashboard",
+    name: "point",
+    executableName: "point",
     icon: "assets/icon",
     extraResource: [
       "assets"
@@ -48,7 +48,7 @@ module.exports = {
     {
       name: "@electron-forge/maker-squirrel",
       config: {
-        name: "pointnetwork-dashboard",
+        name: "point",
         certificateFile: process.env.WINDOWS_PFX_FILE,
         certificatePassword: process.env.WINDOWS_PFX_PASSWORD || ''
       }
