@@ -233,7 +233,7 @@ export default class Node {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
-    if (moment().diff(lastCheck, 'hours') >= 1) {
+    if (moment().diff(lastCheck, 'hours') >= 1 || installedVersion.lastCheck === undefined) {
       const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
