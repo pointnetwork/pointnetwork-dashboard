@@ -172,7 +172,7 @@ export default function (isExplicitRun = false) {
         })
 
         if (confirmationAnswer === 0) {
-          // User clicked 'Yes' (button at index 0)
+          mainWindow?.webContents.send('dashboard:close')
           logger.info('Closed Dashboard Window')
           events.forEach(event => {
             ipcMain.removeListener(event.channel, event.listener)
@@ -416,9 +416,7 @@ export default function (isExplicitRun = false) {
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
         app.quit()
-      }
     })
 
     app.on('activate', () => {
