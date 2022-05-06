@@ -64,6 +64,38 @@ const getlatestNodeReleaseVersion = async () => {
   }
 }
 
+const getlatestUninstallerReleaseVersion = async () => {
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointnetwork-uninstaller/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
+
+    console.log('Latest Node version', res.data.tag_name)
+    return res.data.tag_name
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const getlatestUnistallerReleaseVersion = async () => {
+  try {
+    const url =
+      'https://api.github.com/repos/pointnetwork/pointnetwork-uninstaller/releases/latest'
+    const headers = { 'user-agent': 'node.js' }
+    const res = await axios.get(url, {
+      headers: headers,
+    })
+
+    console.log('Latest Node version', res.data)
+    return res.data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 const getlatestSdkVersion = async () => {
   try {
     const url =
@@ -266,6 +298,10 @@ const getPointPath = () => {
   return path.join(getHomePath(), '.point')
 }
 
+const getPointPathTemp = () => {
+  return path.join(getHomePath(), '.temp')
+}
+
 const getPointSrcPath = () => {
   return path.join(getPointPath(), 'src')
 }
@@ -388,6 +424,7 @@ export default Object.freeze({
   getPointPath,
   getInstalledFirefoxVersion,
   getlatestNodeReleaseVersion,
+  getlatestUnistallerReleaseVersion,
   getInstalledNodeVersion,
   getLiveDirectoryPathResources,
   countFilesinDir,
@@ -400,6 +437,8 @@ export default Object.freeze({
   getLiveExtensionsDirectoryPathResources,
   getlatestSdkVersion,
   getInstalledSDKVersion,
+  getlatestUninstallerReleaseVersion,
+  getPointPathTemp,
   getIsFirefoxInit,
   setIsFirefoxInit
 })

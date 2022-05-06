@@ -1,4 +1,4 @@
-import { MouseEventHandler, useEffect, useState, useRef } from 'react'
+import { MouseEventHandler, useEffect, useState, useRef, SetStateAction } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
@@ -42,6 +42,15 @@ export default function App() {
   // Version state variables
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
   const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
+  const [isNewDashboardReleaseAvailable, setIsNewDashboardReleaseAvailable] =
+    useState<{
+      isUpdateAvailable: boolean
+      latestVersion: string
+    }>({
+      isUpdateAvailable: false,
+      latestVersion: '',
+    })
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const checkStartTime = useRef(0)
 
@@ -177,6 +186,19 @@ export default function App() {
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
   }
+  const open = Boolean(anchorEl)
+
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget)
+  }
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+  
+  const uninstall = () => {
+    window.Dashboard.launchUninstaller()
+    handleClose()
+  }
 
   const checkNode = () => {
     if (checkStartTime.current === 0) {
@@ -202,7 +224,13 @@ export default function App() {
       <DashboardUpdateAlert />
 
       <Box px="3.5%" pt="3%">
-        <DashboardTitle />
+        <DashboardTitle 
+          anchorEl= {anchorEl} 
+          handleClick= {handleClick} 
+          open= {open} 
+          handleClose= {handleClose}
+          uninstall= {uninstall}
+        />
         <DefaultLoader message={loadingMessage} isLoading={isLoading} />
         <UpdateProgress
           isLoading={isLoading}
