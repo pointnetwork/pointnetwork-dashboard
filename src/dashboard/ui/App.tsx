@@ -1,4 +1,10 @@
-import { MouseEventHandler, useEffect, useState, useRef, SetStateAction } from 'react'
+import {
+  MouseEventHandler,
+  useEffect,
+  useState,
+  useRef,
+  SetStateAction,
+} from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
@@ -61,6 +67,7 @@ export default function App() {
     document.body.style.minHeight = '100vh'
     document.body.style.border = '1.5px solid rgba(0, 0, 0, 0.2)'
     document.body.style.boxSizing = 'border-box'
+    document.body.style.overflow = 'hidden'
 
     setIsLoading(true)
 
@@ -194,7 +201,7 @@ export default function App() {
   const handleClose = () => {
     setAnchorEl(null)
   }
-  
+
   const uninstall = () => {
     window.Dashboard.launchUninstaller()
     handleClose()
@@ -224,12 +231,12 @@ export default function App() {
       <DashboardUpdateAlert />
 
       <Box px="3.5%" pt="3%">
-        <DashboardTitle 
-          anchorEl= {anchorEl} 
-          handleClick= {handleClick} 
-          open= {open} 
-          handleClose= {handleClose}
-          uninstall= {uninstall}
+        <DashboardTitle
+          anchorEl={anchorEl}
+          handleClick={handleClick}
+          open={open}
+          handleClose={handleClose}
+          uninstall={uninstall}
         />
         <DefaultLoader message={loadingMessage} isLoading={isLoading} />
         <UpdateProgress
