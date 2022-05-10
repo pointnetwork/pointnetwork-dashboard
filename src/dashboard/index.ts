@@ -61,6 +61,11 @@ const MESSAGES = {
     message:
       'Please check your internet connection',
   },
+  TimeOut: {
+    title: 'TimeOut Error',
+    message:
+      'Please check your internet connection or restart Point',
+  },
 }
 
 // const assetsPath =
@@ -75,6 +80,14 @@ process.on('uncaughtException', (err, origin) => {
       type: 'warning',
       title: MESSAGES.NoInternet.title,
       message: MESSAGES.NoInternet.message
+    })
+  }
+
+  if(err.toString().includes('ETIMEDOUT')){
+    dialog.showMessageBoxSync({
+      type: 'warning',
+      title: MESSAGES.TimeOut.title,
+      message: MESSAGES.TimeOut.message
     })
   }
 
