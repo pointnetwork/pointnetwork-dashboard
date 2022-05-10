@@ -176,6 +176,7 @@ class Installer {
           referralCode < 0
           ? null
           : referralCode,
+        isRedeemed: false,
       })
     )
     // Set the `isInstalled` flag to true
