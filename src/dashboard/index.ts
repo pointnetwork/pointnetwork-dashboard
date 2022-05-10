@@ -13,6 +13,7 @@ import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
+import process from 'node:process'
 
 const logger = new Logger()
 
@@ -55,12 +56,31 @@ const MESSAGES = {
       cancel: 'No',
     },
   },
+  NoInternet: {
+    title: 'Connection Error',
+    message:
+      'Please check your internet connection',
+  },
 }
 
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
 //     ? process.resourcesPath
 //     : app.getAppPath()
+
+process.on('uncaughtException', (err, origin) => {
+
+  if(err.toString().includes('send ENOBUFS')){
+    dialog.showMessageBoxSync({
+      type: 'warning',
+      title: MESSAGES.NoInternet.title,
+      message: MESSAGES.NoInternet.message
+    })
+  }
+
+  logger.info(`Caught exception: ${err}\n Exception origin: ${origin}`)
+
+});
 
 export default function (isExplicitRun = false) {
   async function createWindow() {
@@ -133,6 +153,7 @@ export default function (isExplicitRun = false) {
       firefox = null
       mainWindow = null
     })
+    
   }
 
   const events = [
