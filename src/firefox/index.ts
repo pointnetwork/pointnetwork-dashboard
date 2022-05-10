@@ -68,7 +68,7 @@ export default class {
     new Promise(async (resolve, reject) => {
       this.installationLogger.info(
         InstallationStepsEnum.BROWSER,
-        'Starting Firefox installation...'
+        'Starting Point Browser installation...'
       )
 
       const language = 'en-US'
