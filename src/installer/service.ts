@@ -3,7 +3,7 @@ import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import Firefox from '../firefox'
 import Node from '../node'
-import Uninstaller  from '../uninstaller'
+import Uninstaller from '../uninstaller'
 import { InstallationStepsEnum } from '../@types/installation'
 import { getProgressFromGithubMsg } from './helpers'
 
@@ -147,8 +147,37 @@ class Installer {
     await this.node.download()
     await this.node.download()
 
-    
-
+    // Get and set the referral code
+    const downloadDir = path.join(helpers.getHomePath(), 'Downloads')
+    const downloadDirContent = fs.readdirSync(downloadDir)
+    // Make sure it's one of our file downloads and pick the first one
+    const matchDir = downloadDirContent
+      .filter(
+        (dir: string) =>
+          dir.includes('point-') &&
+          (dir.includes('Linux-Debian-Ubuntu') ||
+            dir.includes('Linux-RPM-Centos-Fedora') ||
+            dir.includes('MacOS-installer') ||
+            dir.includes('Windows-installer'))
+      )
+      .map((dir: string) => path.join(helpers.getHomePath(), dir))[0]
+    // Strip the file extension
+    const requiredDir = matchDir.replace('.tar.gz', '').replace('.zip', '')
+    // Get the referral code
+    const referralCode = Number(requiredDir.slice(requiredDir.length - 12))
+    // Save that referral code in ~/.point/infoReferral.json
+    fs.writeFileSync(
+      path.join(helpers.getPointPath(), 'infoReferral.json'),
+      JSON.stringify({
+        // Makes sure the referralCode is actually a number
+        referralCode: Number.isNaN(referralCode)
+          ? null
+          : // and that it's greater than 0
+          referralCode < 0
+          ? null
+          : referralCode,
+      })
+    )
     // Set the `isInstalled` flag to true
     fs.writeFileSync(
       Installer.installationJsonFilePath,
