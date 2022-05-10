@@ -11,6 +11,9 @@ export const api = {
   launchNode: () => {
     ipcRenderer.send('node:launch')
   },
+  launchUninstaller: () => {
+    ipcRenderer.send('node:launchUninstaller')
+  },
   DownloadNode: () => {
     ipcRenderer.send('node:download')
   },
