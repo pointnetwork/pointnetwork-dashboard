@@ -215,7 +215,7 @@ export default class Node {
   }
 
   static async stopNode() {
-    const process = await find('name', 'point', true)
+    const process = await find('name', /bin.+?point(.exe)?$/, false)
     if (process.length > 0) {
       for (const p of process) {
         logger.info(`[node:index.ts] Killing PID ${p.pid}...`)
