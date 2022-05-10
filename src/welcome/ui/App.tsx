@@ -7,6 +7,7 @@ import UIThemeProvider from '../../../shared/UIThemeProvider'
 import SeedGenerator from './components/SeedGenerator'
 import SeedConfirmation from './components/SeedConfirmation'
 import Login from './components/Login'
+import MenuUninstaller from './components/MenuUninstall'
 
 export default function App() {
   const [seed, setSeed] = useState<string>('')
@@ -22,6 +23,25 @@ export default function App() {
   const goBack = () => {
     setIsLoggingIn(false)
     setSeedConfirm(false)
+  }
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
+
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const open = Boolean(anchorEl)
+
+  const uninstall = () => {
+    console.log(window.Welcome)
+    window.Welcome.launchUninstaller()
+    handleClose()
   }
 
   const renderScreen = () => {
@@ -45,11 +65,20 @@ export default function App() {
 
   return (
     <UIThemeProvider>
-      <Box sx={{ p: '3.5%' }}>
-        <Typography variant="h4" component="h1">
-          Welcome to Point Network
-        </Typography>
-        {renderScreen()}
+      <Box display="flex" alignItems="baseline">
+        <Box sx={{ p: '3.5%' }}>
+          <Typography variant="h4" component="h1">
+            Welcome to Point Network
+          </Typography>
+          {renderScreen()}
+        </Box>
+        <MenuUninstaller
+          anchorEl={anchorEl}
+          handleClick={handleClick}
+          open={open}
+          handleClose={handleClose}
+          uninstall={uninstall}
+        />
       </Box>
     </UIThemeProvider>
   )
