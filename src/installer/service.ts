@@ -162,7 +162,7 @@ class Installer {
       )
       .map((dir: string) => path.join(helpers.getHomePath(), dir))[0]
     // Strip the file extension
-    const requiredDir = matchDir.replace('.tar.gz', '').replace('.zip', '')
+    const requiredDir = matchDir.replace('.tar.gz', '').replace('.zip', '').replace('.tar', '')
     // Get the referral code
     const referralCode = Number(requiredDir.slice(requiredDir.length - 12))
     // Save that referral code in ~/.point/infoReferral.json
