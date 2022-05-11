@@ -63,7 +63,7 @@ export const api = {
   },
   sendBountyRequest: () => {
     ipcRenderer.send('dashboard:bounty_request')
-  }
+  },
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
