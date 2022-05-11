@@ -161,10 +161,15 @@ class Installer {
             dir.includes('Windows-installer'))
       )
       .map((dir: string) => path.join(helpers.getHomePath(), dir))[0]
-    // Strip the file extension
-    const requiredDir = matchDir.replace('.tar.gz', '').replace('.zip', '')
-    // Get the referral code
-    const referralCode = Number(requiredDir.slice(requiredDir.length - 12))
+    let requiredDir, referralCode
+    if (matchDir) {
+      // Strip the file extension
+      requiredDir = matchDir.replace('.tar.gz', '').replace('.zip', '')
+      // Get the referral code
+      referralCode = Number(requiredDir.slice(requiredDir.length - 12))
+    } else {
+      referralCode = NaN
+    }
     // Save that referral code in ~/.point/infoReferral.json
     fs.writeFileSync(
       path.join(helpers.getPointPath(), 'infoReferral.json'),
