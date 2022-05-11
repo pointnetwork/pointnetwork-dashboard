@@ -168,6 +168,8 @@ class Installer {
         .replace('.tar.gz', '')
         .replace('.zip', '')
         .replace('.tar', '')
+        .replace(/\(\d+\)+/g, '')
+        .trim()
       // Get the referral code
       referralCode = Number(requiredDir.slice(requiredDir.length - 12))
     } else {
