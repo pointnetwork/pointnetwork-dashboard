@@ -163,6 +163,7 @@ class Installer {
       )
       .map((dir: string) => path.join(helpers.getHomePath(), dir))[0]
     let requiredDir, referralCode
+    let isInstalledEventSent = false
     if (matchDir) {
       // Strip the file extension
       requiredDir = matchDir
@@ -172,30 +173,29 @@ class Installer {
         .replace(/\(\d+\)+/g, '')
         .trim()
       // Get the referral code
-      referralCode = Number(requiredDir.slice(requiredDir.length - 12))
+      referralCode = requiredDir.slice(requiredDir.length - 12)
     } else {
-      referralCode = NaN
+      referralCode = '000000000000'
     }
+
+    await axios
+      .get(
+        `https://bounty.pointnetwork.io/ref_success?event=installed&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
+      )
+      .then(res => {
+        isInstalledEventSent = true
+        this.logger.info(res.data)
+      })
+      .catch(this.logger.error)
+
     // Save that referral code in ~/.point/infoReferral.json
     fs.writeFileSync(
       path.join(helpers.getPointPath(), 'infoReferral.json'),
       JSON.stringify({
-        // Makes sure the referralCode is actually a number
-        referralCode: Number.isNaN(referralCode)
-          ? '000000000000'
-          : // and that it's greater than 0
-          referralCode < 0
-          ? '000000000000'
-          : referralCode.toString(),
-        isRedeemed: false,
+        referralCode,
+        isInstalledEventSent,
       })
     )
-    await axios
-      .get(
-        `https://bounty.pointnetwork.io/ref_success?event=install&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
-      )
-      .then(this.logger.info)
-      .catch(this.logger.error)
     // Set the `isInstalled` flag to true
     fs.writeFileSync(
       Installer.installationJsonFilePath,
