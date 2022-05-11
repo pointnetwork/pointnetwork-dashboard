@@ -182,7 +182,7 @@ class Installer {
 
     await axios
       .get(
-        `https://bounty.pointnetwork.io/ref_success?event=installed&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
+        `https://bounty.pointnetwork.io/ref_success?event=install&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
       )
       .then(res => {
         isInstalledEventSent = true
