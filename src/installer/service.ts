@@ -181,11 +181,11 @@ class Installer {
       JSON.stringify({
         // Makes sure the referralCode is actually a number
         referralCode: Number.isNaN(referralCode)
-          ? null
+          ? '000000000000'
           : // and that it's greater than 0
           referralCode < 0
-          ? null
-          : referralCode,
+          ? '000000000000'
+          : referralCode.toString(),
         isRedeemed: false,
       })
     )
