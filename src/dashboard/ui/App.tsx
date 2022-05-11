@@ -6,7 +6,7 @@ import UIThemeProvider from '../../../shared/UIThemeProvider'
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 // Components
-import TopBar from './components/TopBar'
+import TopBar from '../../../shared/custom-topbar/TopBar'
 import ResourceItemCard from './components/ResourceItemCard'
 import DashboardUpdateAlert from './components/DashboardUpdateAlert'
 import DashboardTitle from './components/DashboardTitle'
@@ -47,14 +47,6 @@ export default function App() {
   const checkStartTime = useRef(0)
 
   useEffect(() => {
-    // Add custom styles to window since it's frameless
-    document.body.style.margin = '0'
-    document.body.style.padding = '0'
-    document.body.style.minHeight = '100vh'
-    document.body.style.border = '1.5px solid rgba(0, 0, 0, 0.2)'
-    document.body.style.boxSizing = 'border-box'
-    document.body.style.overflow = 'hidden'
-
     setIsLoading(true)
 
     // Check for updates

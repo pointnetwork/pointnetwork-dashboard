@@ -5,12 +5,15 @@ import RemoveIcon from '@mui/icons-material/Remove'
 
 const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
   const handeClose = () => {
-    !isLoading && window.Dashboard.closeWindow()
+    !isLoading && window.TopBar.closeWindow()
   }
 
   return (
-    <Box display="flex" justifyContent="flex-end" 
-        sx={{ left: '2px', position: 'relative', top: '-2px' }}>
+    <Box
+      display="flex"
+      justifyContent="flex-end"
+      sx={{ left: '2px', position: 'relative', top: '-2px' }}
+    >
       <Box flex={1} sx={{ '-webkit-app-region': 'drag' }}></Box>
       <Box
         sx={{
@@ -28,7 +31,7 @@ const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
           alignItems="center"
           bgcolor="primary.light"
           sx={{ cursor: 'pointer' }}
-          onClick={window.Dashboard.minimizeWindow}
+          onClick={window.TopBar.minimizeWindow}
         >
           <RemoveIcon fontSize="small" />
         </Box>
