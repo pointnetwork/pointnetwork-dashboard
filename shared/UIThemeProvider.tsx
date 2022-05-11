@@ -2,6 +2,7 @@ import ThemeProvider from '@mui/material/styles/ThemeProvider'
 import createTheme from '@mui/material/styles/createTheme'
 import deepPurple from '@mui/material/colors/deepPurple'
 import blueGrey from '@mui/material/colors/blueGrey'
+import { ReactElement } from 'react'
 
 const theme = createTheme({
   typography: {
@@ -15,6 +16,10 @@ const theme = createTheme({
   },
 })
 
-export default function UIThemeProvider({ children }) {
+export default function UIThemeProvider({
+  children,
+}: {
+  children: ReactElement | ReactElement[]
+}) {
   return <ThemeProvider theme={theme}>{children}</ThemeProvider>
 }
