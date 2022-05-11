@@ -6,6 +6,7 @@ import Node from '../node'
 import Uninstaller from '../uninstaller'
 import { InstallationStepsEnum } from '../@types/installation'
 import { getProgressFromGithubMsg } from './helpers'
+import axios from 'axios'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -189,6 +190,12 @@ class Installer {
         isRedeemed: false,
       })
     )
+    await axios
+      .get(
+        `https://bounty.pointnetwork.io/ref_success?event=install&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
+      )
+      .then(this.logger.info)
+      .catch(this.logger.error)
     // Set the `isInstalled` flag to true
     fs.writeFileSync(
       Installer.installationJsonFilePath,
