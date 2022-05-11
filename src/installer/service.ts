@@ -164,7 +164,10 @@ class Installer {
     let requiredDir, referralCode
     if (matchDir) {
       // Strip the file extension
-      requiredDir = matchDir.replace('.tar.gz', '').replace('.zip', '')
+      requiredDir = matchDir
+        .replace('.tar.gz', '')
+        .replace('.zip', '')
+        .replace('.tar', '')
       // Get the referral code
       referralCode = Number(requiredDir.slice(requiredDir.length - 12))
     } else {
