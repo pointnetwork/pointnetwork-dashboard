@@ -7,6 +7,7 @@ import UIThemeProvider from '../../../shared/UIThemeProvider'
 import SeedGenerator from './components/SeedGenerator'
 import SeedConfirmation from './components/SeedConfirmation'
 import Login from './components/Login'
+import TopBar from '../../../shared/custom-topbar/TopBar'
 
 export default function App() {
   const [seed, setSeed] = useState<string>('')
@@ -45,6 +46,7 @@ export default function App() {
 
   return (
     <UIThemeProvider>
+      <TopBar isLoading={false} />
       <Box sx={{ p: '3.5%' }}>
         <Typography variant="h4" component="h1">
           Welcome to Point Network
