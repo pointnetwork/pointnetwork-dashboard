@@ -177,6 +177,8 @@ class Installer {
     } else {
       referralCode = '000000000000'
     }
+    if (Number.isNaN(Number(referralCode)) || Number(referralCode) < 0)
+      referralCode = '000000000000'
 
     await axios
       .get(
