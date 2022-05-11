@@ -1,10 +1,4 @@
-import {
-  MouseEventHandler,
-  useEffect,
-  useState,
-  useRef,
-  SetStateAction,
-} from 'react'
+import { MouseEventHandler, useEffect, useState, useRef } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
@@ -48,14 +42,6 @@ export default function App() {
   // Version state variables
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
   const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
-  const [isNewDashboardReleaseAvailable, setIsNewDashboardReleaseAvailable] =
-    useState<{
-      isUpdateAvailable: boolean
-      latestVersion: string
-    }>({
-      isUpdateAvailable: false,
-      latestVersion: '',
-    })
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const checkStartTime = useRef(0)
@@ -124,6 +110,9 @@ export default function App() {
 
     window.Dashboard.on('node:identity', (identity: string) => {
       setIdentity(identity)
+      if (!identity) {
+        window.Dashboard.sendBountyRequest()
+      }
     })
 
     window.Dashboard.on('firefox:active', (status: boolean) => {
@@ -181,7 +170,6 @@ export default function App() {
     if (isNodeRunning) {
       openFirefox()
       requestYPoints()
-      window.Dashboard.getIdentity()
       setInterval(checkNode, 10000)
     }
   }, [isNodeRunning])
@@ -212,6 +200,7 @@ export default function App() {
       checkStartTime.current = new Date().getTime()
     }
     window.Dashboard.checkNode()
+    window.Dashboard.getIdentity()
   }
 
   const openFirefox = () => {

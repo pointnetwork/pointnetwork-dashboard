@@ -4,7 +4,7 @@ import {
   ipcMain,
   dialog,
   IpcMainEvent,
-  shell
+  shell,
 } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
@@ -13,6 +13,9 @@ import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
+import { readFileSync, writeFileSync } from 'fs-extra'
+
+const path = require('path')
 
 const logger = new Logger()
 
@@ -178,7 +181,7 @@ export default function (isExplicitRun = false) {
             ipcMain.removeListener(event.channel, event.listener)
             logger.info('[dashboard:index.ts] Removed event', event.channel)
           })
-  
+
           try {
             await Promise.all([firefox?.close(), Node.stopNode()])
           } catch (err) {
@@ -187,10 +190,7 @@ export default function (isExplicitRun = false) {
             uninstaller!.launch()
             mainWindow?.destroy()
           }
-
-
         }
-
       },
     },
     {
@@ -377,6 +377,40 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'dashboard:bounty_request',
+      async listener() {
+        const fileContents = JSON.parse(
+          readFileSync(
+            path.join(helpers.getPointPath(), 'infoReferral.json')
+          ).toString()
+        )
+        const referralCode = fileContents.referralCode
+
+        const addressRes = await axios.get(
+          'http://localhost:2468/v1/api/wallet/address'
+        )
+        const address = addressRes.data.data.address
+
+        if (!fileContents.isGeneratedEventSent) {
+          await axios
+            .get(
+              `https://bounty.pointnetwork.io/ref_success?event=generated&ref=${referralCode}&addr=${address}`
+            )
+            .then(res => {
+              logger.info(res.data)
+              writeFileSync(
+                path.join(helpers.getPointPath(), 'infoReferral.json'),
+                JSON.stringify({
+                  ...fileContents,
+                  isGeneratedEventSent: true,
+                })
+              )
+            })
+            .catch(logger.error)
+        }
+      },
+    },
+    {
       channel: 'dashboard:minimizeWindow',
       listener() {
         mainWindow?.minimize()
@@ -416,7 +450,7 @@ export default function (isExplicitRun = false) {
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
-        app.quit()
+      app.quit()
     })
 
     app.on('activate', () => {
