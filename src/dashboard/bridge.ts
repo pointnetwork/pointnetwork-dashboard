@@ -61,6 +61,9 @@ export const api = {
   openDashboardDownloadLink: (url: string) => {
     ipcRenderer.send('dashboard:openDownloadLink', url)
   },
+  sendBountyRequest: () => {
+    ipcRenderer.send('dashboard:bounty_request')
+  },
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))

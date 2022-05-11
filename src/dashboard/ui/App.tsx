@@ -102,6 +102,9 @@ export default function App() {
 
     window.Dashboard.on('node:identity', (identity: string) => {
       setIdentity(identity)
+      if (!identity) {
+        window.Dashboard.sendBountyRequest()
+      }
     })
 
     window.Dashboard.on('firefox:active', (status: boolean) => {
@@ -159,7 +162,6 @@ export default function App() {
     if (isNodeRunning) {
       openFirefox()
       requestYPoints()
-      window.Dashboard.getIdentity()
       setInterval(checkNode, 10000)
     }
   }, [isNodeRunning])
@@ -190,6 +192,7 @@ export default function App() {
       checkStartTime.current = new Date().getTime()
     }
     window.Dashboard.checkNode()
+    window.Dashboard.getIdentity()
   }
 
   const openFirefox = () => {

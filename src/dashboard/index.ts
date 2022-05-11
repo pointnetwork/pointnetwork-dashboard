@@ -13,8 +13,11 @@ import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
+import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
 import topbarEventListeners from '../../shared/custom-topbar/listeners'
+
+const path = require('path')
 
 const logger = new Logger()
 
@@ -387,6 +390,40 @@ export default function (isExplicitRun = false) {
           )
         } catch (error) {
           logger.error(error)
+        }
+      },
+    },
+    {
+      channel: 'dashboard:bounty_request',
+      async listener() {
+        const fileContents = JSON.parse(
+          readFileSync(
+            path.join(helpers.getPointPath(), 'infoReferral.json')
+          ).toString()
+        )
+        const referralCode = fileContents.referralCode
+
+        const addressRes = await axios.get(
+          'http://localhost:2468/v1/api/wallet/address'
+        )
+        const address = addressRes.data.data.address
+
+        if (!fileContents.isGeneratedEventSent) {
+          await axios
+            .get(
+              `https://bounty.pointnetwork.io/ref_success?event=generated&ref=${referralCode}&addr=${address}`
+            )
+            .then(res => {
+              logger.info(res.data)
+              writeFileSync(
+                path.join(helpers.getPointPath(), 'infoReferral.json'),
+                JSON.stringify({
+                  ...fileContents,
+                  isGeneratedEventSent: true,
+                })
+              )
+            })
+            .catch(logger.error)
         }
       },
     },
