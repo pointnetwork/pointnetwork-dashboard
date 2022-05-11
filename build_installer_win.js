@@ -12,7 +12,7 @@ const APP_DIR = path.resolve(__dirname, './out/point-win32-x64');
 // outputDirectory: "C:\\Users\sdkca\Desktop\windows_installer", 
 const OUT_DIR = path.resolve(__dirname, './out/pointDashboard_windows_installer');
 
-const ICON_DIR = path.resolve(__dirname, './assets/multiformatfill.ico');
+const ICON_DIR = path.resolve(__dirname, './assets/multiformat.ico');
 const BACKG_DIR_JPG = path.resolve(__dirname, './assets/background.jpg');
 const BANNER_DIR_JPG = path.resolve(__dirname, './assets/banner.jpg');
 
