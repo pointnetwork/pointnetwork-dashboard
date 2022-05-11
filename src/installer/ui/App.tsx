@@ -11,6 +11,7 @@ import { InstallationStepsEnum } from '../../@types/installation'
 import { installationLogReducer, initialState } from '../reducer'
 import Logs from './Logs'
 import { parseLog } from '../helpers'
+import TopBar from '../../../shared/custom-topbar/TopBar'
 
 export default function App() {
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)
@@ -33,6 +34,7 @@ export default function App() {
 
   return (
     <UIThemeProvider>
+      <TopBar isLoading={false} />
       <Box
         display={'flex'}
         flexDirection="column"
