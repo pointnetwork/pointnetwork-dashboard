@@ -450,9 +450,9 @@ export default function (isExplicitRun = false) {
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
+
         app.quit()
-      }
+
     })
 
     app.on('activate', () => {
