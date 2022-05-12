@@ -15,6 +15,8 @@ const TITLES = {
   [InstallationStepsEnum.DIRECTORIES]: 'Create Directories',
   [InstallationStepsEnum.CODE]: 'Fetch Source Code',
   [InstallationStepsEnum.BROWSER]: 'Install Point Browser',
+  [InstallationStepsEnum.POINT_UNINSTALLER]: 'Install Point Uninstaller',
+  [InstallationStepsEnum.POINT_SDK]: 'Install Point SDK',
   [InstallationStepsEnum.POINT_NODE]: 'Install Point Node',
 }
 

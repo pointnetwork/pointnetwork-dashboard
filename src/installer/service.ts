@@ -146,7 +146,6 @@ class Installer {
     await this.firefox.downloadInstallPointSDK()
     await this.firefox.download()
     await this.node.download()
-    await this.node.download()
 
     // Get and set the referral code
     const downloadDir = path.join(helpers.getHomePath(), 'Downloads')
