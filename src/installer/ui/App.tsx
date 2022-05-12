@@ -57,7 +57,9 @@ export default function App() {
             <List>
               <ListItemText>Point Node</ListItemText>
               <ListItemText>Point LiveProfile</ListItemText>
+              <ListItemText>Point SDK</ListItemText>
               <ListItemText>Point Browser (Firefox)</ListItemText>
+              <ListItemText>Point Uninstaller</ListItemText>
             </List>
           </Box>
           <Button variant="contained" onClick={sendStartInstallation}>
@@ -77,6 +79,14 @@ export default function App() {
           <Logs
             stepCategory={InstallationStepsEnum.CODE}
             log={logs[InstallationStepsEnum.CODE]}
+          />
+          <Logs
+            stepCategory={InstallationStepsEnum.POINT_UNINSTALLER}
+            log={logs[InstallationStepsEnum.POINT_UNINSTALLER]}
+          />
+          <Logs
+            stepCategory={InstallationStepsEnum.POINT_SDK}
+            log={logs[InstallationStepsEnum.POINT_SDK]}
           />
           <Logs
             stepCategory={InstallationStepsEnum.BROWSER}
