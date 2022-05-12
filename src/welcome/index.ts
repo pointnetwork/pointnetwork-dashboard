@@ -4,6 +4,7 @@ import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
+import topbarEventListeners from '../../shared/custom-topbar/listeners'
 
 const logger = new Logger()
 
@@ -51,7 +52,7 @@ export default function (isExplicitRun = false) {
 
     mainWindow.on('close', () => {
       logger.info('Closed Welcome Window')
-      events.forEach(event => {
+      events().forEach(event => {
         ipcMain.removeListener(event.channel, event.listener)
         logger.info('[welcome:index.ts] Removed event', event.channel)
       })
@@ -62,7 +63,7 @@ export default function (isExplicitRun = false) {
     })
   }
 
-  const events = [
+  const events = () => [
     {
       channel: 'welcome:generate_mnemonic',
       listener() {
@@ -122,10 +123,11 @@ export default function (isExplicitRun = false) {
         }
       },
     },
+    ...topbarEventListeners('welcome', mainWindow!),
   ]
 
   async function registerListeners() {
-    events.forEach(event => {
+    events().forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('[welcome:index.ts] Registered event', event.channel)
     })
@@ -144,9 +146,7 @@ export default function (isExplicitRun = false) {
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit()
-      }
+      app.quit()
     })
 
     app.on('activate', () => {

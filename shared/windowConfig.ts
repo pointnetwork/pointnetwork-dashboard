@@ -3,6 +3,7 @@ const baseWindowConfig = {
   autoHideMenuBar: true,
   resizable: false,
   maximizable: false,
+  frame: false,
   webPreferences: {
     nodeIntegration: false,
     contextIsolation: true,

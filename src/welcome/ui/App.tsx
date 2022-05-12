@@ -8,6 +8,7 @@ import SeedGenerator from './components/SeedGenerator'
 import SeedConfirmation from './components/SeedConfirmation'
 import Login from './components/Login'
 import MenuUninstaller from './components/MenuUninstall'
+import TopBar from '../../../shared/custom-topbar/TopBar'
 
 export default function App() {
   const [seed, setSeed] = useState<string>('')
@@ -65,6 +66,7 @@ export default function App() {
 
   return (
     <UIThemeProvider>
+      <TopBar isLoading={false} />
       <Box display="flex" alignItems="baseline">
         <Box sx={{ p: '3.5%' }}>
           <Typography variant="h4" component="h1">

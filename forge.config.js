@@ -5,7 +5,20 @@ module.exports = {
     icon: "assets/icon",
     extraResource: [
       "assets"
-    ]
+    ],
+    osxSign: {
+      "identity": `${process.env.APPLE_IDENTITY}`,
+      "hardened-runtime": true,
+      "entitlements": "entitlements.plist",
+      "entitlements-inherit": "entitlements.plist",
+      "signature-flags": "library"
+    },
+    osxNotarize: {
+      "appleBundleId": "com.electron.point-network",
+      "appleId": `${process.env.APPLE_ID}`,
+      "appleIdPassword": `${process.env.APPLE_DEV_ID_APP_SPECIFIC_PASSWORD}`,
+      "ascProvider": '44K963DDUU',
+    }
   },
   plugins: [
     [
@@ -61,11 +74,15 @@ module.exports = {
     },
     {
       name: "@electron-forge/maker-deb",
-      config: {}
+      config: {
+        icon: "assets/icon.png"
+      }
     },
     {
       name: "@electron-forge/maker-rpm",
-      config: {}
+      config: {
+        icon: "assets/icon.png"
+      }
     }
   ]
 }

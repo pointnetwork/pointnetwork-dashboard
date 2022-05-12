@@ -1,7 +1,7 @@
 {
   "name": "point",
   "author": "Point Labs",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "description": "PointNetwork",
   "main": "./.webpack/main",
   "scripts": {
@@ -13,7 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "create-installer-win": "node build_installer_win.js",
-    "create-installer-mac": "electron-installer-dmg ./out/point-darwin-x64/point.app point --out=out --overwrite --icon=assets/icon.icns"
+    "create-installer-mac": "node scripts/create-mac-intaller.js"
   },
   "keywords": [],
   "license": "MIT",
@@ -72,6 +72,7 @@
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "11.2.7",
     "@types/electron-devtools-installer": "2.2.0",
+    "@types/electron-installer-dmg": "^3.0.1",
     "@types/follow-redirects": "^1.14.0",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "26.0.23",
@@ -89,6 +90,7 @@
     "css-loader": "^6.6.0",
     "electron": "^17.1.0",
     "electron-installer-dmg": "^3.0.0",
+    "electron-notarize": "^1.2.1",
     "electron-wix-msi": "3.0.0",
     "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
@@ -109,78 +111,6 @@
     "wait-on": "5.3.0"
   },
   "config": {
-    "forge": {
-      "packagerConfig": {
-        "name": "point",
-        "executableName": "point",
-        "icon": "assets/icon",
-        "extraResource": [
-          "assets"
-        ]
-      },
-      "plugins": [
-        [
-          "@electron-forge/plugin-webpack",
-          {
-            "mainConfig": "./webpack/main.webpack.js",
-            "renderer": {
-              "config": "./webpack/renderer.webpack.js",
-              "entryPoints": [
-                {
-                  "html": "./public/index.html",
-                  "js": "./src/dashboard/ui/index.tsx",
-                  "name": "dashboard_window",
-                  "preload": {
-                    "js": "./src/dashboard/bridge.ts"
-                  }
-                },
-                {
-                  "html": "./public/index.html",
-                  "js": "./src/welcome/ui/index.tsx",
-                  "name": "welcome_window",
-                  "preload": {
-                    "js": "./src/welcome/bridge.ts"
-                  }
-                },
-                {
-                  "html": "./public/index.html",
-                  "js": "./src/installer/ui/index.tsx",
-                  "name": "installer_window",
-                  "preload": {
-                    "js": "./src/installer/bridge.ts"
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      ],
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "point"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {
-            "icon": "assets/icon.png"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {
-            "icon": "assets/icon.png"
-          }
-        }
-      ]
-    }
+    "forge": "./forge.config.js"
   }
 }

@@ -3,9 +3,10 @@ import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import Firefox from '../firefox'
 import Node from '../node'
-import Uninstaller  from '../uninstaller'
+import Uninstaller from '../uninstaller'
 import { InstallationStepsEnum } from '../@types/installation'
 import { getProgressFromGithubMsg } from './helpers'
+import axios from 'axios'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -147,8 +148,56 @@ class Installer {
     await this.node.download()
     await this.node.download()
 
-    
+    // Get and set the referral code
+    const downloadDir = path.join(helpers.getHomePath(), 'Downloads')
+    const downloadDirContent = fs.readdirSync(downloadDir)
+    // Make sure it's one of our file downloads and pick the first one
+    const matchDir = downloadDirContent
+      .filter(
+        (dir: string) =>
+          dir.includes('point-') &&
+          (dir.includes('Linux-Debian-Ubuntu') ||
+            dir.includes('Linux-RPM-Centos-Fedora') ||
+            dir.includes('MacOS-installer') ||
+            dir.includes('Windows-installer'))
+      )
+      .map((dir: string) => path.join(helpers.getHomePath(), dir))[0]
+    let requiredDir, referralCode
+    let isInstalledEventSent = false
+    if (matchDir) {
+      // Strip the file extension
+      requiredDir = matchDir
+        .replace('.tar.gz', '')
+        .replace('.zip', '')
+        .replace('.tar', '')
+        .replace(/\(\d+\)+/g, '')
+        .trim()
+      // Get the referral code
+      referralCode = requiredDir.slice(requiredDir.length - 12)
+    } else {
+      referralCode = '000000000000'
+    }
+    if (Number.isNaN(Number(referralCode)) || Number(referralCode) < 0)
+      referralCode = '000000000000'
 
+    await axios
+      .get(
+        `https://bounty.pointnetwork.io/ref_success?event=install&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
+      )
+      .then(res => {
+        isInstalledEventSent = true
+        this.logger.info(res.data)
+      })
+      .catch(this.logger.error)
+
+    // Save that referral code in ~/.point/infoReferral.json
+    fs.writeFileSync(
+      path.join(helpers.getPointPath(), 'infoReferral.json'),
+      JSON.stringify({
+        referralCode,
+        isInstalledEventSent,
+      })
+    )
     // Set the `isInstalled` flag to true
     fs.writeFileSync(
       Installer.installationJsonFilePath,

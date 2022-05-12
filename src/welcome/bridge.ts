@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import getTopbarAbi from '../../shared/custom-topbar/bridge'
 
 declare global {
   // eslint-disable-next-line
@@ -35,3 +36,4 @@ export const api = {
 }
 
 contextBridge.exposeInMainWorld('Welcome', api)
+getTopbarAbi('welcome')
