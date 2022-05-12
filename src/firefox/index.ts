@@ -610,7 +610,9 @@ pref('network.captive-portal-service.enabled', false)
 pref('browser.tabs.drawInTitlebar', true)
 pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
-pref("extensions.startupScanScopes", 15);
+pref("extensions.startupScanScopes", 15)
+pref("trailhead.firstrun.branches", "nofirstrun-empty")
+pref("browser.aboutwelcome.enabled", false);
 `
     const policiesCfgContent = `{
   "policies": {
