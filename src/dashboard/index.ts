@@ -66,8 +66,7 @@ const MESSAGES = {
   },
   TimeOut: {
     title: 'TimeOut Error',
-    message:
-      'Please check your internet connection or restart Point',
+    message: 'Please check your internet connection or restart Point',
   },
 }
 
@@ -85,11 +84,11 @@ process.on('uncaughtException', (err, origin) => {
     })
   }
 
-  if(err.toString().includes('ETIMEDOUT')){
+  if (err.toString().includes('ETIMEDOUT')) {
     dialog.showMessageBoxSync({
       type: 'warning',
       title: MESSAGES.TimeOut.title,
-      message: MESSAGES.TimeOut.message
+      message: MESSAGES.TimeOut.message,
     })
   }
 
@@ -421,7 +420,7 @@ export default function (isExplicitRun = false) {
         )
         const address = addressRes.data.data.address
 
-        if (!fileContents.isGeneratedEventSent) {
+        if (!fileContents.isGeneratedEventSent && address) {
           await axios
             .get(
               `https://bounty.pointnetwork.io/ref_success?event=generated&ref=${referralCode}&addr=${address}`
