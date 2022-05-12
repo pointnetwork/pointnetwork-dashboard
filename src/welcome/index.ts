@@ -1,18 +1,31 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import WelcomeService from './services'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
+import Uninstaller from '../uninstaller'
 import topbarEventListeners from '../../shared/custom-topbar/listeners'
 
 const logger = new Logger()
 
 let mainWindow: BrowserWindow | null
 let welcomeService: WelcomeService | null
+let uninstaller: Uninstaller | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
 
+const MESSAGES = {
+  uninstallConfirmation: {
+    title: 'Uninstall Point Network',
+    message:
+      'Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard.',
+    buttons: {
+      confirm: 'Yes',
+      cancel: 'No',
+    },
+  },
+}
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
 //     ? process.resourcesPath
@@ -33,6 +46,7 @@ export default function (isExplicitRun = false) {
     // debug
     // mainWindow.webContents.openDevTools()
     welcomeService = new WelcomeService(mainWindow!)
+    uninstaller = new Uninstaller(mainWindow!)
 
     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
 
@@ -88,6 +102,25 @@ export default function (isExplicitRun = false) {
       channel: 'welcome:get_dictionary',
       listener() {
         welcomeService!.getDictionary()
+      },
+    },
+    {
+      channel: 'welcome:launchUninstaller',
+      async listener() {
+        const confirmationAnswer = dialog.showMessageBoxSync({
+          type: 'question',
+          title: MESSAGES.uninstallConfirmation.title,
+          message: MESSAGES.uninstallConfirmation.message,
+          buttons: [
+            MESSAGES.uninstallConfirmation.buttons.confirm,
+            MESSAGES.uninstallConfirmation.buttons.cancel,
+          ],
+        })
+
+        if (confirmationAnswer === 0) {
+          uninstaller!.launch()
+          mainWindow?.destroy()
+        }
       },
     },
     ...topbarEventListeners('welcome', mainWindow!),

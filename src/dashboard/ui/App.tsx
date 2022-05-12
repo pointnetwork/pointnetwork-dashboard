@@ -127,7 +127,7 @@ export default function App() {
   useEffect(() => {
     if (!isFirefoxUpdating && !isNodeUpdating && !isSdkUpdating) {
       setIsLoading(true)
-      setLoadingMessage('Starting up Node and Browser')
+      setLoadingMessage('Starting up Node and Point Browser')
       // First, launch Node and check if it's running or not
       window.Dashboard.launchNode()
       checkNode()

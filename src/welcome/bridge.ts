@@ -30,6 +30,9 @@ export const api = {
   getDictionary: () => {
     ipcRenderer.send('welcome:get_dictionary')
   },
+  launchUninstaller: () => {
+    ipcRenderer.send('welcome:launchUninstaller')
+  },
 }
 
 contextBridge.exposeInMainWorld('Welcome', api)
