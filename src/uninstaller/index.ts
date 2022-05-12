@@ -198,7 +198,7 @@ export default class Uninstaller {
     const file = path.join(pointPath, 'pointnetwork-uninstaller')
     let cmd = `${file}`
     if (global.platform.win32)
-      cmd = `${file}.exe`
+      cmd = `start ${file}.exe`
     if (global.platform.darwin)
       cmd = `open ${file}.app`
 
