@@ -287,7 +287,7 @@ export default class {
         resolve(
           this.installationLogger.info(
             `${InstallationStepsEnum.POINT_SDK}:100`,
-            'Installed Firefox successfully'
+            'Installed PointSDK successfully'
           )
         )
       })
