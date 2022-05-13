@@ -215,7 +215,7 @@ export default class Node {
   }
 
   static async stopNode() {
-    const process = await find('name', 'point', true)
+    const process = await find('name', /bin.+?point(.exe)?$/, false)
     if (process.length > 0) {
       for (const p of process) {
         logger.info(`[node:index.ts] Killing PID ${p.pid}...`)
@@ -233,7 +233,7 @@ export default class Node {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
-    if (moment().diff(lastCheck, 'hours') >= 1) {
+    if (moment().diff(lastCheck, 'hours') >= 1 || installedVersion.lastCheck === undefined) {
       const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
