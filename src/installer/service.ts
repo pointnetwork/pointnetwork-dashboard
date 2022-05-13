@@ -155,6 +155,7 @@ class Installer {
       .filter(
         (dir: string) =>
           dir.includes('point-') &&
+          dir.match(/-\d{12}\./) &&
           (dir.includes('Linux-Debian-Ubuntu') ||
             dir.includes('Linux-RPM-Centos-Fedora') ||
             dir.includes('MacOS-installer') ||
