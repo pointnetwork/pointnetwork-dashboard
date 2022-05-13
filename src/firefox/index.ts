@@ -68,7 +68,7 @@ export default class {
     new Promise(async (resolve, reject) => {
       this.installationLogger.info(
         InstallationStepsEnum.BROWSER,
-        'Starting Firefox installation...'
+        'Starting Point Browser installation...'
       )
 
       const language = 'en-US'
@@ -287,7 +287,7 @@ export default class {
         resolve(
           this.installationLogger.info(
             `${InstallationStepsEnum.POINT_SDK}:100`,
-            'Installed Firefox successfully'
+            'Installed PointSDK successfully'
           )
         )
       })
@@ -601,6 +601,7 @@ pref('browser.laterrun.enabled', true)
 pref('doh-rollout.doneFirstRun', true)
 pref('trailhead.firstrun.didSeeAboutWelcome', true)
 pref('toolkit.telemetry.reportingpolicy.firstRun', false)
+pref('toolkit.startup.max_resumed_crashes', -1)
 pref('browser.shell.didSkipDefaultBrowserCheckOnFirstRun', true)
 pref('app.shield.optoutstudies.enabled', false)
 pref('network.proxy.autoconfig_url', '${pacFile}')
@@ -609,7 +610,9 @@ pref('network.captive-portal-service.enabled', false)
 pref('browser.tabs.drawInTitlebar', true)
 pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
-pref("extensions.startupScanScopes", 15);
+pref("extensions.startupScanScopes", 15)
+pref("trailhead.firstrun.branches", "nofirstrun-empty")
+pref("browser.aboutwelcome.enabled", false);
 `
     const policiesCfgContent = `{
   "policies": {

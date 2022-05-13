@@ -4,7 +4,7 @@ import {
   ipcMain,
   dialog,
   IpcMainEvent,
-  shell
+  shell,
 } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
@@ -13,7 +13,11 @@ import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
+import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
+import topbarEventListeners from '../../shared/custom-topbar/listeners'
+
+const path = require('path')
 
 const logger = new Logger()
 
@@ -58,8 +62,11 @@ const MESSAGES = {
   },
   NoInternet: {
     title: 'Connection Error',
-    message:
-      'Please check your internet connection',
+    message: 'Please check your internet connection',
+  },
+  TimeOut: {
+    title: 'TimeOut Error',
+    message: 'Please check your internet connection or restart Point',
   },
 }
 
@@ -69,18 +76,24 @@ const MESSAGES = {
 //     : app.getAppPath()
 
 process.on('uncaughtException', (err, origin) => {
-
-  if(err.toString().includes('send ENOBUFS')){
+  if (err.toString().includes('send ENOBUFS')) {
     dialog.showMessageBoxSync({
       type: 'warning',
       title: MESSAGES.NoInternet.title,
-      message: MESSAGES.NoInternet.message
+      message: MESSAGES.NoInternet.message,
+    })
+  }
+
+  if (err.toString().includes('ETIMEDOUT')) {
+    dialog.showMessageBoxSync({
+      type: 'warning',
+      title: MESSAGES.TimeOut.title,
+      message: MESSAGES.TimeOut.message,
     })
   }
 
   logger.info(`Caught exception: ${err}\n Exception origin: ${origin}`)
-
-});
+})
 
 export default function (isExplicitRun = false) {
   async function createWindow() {
@@ -88,7 +101,6 @@ export default function (isExplicitRun = false) {
       ...baseWindowConfig,
       width: 860,
       height: 560,
-      frame: false,
       webPreferences: {
         ...baseWindowConfig.webPreferences,
         preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -133,7 +145,7 @@ export default function (isExplicitRun = false) {
       if (quit) {
         mainWindow?.webContents.send('dashboard:close')
         logger.info('Closed Dashboard Window')
-        events.forEach(event => {
+        events().forEach(event => {
           ipcMain.removeListener(event.channel, event.listener)
           logger.info('[dashboard:index.ts] Removed event', event.channel)
         })
@@ -153,10 +165,9 @@ export default function (isExplicitRun = false) {
       firefox = null
       mainWindow = null
     })
-    
   }
 
-  const events = [
+  const events = () => [
     {
       channel: 'firefox:launch',
       listener() {
@@ -195,11 +206,11 @@ export default function (isExplicitRun = false) {
         if (confirmationAnswer === 0) {
           mainWindow?.webContents.send('dashboard:close')
           logger.info('Closed Dashboard Window')
-          events.forEach(event => {
+          events().forEach(event => {
             ipcMain.removeListener(event.channel, event.listener)
             logger.info('[dashboard:index.ts] Removed event', event.channel)
           })
-  
+
           try {
             await Promise.all([firefox?.close(), Node.stopNode()])
           } catch (err) {
@@ -208,10 +219,13 @@ export default function (isExplicitRun = false) {
             uninstaller!.launch()
             mainWindow?.destroy()
           }
-
-
         }
-
+      },
+    },
+    {
+      channel: 'uninstaller:checkUnistaller',
+      listener() {
+        uninstaller!.checkUninstallerExist()
       },
     },
     {
@@ -398,21 +412,44 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'dashboard:minimizeWindow',
-      listener() {
-        mainWindow?.minimize()
+      channel: 'dashboard:bounty_request',
+      async listener() {
+        const fileContents = JSON.parse(
+          readFileSync(
+            path.join(helpers.getPointPath(), 'infoReferral.json')
+          ).toString()
+        )
+        const referralCode = fileContents.referralCode
+
+        const addressRes = await axios.get(
+          'http://localhost:2468/v1/api/wallet/address'
+        )
+        const address = addressRes.data.data.address
+
+        if (!fileContents.isGeneratedEventSent && address) {
+          await axios
+            .get(
+              `https://bounty.pointnetwork.io/ref_success?event=generated&ref=${referralCode}&addr=${address}`
+            )
+            .then(res => {
+              logger.info(res.data)
+              writeFileSync(
+                path.join(helpers.getPointPath(), 'infoReferral.json'),
+                JSON.stringify({
+                  ...fileContents,
+                  isGeneratedEventSent: true,
+                })
+              )
+            })
+            .catch(logger.error)
+        }
       },
     },
-    {
-      channel: 'dashboard:closeWindow',
-      listener() {
-        mainWindow?.close()
-      },
-    },
+    ...topbarEventListeners('dashboard', mainWindow!),
   ]
 
   async function registerListeners() {
-    events.forEach(event => {
+    events().forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('[dashboard:index.ts] Registered event', event.channel)
     })
@@ -437,9 +474,7 @@ export default function (isExplicitRun = false) {
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit()
-      }
+      app.quit()
     })
 
     app.on('activate', () => {

@@ -1,10 +1,4 @@
-import {
-  MouseEventHandler,
-  useEffect,
-  useState,
-  useRef,
-  SetStateAction,
-} from 'react'
+import { MouseEventHandler, useEffect, useState, useRef } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
@@ -12,7 +6,7 @@ import UIThemeProvider from '../../../shared/UIThemeProvider'
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 // Components
-import TopBar from './components/TopBar'
+import TopBar from '../../../shared/custom-topbar/TopBar'
 import ResourceItemCard from './components/ResourceItemCard'
 import DashboardUpdateAlert from './components/DashboardUpdateAlert'
 import DashboardTitle from './components/DashboardTitle'
@@ -48,32 +42,22 @@ export default function App() {
   // Version state variables
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
   const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
-  const [isNewDashboardReleaseAvailable, setIsNewDashboardReleaseAvailable] =
-    useState<{
-      isUpdateAvailable: boolean
-      latestVersion: string
-    }>({
-      isUpdateAvailable: false,
-      latestVersion: '',
-    })
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [isUninstallerUpt, setUninstallerUpt] = useState<boolean>(false)
 
   const checkStartTime = useRef(0)
 
   useEffect(() => {
-    // Add custom styles to window since it's frameless
-    document.body.style.margin = '0'
-    document.body.style.padding = '0'
-    document.body.style.minHeight = '100vh'
-    document.body.style.border = '1.5px solid rgba(0, 0, 0, 0.2)'
-    document.body.style.boxSizing = 'border-box'
-    document.body.style.overflow = 'hidden'
-
     setIsLoading(true)
 
     // Check for updates
     window.Dashboard.checkUpdate()
-
+    window.Dashboard.checkUnistaller()
+    
+    window.Dashboard.on('uninstaller:check', (status: boolean) => {
+      setUninstallerUpt(status)
+    })
+    
     window.Dashboard.on('node:update', (status: boolean) => {
       setIsNodeUpdating(status)
       if (status) {
@@ -124,6 +108,9 @@ export default function App() {
 
     window.Dashboard.on('node:identity', (identity: string) => {
       setIdentity(identity)
+      if (!identity) {
+        window.Dashboard.sendBountyRequest()
+      }
     })
 
     window.Dashboard.on('firefox:active', (status: boolean) => {
@@ -146,7 +133,7 @@ export default function App() {
   useEffect(() => {
     if (!isFirefoxUpdating && !isNodeUpdating && !isSdkUpdating) {
       setIsLoading(true)
-      setLoadingMessage('Starting up Node and Browser')
+      setLoadingMessage('Starting up Node and Point Browser')
       // First, launch Node and check if it's running or not
       window.Dashboard.launchNode()
       checkNode()
@@ -181,7 +168,6 @@ export default function App() {
     if (isNodeRunning) {
       openFirefox()
       requestYPoints()
-      window.Dashboard.getIdentity()
       setInterval(checkNode, 10000)
     }
   }, [isNodeRunning])
@@ -212,6 +198,7 @@ export default function App() {
       checkStartTime.current = new Date().getTime()
     }
     window.Dashboard.checkNode()
+    window.Dashboard.getIdentity()
   }
 
   const openFirefox = () => {
@@ -237,6 +224,7 @@ export default function App() {
           open={open}
           handleClose={handleClose}
           uninstall={uninstall}
+          updateing={isUninstallerUpt}
         />
         <DefaultLoader message={loadingMessage} isLoading={isLoading} />
         <UpdateProgress

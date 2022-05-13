@@ -1,17 +1,31 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import WelcomeService from './services'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
+import Uninstaller from '../uninstaller'
+import topbarEventListeners from '../../shared/custom-topbar/listeners'
 
 const logger = new Logger()
 
 let mainWindow: BrowserWindow | null
 let welcomeService: WelcomeService | null
+let uninstaller: Uninstaller | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
 
+const MESSAGES = {
+  uninstallConfirmation: {
+    title: 'Uninstall Point Network',
+    message:
+      'Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard.',
+    buttons: {
+      confirm: 'Yes',
+      cancel: 'No',
+    },
+  },
+}
 // const assetsPath =
 //   process.env.NODE_ENV === 'production'
 //     ? process.resourcesPath
@@ -32,12 +46,13 @@ export default function (isExplicitRun = false) {
     // debug
     // mainWindow.webContents.openDevTools()
     welcomeService = new WelcomeService(mainWindow!)
+    uninstaller = new Uninstaller(mainWindow!)
 
     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
 
     mainWindow.on('close', () => {
       logger.info('Closed Welcome Window')
-      events.forEach(event => {
+      events().forEach(event => {
         ipcMain.removeListener(event.channel, event.listener)
         logger.info('[welcome:index.ts] Removed event', event.channel)
       })
@@ -48,7 +63,7 @@ export default function (isExplicitRun = false) {
     })
   }
 
-  const events = [
+  const events = () => [
     {
       channel: 'welcome:generate_mnemonic',
       listener() {
@@ -89,10 +104,30 @@ export default function (isExplicitRun = false) {
         welcomeService!.getDictionary()
       },
     },
+    {
+      channel: 'welcome:launchUninstaller',
+      async listener() {
+        const confirmationAnswer = dialog.showMessageBoxSync({
+          type: 'question',
+          title: MESSAGES.uninstallConfirmation.title,
+          message: MESSAGES.uninstallConfirmation.message,
+          buttons: [
+            MESSAGES.uninstallConfirmation.buttons.confirm,
+            MESSAGES.uninstallConfirmation.buttons.cancel,
+          ],
+        })
+
+        if (confirmationAnswer === 0) {
+          uninstaller!.launch()
+          mainWindow?.destroy()
+        }
+      },
+    },
+    ...topbarEventListeners('welcome', mainWindow!),
   ]
 
   async function registerListeners() {
-    events.forEach(event => {
+    events().forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('[welcome:index.ts] Registered event', event.channel)
     })
@@ -111,9 +146,7 @@ export default function (isExplicitRun = false) {
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit()
-      }
+      app.quit()
     })
 
     app.on('activate', () => {

@@ -64,6 +64,15 @@ export default class Uninstaller {
     return false
   }
 
+  checkUninstallerExist = async () => {
+    const temp = helpers.getPointPathTemp()
+    if (!fs.existsSync(temp)){
+      this.window.webContents.send('uninstaller:check', true)
+      await this.download()
+      this.window.webContents.send('uninstaller:check', false)
+    }
+  }
+
 
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
@@ -198,7 +207,7 @@ export default class Uninstaller {
     const file = path.join(pointPath, 'pointnetwork-uninstaller')
     let cmd = `${file}`
     if (global.platform.win32)
-      cmd = `${file}.exe`
+      cmd = `start ${file}.exe`
     if (global.platform.darwin)
       cmd = `open ${file}.app`
 

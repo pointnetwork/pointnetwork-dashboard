@@ -11,6 +11,7 @@ import { InstallationStepsEnum } from '../../@types/installation'
 import { installationLogReducer, initialState } from '../reducer'
 import Logs from './Logs'
 import { parseLog } from '../helpers'
+import TopBar from '../../../shared/custom-topbar/TopBar'
 
 export default function App() {
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)
@@ -33,6 +34,7 @@ export default function App() {
 
   return (
     <UIThemeProvider>
+      <TopBar isLoading={false} />
       <Box
         display={'flex'}
         flexDirection="column"
@@ -55,7 +57,9 @@ export default function App() {
             <List>
               <ListItemText>Point Node</ListItemText>
               <ListItemText>Point LiveProfile</ListItemText>
+              <ListItemText>Point SDK</ListItemText>
               <ListItemText>Point Browser (Firefox)</ListItemText>
+              <ListItemText>Point Uninstaller</ListItemText>
             </List>
           </Box>
           <Button variant="contained" onClick={sendStartInstallation}>
@@ -75,6 +79,14 @@ export default function App() {
           <Logs
             stepCategory={InstallationStepsEnum.CODE}
             log={logs[InstallationStepsEnum.CODE]}
+          />
+          <Logs
+            stepCategory={InstallationStepsEnum.POINT_UNINSTALLER}
+            log={logs[InstallationStepsEnum.POINT_UNINSTALLER]}
+          />
+          <Logs
+            stepCategory={InstallationStepsEnum.POINT_SDK}
+            log={logs[InstallationStepsEnum.POINT_SDK]}
           />
           <Logs
             stepCategory={InstallationStepsEnum.BROWSER}

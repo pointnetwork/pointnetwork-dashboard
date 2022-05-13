@@ -24,6 +24,8 @@ export const initialState: InstallationLogState = {
   [InstallationStepsEnum.CODE]: initLogData,
   [InstallationStepsEnum.BROWSER]: initLogData,
   [InstallationStepsEnum.POINT_NODE]: initLogData,
+  [InstallationStepsEnum.POINT_SDK]: initLogData,
+  [InstallationStepsEnum.POINT_UNINSTALLER]: initLogData,
 }
 
 type Action = {
@@ -96,6 +98,38 @@ export function installationLogReducer(
           progress:
             action.payload.progress ??
             state[InstallationStepsEnum.POINT_NODE].progress,
+        },
+      }
+    case InstallationStepsEnum.POINT_SDK:
+      return {
+        ...state,
+        [InstallationStepsEnum.POINT_UNINSTALLER]: {
+          ...state[InstallationStepsEnum.POINT_UNINSTALLER],
+          status: 'FINISHED',
+          progress: 100,
+        },
+        [InstallationStepsEnum.POINT_SDK]: {
+          status: action.payload.progress === 100 ? 'FINISHED' : 'IN_PROGRESS',
+          message: action.payload.message,
+          progress:
+            action.payload.progress ??
+            state[InstallationStepsEnum.POINT_SDK].progress,
+        },
+      }
+    case InstallationStepsEnum.POINT_UNINSTALLER:
+      return {
+        ...state,
+        [InstallationStepsEnum.CODE]: {
+          ...state[InstallationStepsEnum.CODE],
+          status: 'FINISHED',
+          progress: 100,
+        },
+        [InstallationStepsEnum.POINT_UNINSTALLER]: {
+          status: action.payload.progress === 100 ? 'FINISHED' : 'IN_PROGRESS',
+          message: action.payload.message,
+          progress:
+            action.payload.progress ??
+            state[InstallationStepsEnum.POINT_UNINSTALLER].progress,
         },
       }
     default:

@@ -8,16 +8,18 @@ import MenuItem from '@mui/material/MenuItem'
 
 const DashboardTitle = ({
   handleClick,
-  anchorEl, 
+  anchorEl,
   open,
   handleClose,
-  uninstall
+  uninstall,
+  updateing
 }: {
   handleClick: any
   anchorEl: null | HTMLElement
   open: boolean
   handleClose: any
   uninstall: any
+  updateing: boolean
 }) => {
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
 
@@ -36,9 +38,9 @@ const DashboardTitle = ({
         <Typography variant="caption" marginLeft={1}>
           v{dashboardVersion}
         </Typography>
-        <Box sx={{marginLeft: '58%' }} >
-            <SettingsIcon onClick={handleClick}></SettingsIcon>
-            <Menu
+        <Box sx={{ marginLeft: '58%' }} >
+          {!updateing && (
+            <><SettingsIcon onClick={handleClick}></SettingsIcon><Menu
               id="basic-menu"
               anchorEl={anchorEl}
               open={open}
@@ -48,8 +50,10 @@ const DashboardTitle = ({
               }}
             >
               <MenuItem onClick={uninstall}>Uninstall</MenuItem>
-            </Menu>
-          </Box>
+            </Menu></>
+          )
+          }
+        </Box>
       </Box>
       <Typography color="text.secondary">
         Manage and control Point Network components from here
