@@ -223,6 +223,12 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'uninstaller:checkUnistaller',
+      listener() {
+        uninstaller!.checkUninstallerExist()
+      },
+    },
+    {
       channel: 'node:check',
       listener() {
         node!.pointNodeCheck()

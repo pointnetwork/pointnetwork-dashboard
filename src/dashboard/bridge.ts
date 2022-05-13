@@ -14,6 +14,9 @@ export const api = {
   launchUninstaller: () => {
     ipcRenderer.send('node:launchUninstaller')
   },
+  checkUnistaller: () => {
+    ipcRenderer.send('uninstaller:checkUnistaller')
+  },  
   DownloadNode: () => {
     ipcRenderer.send('node:download')
   },

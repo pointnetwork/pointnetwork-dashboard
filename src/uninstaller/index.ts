@@ -64,6 +64,15 @@ export default class Uninstaller {
     return false
   }
 
+  checkUninstallerExist = async () => {
+    const temp = helpers.getPointPathTemp()
+    if (!fs.existsSync(temp)){
+      this.window.webContents.send('uninstaller:check', true)
+      await this.download()
+      this.window.webContents.send('uninstaller:check', false)
+    }
+  }
+
 
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
