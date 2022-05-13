@@ -43,6 +43,7 @@ export default function App() {
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
   const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [isUninstallerUpt, setUninstallerUpt] = useState<boolean>(false)
 
   const checkStartTime = useRef(0)
 
@@ -51,7 +52,12 @@ export default function App() {
 
     // Check for updates
     window.Dashboard.checkUpdate()
-
+    window.Dashboard.checkUnistaller()
+    
+    window.Dashboard.on('uninstaller:check', (status: boolean) => {
+      setUninstallerUpt(status)
+    })
+    
     window.Dashboard.on('node:update', (status: boolean) => {
       setIsNodeUpdating(status)
       if (status) {
@@ -218,6 +224,7 @@ export default function App() {
           open={open}
           handleClose={handleClose}
           uninstall={uninstall}
+          updateing={isUninstallerUpt}
         />
         <DefaultLoader message={loadingMessage} isLoading={isLoading} />
         <UpdateProgress
