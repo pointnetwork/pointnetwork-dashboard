@@ -6,7 +6,7 @@ import UIThemeProvider from '../../../shared/UIThemeProvider'
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 // Components
-import TopBar from '../../../shared/custom-topbar/TopBar'
+import TopBar from './components/TopBar'
 import ResourceItemCard from './components/ResourceItemCard'
 import DashboardUpdateAlert from './components/DashboardUpdateAlert'
 import DashboardTitle from './components/DashboardTitle'
@@ -53,11 +53,11 @@ export default function App() {
     // Check for updates
     window.Dashboard.checkUpdate()
     window.Dashboard.checkUnistaller()
-    
+
     window.Dashboard.on('uninstaller:check', (status: boolean) => {
       setUninstallerUpt(status)
     })
-    
+
     window.Dashboard.on('node:update', (status: boolean) => {
       setIsNodeUpdating(status)
       if (status) {

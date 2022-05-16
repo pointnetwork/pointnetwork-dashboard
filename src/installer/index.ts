@@ -3,7 +3,6 @@ import welcome from '../welcome'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import Installer from './service'
-import topbarEventListeners from '../../shared/custom-topbar/listeners'
 export { Installer }
 
 const logger = new Logger()
@@ -39,7 +38,7 @@ export default function () {
 
     mainWindow.on('closed', () => {
       logger.info('Closed Installer Window')
-      events().forEach(event => {
+      events.forEach(event => {
         ipcMain.removeListener(event.channel, event.listener)
         logger.info('[installer:index.ts] Removed event', event.channel)
       })
@@ -48,7 +47,7 @@ export default function () {
     })
   }
 
-  const events = () => [
+  const events = [
     {
       channel: 'installer:start',
       async listener() {
@@ -57,11 +56,22 @@ export default function () {
         welcome(true)
       },
     },
-    ...topbarEventListeners('installer', mainWindow!),
+    {
+      channel: `installer:minimizeWindow`,
+      listener() {
+        mainWindow!.minimize()
+      },
+    },
+    {
+      channel: `installer:closeWindow`,
+      listener() {
+        mainWindow!.close()
+      },
+    },
   ]
 
   async function registerListeners() {
-    events().forEach(event => {
+    events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('[installer:index.ts] Registered event', event.channel)
     })

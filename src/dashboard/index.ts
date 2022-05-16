@@ -15,7 +15,6 @@ import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
-import topbarEventListeners from '../../shared/custom-topbar/listeners'
 
 const path = require('path')
 
@@ -145,7 +144,7 @@ export default function (isExplicitRun = false) {
       if (quit) {
         mainWindow?.webContents.send('dashboard:close')
         logger.info('Closed Dashboard Window')
-        events().forEach(event => {
+        events.forEach(event => {
           ipcMain.removeListener(event.channel, event.listener)
           logger.info('[dashboard:index.ts] Removed event', event.channel)
         })
@@ -167,7 +166,7 @@ export default function (isExplicitRun = false) {
     })
   }
 
-  const events = () => [
+  const events = [
     {
       channel: 'firefox:launch',
       listener() {
@@ -206,7 +205,7 @@ export default function (isExplicitRun = false) {
         if (confirmationAnswer === 0) {
           mainWindow?.webContents.send('dashboard:close')
           logger.info('Closed Dashboard Window')
-          events().forEach(event => {
+          events.forEach(event => {
             ipcMain.removeListener(event.channel, event.listener)
             logger.info('[dashboard:index.ts] Removed event', event.channel)
           })
@@ -445,11 +444,22 @@ export default function (isExplicitRun = false) {
         }
       },
     },
-    ...topbarEventListeners('dashboard', mainWindow!),
+    {
+      channel: `dashboard:minimizeWindow`,
+      listener() {
+        mainWindow!.minimize()
+      },
+    },
+    {
+      channel: `dashboard:closeWindow`,
+      listener() {
+        mainWindow!.close()
+      },
+    },
   ]
 
   async function registerListeners() {
-    events().forEach(event => {
+    events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('[dashboard:index.ts] Registered event', event.channel)
     })
