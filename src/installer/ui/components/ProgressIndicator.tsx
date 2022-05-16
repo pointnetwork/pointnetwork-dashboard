@@ -4,7 +4,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
-import { InstallationStatus } from '../reducer'
+import { InstallationStatus } from '../../reducer'
 
 interface Props {
   status: InstallationStatus

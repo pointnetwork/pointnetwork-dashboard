@@ -9,9 +9,9 @@ import Typography from '@mui/material/Typography'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
 import { InstallationStepsEnum } from '../../@types/installation'
 import { installationLogReducer, initialState } from '../reducer'
-import Logs from './Logs'
+import Logs from './components/Logs'
 import { parseLog } from '../helpers'
-import TopBar from '../../../shared/custom-topbar/TopBar'
+import TopBar from './components/TopBar'
 
 export default function App() {
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)

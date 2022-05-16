@@ -2,8 +2,8 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 import Grid from '@mui/material/Grid'
-import { InstallationStepsEnum } from '../../@types/installation'
-import { InstallationLogData } from '../reducer'
+import { InstallationStepsEnum } from '../../../@types/installation'
+import { InstallationLogData } from '../../reducer'
 import ProgressIndicator from './ProgressIndicator'
 
 interface Props {

@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import getTopbarAbi from '../../shared/custom-topbar/bridge'
 declare global {
   // eslint-disable-next-line
   interface Window {
@@ -16,7 +15,7 @@ export const api = {
   },
   checkUnistaller: () => {
     ipcRenderer.send('uninstaller:checkUnistaller')
-  },  
+  },
   DownloadNode: () => {
     ipcRenderer.send('node:download')
   },
@@ -67,6 +66,12 @@ export const api = {
   sendBountyRequest: () => {
     ipcRenderer.send('dashboard:bounty_request')
   },
+  minimizeWindow: () => {
+    ipcRenderer.send(`dashboard:minimizeWindow`)
+  },
+  closeWindow: () => {
+    ipcRenderer.send(`dashboard:closeWindow`)
+  },
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
@@ -74,4 +79,3 @@ export const api = {
 }
 
 contextBridge.exposeInMainWorld('Dashboard', api)
-getTopbarAbi('dashboard')

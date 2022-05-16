@@ -5,7 +5,7 @@ import RemoveIcon from '@mui/icons-material/Remove'
 
 const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
   const handeClose = () => {
-    !isLoading && window.TopBar.closeWindow()
+    !isLoading && window.Welcome.closeWindow()
   }
 
   return (
@@ -31,7 +31,7 @@ const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
           alignItems="center"
           bgcolor="primary.light"
           sx={{ cursor: 'pointer' }}
-          onClick={window.TopBar.minimizeWindow}
+          onClick={window.Welcome.minimizeWindow}
         >
           <RemoveIcon fontSize="small" />
         </Box>
