@@ -6,6 +6,7 @@ import {
   IpcMainEvent,
   shell,
 } from 'electron'
+import { platform } from 'process'
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
@@ -30,6 +31,7 @@ let isLoggingOut = false
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
+const UNINSTALL_LINK = 'https://github.com/pointnetwork/pointnetwork-dashboard/blob/develop/UNINSTALL.md';
 
 const MESSAGES = {
   closeConfirmation: {
@@ -52,8 +54,7 @@ const MESSAGES = {
   },
   uninstallConfirmation: {
     title: 'Uninstall Point Network',
-    message:
-      'Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard and Point Browser.',
+    message: `Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard and Point Browser. ${platform === 'win32'?'Normally Uninstaller take some time to open, After Unistall please review the Unistaller.md':''}${platform === 'linux'?'If you click on Yes a backgroud proces will run and unistall pointenetwork automatically, After Unistall please review the Unistaller.md':''}${platform === 'darwin'?'After Unistall please review the Unistaller.md':''}`,
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
@@ -209,7 +210,7 @@ export default function (isExplicitRun = false) {
             ipcMain.removeListener(event.channel, event.listener)
             logger.info('[dashboard:index.ts] Removed event', event.channel)
           })
-
+          shell.openExternal(UNINSTALL_LINK)
           try {
             await Promise.all([firefox?.close(), Node.stopNode()])
           } catch (err) {
