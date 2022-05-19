@@ -12,14 +12,14 @@ import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
 import moment from 'moment'
+import rimraf from 'rimraf'
+import dmg from 'dmg'
+import bz2 from 'unbzip2-stream'
+import find from 'find-process'
 
-const rimraf = require('rimraf')
-const dmg = require('dmg')
-const bz2 = require('unbzip2-stream')
-const find = require('find-process')
 const exec = util.promisify(require('child_process').exec)
-
 const logger = new Logger()
+
 export default class {
   private window
   private installationLogger
@@ -112,7 +112,7 @@ export default class {
           InstallationStepsEnum.BROWSER,
           'Downloading Firefox...'
         )
-        await response.pipe(firefoxRelease)
+        response.pipe(firefoxRelease)
 
         const total = response.headers['content-length']
         let downloaded = 0
@@ -190,7 +190,7 @@ export default class {
 
   getIdExtension = async () =>
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
+    new Promise(async (resolve) => {
       const version = await helpers.getlatestSDKReleaseVersion()
       const extensionPath = helpers.getPointPath()
       const downloadManifest = this.getURL('manifest.json', version)
@@ -208,7 +208,7 @@ export default class {
 
   downloadInstallPointSDK = async () =>
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
+    new Promise(async (resolve) => {
       const pointPath = helpers.getPointPath()
       const version = await helpers.getlatestSDKReleaseVersion()
       const extensionPath = helpers.getLiveExtensionsDirectoryPathResources()
@@ -236,7 +236,7 @@ export default class {
           'Downloading PointSDK...'
         )
 
-        await response.pipe(downloadStream)
+        response.pipe(downloadStream)
 
         const total = response.headers['content-length']
         let downloaded = 0

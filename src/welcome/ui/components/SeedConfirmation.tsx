@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { MouseEventHandler, useState, useEffect } from 'react'
 import { pickMultipleRandomly } from '../../helpers/random'
 // Material UI

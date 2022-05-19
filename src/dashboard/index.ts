@@ -16,7 +16,7 @@ import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
 
-const path = require('path')
+import path from 'path'
 
 const logger = new Logger()
 

@@ -8,11 +8,11 @@ import util from 'util'
 import axios from 'axios'
 import { InstallationStepsEnum } from '../@types/installation'
 import moment from 'moment'
+import rimraf from 'rimraf'
+import decompress from 'decompress'
+import decompressTargz from 'decompress-targz'
+import find from 'find-process'
 
-const rimraf = require('rimraf')
-const decompress = require('decompress')
-const decompressTargz = require('decompress-targz')
-const find = require('find-process')
 const logger = new Logger()
 const exec = util.promisify(require('child_process').exec)
 export default class Node {
@@ -38,7 +38,7 @@ export default class Node {
   }
 
   async getBinPath() {
-    const binPath = await helpers.getBinPath()
+    const binPath = helpers.getBinPath()
     if (global.platform.win32) {
       return path.join(binPath, 'win', 'point.exe')
     }
@@ -64,7 +64,7 @@ export default class Node {
 
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
+    new Promise(async (resolve) => {
       const version = await helpers.getlatestNodeReleaseVersion()
       const pointPath = helpers.getPointPath()
       const filename = this.getNodeFileName(version)
@@ -82,7 +82,7 @@ export default class Node {
           'Downloading Node...'
         )
 
-        await response.pipe(downloadStream)
+        response.pipe(downloadStream)
 
         const total = response.headers['content-length']
         let downloaded = 0

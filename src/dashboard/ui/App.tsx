@@ -181,7 +181,7 @@ export default function App() {
   }
   const open = Boolean(anchorEl)
 
-  const handleClick = event => {
+  const handleClick = (event: any) => {
     setAnchorEl(event.currentTarget)
   }
   const handleClose = () => {

@@ -8,10 +8,10 @@ import { InstallationStepsEnum } from '../@types/installation'
 import { getProgressFromGithubMsg } from './helpers'
 import axios from 'axios'
 
-const path = require('path')
-const git = require('isomorphic-git')
-const http = require('isomorphic-git/http/node')
-const fs = require('fs')
+import path from 'path'
+import git from 'isomorphic-git'
+import http from 'isomorphic-git/http/node'
+import fs from 'fs'
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
 const POINT_LIVE_DIR = helpers.getLiveDirectoryPath()

@@ -7,11 +7,11 @@ import path from 'path'
 import util from 'util'
 import { InstallationStepsEnum } from '../@types/installation'
 
-const rimraf = require('rimraf')
-const DecompressZip = require('decompress-zip');
+import rimraf from 'rimraf'
+import DecompressZip from 'decompress-zip'
+import decompress from 'decompress'
+import decompressTargz from 'decompress-targz'
 
-const decompress = require('decompress')
-const decompressTargz = require('decompress-targz')
 const logger = new Logger()
 const exec = util.promisify(require('child_process').exec)
 const uninstallerName = 'uninstallerPoint.sh'
@@ -19,8 +19,6 @@ const uninstallerName = 'uninstallerPoint.sh'
 export default class Uninstaller {
   private installationLogger
   private window
-  private pid: string[] = []
-  private killCmd: string[] = []
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -40,7 +38,7 @@ export default class Uninstaller {
   }
 
   async getBinPath() {
-    const binPath = await helpers.getBinPath()
+    const binPath = helpers.getBinPath()
     if (global.platform.win32) {
       return path.join(binPath, 'win', 'pointUninstaller.exe')
     }
@@ -76,7 +74,7 @@ export default class Uninstaller {
 
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
+    new Promise(async (resolve) => {
       const version = await helpers.getlatestUninstallerReleaseVersion()
       const pointPath = helpers.getPointPath()
       const filename = this.getUninstallerFileName(version)
@@ -94,7 +92,7 @@ export default class Uninstaller {
           'Downloading Uninstaller...'
         )
 
-        await response.pipe(downloadStream)
+        response.pipe(downloadStream)
 
         const total = response.headers['content-length']
         let downloaded = 0
