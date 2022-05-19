@@ -12,7 +12,7 @@ const DashboardTitle = ({
   open,
   handleClose,
   uninstall,
-  updateing
+  updateing,
 }: {
   handleClick: any
   anchorEl: null | HTMLElement
@@ -38,21 +38,26 @@ const DashboardTitle = ({
         <Typography variant="caption" marginLeft={1}>
           v{dashboardVersion}
         </Typography>
-        <Box sx={{ marginLeft: '58%' }} >
+        <Box position="fixed" right={16} top={56}>
           {!updateing && (
-            <><SettingsIcon onClick={handleClick}></SettingsIcon><Menu
-              id="basic-menu"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{
-                'aria-labelledby': 'basic-button',
-              }}
-            >
-              <MenuItem onClick={uninstall}>Uninstall</MenuItem>
-            </Menu></>
-          )
-          }
+            <>
+              <SettingsIcon
+                onClick={handleClick}
+                sx={{ cursor: 'pointer' }}
+              ></SettingsIcon>
+              <Menu
+                id="basic-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                  'aria-labelledby': 'basic-button',
+                }}
+              >
+                <MenuItem onClick={uninstall}>Uninstall</MenuItem>
+              </Menu>
+            </>
+          )}
         </Box>
       </Box>
       <Typography color="text.secondary">
