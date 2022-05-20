@@ -190,7 +190,7 @@ export default class {
 
   getIdExtension = async () =>
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve) => {
+    new Promise(async resolve => {
       const version = await helpers.getlatestSDKReleaseVersion()
       const extensionPath = helpers.getPointPath()
       const downloadManifest = this.getURL('manifest.json', version)
@@ -208,7 +208,7 @@ export default class {
 
   downloadInstallPointSDK = async () =>
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve) => {
+    new Promise(async resolve => {
       const pointPath = helpers.getPointPath()
       const version = await helpers.getlatestSDKReleaseVersion()
       const extensionPath = helpers.getLiveExtensionsDirectoryPathResources()

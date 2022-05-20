@@ -37,7 +37,7 @@ const getOSAndArch = () => {
 
 const defaultFirefoxInfo = {
   installedReleaseVersion: 'old',
-  isInitialized: false
+  isInitialized: false,
 }
 
 const getPlatform = () => {
@@ -195,7 +195,13 @@ const getLiveDirectoryPathResources = () => {
 }
 
 const getLiveExtensionsDirectoryPathResources = () => {
-  return path.join(getHomePath(), '.point', 'keystore', 'liveprofile', 'extensions')
+  return path.join(
+    getHomePath(),
+    '.point',
+    'keystore',
+    'liveprofile',
+    'extensions'
+  )
 }
 
 const getKeyFileName = () => {
@@ -239,9 +245,8 @@ const getIsFirefoxInit = () => {
   const pointPath = getPointPath()
   try {
     const info = JSON.parse(
-      fs.readFileSync(
-        path.join(pointPath, 'infoFirefox.json'))
-        .toString())
+      fs.readFileSync(path.join(pointPath, 'infoFirefox.json')).toString()
+    )
     return info.isInitialized
   } catch (error) {
     return defaultFirefoxInfo
@@ -253,9 +258,8 @@ const setIsFirefoxInit = (value: boolean) => {
   const pointPath = getPointPath()
   try {
     const info = JSON.parse(
-      fs.readFileSync(
-        path.join(pointPath, infoFilename))
-        .toString())
+      fs.readFileSync(path.join(pointPath, infoFilename)).toString()
+    )
     info.isInitialized = value
     fs.writeFile(
       path.join(pointPath, infoFilename),
@@ -273,14 +277,15 @@ const setIsFirefoxInit = (value: boolean) => {
 const getInstalledFirefoxVersion = () => {
   const pointPath = getPointPath()
   try {
-    const versionData = fs.readFileSync(path.join(pointPath, 'infoFirefox.json'))
+    const versionData = fs.readFileSync(
+      path.join(pointPath, 'infoFirefox.json')
+    )
     const version = versionData.toString()
     const installedVersion = JSON.parse(version)
     return installedVersion
   } catch (error) {
     return defaultFirefoxInfo
   }
-
 }
 
 const logout = () => {
@@ -353,7 +358,7 @@ const getBinPath = () => {
   return dir
 }
 
-function noop(): void { }
+function noop(): void {}
 
 const countFilesinDir = async (dir: string): Promise<number> => {
   let fileCount = 0
@@ -440,5 +445,5 @@ export default Object.freeze({
   getlatestUninstallerReleaseVersion,
   getPointPathTemp,
   getIsFirefoxInit,
-  setIsFirefoxInit
+  setIsFirefoxInit,
 })

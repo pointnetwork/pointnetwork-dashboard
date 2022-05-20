@@ -27,10 +27,7 @@ class WelcomeService {
 
     // arweave
     const arKey = getKeyFromMnemonic(phrase.phrase)
-    fs.writeFileSync(
-      helpers.getArweaveKeyFileName(),
-      JSON.stringify(arKey)
-    )
+    fs.writeFileSync(helpers.getArweaveKeyFileName(), JSON.stringify(arKey))
 
     return true
   }

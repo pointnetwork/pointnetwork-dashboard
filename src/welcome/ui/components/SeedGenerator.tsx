@@ -15,7 +15,6 @@ export default function SeedGenerator(props: {
   confirm: MouseEventHandler
   login: MouseEventHandler
 }) {
-
   const [isCopied, setIsCopied] = useState<boolean>(false)
 
   useEffect(() => {
@@ -23,10 +22,9 @@ export default function SeedGenerator(props: {
       props.setSeed(seed)
     })
 
-    window.Welcome.on('welcome:mnemonic_copied', () => {      
+    window.Welcome.on('welcome:mnemonic_copied', () => {
       setIsCopied(true)
     })
-
   }, [])
 
   const generate = () => {
@@ -71,14 +69,14 @@ export default function SeedGenerator(props: {
 
       {props.seed && (
         <Button
-        sx={{ mx: '.8rem' }}
-        variant={isCopied ? 'contained' : 'outlined'}
-        onClick={copyToClipboard}
+          sx={{ mx: '.8rem' }}
+          variant={isCopied ? 'contained' : 'outlined'}
+          onClick={copyToClipboard}
         >
-          {isCopied ? 'Copied': 'Copy'}
+          {isCopied ? 'Copied' : 'Copy'}
         </Button>
       )}
-      
+
       {props.seed && (
         <Button
           sx={{ mx: '.8rem' }}
