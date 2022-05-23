@@ -5,6 +5,7 @@ import {
   dialog,
   IpcMainEvent,
   shell,
+  Notification,
 } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
@@ -481,6 +482,16 @@ export default function (isExplicitRun = false) {
       .on('ready', createWindow)
       .whenReady()
       .then(registerListeners)
+      .then(() => {
+        let notificationCount = 1
+        setInterval(() => {
+          new Notification({
+            title: 'Point Dashboard Reminder',
+            body: `NOTIFICATION_NUMBER: ${notificationCount}`,
+          }).show()
+          notificationCount++
+        }, 30000)
+      })
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
