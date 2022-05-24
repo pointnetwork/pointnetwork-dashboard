@@ -23,7 +23,7 @@ const DashboardUpdateAlert = () => {
 
   const openDonwloadLink = () => {
     window.Dashboard.openDashboardDownloadLink(
-      `https://github.com/pointnetwork/pointnetwork-dashboard/releases/tag/${status.latestVersion}`
+      `https://pointnetwork.io/download`
     )
   }
 
