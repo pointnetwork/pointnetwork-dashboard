@@ -1,4 +1,4 @@
-import { useReducer, useState } from 'react'
+import { useReducer, useRef, useState } from 'react'
 // MAterial UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -14,6 +14,7 @@ import { parseLog } from '../helpers'
 import TopBar from './components/TopBar'
 
 export default function App() {
+  const loggerRef = useRef<HTMLElement>()
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)
   const [installing, setInstalling] = useState<boolean>(false)
 
@@ -28,6 +29,7 @@ export default function App() {
       if (category) {
         const payload = { message, progress }
         dispatch({ type: category, payload })
+        loggerRef.current?.scrollTo({ top: loggerRef.current?.scrollHeight })
       }
     })
   }
@@ -67,7 +69,8 @@ export default function App() {
           </Button>
         </Box>
         <Box
-          sx={{ p: '1rem', mt: '.5rem', overflowY: 'auto' }}
+          ref={loggerRef}
+          sx={{ p: '1rem', mt: '.5rem', overflowY: 'hidden' }}
           bgcolor="primary.light"
           borderRadius={2}
           display={installing ? 'block' : 'none'}
