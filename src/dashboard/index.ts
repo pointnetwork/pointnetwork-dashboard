@@ -35,7 +35,7 @@ const MESSAGES = {
   closeConfirmation: {
     title: 'Are you sure you want to close?',
     message:
-      'Closing the Dashboard will also close the Browser. Are you sure you want to close them?',
+      'Quit Point Network and Point Browser?',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',

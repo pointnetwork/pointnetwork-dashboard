@@ -66,8 +66,7 @@ const WalletInfo = ({
       <Grid item xs={12} marginBottom={1}>
         {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
           <Alert severity="info">
-            You need POINTS to be able to browse the Web3.0. Click "Request
-            POINTS" button to get some POINTS.
+            You need POINT token to interact with the network. Click “Request yPOINTs” to get some testnet tokens.
           </Alert>
         )}
       </Grid>
@@ -78,7 +77,7 @@ const WalletInfo = ({
           </Typography>
         ) : (
           <Typography variant="h6" component="h2" marginBottom={'2px'}>
-            Please create an identity at <span style={link}>https://point</span>
+            No identity yet, register one when the browser opens
           </Typography>
         )}
       </Grid>
@@ -125,7 +124,7 @@ const WalletInfo = ({
               disabled={Number(walletInfo.balance) > 0}
               onClick={requestYPoints}
             >
-              Request yPoints
+              Request yPOINTs
             </Button>
             <Button
               variant="contained"

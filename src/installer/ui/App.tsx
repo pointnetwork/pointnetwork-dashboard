@@ -48,8 +48,7 @@ export default function App() {
 
         <Box flex={1} display={installing ? 'none' : 'block'}>
           <Typography>
-            The following components will be installed on your system to run the
-            point dashboard
+            The following components will be installed on your system to run Point Network
           </Typography>
           <Box
             sx={{ px: '1rem', mt: '1rem', mb: '2rem' }}

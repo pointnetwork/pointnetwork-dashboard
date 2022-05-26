@@ -93,7 +93,7 @@ export default function SeedGenerator(props: {
 
       <Box>
         <Typography gutterBottom>
-          Already have a secret phrase? Cool, click below to enter your seed
+          Already have a secret phrase? Click below to enter your seed
           phrase and log back in.
         </Typography>
         <Button variant="outlined" onClick={props.login}>
