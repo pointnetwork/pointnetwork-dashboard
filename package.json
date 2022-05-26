@@ -53,7 +53,8 @@
     "tar-fs": "^2.1.1",
     "unbzip2-stream": "^1.4.3",
     "web-ext": "^6.7.0",
-    "which": "^2.0.2"
+    "which": "^2.0.2",
+    "ws": "^8.6.0"
   },
   "devDependencies": {
     "@babel/core": "7.17.2",

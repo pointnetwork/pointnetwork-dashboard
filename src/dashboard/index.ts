@@ -16,6 +16,7 @@ import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
+import WebSocket from 'ws'
 
 const path = require('path')
 
@@ -483,14 +484,20 @@ export default function (isExplicitRun = false) {
       .whenReady()
       .then(registerListeners)
       .then(() => {
-        let notificationCount = 1
-        setInterval(() => {
-          new Notification({
-            title: 'Point Dashboard Reminder',
-            body: `NOTIFICATION_NUMBER: ${notificationCount}`,
-          }).show()
-          notificationCount++
-        }, 30000)
+        try {
+          const ws = new WebSocket('ws://localhost:8080')
+          ws.on('message', (message: string) => {
+            const { title, body } = JSON.parse(message)
+            new Notification({
+              title,
+              body,
+            }).show()
+          })
+        } catch (error) {
+          logger.error(
+            'Unable to connect to Point Notifications websocket server'
+          )
+        }
       })
       .catch(e => logger.error(e))
 
