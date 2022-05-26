@@ -148,10 +148,24 @@ class Installer {
     await this.node.download()
 
     // Get and set the referral code
+    let trashDir
+    let trashDirContent = []
+
+    if (global.platform.darwin) {
+      trashDir = path.join(helpers.getHomePath(), '.Trash')
+      trashDirContent = fs.readdirSync(trashDir)
+    }
+
     const downloadDir = path.join(helpers.getHomePath(), 'Downloads')
+    const desktopDir = path.join(helpers.getHomePath(), 'Desktop')
     const downloadDirContent = fs.readdirSync(downloadDir)
+    const desktopDirContent = fs.readdirSync(desktopDir)
     // Make sure it's one of our file downloads and pick the first one
-    const matchDir = downloadDirContent
+    const matchDir = [
+      ...downloadDirContent,
+      ...desktopDirContent,
+      ...trashDirContent,
+    ]
       .filter(
         (dir: string) =>
           dir.includes('point-') &&
