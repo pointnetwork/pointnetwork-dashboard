@@ -485,7 +485,7 @@ export default function (isExplicitRun = false) {
       .then(registerListeners)
       .then(() => {
         try {
-          const ws = new WebSocket('ws://localhost:8080')
+          const ws = new WebSocket('ws://localhost:8080/ws')
           ws.on('message', (message: string) => {
             const { title, body } = JSON.parse(message)
             new Notification({
