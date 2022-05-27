@@ -15,6 +15,7 @@ import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
+import StartUp from '../startup'
 
 const path = require('path')
 
@@ -93,6 +94,7 @@ process.on('uncaughtException', (err, origin) => {
 
   logger.info(`Caught exception: ${err}\n Exception origin: ${origin}`)
 })
+
 
 export default function (isExplicitRun = false) {
   async function createWindow() {
@@ -478,7 +480,11 @@ export default function (isExplicitRun = false) {
 
   if (!isExplicitRun) {
     app
-      .on('ready', createWindow)
+      .on('ready', () =>{
+        createWindow()
+        const startup = new StartUp(app);
+        startup.enable()
+      })
       .whenReady()
       .then(registerListeners)
       .catch(e => logger.error(e))
