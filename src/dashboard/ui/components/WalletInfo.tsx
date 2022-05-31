@@ -18,12 +18,14 @@ const link = {
 }
 
 const monospace = {
-  fontFamily: 'monospace',
+  fontFamily: 'ui-monospace',
   fontSize: '14px',
   fontStyle: 'normal',
   fontVariant: 'normal',
+  fontVariantNumeric: 'tabular-nums',
   fontWeight: '700',
   lineHeight: '26.4px',
+  color: '##D3D3D3',
 }
 
 const WalletInfo = ({
