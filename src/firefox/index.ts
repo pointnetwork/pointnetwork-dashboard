@@ -72,7 +72,7 @@ export default class {
       )
 
       const language = 'en-US'
-      const version = await this.getLastVersionFirefox()
+      const version = await this.getLastVersionFirefox() // '93.0b4'//
       const osAndArch = helpers.getOSAndArch()
       const browserDir = helpers.getBrowserFolderPath()
       const pointPath = helpers.getPointPath()
@@ -695,27 +695,26 @@ pref("browser.aboutwelcome.enabled", false);
   }
 
   async getLastVersionFirefox() {
-    return "100.0.2" // TODO: later versions have problems with certs
-    // const url = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
-    //
-    // return new Promise(resolve => {
-    //   https.https.get(url, (res: { on: (arg0: string, arg1: any) => void }) => {
-    //     let data = ''
-    //
-    //     res.on('data', (chunk: string) => {
-    //       data += chunk
-    //     })
-    //
-    //     res.on('end', () => {
-    //       try {
-    //         const json = JSON.parse(data)
-    //         resolve(json.LATEST_FIREFOX_VERSION)
-    //       } catch (error: any) {
-    //         logger.error(error.message)
-    //       }
-    //     })
-    //   })
-    // })
+    const url = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
+
+    return new Promise(resolve => {
+      https.https.get(url, (res: { on: (arg0: string, arg1: any) => void }) => {
+        let data = ''
+
+        res.on('data', (chunk: string) => {
+          data += chunk
+        })
+
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data)
+            resolve(json.LATEST_FIREFOX_VERSION)
+          } catch (error: any) {
+            logger.error(error.message)
+          }
+        })
+      })
+    })
   }
 
   async checkFirefoxVersion() {
