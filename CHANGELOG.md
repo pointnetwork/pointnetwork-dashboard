@@ -6,7 +6,20 @@ Dashboard).
 
 # Unreleased
 
+## [0.2.22]
+
+### Fixed
+- Fixed a bug where the Point node process was being killed after some time.
+
 # Released
+
+## [0.2.21]
+
+### Fixed
+- Fixed a bug that prevented the dashboard from being closed when clicking on
+  the quit button
+- Fixed a bug where, on some operating systems, Point Node was not being closed
+  after logging out or closing the dashboard
 
 ## [0.2.18]
 ### Added
