@@ -8,6 +8,7 @@ import util from 'util'
 import axios from 'axios'
 import { InstallationStepsEnum } from '../@types/installation'
 import moment from 'moment'
+import { spawn } from 'node:child_process'
 
 const rimraf = require('rimraf')
 const decompress = require('decompress')
@@ -165,6 +166,20 @@ export default class Node {
 
     let cmd = `NODE_ENV=production "${file}"`
     if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
+
+    const nodeProcess = spawn(cmd)
+
+    nodeProcess.stdout.on('data', (data) => {
+      logger.info(`Launched Node: ${data}`)
+    })
+
+    nodeProcess.stderr.on('data', (data) => {
+      logger.info(`pointnode launch exec error: ${data}`)
+    })
+
+    nodeProcess.on('close', (code) => {
+      logger.info(`pointnode closed. code ${code}`)
+    })
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
       logger.info('Launched Node')
