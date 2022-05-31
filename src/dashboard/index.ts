@@ -484,20 +484,29 @@ export default function (isExplicitRun = false) {
       .whenReady()
       .then(registerListeners)
       .then(() => {
-        try {
-          const ws = new WebSocket('ws://localhost:8080/ws')
-          ws.on('message', (message: string) => {
-            const { title, body } = JSON.parse(message)
-            new Notification({
-              title,
-              body,
-            }).show()
-          })
-        } catch (error) {
-          logger.error(
-            'Unable to connect to Point Notifications websocket server'
-          )
-        }
+        setTimeout(async () => {
+          try {
+            const addressRes = await axios.get(
+              'http://localhost:2468/v1/api/wallet/address'
+            )
+            const address = addressRes.data.data.address
+            const ws = new WebSocket(
+              `ws://localhost:8080/ws?address=${address}`
+            )
+            logger.info('Connected to Point Notifications websocket server')
+            ws.on('message', (message: string) => {
+              const { title, body } = JSON.parse(message)
+              new Notification({
+                title,
+                body,
+              }).show()
+            })
+          } catch (error) {
+            logger.error(
+              'Unable to connect to Point Notifications websocket server'
+            )
+          }
+        }, 5000)
       })
       .catch(e => logger.error(e))
 
