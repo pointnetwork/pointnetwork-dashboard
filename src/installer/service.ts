@@ -152,14 +152,32 @@ class Installer {
     let trashDirContent = []
 
     if (global.platform.darwin) {
-      trashDir = path.join(helpers.getHomePath(), '.Trash')
-      trashDirContent = fs.readdirSync(trashDir)
+      try {
+        trashDir = path.join(helpers.getHomePath(), '.Trash')
+        trashDirContent = fs.readdirSync(trashDir)
+      } catch (e) {
+        this.logger.info(
+          InstallationStepsEnum.DIRECTORIES,
+          'Not allowed to read ".Trash" directory'
+        );
+      }
     }
 
     const downloadDir = path.join(helpers.getHomePath(), 'Downloads')
-    const desktopDir = path.join(helpers.getHomePath(), 'Desktop')
     const downloadDirContent = fs.readdirSync(downloadDir)
-    const desktopDirContent = fs.readdirSync(desktopDir)
+
+    let desktopDir;
+    let desktopDirContent = [];
+    
+    try {
+      desktopDir = path.join(helpers.getHomePath(), 'Desktop');
+      desktopDirContent = fs.readdirSync(desktopDir);
+    } catch (e) {
+      this.logger.info(
+        InstallationStepsEnum.DIRECTORIES,
+        'Not allowed to read "Desktop" directory'
+      );
+    }
     // Make sure it's one of our file downloads and pick the first one
     const matchDir = [
       ...downloadDirContent,
