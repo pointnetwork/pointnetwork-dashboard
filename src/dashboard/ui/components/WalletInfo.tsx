@@ -12,11 +12,6 @@ const balanceStyle = {
   fontSize: '18px',
 }
 
-const link = {
-  fontWeight: 'bold',
-  color: '#401E84',
-}
-
 const monospace = {
   fontFamily: 'monospace',
   fontSize: '14px',
@@ -32,7 +27,6 @@ const WalletInfo = ({
   walletInfo,
   identity,
   requestYPoints,
-  logout,
   isNodeUpdating,
   isFirefoxUpdating,
   isSdkUpdating,
@@ -45,7 +39,6 @@ const WalletInfo = ({
   }
   identity: string | null
   requestYPoints: ReactEventHandler
-  logout: ReactEventHandler
   isNodeUpdating: boolean
   isFirefoxUpdating: boolean
   isSdkUpdating: boolean
@@ -66,7 +59,8 @@ const WalletInfo = ({
       <Grid item xs={12} marginBottom={1}>
         {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
           <Alert severity="info">
-            You need POINT token to interact with the network. Click “Request yPOINTs” to get some testnet tokens.
+            You need POINT token to interact with the network. Click “Request
+            yPOINTs” to get some testnet tokens.
           </Alert>
         )}
       </Grid>
@@ -125,13 +119,6 @@ const WalletInfo = ({
               onClick={requestYPoints}
             >
               Request yPOINTs
-            </Button>
-            <Button
-              variant="contained"
-              onClick={logout}
-              style={{ marginRight: '5px' }}
-            >
-              Logout
             </Button>
           </Stack>
         </Fragment>

@@ -225,6 +225,7 @@ export default function App() {
           handleClose={handleClose}
           uninstall={uninstall}
           updateing={isUninstallerUpt}
+          logout={logout}
         />
         <DefaultLoader message={loadingMessage} isLoading={isLoading} />
         <UpdateProgress
@@ -242,7 +243,6 @@ export default function App() {
           isSdkUpdating={isSdkUpdating}
           isLoadingWalletInfo={isLoadingWalletInfo}
           identity={identity}
-          logout={logout}
           requestYPoints={requestYPoints}
           walletInfo={walletInfo}
         />
