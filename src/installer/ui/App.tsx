@@ -48,7 +48,8 @@ export default function App() {
 
         <Box flex={1} display={installing ? 'none' : 'block'}>
           <Typography>
-            The following components will be installed on your system to run Point Network
+            The following components will be installed on your system to run
+            Point Network
           </Typography>
           <Box
             sx={{ px: '1rem', mt: '1rem', mb: '2rem' }}
@@ -69,7 +70,7 @@ export default function App() {
         </Box>
         <Box
           ref={loggerRef}
-          sx={{ p: '1rem', mt: '.5rem', overflowY: 'hidden' }}
+          sx={{ p: '1rem', mt: '.5rem', overflowY: 'scroll' }}
           bgcolor="primary.light"
           borderRadius={2}
           display={installing ? 'block' : 'none'}
