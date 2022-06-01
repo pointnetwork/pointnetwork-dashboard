@@ -91,7 +91,7 @@ export default function App() {
         </Box>
         <Box
           ref={loggerRef}
-          sx={{ p: '1rem', mt: '.5rem', overflowY: 'hidden' }}
+          sx={{ p: '1rem', mt: '.5rem', overflowY: 'scroll' }}
           bgcolor="primary.light"
           borderRadius={2}
           display={installing ? 'block' : 'none'}
