@@ -1,6 +1,8 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, ReactEventHandler, useEffect, useState } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import SettingsIcon from '@mui/icons-material/Settings'
 import Menu from '@mui/material/Menu'
@@ -13,6 +15,7 @@ const DashboardTitle = ({
   handleClose,
   uninstall,
   updateing,
+  logout,
 }: {
   handleClick: any
   anchorEl: null | HTMLElement
@@ -20,6 +23,7 @@ const DashboardTitle = ({
   handleClose: any
   uninstall: any
   updateing: boolean
+  logout: ReactEventHandler
 }) => {
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
 
@@ -40,23 +44,17 @@ const DashboardTitle = ({
         </Typography>
         <Box position="fixed" right={16} top={56}>
           {!updateing && (
-            <>
-              <SettingsIcon
-                onClick={handleClick}
-                sx={{ cursor: 'pointer' }}
-              ></SettingsIcon>
-              <Menu
-                id="basic-menu"
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                MenuListProps={{
-                  'aria-labelledby': 'basic-button',
-                }}
-              >
+            <Box display="flex" alignItems="center">
+              <Button onClick={logout} color="inherit" style={{ opacity: 0.6 }}>
+                Log Out
+              </Button>
+              <IconButton onClick={handleClick}>
+                <SettingsIcon />
+              </IconButton>
+              <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
                 <MenuItem onClick={uninstall}>Uninstall</MenuItem>
               </Menu>
-            </>
+            </Box>
           )}
         </Box>
       </Box>
