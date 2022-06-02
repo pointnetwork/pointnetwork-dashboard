@@ -4,6 +4,7 @@ import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
+import helpers from '../../shared/helpers'
 
 const logger = new Logger()
 
@@ -120,6 +121,15 @@ export default function (isExplicitRun = false) {
           uninstaller!.launch()
           mainWindow?.destroy()
         }
+      },
+    },
+    {
+      channel: 'welcome:getDashboardVersion',
+      listener() {
+        mainWindow!.webContents.send(
+          'installer:getDashboardVersion',
+          helpers.getInstalledDashboardVersion()
+        )
       },
     },
     {
