@@ -34,8 +34,7 @@ declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 const MESSAGES = {
   closeConfirmation: {
     title: 'Are you sure you want to close?',
-    message:
-      'Quit Point Network and Point Browser?',
+    message: 'Quit Point Network and Point Browser?',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
@@ -275,6 +274,16 @@ export default function (isExplicitRun = false) {
       listener(event: IpcMainEvent, url: string) {
         try {
           shell.openExternal(url)
+        } catch (error) {
+          logger.error(error)
+        }
+      },
+    },
+    {
+      channel: 'dashboard:open_feedback_link',
+      listener() {
+        try {
+          shell.openExternal('https://pointnetwork.io/feedback')
         } catch (error) {
           logger.error(error)
         }

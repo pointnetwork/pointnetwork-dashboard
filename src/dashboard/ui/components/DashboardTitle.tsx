@@ -53,6 +53,9 @@ const DashboardTitle = ({
               </IconButton>
               <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
                 <MenuItem onClick={uninstall}>Uninstall</MenuItem>
+                <MenuItem onClick={window.Dashboard.openFeedbackLink}>
+                  Leave a Feedback
+                </MenuItem>
               </Menu>
             </Box>
           )}
