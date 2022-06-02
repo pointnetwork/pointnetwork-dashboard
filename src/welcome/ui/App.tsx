@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 // MAterial UI
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -14,6 +14,14 @@ export default function App() {
   const [seed, setSeed] = useState<string>('')
   const [seedConfirm, setSeedConfirm] = useState<boolean>(false)
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false)
+  const [version, setVersion] = useState<string>('')
+
+  useEffect(() => {
+    window.Welcome.getDashboardVersion()
+    window.Welcome.on('installer:getDashboardVersion', (version: string) =>
+      setVersion(version)
+    )
+  }, [])
 
   const login = () => {
     setSeed('')
@@ -68,9 +76,12 @@ export default function App() {
       <TopBar isLoading={false} />
       <Box display="flex" alignItems="baseline">
         <Box sx={{ p: '3.5%' }}>
-          <Typography variant="h4" component="h1">
-            Welcome to Point Network
-          </Typography>
+          <Box display="flex" alignItems="baseline">
+            <Typography variant="h4" gutterBottom component="h1">
+              Welcome to Point Network
+            </Typography>
+            <Typography ml={1}>v{version}</Typography>
+          </Box>
           {renderScreen()}
         </Box>
         <MenuUninstaller

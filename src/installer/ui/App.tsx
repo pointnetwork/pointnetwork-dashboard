@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 // MAterial UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -17,6 +17,14 @@ export default function App() {
   const loggerRef = useRef<HTMLElement>()
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)
   const [installing, setInstalling] = useState<boolean>(false)
+  const [version, setVersion] = useState<string>('')
+
+  useEffect(() => {
+    window.Installer.getDashboardVersion()
+    window.Installer.on('installer:getDashboardVersion', (version: string) =>
+      setVersion(version)
+    )
+  }, [])
 
   function sendStartInstallation() {
     window.Installer.startInstallation()
@@ -42,13 +50,17 @@ export default function App() {
         flexDirection="column"
         sx={{ p: '3.5%', overflow: 'hidden', maxHeight: '82vh' }}
       >
-        <Typography variant="h4" gutterBottom component="h1">
-          {installing ? 'Installing' : 'Welcome to the Point Installer'}
-        </Typography>
+        <Box display="flex" alignItems="baseline">
+          <Typography variant="h4" gutterBottom component="h1">
+            {installing ? 'Installing' : 'Welcome to the Point Installer'}
+          </Typography>
+          <Typography ml={1}>v{version}</Typography>
+        </Box>
 
         <Box flex={1} display={installing ? 'none' : 'block'}>
           <Typography>
-            The following components will be installed on your system to run Point Network
+            The following components will be installed on your system to run
+            Point Network
           </Typography>
           <Box
             sx={{ px: '1rem', mt: '1rem', mb: '2rem' }}

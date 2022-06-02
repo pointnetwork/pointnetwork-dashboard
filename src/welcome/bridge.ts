@@ -32,6 +32,9 @@ export const api = {
   launchUninstaller: () => {
     ipcRenderer.send('welcome:launchUninstaller')
   },
+  getDashboardVersion: () => {
+    ipcRenderer.send('welcome:getDashboardVersion')
+  },
   minimizeWindow: () => {
     ipcRenderer.send(`welcome:minimizeWindow`)
   },
