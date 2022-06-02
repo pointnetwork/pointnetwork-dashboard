@@ -290,6 +290,16 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'dashboard:open_feedback_link',
+      listener() {
+        try {
+          shell.openExternal('https://pointnetwork.io/feedback')
+        } catch (error) {
+          logger.error(error)
+        }
+      },
+    },
+    {
       channel: 'dashboard:isNewDashboardReleaseAvailable',
       async listener() {
         mainWindow!.webContents.send(
