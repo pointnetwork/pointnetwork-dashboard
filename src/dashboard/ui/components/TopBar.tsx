@@ -1,11 +1,20 @@
+import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 // Icons
 import CloseIcon from '@mui/icons-material/Close'
 import RemoveIcon from '@mui/icons-material/Remove'
 
 const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
+  const [isTimedOut, setIsTimedOut] = useState<boolean>(false)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsTimedOut(true)
+    }, 10000)
+  }, [])
+
   const handeClose = () => {
-    !isLoading && window.Dashboard.closeWindow()
+    if (!isLoading || isTimedOut) window.Dashboard.closeWindow()
   }
 
   return (
