@@ -4,6 +4,7 @@ import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import Installer from './service'
 import helpers from '../../shared/helpers'
+import { getIdentifier } from '../../shared/getIdentifier'
 export { Installer }
 
 const logger = new Logger()
@@ -63,6 +64,15 @@ export default function () {
         mainWindow!.webContents.send(
           'installer:getDashboardVersion',
           helpers.getInstalledDashboardVersion()
+        )
+      },
+    },
+    {
+      channel: 'installer:getIdentifier',
+      listener() {
+        mainWindow!.webContents.send(
+          'installer:getIdentifier',
+          getIdentifier()[0]
         )
       },
     },

@@ -18,11 +18,16 @@ export default function App() {
   const [logs, dispatch] = useReducer(installationLogReducer, initialState)
   const [installing, setInstalling] = useState<boolean>(false)
   const [version, setVersion] = useState<string>('')
+  const [identifier, setIdentifier] = useState<string>('')
 
   useEffect(() => {
     window.Installer.getDashboardVersion()
     window.Installer.on('installer:getDashboardVersion', (version: string) =>
       setVersion(version)
+    )
+    window.Installer.getIdentifier()
+    window.Installer.on('installer:getIdentifier', (identifier: string) =>
+      setIdentifier(identifier)
     )
   }, [])
 
@@ -44,6 +49,11 @@ export default function App() {
 
   return (
     <UIThemeProvider>
+      <Box position="fixed" right={8} bottom={2}>
+        <Typography variant="caption" ml={1} sx={{ opacity: 0.7 }}>
+          {identifier}
+        </Typography>
+      </Box>
       <TopBar isLoading={false} />
       <Box
         display={'flex'}
