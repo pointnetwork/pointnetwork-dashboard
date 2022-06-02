@@ -11,6 +11,9 @@ export const api = {
   startInstallation: () => {
     ipcRenderer.send('installer:start')
   },
+  getDashboardVersion: () => {
+    ipcRenderer.send('installer:getDashboardVersion')
+  },
   minimizeWindow: () => {
     ipcRenderer.send(`installer:minimizeWindow`)
   },
