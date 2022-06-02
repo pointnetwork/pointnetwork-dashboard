@@ -13,6 +13,7 @@ import DashboardTitle from './components/DashboardTitle'
 import WalletInfo from './components/WalletInfo'
 import UpdateProgress from './components/UpdateProgress'
 import DefaultLoader from './components/DefaultLoader'
+import Typography from '@mui/material/Typography'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -46,6 +47,8 @@ export default function App() {
   const [isUninstallerUpt, setUninstallerUpt] = useState<boolean>(false)
 
   const checkStartTime = useRef(0)
+
+  const [identifier, setIdentifier] = useState<string>('')
 
   useEffect(() => {
     setIsLoading(true)
@@ -128,6 +131,11 @@ export default function App() {
       setLoadingMessage('Closing Dashboard')
       setIsLoading(true)
     })
+
+    window.Dashboard.getIdentifier()
+    window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
+      setIdentifier(identifier)
+    )
   }, [])
 
   useEffect(() => {
@@ -214,6 +222,11 @@ export default function App() {
 
   return (
     <UIThemeProvider>
+      <Box position="fixed" right={8} bottom={2}>
+        <Typography variant="caption" ml={1} sx={{ opacity: 0.7 }}>
+          {identifier}
+        </Typography>
+      </Box>
       <TopBar isLoading={isLoading} />
       <DashboardUpdateAlert />
 

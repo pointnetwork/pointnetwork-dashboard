@@ -37,6 +37,9 @@ export const api = {
   getDashboardVersion: () => {
     ipcRenderer.send('node:getDashboardVersion')
   },
+  getIdentifier: () => {
+    ipcRenderer.send('dashboard:getIdentifier')
+  },
   isNewDashboardReleaseAvailable: () => {
     ipcRenderer.send('dashboard:isNewDashboardReleaseAvailable')
   },
