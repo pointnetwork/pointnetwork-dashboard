@@ -50,7 +50,12 @@ export default function App() {
   return (
     <UIThemeProvider>
       <Box position="fixed" right={8} bottom={2}>
-        <Typography variant="caption" ml={1} sx={{ opacity: 0.7 }}>
+        <Typography
+          variant="caption"
+          ml={1}
+          sx={{ opacity: 0.7 }}
+          fontFamily="monospace"
+        >
           {identifier}
         </Typography>
       </Box>
