@@ -5,6 +5,7 @@ import {
   dialog,
   IpcMainEvent,
   shell,
+  autoUpdater,
 } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
@@ -35,8 +36,7 @@ declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 const MESSAGES = {
   closeConfirmation: {
     title: 'Are you sure you want to close?',
-    message:
-      'Quit Point Network and Point Browser?',
+    message: 'Quit Point Network and Point Browser?',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
@@ -475,6 +475,30 @@ export default function (isExplicitRun = false) {
     })
   }
 
+  // ===================== AutoUpdater =====================
+  autoUpdater.on('checking-for-update', () => {
+    logger.info('[autoUpdater]: Checking for update...')
+  })
+  autoUpdater.on('update-available', (ev, info) => {
+    logger.info('[autoUpdater]: Update available.', info)
+  })
+  autoUpdater.on('update-not-available', (ev, info) => {
+    logger.info('[autoUpdater]: Update not available.', info)
+  })
+  autoUpdater.on('error', (ev, err) => {
+    logger.error('[autoUpdater]: Error in auto-updater.', err)
+  })
+  autoUpdater.on('update-downloaded', (ev, info) => {
+    logger.info(
+      '[autoUpdater]: Update downloaded.  Will quit and install in 5 seconds.',
+      info
+    )
+    // Wait 5 seconds, then quit and install
+    setTimeout(function () {
+      autoUpdater.quitAndInstall()
+    }, 5000)
+  })
+
   if (isExplicitRun) {
     createWindow()
     registerListeners()
@@ -491,6 +515,19 @@ export default function (isExplicitRun = false) {
       .on('ready', createWindow)
       .whenReady()
       .then(registerListeners)
+      .then(() =>
+        setTimeout(function () {
+          logger.info('[autoUpdater] Starting update check')
+          try {
+            autoUpdater.setFeedURL({
+              url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/latest',
+            })
+            autoUpdater.checkForUpdates()
+          } catch (error) {
+            logger.error(error)
+          }
+        }, 1000)
+      )
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
