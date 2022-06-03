@@ -331,7 +331,9 @@ export default class {
       '.point/keystore/liveprofile'
     )
 
-    const browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
+    let browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
+    if (global.platform.darwin)
+      browserCmd = `open "${cmd}" --first-startup --profile "${profilePath}" --url https://point`
 
     this.window.webContents.send('firefox:active', true)
     try {
@@ -556,10 +558,7 @@ export default class {
     if (global.platform.darwin) {
       return `${path.join(
         rootPath,
-        'Firefox.app',
-        'Contents',
-        'MacOS',
-        'firefox'
+        'Firefox.app'
       )}`
     }
     // linux
