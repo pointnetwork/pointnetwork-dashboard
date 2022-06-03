@@ -333,7 +333,7 @@ export default class {
 
     let browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
     if (global.platform.darwin)
-      browserCmd = `open "${cmd}" --first-startup --profile "${profilePath}" --url https://point`
+      browserCmd = `open "${cmd}" --args --first-startup --profile "${profilePath}" --url https://point`
 
     this.window.webContents.send('firefox:active', true)
     try {
