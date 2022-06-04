@@ -175,16 +175,26 @@ class Installer {
       }
     }
 
-    this.logger.info(
-      InstallationStepsEnum.REFERRAL_CODE,
-      'Reading "Downloads" directory'
-    )
-    const downloadDir = path.join(helpers.getHomePath(), 'Downloads')
-    const downloadDirContent = fs.readdirSync(downloadDir)
-    this.logger.info(
-      InstallationStepsEnum.REFERRAL_CODE,
-      '"Downloads" directory read'
-    )
+    let downloadDir
+    let downloadDirContent = []
+
+    try {
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        'Reading "Downloads" directory'
+      )
+      downloadDir = path.join(helpers.getHomePath(), 'Downloads')
+      downloadDirContent = fs.readdirSync(downloadDir)
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        '"Downloads" directory read'
+      )
+    } catch (e) {
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        'Not allowed to read "Downloads" directory'
+      )
+    }
 
     let desktopDir
     let desktopDirContent = []
