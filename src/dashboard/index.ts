@@ -17,6 +17,9 @@ import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
 
+// @ts-ignore
+if (require('electron-squirrel-startup')) return
+
 const path = require('path')
 
 const logger = new Logger()

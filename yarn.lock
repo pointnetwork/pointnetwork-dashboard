@@ -5648,6 +5648,13 @@
     "tar" "^6.0.5"
     "yargs" "^17.0.1"
 
+"electron-squirrel-startup@^1.0.0":
+  "integrity" "sha512-Oce8mvgGdFmwr+DsAcXBmFK8jFfN6yaFAP9IvyhTfupM3nFkBku/7VS/mdtJteWumImkC6P+BKGsxScoDDkv9Q=="
+  "resolved" "https://registry.npmjs.org/electron-squirrel-startup/-/electron-squirrel-startup-1.0.0.tgz"
+  "version" "1.0.0"
+  dependencies:
+    "debug" "^2.2.0"
+
 "electron-to-chromium@^1.4.71":
   "integrity" "sha512-9LkRQwjW6/wnSfevR21a3k8sOJ+XWSH7kkzs9/EUenKmuDkndP3W9y1yCZpOxufwGbX3JV8glZZSDb4o95zwXQ=="
   "resolved" "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.72.tgz"
