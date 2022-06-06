@@ -10,7 +10,7 @@ async function buildDMG() {
     background: './assets/dmgbackground.png',
     contents: [
       { x: 570, y: 385, type: 'link', path: '/Applications'},
-      { x: 340, y: 390, type: 'file', path: './out/point-darwin-x64/point.app'}
+      { x: 340, y: 390, type: 'file', path: `${process.cwd()}/out/point-darwin-x64/point.app`}
     ],
     additionalDMGOptions: {
       "code-sign": {
