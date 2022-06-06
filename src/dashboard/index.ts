@@ -18,7 +18,10 @@ import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
 
 // @ts-ignore
-if (require('electron-squirrel-startup')) return
+;(() => {
+  // eslint-disable-next-line no-useless-return
+  if (require('electron-squirrel-startup')) return
+})()
 
 const path = require('path')
 
