@@ -21,6 +21,12 @@ const path = require('path')
 
 const logger = new Logger()
 
+require('update-electron-app')({
+  repo: 'pointnetwork/pointnetwork-dashboard',
+  // updateInterval: '1 hour',
+  logger: require('electron-log'),
+})
+
 let mainWindow: BrowserWindow | null
 let node: Node | null
 let uninstaller: Uninstaller | null
@@ -35,8 +41,7 @@ declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 const MESSAGES = {
   closeConfirmation: {
     title: 'Are you sure you want to close?',
-    message:
-      'Quit Point Network and Point Browser?',
+    message: 'Quit Point Network and Point Browser?',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
