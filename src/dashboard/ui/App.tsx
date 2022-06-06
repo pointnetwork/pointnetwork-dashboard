@@ -42,7 +42,10 @@ export default function App() {
   // Version state variables
   const [nodeVersion, setNodeVersion] = useState<string | null>(null)
   const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [anchorElSettings, setAnchorElSettings] = useState<null | HTMLElement>(
+    null
+  )
+  const [anchorElHelp, setAnchorElHelp] = useState<null | HTMLElement>(null)
   const [isUninstallerUpt, setUninstallerUpt] = useState<boolean>(false)
 
   const checkStartTime = useRef(0)
@@ -179,18 +182,27 @@ export default function App() {
   const logout: MouseEventHandler = () => {
     window.Dashboard.logOut()
   }
-  const open = Boolean(anchorEl)
 
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
+  const isSettingsMenuOpen = Boolean(anchorElSettings)
+  const isHelpMenuOpen = Boolean(anchorElHelp)
+
+  const handleOpenSettingsMenu = event => {
+    setAnchorElSettings(event.currentTarget)
   }
-  const handleClose = () => {
-    setAnchorEl(null)
+  const handleCloseSettingsMenu = () => {
+    setAnchorElSettings(null)
+  }
+
+  const handleOpenHelpMenu = event => {
+    setAnchorElHelp(event.currentTarget)
+  }
+  const handleCloseHelpMenu = () => {
+    setAnchorElHelp(null)
   }
 
   const uninstall = () => {
     window.Dashboard.launchUninstaller()
-    handleClose()
+    handleCloseSettingsMenu()
   }
 
   const checkNode = () => {
@@ -219,10 +231,14 @@ export default function App() {
 
       <Box px="3.5%" pt="3%">
         <DashboardTitle
-          anchorEl={anchorEl}
-          handleClick={handleClick}
-          open={open}
-          handleClose={handleClose}
+          anchorElSettings={anchorElSettings}
+          handleOpenSettingsMenu={handleOpenSettingsMenu}
+          isSettingsMenuOpen={isSettingsMenuOpen}
+          handleCloseSettingsMenu={handleCloseSettingsMenu}
+          anchorElHelp={anchorElHelp}
+          handleOpenHelpMenu={handleOpenHelpMenu}
+          isHelpMenuOpen={isHelpMenuOpen}
+          handleCloseHelpMenu={handleCloseHelpMenu}
           uninstall={uninstall}
           updateing={isUninstallerUpt}
           logout={logout}
