@@ -1,8 +1,8 @@
 name: Build
 on:
   push:
-    tags:
-      - 'v*'
+    # tags:
+    #   - 'v*'
 
 jobs:
   create_release:
