@@ -331,7 +331,9 @@ export default class {
       '.point/keystore/liveprofile'
     )
 
-    const browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
+    let browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
+    if (global.platform.darwin)
+      browserCmd = `open "${cmd}" --args --first-startup --profile "${profilePath}" --url https://point`
 
     this.window.webContents.send('firefox:active', true)
     try {
@@ -556,10 +558,7 @@ export default class {
     if (global.platform.darwin) {
       return `${path.join(
         rootPath,
-        'Firefox.app',
-        'Contents',
-        'MacOS',
-        'firefox'
+        'Firefox.app'
       )}`
     }
     // linux
@@ -612,7 +611,9 @@ pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
 pref("extensions.startupScanScopes", 15)
 pref("trailhead.firstrun.branches", "nofirstrun-empty")
-pref("browser.aboutwelcome.enabled", false);
+pref("browser.aboutwelcome.enabled", false)
+pref("browser.sessionstore.resume_session_once", false)
+pref("browser.sessionstore.resume_from_crash", false)
 `
     const policiesCfgContent = `{
   "policies": {

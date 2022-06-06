@@ -9,6 +9,7 @@ import {
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
+import { getIdentifier } from '../../shared/getIdentifier'
 import baseWindowConfig from '../../shared/windowConfig'
 import axios from 'axios'
 import Logger from '../../shared/logger'
@@ -295,6 +296,15 @@ export default function (isExplicitRun = false) {
         mainWindow!.webContents.send(
           'node:getDashboardVersion',
           helpers.getInstalledDashboardVersion()
+        )
+      },
+    },
+    {
+      channel: 'dashboard:getIdentifier',
+      listener() {
+        mainWindow!.webContents.send(
+          'dashboard:getIdentifier',
+          getIdentifier()[0]
         )
       },
     },

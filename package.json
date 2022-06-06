@@ -1,7 +1,7 @@
 {
   "name": "point",
   "author": "Point Labs",
-  "version": "0.2.24",
+  "version": "0.2.27",
   "description": "PointNetwork",
   "main": "./.webpack/main",
   "scripts": {

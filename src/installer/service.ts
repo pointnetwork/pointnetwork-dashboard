@@ -151,15 +151,71 @@ class Installer {
     let trashDir
     let trashDirContent = []
 
+    this.logger.info(
+      InstallationStepsEnum.REFERRAL_CODE,
+      'Beginning the process to check the referralCode'
+    )
     if (global.platform.darwin) {
-      trashDir = path.join(helpers.getHomePath(), '.Trash')
-      trashDirContent = fs.readdirSync(trashDir)
+      try {
+        this.logger.info(
+          InstallationStepsEnum.REFERRAL_CODE,
+          'Reading ".Trash" directory'
+        )
+        trashDir = path.join(helpers.getHomePath(), '.Trash')
+        trashDirContent = fs.readdirSync(trashDir)
+        this.logger.info(
+          InstallationStepsEnum.REFERRAL_CODE,
+          '".Trash" directory read'
+        )
+      } catch (e) {
+        this.logger.info(
+          InstallationStepsEnum.REFERRAL_CODE,
+          'Not allowed to read ".Trash" directory'
+        )
+      }
     }
 
-    const downloadDir = path.join(helpers.getHomePath(), 'Downloads')
-    const desktopDir = path.join(helpers.getHomePath(), 'Desktop')
-    const downloadDirContent = fs.readdirSync(downloadDir)
-    const desktopDirContent = fs.readdirSync(desktopDir)
+    let downloadDir
+    let downloadDirContent = []
+
+    try {
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        'Reading "Downloads" directory'
+      )
+      downloadDir = path.join(helpers.getHomePath(), 'Downloads')
+      downloadDirContent = fs.readdirSync(downloadDir)
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        '"Downloads" directory read'
+      )
+    } catch (e) {
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        'Not allowed to read "Downloads" directory'
+      )
+    }
+
+    let desktopDir
+    let desktopDirContent = []
+
+    try {
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        'Reading "Desktop" directory'
+      )
+      desktopDir = path.join(helpers.getHomePath(), 'Desktop')
+      desktopDirContent = fs.readdirSync(desktopDir)
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        '"Desktop" directory read'
+      )
+    } catch (e) {
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        'Not allowed to read "Desktop" directory'
+      )
+    }
     // Make sure it's one of our file downloads and pick the first one
     const matchDir = [
       ...downloadDirContent,
@@ -179,6 +235,10 @@ class Installer {
     let requiredDir, referralCode
     let isInstalledEventSent = false
     if (matchDir) {
+      this.logger.info(
+        InstallationStepsEnum.REFERRAL_CODE,
+        'File with Referral Code exists'
+      )
       // Strip the file extension
       requiredDir = matchDir
         .replace('.tar.gz', '')
@@ -194,6 +254,12 @@ class Installer {
     if (Number.isNaN(Number(referralCode)) || Number(referralCode) < 0)
       referralCode = '000000000000'
 
+    this.logger.info(
+      InstallationStepsEnum.REFERRAL_CODE,
+      'Referral Code: ',
+      referralCode
+    )
+
     await axios
       .get(
         `https://bounty.pointnetwork.io/ref_success?event=install&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
@@ -201,16 +267,28 @@ class Installer {
       .then(res => {
         isInstalledEventSent = true
         this.logger.info(res.data)
+        this.logger.info(
+          InstallationStepsEnum.REFERRAL_CODE,
+          'Sent referralCode to https://bounty.pointnetwork.io'
+        )
       })
       .catch(this.logger.error)
 
     // Save that referral code in ~/.point/infoReferral.json
+    this.logger.info(
+      InstallationStepsEnum.REFERRAL_CODE,
+      'Saving referralCode to "infoReferral.json"'
+    )
     fs.writeFileSync(
       path.join(helpers.getPointPath(), 'infoReferral.json'),
       JSON.stringify({
         referralCode,
         isInstalledEventSent,
       })
+    )
+    this.logger.info(
+      InstallationStepsEnum.REFERRAL_CODE,
+      'Saved referralCode to "infoReferral.json"'
     )
     // Set the `isInstalled` flag to true
     fs.writeFileSync(
