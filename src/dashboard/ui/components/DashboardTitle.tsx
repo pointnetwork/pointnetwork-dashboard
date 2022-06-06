@@ -7,6 +7,9 @@ import Typography from '@mui/material/Typography'
 import SettingsIcon from '@mui/icons-material/Settings'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+// Icons
+import CancelPresentationIcon from '@mui/icons-material/CancelPresentation'
+import HelpIcon from '@mui/icons-material/Help'
 
 const DashboardTitle = ({
   handleClick,
@@ -52,9 +55,13 @@ const DashboardTitle = ({
                 <SettingsIcon />
               </IconButton>
               <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-                <MenuItem onClick={uninstall}>Uninstall</MenuItem>
                 <MenuItem onClick={window.Dashboard.openFeedbackLink}>
+                  <HelpIcon sx={{ mr: 0.8, opacity: 0.7 }} />
                   Leave a Feedback
+                </MenuItem>
+                <MenuItem onClick={uninstall}>
+                  <CancelPresentationIcon sx={{ mr: 0.8, opacity: 0.7 }} />
+                  Uninstall
                 </MenuItem>
               </Menu>
             </Box>
