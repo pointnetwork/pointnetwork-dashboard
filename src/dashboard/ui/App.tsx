@@ -235,7 +235,12 @@ export default function App() {
       </Box>
       <TopBar isLoading={isLoading} />
       <DashboardUpdateAlert />
-      <NodeRestartAlert isNodeRunning={!!nodeVersion} />
+      <NodeRestartAlert
+        isLoading={
+          isLoading || isFirefoxUpdating || isNodeUpdating || isSdkUpdating
+        }
+        isNodeRunning={!!nodeVersion}
+      />
 
       <Box px="3.5%" pt="3%">
         <DashboardTitle
