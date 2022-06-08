@@ -202,17 +202,28 @@ export default function (isExplicitRun = false) {
         })
 
         if (confirmationAnswer === 0) {
-          mainWindow?.webContents.send('dashboard:launch_uninstaller', true)
-          logger.info('Launching Uninstaller')
-
           try {
-            await uninstaller!.launch()
-            setTimeout(() => {
-              mainWindow?.webContents.send(
-                'dashboard:launch_uninstaller',
-                false
-              )
-            }, 5000)
+            if (global.platform.linux) {
+              mainWindow?.webContents.send('dashboard:close')
+              logger.info('Closed Dashboard Window')
+              events.forEach(event => {
+                ipcMain.removeListener(event.channel, event.listener)
+                logger.info('[dashboard:index.ts] Removed event', event.channel)
+              })
+              await Promise.all([firefox?.close(), Node.stopNode()])
+              await uninstaller!.launch()
+              mainWindow?.destroy()
+            } else {
+              mainWindow?.webContents.send('dashboard:launch_uninstaller', true)
+              logger.info('Launching Uninstaller')
+              await uninstaller!.launch()
+              setTimeout(() => {
+                mainWindow?.webContents.send(
+                  'dashboard:launch_uninstaller',
+                  false
+                )
+              }, 5000)
+            }
           } catch (err) {
             logger.error('[dashboard:index.ts] Error in `close` handler', err)
           }
