@@ -2,7 +2,15 @@ import { useState, ReactEventHandler, useEffect } from 'react'
 import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
 
-const NodeRestartAlert = ({ isNodeRunning }: { isNodeRunning: boolean }) => {
+const NodeRestartAlert = ({
+  isNodeRunning,
+  isLoading,
+}: {
+  isNodeRunning: boolean
+  isLoading: boolean
+}) => {
+  if (isLoading) return null
+
   const [showAlert, setShowAlert] = useState<boolean>(false)
 
   useEffect(() => {
