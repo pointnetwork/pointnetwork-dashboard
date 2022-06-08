@@ -133,6 +133,16 @@ export default function App() {
       setIsLoading(true)
     })
 
+    window.Dashboard.on('dashboard:launch_uninstaller', (status: boolean) => {
+      if (status) {
+        setLoadingMessage('Launching Uninstaller')
+        setIsLoading(true)
+      } else {
+        setLoadingMessage('')
+        setIsLoading(false)
+      }
+    })
+
     window.Dashboard.getIdentifier()
     window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
       setIdentifier(identifier)

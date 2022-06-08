@@ -35,8 +35,7 @@ declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 const MESSAGES = {
   closeConfirmation: {
     title: 'Are you sure you want to close?',
-    message:
-      'Quit Point Network and Point Browser?',
+    message: 'Quit Point Network and Point Browser?',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
@@ -53,8 +52,7 @@ const MESSAGES = {
   },
   uninstallConfirmation: {
     title: 'Uninstall Point Network',
-    message:
-      'Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard and Point Browser.',
+    message: 'Are you sure you want to uninstall Point Network?',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
@@ -204,20 +202,19 @@ export default function (isExplicitRun = false) {
         })
 
         if (confirmationAnswer === 0) {
-          mainWindow?.webContents.send('dashboard:close')
-          logger.info('Closed Dashboard Window')
-          events.forEach(event => {
-            ipcMain.removeListener(event.channel, event.listener)
-            logger.info('[dashboard:index.ts] Removed event', event.channel)
-          })
+          mainWindow?.webContents.send('dashboard:launch_uninstaller', true)
+          logger.info('Launching Uninstaller')
 
           try {
-            await Promise.all([firefox?.close(), Node.stopNode()])
+            await uninstaller!.launch()
+            setTimeout(() => {
+              mainWindow?.webContents.send(
+                'dashboard:launch_uninstaller',
+                false
+              )
+            }, 5000)
           } catch (err) {
             logger.error('[dashboard:index.ts] Error in `close` handler', err)
-          } finally {
-            uninstaller!.launch()
-            mainWindow?.destroy()
           }
         }
       },

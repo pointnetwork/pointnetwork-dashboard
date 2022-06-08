@@ -8,7 +8,7 @@ import util from 'util'
 import { InstallationStepsEnum } from '../@types/installation'
 
 const rimraf = require('rimraf')
-const DecompressZip = require('decompress-zip');
+const DecompressZip = require('decompress-zip')
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -32,9 +32,11 @@ export default class Uninstaller {
   }
 
   getUninstallerFileName(version: string) {
-    if (global.platform.win32) return `point-uninstaller-${version}-Windows-installer.zip`
+    if (global.platform.win32)
+      return `point-uninstaller-${version}-Windows-installer.zip`
 
-    if (global.platform.darwin) return `point-uninstaller-${version}-MacOS-portable.tar.gz`
+    if (global.platform.darwin)
+      return `point-uninstaller-${version}-MacOS-portable.tar.gz`
 
     return `point-uninstaller-${version}-Linux-Debian-Ubuntu.tar.gz`
   }
@@ -66,13 +68,12 @@ export default class Uninstaller {
 
   checkUninstallerExist = async () => {
     const temp = helpers.getPointPathTemp()
-    if (!fs.existsSync(temp)){
+    if (!fs.existsSync(temp)) {
       this.window.webContents.send('uninstaller:check', true)
       await this.download()
       this.window.webContents.send('uninstaller:check', false)
     }
   }
-
 
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
@@ -120,8 +121,7 @@ export default class Uninstaller {
 
       downloadStream.on('close', async () => {
         const temp = helpers.getPointPathTemp()
-        if (fs.existsSync(temp))
-          rimraf.sync(temp)
+        if (fs.existsSync(temp)) rimraf.sync(temp)
         this.installationLogger.info(
           `${InstallationStepsEnum.POINT_UNINSTALLER}:100`,
           'Downloaded Uninstaller'
@@ -132,7 +132,7 @@ export default class Uninstaller {
         if (global.platform.win32) {
           const unzipper = new DecompressZip(downloadPath)
           await unzipper.extract({
-            path: temp
+            path: temp,
           })
           resolve(
             this.installationLogger.info(
@@ -140,7 +140,6 @@ export default class Uninstaller {
               'Files decompressed'
             )
           )
-
         }
         if (global.platform.darwin) {
           decompress(downloadPath, temp, {
@@ -164,7 +163,6 @@ export default class Uninstaller {
             )
           )
         }
-
       })
     })
 
@@ -172,20 +170,18 @@ export default class Uninstaller {
     const temp = helpers.getPointPathTemp()
     // stringify JSON Object
     fs.writeFile(
-      path.join(temp,  uninstallerName),
+      path.join(temp, uninstallerName),
       `#!/bin/bash
        rm -rf $HOME/.point`,
       'utf8',
       function (err: any) {
         if (err) {
-          logger.info(
-            'An error occured while writing JSON Object to File.'
-          )
+          logger.info('An error occured while writing JSON Object to File.')
           return logger.info(err)
         }
-        const temp = helpers.getPointPathTemp()   
-      
-        const cmd = `chmod +x ${ path.join(temp,  uninstallerName) }`
+        const temp = helpers.getPointPathTemp()
+
+        const cmd = `chmod +x ${path.join(temp, uninstallerName)}`
         logger.info('Scriot linux created.')
         exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
           logger.info('Launched uninstaller')
@@ -206,14 +202,12 @@ export default class Uninstaller {
 
     const file = path.join(pointPath, 'pointnetwork-uninstaller')
     let cmd = `${file}`
-    if (global.platform.win32)
-      cmd = `start ${file}.exe`
-    if (global.platform.darwin)
-      cmd = `open ${file}.app`
+    if (global.platform.win32) cmd = `start ${file}.exe`
+    if (global.platform.darwin) cmd = `open ${file}.app`
 
     if (global.platform.linux) {
-      const temp = helpers.getPointPathTemp()   
-      cmd = `${ path.join(temp,  uninstallerName) }`
+      const temp = helpers.getPointPathTemp()
+      cmd = `${path.join(temp, uninstallerName)}`
     }
 
     exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
