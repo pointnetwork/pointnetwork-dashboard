@@ -3,6 +3,10 @@
   "author": "Point Labs",
   "version": "0.2.27",
   "description": "PointNetwork",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pointnetwork/pointnetwork-dashboard"
+  },
   "main": "./.webpack/main",
   "scripts": {
     "start": "electron-forge start",
