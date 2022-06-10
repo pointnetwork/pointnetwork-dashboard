@@ -16,21 +16,175 @@ import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
+import { autoUpdater } from 'electron-github-autoupdater'
+import { rcompare as semverCompare } from 'semver'
+import {
+  GithubRelease,
+  GithubReleaseAsset,
+} from 'electron-github-autoupdater/dist/types'
+import fs from 'node:fs'
 
 // @ts-ignore
-;(() => {
-  // eslint-disable-next-line no-useless-return
-  if (require('electron-squirrel-startup')) return
-})()
+// ;(() => {
+//   // eslint-disable-next-line no-useless-return
+//   if (require('electron-squirrel-startup')) return
+// })()
+
+let isUpdateAvailable = false
 
 const path = require('path')
 
 const logger = new Logger()
 
-require('update-electron-app')({
-  repo: 'pointnetwork/pointnetwork-dashboard',
-  // updateInterval: '1 hour',
-  logger: require('electron-log'),
+// ===================== AutoUpdater =====================
+const updater = autoUpdater({
+  owner: 'pointnetwork',
+  repo: 'pointnetwork-dashboard',
+  accessToken: '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',
+  // Remove this later on after testing
+  allowPrerelease: true,
+})
+
+updater.getLatestRelease = async () => {
+  logger.info('[autoUpdater] Getting releases from GitHub')
+  const response = await axios.get(
+    `${updater.baseUrl}/repos/${updater.owner}/${updater.repo}/releases?per_page=100`,
+    {
+      headers: updater._headers,
+    }
+  )
+  const releases: GithubRelease[] = response.data.filter(
+    (release: GithubRelease) => !release.draft
+  )
+
+  if (releases.length === 0) {
+    throw new Error('No releases found')
+  }
+
+  releases
+    .map(f => f.name.replace('Release v', ''))
+    .filter(f => f.match(/(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/g))
+    .sort((a, b) => semverCompare(a, b))
+
+  if (updater.allowPrerelease) {
+    updater.latestRelease = releases[0]
+    return releases[0]
+  } else {
+    const matchedRelease: GithubRelease | undefined = releases.find(
+      release => !release.prerelease
+    )
+    if (!matchedRelease) throw new Error('No non-preproduction releases found')
+    updater.latestRelease = matchedRelease
+
+    logger.info('[autoUpdater] Matched release', matchedRelease.name)
+    return matchedRelease
+  }
+}
+
+updater.downloadUpdateFromRelease = async (release: GithubRelease) => {
+  logger.info('[autoUpdater] Checking if able to download the release')
+  try {
+    // Find the required files in the release
+    const assets = updater.platformConfig.requiredFiles.map(filePattern => {
+      const match = release.assets.find(asset => asset.name.match(filePattern))
+      if (!match)
+        throw new Error(
+          `Release is missing a required update file for current platform (${global.platform})`
+        )
+      else return match
+    })
+
+    logger.info('[autoUpdater] Able to download')
+    // Set variables to track download progress, including calculating the total download size
+    const totalSize = assets.reduce((prev, asset) => (prev += asset.size), 0)
+    let downloaded = 0
+    let lastEmitPercent = -1
+
+    const downloadFile = (asset: GithubReleaseAsset) => {
+      return new Promise(async (resolve, reject) => {
+        const outputPath = path.join(updater.downloadsDirectory, asset.name)
+        const assetUrl = `${updater.baseUrl}/repos/${updater.owner}/${updater.repo}/releases/assets/${asset.id}`
+
+        const { data } = await axios.get(assetUrl, {
+          headers: {
+            ...updater._headers,
+            Accept: 'application/octet-stream',
+          },
+          responseType: 'stream',
+        })
+
+        const writer = fs.createWriteStream(outputPath)
+
+        // Emit a progress event when a chunk is downloaded
+        data.on('data', (chunk: Buffer) => {
+          downloaded += chunk.length
+          const percent = Math.round((downloaded * 100) / totalSize)
+
+          // Only emit once the value is greater, to prevent TONS of IPC events
+          if (percent > lastEmitPercent) {
+            updater.emit('update-downloading', {
+              downloadStatus: {
+                size: totalSize,
+                progress: downloaded,
+                percent: Math.round((downloaded * 100) / totalSize),
+              },
+              releaseName: release.name,
+              releaseNotes: release.body || '',
+              releaseDate: new Date(release.published_at),
+              updateUrl: release.html_url,
+            })
+
+            lastEmitPercent = percent
+          }
+        })
+
+        // Pipe data into a writer to save it to the disk rather than keeping it in memory
+        data.pipe(writer)
+
+        data.on('end', () => {
+          resolve(true)
+        })
+      })
+    }
+
+    for await (const asset of assets) {
+      await downloadFile(asset)
+    }
+
+    fs.writeFileSync(updater.cacheFilePath, release.id.toString(), {
+      encoding: 'utf-8',
+    })
+  } catch (e) {
+    updater._emitError(e)
+  }
+}
+
+updater.on('error', err => {
+  logger.error('[autoUpdater]: Error in auto-updater.', err)
+})
+updater.on('checking-for-update', () => {
+  logger.info('[autoUpdater]: Checking for update...')
+})
+updater.on('update-downloading', info => {
+  isUpdateAvailable = true
+  logger.info(
+    '[autoUpdater]: Update downloading.',
+    `${info.downloadStatus.percent}%`
+  )
+})
+updater.on('update-available', info => {
+  isUpdateAvailable = true
+  logger.info('[autoUpdater]: Update available.', info)
+})
+updater.on('update-not-available', info => {
+  logger.info('[autoUpdater]: Update not available.', info)
+})
+updater.on('before-quit-for-update', info => {
+  logger.info('[autoUpdater]: before-quit-for-update', info)
+})
+updater.on('update-downloaded', info => {
+  isUpdateAvailable = true
+  logger.info('[autoUpdater]: Update downloaded.')
 })
 
 let mainWindow: BrowserWindow | null
@@ -163,6 +317,9 @@ export default function (isExplicitRun = false) {
 
         try {
           await Promise.all([firefox?.close(), Node.stopNode()])
+          if (isUpdateAvailable) {
+            updater.quitAndInstall()
+          }
         } catch (err) {
           logger.error('[dashboard:index.ts] Error in `close` handler', err)
         } finally {
@@ -502,6 +659,19 @@ export default function (isExplicitRun = false) {
       .on('ready', createWindow)
       .whenReady()
       .then(registerListeners)
+      .then(() =>
+        setTimeout(async function () {
+          logger.info('[autoUpdater] Starting update check')
+          try {
+            // await updater.downloadUpdateFromRelease(
+            //   await updater.getLatestRelease()
+            // )
+            updater.checkForUpdates()
+          } catch (error) {
+            logger.error('Unable to check for updates', error)
+          }
+        }, 1000)
+      )
       .catch(e => logger.error(e))
 
     app.on('window-all-closed', () => {
