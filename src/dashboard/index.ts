@@ -373,7 +373,7 @@ export default function (isExplicitRun = false) {
             )
             try {
               await axios.get(
-                `https://point-faucet.herokuapp.com/airdrop?address=${address}`
+                `https://faucet.point.space/airdrop?address=${address}`
               )
             } catch (e) {
               logger.error(e)
@@ -386,7 +386,7 @@ export default function (isExplicitRun = false) {
             )
             try {
               const res = await axios.get(
-                `https://point-faucet.herokuapp.com/balance?address=${address}`
+                `https://faucet.point.space/balance?address=${address}`
               )
               if (res.data?.balance && !isNaN(res.data.balance)) {
                 logger.info(
