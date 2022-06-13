@@ -40,7 +40,7 @@ const logger = new Logger()
 const updater = autoUpdater({
   owner: 'pointnetwork',
   repo: 'pointnetwork-dashboard',
-  accessToken: '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',
+  accessToken: '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',
   // Remove this later on after testing
   allowPrerelease: true,
 })
