@@ -403,6 +403,11 @@ const isNewDashboardReleaseAvailable = async () => {
   }
 }
 
+const isChineseTimezone = () => {
+  const offset = new Date().getTimezoneOffset();
+  return offset / 60 === -8
+}
+
 export default Object.freeze({
   noop,
   getOSAndArch,
@@ -440,5 +445,6 @@ export default Object.freeze({
   getlatestUninstallerReleaseVersion,
   getPointPathTemp,
   getIsFirefoxInit,
-  setIsFirefoxInit
+  setIsFirefoxInit,
+  isChineseTimezone
 })
