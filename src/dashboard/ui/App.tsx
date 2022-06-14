@@ -149,6 +149,7 @@ export default function App() {
     window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
       setIdentifier(identifier)
     )
+    }
   }, [isDashboardUpdating])
 
   useEffect(() => {
