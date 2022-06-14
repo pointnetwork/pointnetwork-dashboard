@@ -319,12 +319,15 @@ export default class {
   }
 
   async launch() {
-    // const isRunning = await find('name', /firefox*/gi)
-    // if (isRunning.length > 0) {
-    //   logger.info('Firefox already Running')
-    //   this.window.webContents.send('firefox:active', true)
-    //   return
-    // }
+    const processes = await find('name', /firefox*/gi)
+    if (processes.length > 0) {
+      for (const p of processes) {
+        if (!p.bin.match(/point-browser/)) continue
+        logger.info('Firefox already Running')
+        this.window.webContents.send('firefox:active', true)
+        return
+      }
+    }
     const cmd = await this.getBinPath()
     const profilePath = path.join(
       helpers.getHomePath(),
