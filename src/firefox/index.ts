@@ -319,15 +319,15 @@ export default class {
   }
 
   async launch() {
-    const processes = await find('name', /firefox*/gi)
-    if (processes.length > 0) {
-      for (const p of processes) {
-        if (!p.bin.match(/point-browser/)) continue
-        logger.info('Firefox already Running')
-        this.window.webContents.send('firefox:active', true)
-        return
-      }
-    }
+    // const processes = await find('name', /firefox*/gi)
+    // if (processes.length > 0) {
+    //   for (const p of processes) {
+    //     if (!p.bin.match(/point-browser/)) continue
+    //     logger.info('Firefox already Running')
+    //     this.window.webContents.send('firefox:active', true)
+    //     return
+    //   }
+    // }
     const cmd = await this.getBinPath()
     const profilePath = path.join(
       helpers.getHomePath(),
@@ -336,7 +336,7 @@ export default class {
 
     let browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
     if (global.platform.darwin)
-      browserCmd = `open "${cmd}" --args --first-startup --profile "${profilePath}" --url https://point`
+      browserCmd = `open -W "${cmd}" --args --first-startup --profile "${profilePath}" --url https://point`
 
     this.window.webContents.send('firefox:active', true)
     try {
