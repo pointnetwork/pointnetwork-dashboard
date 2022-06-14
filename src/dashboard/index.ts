@@ -21,6 +21,8 @@ const path = require('path')
 
 const logger = new Logger()
 
+const faucetURL = helpers.isChineseTimezone() ? 'https://faucet.point.space' : 'https://point-faucet.herokuapp.com'
+
 let mainWindow: BrowserWindow | null
 let node: Node | null
 let uninstaller: Uninstaller | null
@@ -373,7 +375,7 @@ export default function (isExplicitRun = false) {
             )
             try {
               await axios.get(
-                `https://faucet.point.space/airdrop?address=${address}`
+                `${faucetURL}/airdrop?address=${address}`
               )
             } catch (e) {
               logger.error(e)
@@ -386,7 +388,7 @@ export default function (isExplicitRun = false) {
             )
             try {
               const res = await axios.get(
-                `https://faucet.point.space/balance?address=${address}`
+                `${faucetURL}/balance?address=${address}`
               )
               if (res.data?.balance && !isNaN(res.data.balance)) {
                 logger.info(
