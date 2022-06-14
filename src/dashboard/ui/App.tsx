@@ -1,6 +1,7 @@
 import { MouseEventHandler, useEffect, useState, useRef } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
 // Icons
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
@@ -8,12 +9,11 @@ import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
 // Components
 import TopBar from './components/TopBar'
 import ResourceItemCard from './components/ResourceItemCard'
-import DashboardUpdateAlert from './components/DashboardUpdateAlert'
 import DashboardTitle from './components/DashboardTitle'
 import WalletInfo from './components/WalletInfo'
 import UpdateProgress from './components/UpdateProgress'
 import DefaultLoader from './components/DefaultLoader'
-import Typography from '@mui/material/Typography'
+import DashboardUpdateDialog from './components/DashboardUpdateDialog'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -21,6 +21,7 @@ export default function App() {
     'Checking for updates'
   )
   // Update state variables
+  const [isDashboardUpdating, setIsDashboardUpdating] = useState<boolean>(true)
   const [isNodeUpdating, setIsNodeUpdating] = useState<boolean>(true)
   const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(true)
   const [isSdkUpdating, setIsSdkUpdating] = useState<boolean>(true)
@@ -51,92 +52,94 @@ export default function App() {
   const [identifier, setIdentifier] = useState<string>('')
 
   useEffect(() => {
-    setIsLoading(true)
-
-    // Check for updates
-    window.Dashboard.checkUpdate()
-    window.Dashboard.checkUnistaller()
-
-    window.Dashboard.on('uninstaller:check', (status: boolean) => {
-      setUninstallerUpt(status)
-    })
-
-    window.Dashboard.on('node:update', (status: boolean) => {
-      setIsNodeUpdating(status)
-      if (status) {
-        window.Dashboard.DownloadNode()
-        window.Dashboard.on('installer:log', ([msg]: string[]) => {
-          if (msg.includes('POINT_NODE:')) {
-            setNodeUpdateProgress(Number(msg.replace('POINT_NODE:', '')))
-          }
-        })
-      }
-    })
-
-    window.Dashboard.on('firefox:update', (status: boolean) => {
-      setIsFirefoxUpdating(status)
-      if (status) {
-        window.Dashboard.DownloadFirefox()
-        window.Dashboard.on('installer:log', ([msg]: string[]) => {
-          if (msg.includes('BROWSER:')) {
-            setFirefoxUpdateProgress(Number(msg.replace('BROWSER:', '')))
-          }
-        })
-      }
-    })
-
-    window.Dashboard.on('sdk:update', (status: boolean) => {
-      setIsSdkUpdating(status)
-    })
-
-    // Check if updates have finished downloading
-    window.Dashboard.on('pointNode:finishDownload', () => {
-      setIsNodeUpdating(false)
-    })
-
-    window.Dashboard.on('pointSDK:finishDownload', () => {
-      setIsSdkUpdating(false)
-    })
-
-    window.Dashboard.on('firefox:finishDownload', () => {
-      setIsFirefoxUpdating(false)
-    })
-
-    // Get the versions
-    window.Dashboard.getDashboardVersion()
-
-    window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
-      setFirefoxVersion(firefoxVersion)
-    })
-
-    window.Dashboard.on('node:identity', (identity: string) => {
-      setIdentity(identity)
-      if (!identity) {
-        window.Dashboard.sendBountyRequest()
-      }
-    })
-
-    window.Dashboard.on('firefox:active', (status: boolean) => {
-      setIsFirefoxRunning(status)
-      window.Dashboard.changeFirefoxStatus(status)
-      window.Dashboard.getIdentity()
-    })
-
-    window.Dashboard.on('node:wallet_info', (message: string) => {
-      setWalletInfo(JSON.parse(message))
-      setIsLoadingWalletInfo(false)
-    })
-
-    window.Dashboard.on('dashboard:close', () => {
-      setLoadingMessage('Closing Dashboard')
+    if (!isDashboardUpdating) {
       setIsLoading(true)
-    })
 
-    window.Dashboard.getIdentifier()
-    window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
-      setIdentifier(identifier)
-    )
-  }, [])
+      // Check for updates
+      window.Dashboard.checkUpdate()
+      window.Dashboard.checkUnistaller()
+
+      window.Dashboard.on('uninstaller:check', (status: boolean) => {
+        setUninstallerUpt(status)
+      })
+
+      window.Dashboard.on('node:update', (status: boolean) => {
+        setIsNodeUpdating(status)
+        if (status) {
+          window.Dashboard.DownloadNode()
+          window.Dashboard.on('installer:log', ([msg]: string[]) => {
+            if (msg.includes('POINT_NODE:')) {
+              setNodeUpdateProgress(Number(msg.replace('POINT_NODE:', '')))
+            }
+          })
+        }
+      })
+
+      window.Dashboard.on('firefox:update', (status: boolean) => {
+        setIsFirefoxUpdating(status)
+        if (status) {
+          window.Dashboard.DownloadFirefox()
+          window.Dashboard.on('installer:log', ([msg]: string[]) => {
+            if (msg.includes('BROWSER:')) {
+              setFirefoxUpdateProgress(Number(msg.replace('BROWSER:', '')))
+            }
+          })
+        }
+      })
+
+      window.Dashboard.on('sdk:update', (status: boolean) => {
+        setIsSdkUpdating(status)
+      })
+
+      // Check if updates have finished downloading
+      window.Dashboard.on('pointNode:finishDownload', () => {
+        setIsNodeUpdating(false)
+      })
+
+      window.Dashboard.on('pointSDK:finishDownload', () => {
+        setIsSdkUpdating(false)
+      })
+
+      window.Dashboard.on('firefox:finishDownload', () => {
+        setIsFirefoxUpdating(false)
+      })
+
+      // Get the versions
+      window.Dashboard.getDashboardVersion()
+
+      window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
+        setFirefoxVersion(firefoxVersion)
+      })
+
+      window.Dashboard.on('node:identity', (identity: string) => {
+        setIdentity(identity)
+        if (!identity) {
+          window.Dashboard.sendBountyRequest()
+        }
+      })
+
+      window.Dashboard.on('firefox:active', (status: boolean) => {
+        setIsFirefoxRunning(status)
+        window.Dashboard.changeFirefoxStatus(status)
+        window.Dashboard.getIdentity()
+      })
+
+      window.Dashboard.on('node:wallet_info', (message: string) => {
+        setWalletInfo(JSON.parse(message))
+        setIsLoadingWalletInfo(false)
+      })
+
+      window.Dashboard.on('dashboard:close', () => {
+        setLoadingMessage('Closing Dashboard')
+        setIsLoading(true)
+      })
+
+      window.Dashboard.getIdentifier()
+      window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
+        setIdentifier(identifier)
+      )
+    }
+  }, [isDashboardUpdating])
 
   useEffect(() => {
     if (!isFirefoxUpdating && !isNodeUpdating && !isSdkUpdating) {
@@ -160,7 +163,8 @@ export default function App() {
             !isRunning &&
             new Date().getTime() - checkStartTime.current < 120000
           ) {
-            setTimeout(checkNode, 1000)
+            setTimeout(window.Dashboard.launchNode, 5000)
+            setTimeout(checkNode, 10000)
           } else {
             console.error('Failed to start node in 2 minutes')
             setIsLoading(false)
@@ -233,7 +237,10 @@ export default function App() {
         </Typography>
       </Box>
       <TopBar isLoading={isLoading} />
-      <DashboardUpdateAlert />
+      <DashboardUpdateDialog
+        open={isDashboardUpdating}
+        setOpen={setIsDashboardUpdating}
+      />
 
       <Box px="3.5%" pt="3%">
         <DashboardTitle
