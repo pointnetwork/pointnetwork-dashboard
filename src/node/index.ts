@@ -23,7 +23,6 @@ export default class Node {
   constructor(window: BrowserWindow) {
     this.window = window
     this.installationLogger = new Logger({ window, channel: 'installer' })
-    this.launch()
   }
 
   getURL(filename: string, version: string) {
@@ -169,15 +168,15 @@ export default class Node {
 
     const nodeProcess = spawn(cmd)
 
-    nodeProcess.stdout.on('data', (data) => {
+    nodeProcess.stdout.on('data', data => {
       logger.info(`Launched Node: ${data}`)
     })
 
-    nodeProcess.stderr.on('data', (data) => {
+    nodeProcess.stderr.on('data', data => {
       logger.info(`pointnode launch exec error: ${data}`)
     })
 
-    nodeProcess.on('close', (code) => {
+    nodeProcess.on('close', code => {
       logger.info(`pointnode closed. code ${code}`)
     })
 
@@ -249,7 +248,10 @@ export default class Node {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
-    if (moment().diff(lastCheck, 'hours') >= 1 || installedVersion.lastCheck === undefined) {
+    if (
+      moment().diff(lastCheck, 'hours') >= 1 ||
+      installedVersion.lastCheck === undefined
+    ) {
       const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
