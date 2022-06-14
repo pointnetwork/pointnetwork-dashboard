@@ -46,8 +46,7 @@ const MESSAGES = {
   },
   uninstallConfirmation: {
     title: 'Uninstall Point Network',
-    message:
-      'Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard and Point Browser.',
+    message: 'Are you sure you want to uninstall Point Network?',
     buttons: {
       confirm: 'Yes',
       cancel: 'No',
@@ -198,20 +197,30 @@ export default function (isExplicitRun = false) {
         })
 
         if (confirmationAnswer === 0) {
-          mainWindow?.webContents.send('dashboard:close')
-          logger.info('Closed Dashboard Window')
-          events.forEach(event => {
-            ipcMain.removeListener(event.channel, event.listener)
-            logger.info('[dashboard:index.ts] Removed event', event.channel)
-          })
-
           try {
-            await Promise.all([firefox?.close(), Node.stopNode()])
+            if (global.platform.linux) {
+              mainWindow?.webContents.send('dashboard:close')
+              logger.info('Closed Dashboard Window')
+              events.forEach(event => {
+                ipcMain.removeListener(event.channel, event.listener)
+                logger.info('[dashboard:index.ts] Removed event', event.channel)
+              })
+              await Promise.all([firefox?.close(), Node.stopNode()])
+              await uninstaller!.launch()
+              mainWindow?.destroy()
+            } else {
+              mainWindow?.webContents.send('dashboard:launch_uninstaller', true)
+              logger.info('Launching Uninstaller')
+              await uninstaller!.launch()
+              setTimeout(() => {
+                mainWindow?.webContents.send(
+                  'dashboard:launch_uninstaller',
+                  false
+                )
+              }, 5000)
+            }
           } catch (err) {
             logger.error('[dashboard:index.ts] Error in `close` handler', err)
-          } finally {
-            uninstaller!.launch()
-            mainWindow?.destroy()
           }
         }
       },
@@ -340,7 +349,7 @@ export default function (isExplicitRun = false) {
             )
             try {
               await axios.get(
-                `https://point-faucet.herokuapp.com/airdrop?address=${address}`
+                `https://faucet.point.space/airdrop?address=${address}`
               )
             } catch (e) {
               logger.error(e)
@@ -353,7 +362,7 @@ export default function (isExplicitRun = false) {
             )
             try {
               const res = await axios.get(
-                `https://point-faucet.herokuapp.com/balance?address=${address}`
+                `https://faucet.point.space/balance?address=${address}`
               )
               if (res.data?.balance && !isNaN(res.data.balance)) {
                 logger.info(

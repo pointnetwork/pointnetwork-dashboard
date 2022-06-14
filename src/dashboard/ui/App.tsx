@@ -14,6 +14,7 @@ import WalletInfo from './components/WalletInfo'
 import UpdateProgress from './components/UpdateProgress'
 import DefaultLoader from './components/DefaultLoader'
 import DashboardUpdateDialog from './components/DashboardUpdateDialog'
+import NodeRestartAlert from './components/NodeRestartAlert'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -134,11 +135,20 @@ export default function App() {
         setIsLoading(true)
       })
 
-      window.Dashboard.getIdentifier()
-      window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
-        setIdentifier(identifier)
-      )
-    }
+    window.Dashboard.on('dashboard:launch_uninstaller', (status: boolean) => {
+      if (status) {
+        setLoadingMessage('Launching Uninstaller')
+        setIsLoading(true)
+      } else {
+        setLoadingMessage('')
+        setIsLoading(false)
+      }
+    })
+
+    window.Dashboard.getIdentifier()
+    window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
+      setIdentifier(identifier)
+    )
   }, [isDashboardUpdating])
 
   useEffect(() => {
@@ -241,6 +251,12 @@ export default function App() {
         open={isDashboardUpdating}
         setOpen={setIsDashboardUpdating}
       />
+      <NodeRestartAlert
+        isLoading={
+          isLoading || isFirefoxUpdating || isNodeUpdating || isSdkUpdating
+        }
+        isNodeRunning={!!nodeVersion}
+      />
 
       <Box px="3.5%" pt="3%">
         <DashboardTitle
@@ -297,9 +313,12 @@ export default function App() {
           <ResourceItemCard
             title="Point Node"
             status={!!nodeVersion}
+            onClick={window.Dashboard.launchNode}
             icon={<PointLogo />}
-            buttonLabel="Check Status"
-            isLoading={isLoading || isNodeUpdating || isFirefoxUpdating}
+            buttonLabel="Restart Node"
+            isLoading={
+              isLoading || isNodeUpdating || isFirefoxUpdating || !!nodeVersion
+            }
             version={nodeVersion}
           />
         </Box>

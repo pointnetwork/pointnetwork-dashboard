@@ -65,88 +65,6 @@ class Installer {
   install = async () => {
     this.logger.info('Starting installation')
 
-    // Create the appropriate directories
-    this.logger.info(
-      `${InstallationStepsEnum.DIRECTORIES}:1`,
-      'Creating directories'
-    )
-
-    DIRECTORIES.forEach(dir => {
-      const total = DIRECTORIES.length
-      let created = 0
-
-      try {
-        this.logger.info(InstallationStepsEnum.DIRECTORIES, 'Creating:', dir)
-        fs.mkdirSync(dir, { recursive: true })
-        created++
-        const progress = Math.round((created / total) * 100)
-        this.logger.info(
-          `${InstallationStepsEnum.DIRECTORIES}:${progress}`,
-          'Created:',
-          dir
-        )
-      } catch (error) {
-        this.logger.error(error)
-      }
-    })
-
-    // Create a json file and set `isInstalled` flag to false
-    fs.writeFileSync(
-      Installer.installationJsonFilePath,
-      JSON.stringify({ isInstalled: false })
-    )
-
-    this.logger.info(
-      `${InstallationStepsEnum.DIRECTORIES}:100`,
-      'Created required directories'
-    )
-
-    // Clone the repos
-    this.logger.info(InstallationStepsEnum.CODE, 'Cloning the repositores')
-    await Promise.all(
-      REPOSITORIES.map(async repo => {
-        const dir = path.join(POINT_SRC_DIR, repo)
-        const url = `https://github.com/pointnetwork/${repo}`
-        await this.firefox.getIdExtension()
-        this.logger.info(InstallationStepsEnum.CODE, 'Cloning', url)
-        await git.clone({
-          fs,
-          http,
-          dir,
-          url,
-          depth: 1,
-          onMessage: (msg: string) => {
-            const progressData = getProgressFromGithubMsg(msg)
-            if (progressData) {
-              const cap = 90 // Don't go to 100% since there are further steps.
-              const progress =
-                progressData.progress <= cap ? progressData.progress : cap
-
-              this.logger.info(
-                `${InstallationStepsEnum.CODE}:${progress}`,
-                progressData.message
-              )
-            } else {
-              this.logger.info(msg)
-            }
-          },
-        })
-        this.logger.info(InstallationStepsEnum.CODE, 'Cloned', url)
-        this.logger.info(InstallationStepsEnum.CODE, 'Copying liveprofile')
-        helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
-        this.logger.info(
-          `${InstallationStepsEnum.CODE}:99`,
-          'Copied liveprofile'
-        )
-      })
-    )
-
-    this.logger.info(`${InstallationStepsEnum.CODE}:100`, 'Cloned repositories')
-    await this.uninstaller.download()
-    await this.firefox.downloadInstallPointSDK()
-    await this.firefox.download()
-    await this.node.download()
-
     // Get and set the referral code
     let trashDir
     let trashDirContent = []
@@ -259,6 +177,101 @@ class Installer {
       'Referral Code: ',
       referralCode
     )
+
+    await axios
+      .get(
+        `https://bounty.pointnetwork.io/ref_success?event=install_started&ref=${referralCode}&addr=0x0000000000000000000000000000000000000000`
+      )
+      .then(res => {
+        this.logger.info(res.data)
+        this.logger.info(
+          InstallationStepsEnum.REFERRAL_CODE,
+          'Sent event=install_started to https://bounty.pointnetwork.io'
+        )
+      })
+      .catch(this.logger.error)
+
+    // Create the appropriate directories
+    this.logger.info(
+      `${InstallationStepsEnum.DIRECTORIES}:1`,
+      'Creating directories'
+    )
+
+    DIRECTORIES.forEach(dir => {
+      const total = DIRECTORIES.length
+      let created = 0
+
+      try {
+        this.logger.info(InstallationStepsEnum.DIRECTORIES, 'Creating:', dir)
+        fs.mkdirSync(dir, { recursive: true })
+        created++
+        const progress = Math.round((created / total) * 100)
+        this.logger.info(
+          `${InstallationStepsEnum.DIRECTORIES}:${progress}`,
+          'Created:',
+          dir
+        )
+      } catch (error) {
+        this.logger.error(error)
+      }
+    })
+
+    // Create a json file and set `isInstalled` flag to false
+    fs.writeFileSync(
+      Installer.installationJsonFilePath,
+      JSON.stringify({ isInstalled: false })
+    )
+
+    this.logger.info(
+      `${InstallationStepsEnum.DIRECTORIES}:100`,
+      'Created required directories'
+    )
+
+    // Clone the repos
+    this.logger.info(InstallationStepsEnum.CODE, 'Cloning the repositores')
+    await Promise.all(
+      REPOSITORIES.map(async repo => {
+        const dir = path.join(POINT_SRC_DIR, repo)
+        const url = `https://github.com/pointnetwork/${repo}`
+        await this.firefox.getIdExtension()
+        this.logger.info(InstallationStepsEnum.CODE, 'Cloning', url)
+        await git.clone({
+          fs,
+          http,
+          dir,
+          url,
+          depth: 1,
+          onMessage: (msg: string) => {
+            const progressData = getProgressFromGithubMsg(msg)
+            if (progressData) {
+              const cap = 90 // Don't go to 100% since there are further steps.
+              const progress =
+                progressData.progress <= cap ? progressData.progress : cap
+
+              this.logger.info(
+                `${InstallationStepsEnum.CODE}:${progress}`,
+                progressData.message
+              )
+            } else {
+              this.logger.info(msg)
+            }
+          },
+        })
+        this.logger.info(InstallationStepsEnum.CODE, 'Cloned', url)
+        this.logger.info(InstallationStepsEnum.CODE, 'Copying liveprofile')
+        helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
+        this.logger.info(
+          `${InstallationStepsEnum.CODE}:99`,
+          'Copied liveprofile'
+        )
+      })
+    )
+
+    this.logger.info(`${InstallationStepsEnum.CODE}:100`, 'Cloned repositories')
+    await this.uninstaller.download()
+    await this.firefox.downloadInstallPointSDK()
+    await this.firefox.download()
+    await this.node.download()
 
     await axios
       .get(
