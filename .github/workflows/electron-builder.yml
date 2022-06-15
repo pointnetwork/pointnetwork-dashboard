@@ -5,64 +5,64 @@ on:
     #   - 'v*'
 
 jobs:
-  # create_release:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     release_upload_url: ${{ steps.create_release.outputs.upload_url }}
-  #     release_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
-  #   steps:
-  #   - name: Get the Source Tag
-  #     id: get_source_tag
-  #     run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
-  #   - name: Create Release
-  #     id: create_release
-  #     uses: actions/create-release@v1
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #     with:
-  #       tag_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
-  #       release_name: Release ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
-  #       draft: false
-  #       prerelease: true
+  create_release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
+      release_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
+    steps:
+    - name: Get the Source Tag
+      id: get_source_tag
+      run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
+        release_name: Release ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
+        draft: false
+        prerelease: true
 
-  # build_on_linux:
-  #   runs-on: ubuntu-latest
-  #   needs: create_release
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - uses: actions/setup-node@master
-  #     with:
-  #       node-version: 14
-  #   - name: Install dependencies
-  #     run: npm cache --force clean && npm install --force
-  #   - name: Build executables
-  #     run: npm run make
+  build_on_linux:
+    runs-on: ubuntu-latest
+    needs: create_release
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@master
+      with:
+        node-version: 14
+    - name: Install dependencies
+      run: npm cache --force clean && npm install --force
+    - name: Build executables
+      run: npm run make
 
-  #   - name: Compress and package executables
-  #     run: ./scripts/package_linux_executables.sh
+    - name: Compress and package executables
+      run: ./scripts/package_linux_executables.sh
 
-  #   - name: Upload linux deb artefact
-  #     uses: actions/upload-release-asset@v1
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     with:
-  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-  #       asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
-  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
-  #       asset_content_type: application/gzip
-  #   - name: Upload linux rpm artefact
-  #     uses: actions/upload-release-asset@v1
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     with:
-  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-  #       asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
-  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
-  #       asset_content_type: application/gzip
+    - name: Upload linux deb artefact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload linux rpm artefact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
+        asset_content_type: application/gzip
 
   build_on_mac:
     runs-on: macos-latest
-#    needs: create_release
+    needs: create_release
     steps:
     - name: Install the Apple certificate and provisioning profile
       env:
