@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography'
 import SettingsIcon from '@mui/icons-material/Settings'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import { DashboardChannelsEnum } from '../../../@types/ipc_channels'
 
 const DashboardTitle = ({
   handleClick,
@@ -28,9 +29,12 @@ const DashboardTitle = ({
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
 
   useEffect(() => {
-    window.Dashboard.on('node:getDashboardVersion', (dversion: string) => {
-      setDashboardVersion(dversion)
-    })
+    window.Dashboard.on(
+      DashboardChannelsEnum.get_version,
+      (dversion: string) => {
+        setDashboardVersion(dversion)
+      }
+    )
   }, [])
 
   return (

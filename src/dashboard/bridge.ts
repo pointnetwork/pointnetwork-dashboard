@@ -1,4 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
+// Types
+import {
+  DashboardChannelsEnum,
+  FirefoxChannelsEnum,
+  GenericChannelsEnum,
+  NodeChannelsEnum,
+  UninstallerChannelsEnum,
+} from '../@types/ipc_channels'
 declare global {
   // eslint-disable-next-line
   interface Window {
@@ -8,16 +16,16 @@ declare global {
 
 export const api = {
   launchNode: () => {
-    ipcRenderer.send('node:launch')
+    ipcRenderer.send(NodeChannelsEnum.launch)
   },
   launchUninstaller: () => {
-    ipcRenderer.send('node:launchUninstaller')
+    ipcRenderer.send(UninstallerChannelsEnum.launch)
   },
   checkUnistaller: () => {
     ipcRenderer.send('uninstaller:checkUnistaller')
   },
   DownloadNode: () => {
-    ipcRenderer.send('node:download')
+    ipcRenderer.send(NodeChannelsEnum.download)
   },
   checkNode: () => {
     ipcRenderer.send('node:check')
@@ -26,54 +34,54 @@ export const api = {
     ipcRenderer.send('sdk:check')
   },
   logOut: () => {
-    ipcRenderer.send('logOut')
+    ipcRenderer.send(DashboardChannelsEnum.log_out)
   },
   openFirefox: () => {
-    ipcRenderer.send('firefox:launch')
+    ipcRenderer.send(FirefoxChannelsEnum.launch)
   },
   DownloadFirefox: () => {
-    ipcRenderer.send('firefox:download')
+    ipcRenderer.send(FirefoxChannelsEnum.download)
   },
   getDashboardVersion: () => {
-    ipcRenderer.send('node:getDashboardVersion')
+    ipcRenderer.send(DashboardChannelsEnum.get_version)
   },
   getIdentifier: () => {
-    ipcRenderer.send('dashboard:getIdentifier')
+    ipcRenderer.send(GenericChannelsEnum.get_identifier)
   },
   isNewDashboardReleaseAvailable: () => {
     ipcRenderer.send('dashboard:isNewDashboardReleaseAvailable')
   },
   changeFirefoxStatus: (isRunning: boolean) => {
-    ipcRenderer.send('firefox:status', isRunning)
+    ipcRenderer.send(FirefoxChannelsEnum.running_status, isRunning)
   },
   nodeStop: () => {
-    ipcRenderer.send('node:stop')
+    ipcRenderer.send(NodeChannelsEnum.stop)
   },
   checkUpdate: () => {
-    ipcRenderer.send('node:checkUpdate')
-    ipcRenderer.send('firefox:checkUpdate')
+    ipcRenderer.send(NodeChannelsEnum.check_for_updates)
+    ipcRenderer.send(FirefoxChannelsEnum.check_for_updates)
     ipcRenderer.send('sdk:checkUpdate')
   },
   getIdentity: () => {
-    ipcRenderer.send('node:getIdentity')
+    ipcRenderer.send(NodeChannelsEnum.get_identity)
   },
   checkBalanceAndAirdrop: () => {
     ipcRenderer.send('node:check_balance_and_airdrop')
   },
   getNodeVersion: (): string => {
-    return ipcRenderer.sendSync('node:getVersion')
+    return ipcRenderer.sendSync(NodeChannelsEnum.get_version)
   },
   openDashboardDownloadLink: (url: string) => {
-    ipcRenderer.send('dashboard:openDownloadLink', url)
+    ipcRenderer.send(DashboardChannelsEnum.open_download_link, url)
   },
   sendBountyRequest: () => {
     ipcRenderer.send('dashboard:bounty_request')
   },
   minimizeWindow: () => {
-    ipcRenderer.send(`dashboard:minimizeWindow`)
+    ipcRenderer.send(GenericChannelsEnum.minimize_window)
   },
   closeWindow: () => {
-    ipcRenderer.send(`dashboard:closeWindow`)
+    ipcRenderer.send(GenericChannelsEnum.close_window)
   },
 
   on: (channel: string, callback: Function) => {
