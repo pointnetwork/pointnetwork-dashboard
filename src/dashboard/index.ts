@@ -5,6 +5,7 @@ import {
   dialog,
   IpcMainEvent,
   shell,
+  Event,
 } from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
@@ -16,6 +17,7 @@ import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
+import AutoUpdater from '../autoupdater'
 
 const path = require('path')
 
@@ -161,6 +163,7 @@ export default function (isExplicitRun = false) {
     })
 
     mainWindow.on('closed', () => {
+      logger.info('[mainWindow]: Closed event')
       node = null
       firefox = null
       mainWindow = null
@@ -279,25 +282,6 @@ export default function (isExplicitRun = false) {
       channel: 'node:getIdentity',
       listener() {
         node!.getIdentity()
-      },
-    },
-    {
-      channel: 'dashboard:openDownloadLink',
-      listener(event: IpcMainEvent, url: string) {
-        try {
-          shell.openExternal(url)
-        } catch (error) {
-          logger.error(error)
-        }
-      },
-    },
-    {
-      channel: 'dashboard:isNewDashboardReleaseAvailable',
-      async listener() {
-        mainWindow!.webContents.send(
-          'dashboard:isNewDashboardReleaseAvailable',
-          await helpers.isNewDashboardReleaseAvailable()
-        )
       },
     },
     {
@@ -465,9 +449,16 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: `dashboard:minimizeWindow`,
+      channel: 'autoupdater:check_for_updates',
       listener() {
-        mainWindow!.minimize()
+        new AutoUpdater({ window: mainWindow! }).checkForUpdates()
+      },
+    },
+    {
+      channel: 'dashboard:open_url',
+      listener(ev: Event, link: string) {
+        logger.info('[dashboard:open_url] Opening download URL', link)
+        shell.openExternal(link)
       },
     },
     {

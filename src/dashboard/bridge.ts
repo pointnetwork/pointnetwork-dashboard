@@ -40,9 +40,6 @@ export const api = {
   getIdentifier: () => {
     ipcRenderer.send('dashboard:getIdentifier')
   },
-  isNewDashboardReleaseAvailable: () => {
-    ipcRenderer.send('dashboard:isNewDashboardReleaseAvailable')
-  },
   changeFirefoxStatus: (isRunning: boolean) => {
     ipcRenderer.send('firefox:status', isRunning)
   },
@@ -63,9 +60,6 @@ export const api = {
   getNodeVersion: (): string => {
     return ipcRenderer.sendSync('node:getVersion')
   },
-  openDashboardDownloadLink: (url: string) => {
-    ipcRenderer.send('dashboard:openDownloadLink', url)
-  },
   sendBountyRequest: () => {
     ipcRenderer.send('dashboard:bounty_request')
   },
@@ -75,6 +69,10 @@ export const api = {
   closeWindow: () => {
     ipcRenderer.send(`dashboard:closeWindow`)
   },
+  checkForDashboardUpdates: () =>
+    ipcRenderer.send('autoupdater:check_for_updates'),
+  openDashboardDownloadLink: (link: string) =>
+    ipcRenderer.send('dashboard:open_url', link),
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))

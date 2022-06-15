@@ -3,6 +3,10 @@
   "author": "Point Labs",
   "version": "0.2.33",
   "description": "PointNetwork",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pointnetwork/pointnetwork-dashboard"
+  },
   "main": "./.webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -34,7 +38,9 @@
     "decompress-zip": "^0.3.3",
     "dmg": "^0.1.0",
     "docker-compose": "^0.23.17",
+    "electron-github-autoupdater": "^2.0.0",
     "electron-log": "^4.4.6",
+    "electron-squirrel-startup": "^1.0.0",
     "extract-zip": "^2.0.1",
     "find-process": "^1.4.7",
     "fs-extra": "8.1.0",
@@ -50,8 +56,10 @@
     "react-dom": "17.0.2",
     "react-hot-loader": "4.13.0",
     "rimraf": "^3.0.2",
+    "semver": "^7.3.7",
     "tar-fs": "^2.1.1",
     "unbzip2-stream": "^1.4.3",
+    "update-electron-app": "^2.0.1",
     "web-ext": "^6.7.0",
     "which": "^2.0.2"
   },
@@ -80,6 +88,7 @@
     "@types/progress-stream": "^2.0.2",
     "@types/react": "17.0.11",
     "@types/react-dom": "17.0.8",
+    "@types/semver": "^7.3.9",
     "@types/styled-components": "5.1.10",
     "@types/which": "^2.0.1",
     "@typescript-eslint/eslint-plugin": "4.27.0",
