@@ -8,7 +8,9 @@ mkdir -p ./out/mac_executables/zip
 chmod +x $MAC_FILE
 mv $MAC_FILE ./out/mac_executables/zip/point.app
 # tar -czvf ./out/mac_executables/point-dashboard.tar.gz -C ./out/mac_executables/pkg ./point-dashboard.app
-zip -r -y point.zip ./out/mac_executables/zip/point.app
+pushd ./out/mac_executables/zip/
+zip -r -y point.zip point.app
+popd
 
 echo '---'
 ls -al .

@@ -144,7 +144,7 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./point.zip
+        asset_path: ./out/mac_executables/zip/point.zip
         asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-app.zip
         asset_content_type: application/zip
 
