@@ -202,6 +202,9 @@ export default class AutoUpdater {
             this.logger.info('[autoUpdater]:', 'Already upto date')
             return this.window.webContents.send('autoupdater:up-to-date')
           } else {
+            if (global.platform.linux)
+              resolve(this.window.webContents.send('autoupdater:linux-update'))
+
             await this.downloadUpdateFromRelease(latestRelease)
             autoUpdater.setFeedURL({ url: this.feedUrl })
             this.logger.info(

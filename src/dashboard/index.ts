@@ -1,4 +1,12 @@
-import { app, BrowserWindow, ipcMain, dialog, IpcMainEvent } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  IpcMainEvent,
+  shell,
+  Event,
+} from 'electron'
 import Firefox from '../firefox'
 import Node from '../node'
 import helpers from '../../shared/helpers'
@@ -442,6 +450,13 @@ export default function (isExplicitRun = false) {
       channel: 'autoupdater:check_for_updates',
       listener() {
         new AutoUpdater({ window: mainWindow! }).checkForUpdates()
+      },
+    },
+    {
+      channel: 'dashboard:open_url',
+      listener(ev: Event, link: string) {
+        logger.info('[dashboard:open_url] Opening download URL', link)
+        shell.openExternal(link)
       },
     },
     {

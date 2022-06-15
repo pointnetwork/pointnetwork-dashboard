@@ -15,6 +15,7 @@ import UpdateProgress from './components/UpdateProgress'
 import DefaultLoader from './components/DefaultLoader'
 import DashboardUpdateDialog from './components/DashboardUpdateDialog'
 import NodeRestartAlert from './components/NodeRestartAlert'
+import DashboardUpdateAlertForLinux from './components/DashboardUpdateAlertForLinux'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -135,20 +136,20 @@ export default function App() {
         setIsLoading(true)
       })
 
-    window.Dashboard.on('dashboard:launch_uninstaller', (status: boolean) => {
-      if (status) {
-        setLoadingMessage('Launching Uninstaller')
-        setIsLoading(true)
-      } else {
-        setLoadingMessage('')
-        setIsLoading(false)
-      }
-    })
+      window.Dashboard.on('dashboard:launch_uninstaller', (status: boolean) => {
+        if (status) {
+          setLoadingMessage('Launching Uninstaller')
+          setIsLoading(true)
+        } else {
+          setLoadingMessage('')
+          setIsLoading(false)
+        }
+      })
 
-    window.Dashboard.getIdentifier()
-    window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
-      setIdentifier(identifier)
-    )
+      window.Dashboard.getIdentifier()
+      window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
+        setIdentifier(identifier)
+      )
     }
   }, [isDashboardUpdating])
 
@@ -247,11 +248,13 @@ export default function App() {
           {identifier}
         </Typography>
       </Box>
+
       <TopBar isLoading={isLoading} />
       <DashboardUpdateDialog
         open={isDashboardUpdating}
         setOpen={setIsDashboardUpdating}
       />
+      <DashboardUpdateAlertForLinux />
       <NodeRestartAlert
         isLoading={
           isLoading || isFirefoxUpdating || isNodeUpdating || isSdkUpdating

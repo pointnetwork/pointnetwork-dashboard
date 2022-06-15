@@ -45,6 +45,7 @@ const DashboardUpdateDialog = ({
     })
     window.Dashboard.on('autoupdater:downloaded', () => setTitle(Messages._3))
     window.Dashboard.on('autoupdater:updating', () => setTitle(Messages._4))
+    window.Dashboard.on('autoupdater:linux-update', () => setOpen(false))
     window.Dashboard.checkForDashboardUpdates()
   }, [])
 
