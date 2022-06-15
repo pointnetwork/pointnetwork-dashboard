@@ -10,13 +10,3 @@ mv $MAC_FILE ./out/mac_executables/zip/point.app
 pushd ./out/mac_executables/zip/
 zip -r -y point.zip point.app
 popd
-
-echo '---'
-ls -al .
-echo '---'
-ls -al out
-echo '---'
-ls -al out/mac_executables/
-echo '---'
-ls -al out/mac_executables/zip
-echo '---'
