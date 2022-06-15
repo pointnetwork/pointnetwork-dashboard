@@ -113,8 +113,8 @@ jobs:
 
     - name: Build Installer
       run: npm run create-installer-mac
-    # - name: Compress and package executables
-    #   run: ./scripts/package_macos_executables.sh
+    - name: Compress and package executables
+      run: ./scripts/package_macos_executables.sh
     # - name: Upload macos executable
     #   uses: actions/upload-release-asset@v1
     #   env:
@@ -138,6 +138,15 @@ jobs:
         asset_path: ./out/mac_executables/point-dashboard-dmg.tar.gz
         asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-installer.tar.gz
         asset_content_type: application/gzip
+    - name: Upload macos zipped app
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/mac_executables/zip/point.zip
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-app.zip
+        asset_content_type: application/zip
 
   build_on_win:
     runs-on: windows-latest
@@ -194,4 +203,22 @@ jobs:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
         asset_path: ./out/win_executables/pointnetwork-windows_installer.zip
         asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-installer.zip
+        asset_content_type: application/gzip
+    - name: Upload win nupkg
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/win_executables/pkg/point.nupkg
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-full.nupkg
+        asset_content_type: application/gzip
+    - name: Upload RELEASES file
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/win_executables/pkg/RELEASES
+        asset_name: RELEASES
         asset_content_type: application/gzip
