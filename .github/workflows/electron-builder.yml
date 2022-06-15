@@ -62,7 +62,7 @@ jobs:
 
   build_on_mac:
     runs-on: macos-latest
-    needs: create_release
+#    needs: create_release
     steps:
     - name: Install the Apple certificate and provisioning profile
       env:
