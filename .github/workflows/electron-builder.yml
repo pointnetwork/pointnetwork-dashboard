@@ -5,60 +5,60 @@ on:
     #   - 'v*'
 
 jobs:
-  create_release:
-    runs-on: ubuntu-latest
-    outputs:
-      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
-      release_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
-    steps:
-    - name: Get the Source Tag
-      id: get_source_tag
-      run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
-        release_name: Release ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
-        draft: false
-        prerelease: true
+  # create_release:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     release_upload_url: ${{ steps.create_release.outputs.upload_url }}
+  #     release_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
+  #   steps:
+  #   - name: Get the Source Tag
+  #     id: get_source_tag
+  #     run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+  #   - name: Create Release
+  #     id: create_release
+  #     uses: actions/create-release@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     with:
+  #       tag_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
+  #       release_name: Release ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
+  #       draft: false
+  #       prerelease: true
 
-  build_on_linux:
-    runs-on: ubuntu-latest
-    needs: create_release
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@master
-      with:
-        node-version: 14
-    - name: Install dependencies
-      run: npm cache --force clean && npm install --force
-    - name: Build executables
-      run: npm run make
+  # build_on_linux:
+  #   runs-on: ubuntu-latest
+  #   needs: create_release
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-node@master
+  #     with:
+  #       node-version: 14
+  #   - name: Install dependencies
+  #     run: npm cache --force clean && npm install --force
+  #   - name: Build executables
+  #     run: npm run make
 
-    - name: Compress and package executables
-      run: ./scripts/package_linux_executables.sh
+  #   - name: Compress and package executables
+  #     run: ./scripts/package_linux_executables.sh
 
-    - name: Upload linux deb artefact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
-        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload linux rpm artefact
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
-        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
-        asset_content_type: application/gzip
+  #   - name: Upload linux deb artefact
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
+  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
+  #       asset_content_type: application/gzip
+  #   - name: Upload linux rpm artefact
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
+  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
+  #       asset_content_type: application/gzip
 
   build_on_mac:
     runs-on: macos-latest
@@ -148,59 +148,59 @@ jobs:
         asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-app.zip
         asset_content_type: application/zip
 
-  build_on_win:
-    runs-on: windows-latest
-    needs: create_release
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@master
-    - uses: actions/setup-python@v2
-      with:
-        node-version: 16
-        python-version: '3.11.0-alpha - 3.11.0'
-    - name: Add Windows certificate
-      id: write_file
-      uses: timheuer/base64-to-file@v1
-      with:
-        fileName: 'win-certificate.pfx'
-        encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
-    - name: Update npm
-      run: npm i -g npm
-    - name: Install dependencies
-      run: npm install --legacy-peer-deps
-    - name: config msvs
-      run: npm config set msvs_version 2022
-    - name: Build executables
-      run: npm run make
-    - name: Set path for candle and light
-      run: echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
-      shell: bash
-    - name: Build Installer
-      run: npm run create-installer-win
-      env:
-        WINDOWS_PFX_FILE: ${{ steps.write_file.outputs.filePath }}
-        WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+  # build_on_win:
+  #   runs-on: windows-latest
+  #   needs: create_release
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-node@master
+  #   - uses: actions/setup-python@v2
+  #     with:
+  #       node-version: 16
+  #       python-version: '3.11.0-alpha - 3.11.0'
+  #   - name: Add Windows certificate
+  #     id: write_file
+  #     uses: timheuer/base64-to-file@v1
+  #     with:
+  #       fileName: 'win-certificate.pfx'
+  #       encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
+  #   - name: Update npm
+  #     run: npm i -g npm
+  #   - name: Install dependencies
+  #     run: npm install --legacy-peer-deps
+  #   - name: config msvs
+  #     run: npm config set msvs_version 2022
+  #   - name: Build executables
+  #     run: npm run make
+  #   - name: Set path for candle and light
+  #     run: echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
+  #     shell: bash
+  #   - name: Build Installer
+  #     run: npm run create-installer-win
+  #     env:
+  #       WINDOWS_PFX_FILE: ${{ steps.write_file.outputs.filePath }}
+  #       WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
 
-    # - name: Compress and package executables
-    #   run: bash ./scripts/package_win_executables.sh
-    # - name: Upload win executable
-    #  uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ github.token }}
-    #   with:
-    #     upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-    #     asset_path: ./out/win_executables/point-dashboard.zip
-    #     asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-portable.zip
-    #     asset_content_type: application/gzip
+  #   # - name: Compress and package executables
+  #   #   run: bash ./scripts/package_win_executables.sh
+  #   # - name: Upload win executable
+  #   #  uses: actions/upload-release-asset@v1
+  #   #   env:
+  #   #     GITHUB_TOKEN: ${{ github.token }}
+  #   #   with:
+  #   #     upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #   #     asset_path: ./out/win_executables/point-dashboard.zip
+  #   #     asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-portable.zip
+  #   #     asset_content_type: application/gzip
 
-    - name: Compress and package installer
-      run: bash ./scripts/package_win_installer.sh
-    - name: Upload win installer
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/win_executables/pointnetwork-windows_installer.zip
-        asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-installer.zip
-        asset_content_type: application/gzip
+  #   - name: Compress and package installer
+  #     run: bash ./scripts/package_win_installer.sh
+  #   - name: Upload win installer
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./out/win_executables/pointnetwork-windows_installer.zip
+  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-installer.zip
+  #       asset_content_type: application/gzip
