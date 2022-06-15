@@ -7,7 +7,6 @@ MAC_FILE=./out/point-darwin-x64/point.app
 mkdir -p ./out/mac_executables/zip
 chmod +x $MAC_FILE
 mv $MAC_FILE ./out/mac_executables/zip/point.app
-# tar -czvf ./out/mac_executables/point-dashboard.tar.gz -C ./out/mac_executables/pkg ./point-dashboard.app
 pushd ./out/mac_executables/zip/
 zip -r -y point.zip point.app
 popd
