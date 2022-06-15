@@ -12,6 +12,7 @@ import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
 import moment from 'moment'
+import { FirefoxChannelsEnum } from '../@types/ipc_channels'
 
 const rimraf = require('rimraf')
 const dmg = require('dmg')
@@ -149,7 +150,10 @@ export default class {
               reject(err)
             } else {
               this.installationLogger.info(`\nDeleted file: ${releasePath}`)
-              this.window.webContents.send('firefox:setVersion', version)
+              this.window.webContents.send(
+                FirefoxChannelsEnum.get_version,
+                version
+              )
               this.window.webContents.send('firefox:finishDownload', true)
               // write firefox version to a file
               fs.writeFile(
@@ -559,10 +563,7 @@ export default class {
       return path.join(rootPath, 'app', 'firefox.exe')
     }
     if (global.platform.darwin) {
-      return `${path.join(
-        rootPath,
-        'Firefox.app'
-      )}`
+      return `${path.join(rootPath, 'Firefox.app')}`
     }
     // linux
     return path.join(rootPath, 'firefox')
@@ -732,7 +733,7 @@ pref("browser.sessionstore.resume_from_crash", false)
       installedVersion.installedReleaseVersion
     )
     this.window.webContents.send(
-      'firefox:setVersion',
+      FirefoxChannelsEnum.get_version,
       installedVersion.installedReleaseVersion
     )
     this.installationLogger.info(

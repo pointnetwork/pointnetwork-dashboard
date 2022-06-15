@@ -15,8 +15,10 @@ import UpdateProgress from './components/UpdateProgress'
 import DefaultLoader from './components/DefaultLoader'
 import NodeRestartAlert from './components/NodeRestartAlert'
 import Typography from '@mui/material/Typography'
+// Types
 import {
   DashboardChannelsEnum,
+  FirefoxChannelsEnum,
   GenericChannelsEnum,
   UninstallerChannelsEnum,
 } from '../../@types/ipc_channels'
@@ -111,9 +113,12 @@ export default function App() {
     // Get the versions
     window.Dashboard.getDashboardVersion()
 
-    window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
-      setFirefoxVersion(firefoxVersion)
-    })
+    window.Dashboard.on(
+      FirefoxChannelsEnum.get_version,
+      (firefoxVersion: string) => {
+        setFirefoxVersion(firefoxVersion)
+      }
+    )
 
     window.Dashboard.on('node:identity', (identity: string) => {
       setIdentity(identity)
