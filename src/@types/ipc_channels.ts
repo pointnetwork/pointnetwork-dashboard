@@ -24,6 +24,8 @@ export enum DashboardChannelsEnum {
 
 export enum FirefoxChannelsEnum {
   download = 'firefox:download',
+  downloading = 'firefox:downloading',
+  downloaded = 'firefox:downloaded',
   check_for_updates = 'firefox:check_for_updates',
   get_version = 'firefox:get_version',
   launch = 'firefox:launch',

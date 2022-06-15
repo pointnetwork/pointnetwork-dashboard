@@ -13,6 +13,7 @@ import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
 import moment from 'moment'
 import { FirefoxChannelsEnum } from '../@types/ipc_channels'
+import utils from '../../shared/utils'
 
 const rimraf = require('rimraf')
 const dmg = require('dmg')
@@ -85,14 +86,14 @@ export default class {
         )
       )
 
-      let firefoxURL = ''
+      let downloadUrl = ''
       let filename = ''
       if (global.platform.win32) {
-        firefoxURL = await this.getURLWindows()
-        filename = firefoxURL.split('/').pop()!
+        downloadUrl = await this.getURLWindows()
+        filename = downloadUrl.split('/').pop()!
       } else {
         filename = this.getFileName(version)
-        firefoxURL = this.getURLMacAndLinux(
+        downloadUrl = this.getURLMacAndLinux(
           version,
           osAndArch,
           language,
@@ -100,56 +101,35 @@ export default class {
         )
       }
 
-      const releasePath = path.join(browserDir, filename)
-      const firefoxRelease = fs.createWriteStream(releasePath)
+      const donwloadPath = path.join(browserDir, filename)
+      const downloadStream = fs.createWriteStream(donwloadPath)
 
       if (!fs.existsSync(browserDir)) {
         this.installationLogger.info('Creating browser directory')
         fs.mkdirSync(browserDir)
       }
 
-      https.https.get(firefoxURL, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Downloading Firefox...'
-        )
-        await response.pipe(firefoxRelease)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Downloading is the first half of the process (second is unpacking),
-            // hence the division by 2.
-            const progress = Math.round(Number(percentage) / 2)
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.BROWSER}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
+      await utils.download({
+        window: this.window,
+        downloadUrl,
+        downloadStream,
+        initializerChannel: FirefoxChannelsEnum.download,
+        progressChannel: FirefoxChannelsEnum.downloading,
+        finishChannel: FirefoxChannelsEnum.downloaded,
       })
 
-      firefoxRelease.on('finish', () => {
+      downloadStream.on('close', () => {
         this.installationLogger.info(
           InstallationStepsEnum.BROWSER,
           'Downloaded Firefox'
         )
         const cb = async () => {
-          fs.unlink(releasePath, err => {
+          fs.unlink(donwloadPath, err => {
             if (err) {
               this.installationLogger.error(err)
               reject(err)
             } else {
-              this.installationLogger.info(`\nDeleted file: ${releasePath}`)
+              this.installationLogger.info(`\nDeleted file: ${donwloadPath}`)
               this.window.webContents.send(
                 FirefoxChannelsEnum.get_version,
                 version
@@ -188,7 +168,7 @@ export default class {
 
           await this.createConfigFiles(pacFile)
         }
-        this.unpack(releasePath, browserDir, cb)
+        this.unpack(donwloadPath, browserDir, cb)
       })
     })
 

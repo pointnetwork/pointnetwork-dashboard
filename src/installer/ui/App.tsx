@@ -12,6 +12,7 @@ import { installationLogReducer, initialState } from '../reducer'
 import Logs from './components/Logs'
 import { parseLog } from '../helpers'
 import TopBar from './components/TopBar'
+import { FirefoxChannelsEnum } from '../../@types/ipc_channels'
 
 export default function App() {
   const loggerRef = useRef<HTMLElement>()
@@ -29,6 +30,16 @@ export default function App() {
     window.Installer.on('installer:getIdentifier', (identifier: string) =>
       setIdentifier(identifier)
     )
+
+    window.Installer.on(FirefoxChannelsEnum.download, () => {
+      console.log(FirefoxChannelsEnum.download)
+    })
+    window.Installer.on(FirefoxChannelsEnum.downloaded, () => {
+      console.log(FirefoxChannelsEnum.downloaded)
+    })
+    window.Installer.on(FirefoxChannelsEnum.downloading, (percent: string) => {
+      console.log(FirefoxChannelsEnum.downloading, percent)
+    })
   }, [])
 
   function sendStartInstallation() {
