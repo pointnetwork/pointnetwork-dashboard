@@ -366,26 +366,14 @@ export default class {
     )
     if (global.platform.win32) {
       try {
-        await extract(releasePath, {
-          dir: browserDir,
-          onEntry: (_, zipfile) => {
-            const extracted = zipfile.entriesRead
-            const total = zipfile.entryCount
-
-            // Unpacking is the second half of the process (first is downloading),
-            // hence the division by 2 and the plus 50.
-            const progress = Math.round(((extracted / total) * 100) / 2 + 50)
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.BROWSER}:${progress}`,
-              'Unpacking Firefox'
-            )
-          },
+        await utils.extractZip({
+          src: releasePath,
+          dest: browserDir,
+          initializerChannel: FirefoxChannelsEnum.unpack,
+          progressChannel: FirefoxChannelsEnum.unpacking,
+          finishChannel: FirefoxChannelsEnum.unpacked,
+          window: this.window,
         })
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Extraction complete'
-        )
         cb()
       } catch (err: any) {
         logger.info(err)

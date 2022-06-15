@@ -40,6 +40,16 @@ export default function App() {
     window.Installer.on(FirefoxChannelsEnum.downloading, (percent: string) => {
       console.log(FirefoxChannelsEnum.downloading, percent)
     })
+
+    window.Installer.on(FirefoxChannelsEnum.unpack, () => {
+      console.log(FirefoxChannelsEnum.unpack)
+    })
+    window.Installer.on(FirefoxChannelsEnum.unpacked, () => {
+      console.log(FirefoxChannelsEnum.unpacked)
+    })
+    window.Installer.on(FirefoxChannelsEnum.unpacking, (percent: string) => {
+      console.log(FirefoxChannelsEnum.unpacking, percent)
+    })
   }, [])
 
   function sendStartInstallation() {
