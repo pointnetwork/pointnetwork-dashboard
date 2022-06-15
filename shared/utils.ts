@@ -1,16 +1,10 @@
-import { BrowserWindow } from 'electron'
+import extract from 'extract-zip'
 import { https } from 'follow-redirects'
-import { WriteStream } from 'fs-extra'
-
-interface DownloadArgs {
-  downloadUrl: string
-  downloadStream: WriteStream
-  window: BrowserWindow
-  initializerChannel: string
-  progressChannel: string
-  finishChannel: string
-}
-type DownloadFunction = (args: DownloadArgs) => Promise<void>
+import {
+  Utils,
+  DownloadFunction,
+  ExtractZipFunction,
+} from '../src/@types/utils'
 
 const download: DownloadFunction = ({
   downloadUrl,
@@ -22,7 +16,6 @@ const download: DownloadFunction = ({
 }) =>
   new Promise((resolve, reject) => {
     try {
-      console.log(initializerChannel)
       window.webContents.send(initializerChannel)
 
       https.get(downloadUrl, async response => {
@@ -40,12 +33,10 @@ const download: DownloadFunction = ({
           if (temp !== percentage) {
             percentage = temp
             window.webContents.send(progressChannel, percentage)
-            console.log(progressChannel, percentage)
           }
         })
 
         response.on('close', () => {
-          console.log(finishChannel)
           window.webContents.send(finishChannel)
           resolve()
         })
@@ -55,6 +46,37 @@ const download: DownloadFunction = ({
     }
   })
 
-export default Object.freeze({
+const extractZip: ExtractZipFunction = ({
+  src,
+  dest,
+  window,
+  initializerChannel,
+  progressChannel,
+  finishChannel,
+}) =>
+  // eslint-disable-next-line no-async-promise-executor
+  new Promise(async (resolve, reject) => {
+    try {
+      window.webContents.send(initializerChannel)
+      await extract(src, {
+        dir: dest,
+        onEntry: (_, zipfile) => {
+          const extracted = zipfile.entriesRead
+          const total = zipfile.entryCount
+          const progress = Math.round((extracted / total) * 100)
+
+          window.webContents.send(progressChannel, progress)
+        },
+      })
+      window.webContents.send(finishChannel)
+      resolve()
+    } catch (error) {
+      reject(error)
+    }
+  })
+
+const utils: Utils = Object.freeze({
   download,
+  extractZip,
 })
+export default utils
