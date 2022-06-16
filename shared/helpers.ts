@@ -50,8 +50,9 @@ const getPlatform = () => {
 
 const getlatestNodeReleaseVersion = async () => {
   try {
+    const githubAPIURL = getGithubAPIURL()
     const url =
-      'https://api.github.com/repos/pointnetwork/pointnetwork/releases/latest'
+      `${githubAPIURL}/repos/pointnetwork/pointnetwork/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -66,8 +67,9 @@ const getlatestNodeReleaseVersion = async () => {
 
 const getlatestUninstallerReleaseVersion = async () => {
   try {
+    const githubAPIURL = getGithubAPIURL()
     const url =
-      'https://api.github.com/repos/pointnetwork/pointnetwork-uninstaller/releases/latest'
+      `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -82,8 +84,9 @@ const getlatestUninstallerReleaseVersion = async () => {
 
 const getlatestUnistallerReleaseVersion = async () => {
   try {
+    const githubAPIURL = getGithubAPIURL()
     const url =
-      'https://api.github.com/repos/pointnetwork/pointnetwork-uninstaller/releases/latest'
+      `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -98,8 +101,9 @@ const getlatestUnistallerReleaseVersion = async () => {
 
 const getlatestSdkVersion = async () => {
   try {
+    const githubAPIURL = getGithubAPIURL()
     const url =
-      'https://api.github.com/repos/pointnetwork/pointsdk/releases/latest'
+      `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -114,8 +118,9 @@ const getlatestSdkVersion = async () => {
 
 const getlatestSDKReleaseVersion = async () => {
   try {
+    const githubAPIURL = getGithubAPIURL()
     const url =
-      'https://api.github.com/repos/pointnetwork/pointsdk/releases/latest'
+      `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -131,8 +136,10 @@ const getlatestSDKReleaseVersion = async () => {
 const getPortableDashboardDownloadURL = async () => {
   const owner = 'pointnetwork'
   const repo = 'phyrox-esr-portable'
-  const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`
-  const fallback = `https://github.com/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`
+  const githubAPIURL = getGithubAPIURL()
+  const githubURL = getGithubURL()
+  const url = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`
+  const fallback = `${githubURL}/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`
   const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/
 
   try {
@@ -379,8 +386,9 @@ const getInstalledDashboardVersion = () => {
 
 const isNewDashboardReleaseAvailable = async () => {
   try {
+    const githubAPIURL = getGithubAPIURL()
     const url =
-      'https://api.github.com/repos/pointnetwork/pointnetwork-dashboard/releases/latest'
+      `${githubAPIURL}/repos/pointnetwork/pointnetwork-dashboard/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -406,6 +414,22 @@ const isNewDashboardReleaseAvailable = async () => {
 const isChineseTimezone = () => {
   const offset = new Date().getTimezoneOffset();
   return offset / 60 === -8
+}
+
+const chineseFallbackURL = (mainURL: string, fallbackURL: string) => {
+  return isChineseTimezone() ? fallbackURL : mainURL
+}
+
+const getFaucetURL = () => {
+  return chineseFallbackURL('https://point-faucet.herokuapp.com', 'https://faucet.point.space')
+}
+
+const getGithubURL = () => {
+  return chineseFallbackURL('https://github.com', 'https://gh-connector.point.space:3888')
+}
+
+const getGithubAPIURL = () => {
+  return chineseFallbackURL('https://api.github.com', 'https://gh-connector.point.space:3889')
 }
 
 export default Object.freeze({
@@ -446,5 +470,8 @@ export default Object.freeze({
   getPointPathTemp,
   getIsFirefoxInit,
   setIsFirefoxInit,
-  isChineseTimezone
+  isChineseTimezone,
+  getFaucetURL,
+  getGithubURL,
+  getGithubAPIURL
 })

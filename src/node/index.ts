@@ -27,7 +27,8 @@ export default class Node {
   }
 
   getURL(filename: string, version: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
+    const githubURL = helpers.getGithubURL()
+    return `${githubURL}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
   getNodeFileName(version: string) {
