@@ -250,12 +250,16 @@ export default class Node {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
-    if (moment().diff(lastCheck, 'hours') >= 1 || installedVersion.lastCheck === undefined) {
+
+    const binPath = await this.getBinPath()
+    const isBinMissing = !fs.existsSync(binPath)
+
+    if (moment().diff(lastCheck, 'hours') >= 1 || installedVersion.lastCheck === undefined || isBinMissing) {
       const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
       logger.info('last', latestReleaseVersion)
-      if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
+      if (installedVersion.installedReleaseVersion !== latestReleaseVersion || isBinMissing) {
         logger.info('Node Update need it')
         this.window.webContents.send('node:update', true)
         setTimeout(() => {
