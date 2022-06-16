@@ -26,7 +26,8 @@ export default class Uninstaller {
   }
 
   getURL(filename: string, version: string) {
-    return `https://github.com/pointnetwork/pointnetwork-uninstaller/releases/download/${version}/${filename}`
+    const githubURL = helpers.getGithubURL()
+    return `${githubURL}/pointnetwork/pointnetwork-uninstaller/releases/download/${version}/${filename}`
   }
 
   getUninstallerFileName(version: string) {

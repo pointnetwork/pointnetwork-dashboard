@@ -77,6 +77,9 @@ export const api = {
   sendBountyRequest: () => {
     ipcRenderer.send('dashboard:bounty_request')
   },
+  openFeedbackLink: () => {
+    ipcRenderer.send('dashboard:open_feedback_link')
+  },
   minimizeWindow: () => {
     ipcRenderer.send(GenericChannelsEnum.minimize_window)
   },

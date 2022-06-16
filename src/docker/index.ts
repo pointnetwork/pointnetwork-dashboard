@@ -156,11 +156,12 @@ export default class {
     }
 
     getURLCompose() {
+        const githubURL = helpers.getGithubURL()
         if (global.platform.darwin) {
-            return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Darwin-x86_64';
+            return `${githubURL}/docker/compose/releases/download/1.29.2/docker-compose-Darwin-x86_64`;
         }
         if (global.platform.linux) {
-            return 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64';
+            return `${githubURL}/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64`;
         }
     }
 

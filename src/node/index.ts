@@ -28,7 +28,8 @@ export default class Node {
   }
 
   getURL(filename: string, version: string) {
-    return `https://github.com/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
+    const githubURL = helpers.getGithubURL()
+    return `${githubURL}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
   getNodeFileName(version: string) {
@@ -234,15 +235,23 @@ export default class Node {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
+
+    const binPath = await this.getBinPath()
+    const isBinMissing = !fs.existsSync(binPath)
+
     if (
       moment().diff(lastCheck, 'hours') >= 1 ||
-      installedVersion.lastCheck === undefined
+      installedVersion.lastCheck === undefined ||
+      isBinMissing
     ) {
       const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
       logger.info('last', latestReleaseVersion)
-      if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
+      if (
+        installedVersion.installedReleaseVersion !== latestReleaseVersion ||
+        isBinMissing
+      ) {
         logger.info('Node Update need it')
         this.window.webContents.send('node:update', true)
         setTimeout(() => {

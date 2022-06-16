@@ -29,10 +29,6 @@ const path = require('path')
 
 const logger = new Logger()
 
-const faucetURL = helpers.isChineseTimezone()
-  ? 'https://faucet.point.space'
-  : 'https://point-faucet.herokuapp.com'
-
 let mainWindow: BrowserWindow | null
 let node: Node | null
 let uninstaller: Uninstaller | null
@@ -305,6 +301,16 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: 'dashboard:open_feedback_link',
+      listener() {
+        try {
+          shell.openExternal('https://pointnetwork.io/support')
+        } catch (error) {
+          logger.error(error)
+        }
+      },
+    },
+    {
       channel: 'dashboard:isNewDashboardReleaseAvailable',
       async listener() {
         mainWindow!.webContents.send(
@@ -383,6 +389,7 @@ export default function (isExplicitRun = false) {
           const address = addressRes.data.data.address
 
           const requestAirdrop = async () => {
+            const faucetURL = helpers.getFaucetURL()
             logger.info(
               '[node:check_balance_and_airdrop] Airdropping wallet address with POINTS'
             )
@@ -394,6 +401,7 @@ export default function (isExplicitRun = false) {
           }
 
           const checkBalance = async () => {
+            const faucetURL = helpers.getFaucetURL()
             logger.info(
               `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
             )
