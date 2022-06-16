@@ -618,6 +618,7 @@ pref("trailhead.firstrun.branches", "nofirstrun-empty")
 pref("browser.aboutwelcome.enabled", false)
 pref("browser.sessionstore.resume_session_once", false)
 pref("browser.sessionstore.resume_from_crash", false)
+pref("browser.startup.upgradeDialog.enabled", false)
 `
     const policiesCfgContent = `{
   "policies": {
