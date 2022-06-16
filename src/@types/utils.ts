@@ -1,5 +1,4 @@
 import { WriteStream } from 'fs-extra'
-import { BrowserWindow } from 'electron'
 
 export type DownloadFunction = (_: {
   downloadUrl: string
@@ -10,10 +9,7 @@ export type DownloadFunction = (_: {
 export type ExtractZipFunction = (_: {
   src: string
   dest: string
-  window: BrowserWindow
-  initializerChannel: string
-  progressChannel: string
-  finishChannel: string
+  onProgress: (progress: number) => void
 }) => Promise<void>
 
 export interface Utils {

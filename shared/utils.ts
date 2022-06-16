@@ -40,29 +40,19 @@ const download: DownloadFunction = ({
     }
   })
 
-const extractZip: ExtractZipFunction = ({
-  src,
-  dest,
-  window,
-  initializerChannel,
-  progressChannel,
-  finishChannel,
-}) =>
+const extractZip: ExtractZipFunction = ({ src, dest, onProgress }) =>
   // eslint-disable-next-line no-async-promise-executor
   new Promise(async (resolve, reject) => {
     try {
-      window.webContents.send(initializerChannel)
       await extract(src, {
         dir: dest,
         onEntry: (_, zipfile) => {
           const extracted = zipfile.entriesRead
           const total = zipfile.entryCount
-          const progress = Math.round((extracted / total) * 100)
 
-          window.webContents.send(progressChannel, progress)
+          onProgress(Math.round((extracted / total) * 100))
         },
       })
-      window.webContents.send(finishChannel)
       resolve()
     } catch (error) {
       reject(error)

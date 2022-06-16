@@ -1,6 +1,5 @@
 import fs from 'fs-extra'
 import path from 'path'
-import extract from 'extract-zip'
 import tarfs from 'tar-fs'
 import url from 'url'
 import helpers from '../../shared/helpers'
@@ -375,10 +374,12 @@ export default class {
         await utils.extractZip({
           src: releasePath,
           dest: browserDir,
-          initializerChannel: FirefoxChannelsEnum.unpack,
-          progressChannel: FirefoxChannelsEnum.unpacking,
-          finishChannel: FirefoxChannelsEnum.unpacked,
-          window: this.window,
+          onProgress: (progress: number) => {
+            this.installationLogger.info(
+              `${InstallationStepsEnum.BROWSER}:${progress}`,
+              'Unpacking Firefox'
+            )
+          },
         })
         cb()
       } catch (err: any) {
