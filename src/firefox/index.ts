@@ -315,7 +315,8 @@ export default class {
   }
 
   getURL(filename: string, version: string) {
-    return `https://github.com/pointnetwork/pointsdk/releases/download/${version}/${filename}`
+    const githubURL = helpers.getGithubURL()
+    return `${githubURL}/pointnetwork/pointsdk/releases/download/${version}/${filename}`
   }
 
   async launch() {

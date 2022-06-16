@@ -232,7 +232,8 @@ class Installer {
     await Promise.all(
       REPOSITORIES.map(async repo => {
         const dir = path.join(POINT_SRC_DIR, repo)
-        const url = `https://github.com/pointnetwork/${repo}`
+        const githubURL = helpers.getGithubURL()
+        const url = `${githubURL}/pointnetwork/${repo}`
         await this.firefox.getIdExtension()
         this.logger.info(InstallationStepsEnum.CODE, 'Cloning', url)
         await git.clone({
