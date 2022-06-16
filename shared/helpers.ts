@@ -416,20 +416,16 @@ const isChineseTimezone = () => {
   return offset / 60 === -8
 }
 
-const chineseFallbackURL = (mainURL: string, fallbackURL: string) => {
-  return isChineseTimezone() ? fallbackURL : mainURL
-}
-
 const getFaucetURL = () => {
-  return chineseFallbackURL('https://point-faucet.herokuapp.com', 'https://faucet.point.space')
+  return isChineseTimezone() ? 'https://faucet.point.space' : 'https://point-faucet.herokuapp.com'
 }
 
 const getGithubURL = () => {
-  return chineseFallbackURL('https://github.com', 'https://gh-connector.point.space:3888')
+  return isChineseTimezone() ? 'https://gh-connector.point.space:3888' : 'https://github.com'
 }
 
 const getGithubAPIURL = () => {
-  return chineseFallbackURL('https://api.github.com', 'https://gh-connector.point.space:3889')
+  return isChineseTimezone() ? 'https://gh-connector.point.space:3889' : 'https://api.github.com'
 }
 
 export default Object.freeze({
