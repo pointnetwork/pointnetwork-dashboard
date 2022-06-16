@@ -27,7 +27,7 @@ const download: DownloadFunction = ({
 
           if (temp !== percentage) {
             percentage = temp
-            onProgress(percentage)
+            onProgress && onProgress(percentage)
           }
         })
 
@@ -50,7 +50,7 @@ const extractZip: ExtractZipFunction = ({ src, dest, onProgress }) =>
           const extracted = zipfile.entriesRead
           const total = zipfile.entryCount
 
-          onProgress(Math.round((extracted / total) * 100))
+          onProgress && onProgress(Math.round((extracted / total) * 100))
         },
       })
       resolve()
