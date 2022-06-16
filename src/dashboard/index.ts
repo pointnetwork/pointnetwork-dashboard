@@ -293,7 +293,7 @@ export default function (isExplicitRun = false) {
       channel: 'dashboard:open_feedback_link',
       listener() {
         try {
-          shell.openExternal('https://pointnetwork.io/feedback')
+          shell.openExternal('https://pointnetwork.io/support')
         } catch (error) {
           logger.error(error)
         }
