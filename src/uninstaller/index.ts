@@ -1,11 +1,11 @@
 import { BrowserWindow } from 'electron'
-import { https } from 'follow-redirects'
 import Logger from '../../shared/logger'
 import fs from 'fs-extra'
 import helpers from '../../shared/helpers'
 import path from 'path'
 import util from 'util'
 import { InstallationStepsEnum } from '../@types/installation'
+import utils from '../../shared/utils'
 
 const rimraf = require('rimraf')
 const DecompressZip = require('decompress-zip')
@@ -19,8 +19,6 @@ const uninstallerName = 'uninstallerPoint.sh'
 export default class Uninstaller {
   private installationLogger
   private window
-  private pid: string[] = []
-  private killCmd: string[] = []
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -88,44 +86,29 @@ export default class Uninstaller {
       }
       const downloadStream = fs.createWriteStream(downloadPath)
       const downloadUrl = this.getURL(filename, version)
-      console.log('fileName', filename)
-      https.get(downloadUrl, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.POINT_UNINSTALLER,
-          'Downloading Uninstaller...'
-        )
 
-        await response.pipe(downloadStream)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Don't let this progress reach 100% as there are some minor final tasks after.
-            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.POINT_UNINSTALLER}:${progress}`,
-              'Downloading Uninstaller'
-            )
-          }
-        })
+      this.installationLogger.info(
+        InstallationStepsEnum.POINT_UNINSTALLER,
+        'Downloading Uninstaller...'
+      )
+      await utils.download({
+        downloadUrl,
+        downloadStream,
+        onProgress: progress => {
+          this.installationLogger.info(
+            `${InstallationStepsEnum.POINT_UNINSTALLER}:${progress}`,
+            'Downloading Uninstaller'
+          )
+        },
       })
+      this.installationLogger.info(
+        `${InstallationStepsEnum.POINT_UNINSTALLER}:100`,
+        'Downloaded Uninstaller'
+      )
 
       downloadStream.on('close', async () => {
         const temp = helpers.getPointPathTemp()
         if (fs.existsSync(temp)) rimraf.sync(temp)
-        this.installationLogger.info(
-          `${InstallationStepsEnum.POINT_UNINSTALLER}:100`,
-          'Downloaded Uninstaller'
-        )
         fs.mkdirpSync(temp)
         console.log('downloadPath', downloadPath)
 

@@ -182,14 +182,14 @@ export default class {
     new Promise(async (resolve, reject) => {
       const version = await helpers.getlatestSDKReleaseVersion()
       const extensionPath = helpers.getPointPath()
-      const downloadManifest = this.getURL('manifest.json', version)
+      const downloadUrl = this.getURL('manifest.json', version)
       const downloadPathManifest = path.join(extensionPath, 'manifest.json')
-      const manifest = fs.createWriteStream(downloadPathManifest)
-      https.https.get(downloadManifest, function (response) {
-        response.pipe(manifest)
+      const downloadStream = fs.createWriteStream(downloadPathManifest)
+      await utils.download({
+        downloadUrl,
+        downloadStream,
       })
-      manifest.on('finish', async () => {
-        manifest.close()
+      downloadStream.on('close', async () => {
         console.log('Download Manifest Completed')
         resolve(true)
       })
@@ -219,34 +219,19 @@ export default class {
       // this.setDisableScopes(false)
       helpers.setIsFirefoxInit(false)
 
-      https.https.get(downloadUrl, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.POINT_SDK,
-          'Downloading PointSDK...'
-        )
-
-        await response.pipe(downloadStream)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Don't let this progress reach 100% as there are some minor final tasks after.
-            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.POINT_SDK}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
+      this.installationLogger.info(
+        InstallationStepsEnum.POINT_SDK,
+        'Downloading Point SDK...'
+      )
+      await utils.download({
+        downloadUrl,
+        downloadStream,
+        onProgress: progress => {
+          this.installationLogger.info(
+            `${InstallationStepsEnum.POINT_SDK}:${progress}`,
+            'Downloading'
+          )
+        },
       })
 
       downloadStream.on('close', async () => {

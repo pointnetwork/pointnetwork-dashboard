@@ -9,6 +9,7 @@ import axios from 'axios'
 import { InstallationStepsEnum } from '../@types/installation'
 import moment from 'moment'
 import { spawn } from 'node:child_process'
+import utils from '../../shared/utils'
 
 const rimraf = require('rimraf')
 const decompress = require('decompress')
@@ -77,42 +78,26 @@ export default class Node {
       const downloadStream = fs.createWriteStream(downloadPath)
       const downloadUrl = this.getURL(filename, version)
 
-      https.get(downloadUrl, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.POINT_NODE,
-          'Downloading Node...'
-        )
-
-        await response.pipe(downloadStream)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Don't let this progress reach 100% as there are some minor final tasks after.
-            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.POINT_NODE}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
+      this.installationLogger.info(
+        InstallationStepsEnum.POINT_NODE,
+        'Downloading Point Node...'
+      )
+      await utils.download({
+        downloadUrl,
+        downloadStream,
+        onProgress: progress => {
+          this.installationLogger.info(
+            `${InstallationStepsEnum.POINT_NODE}:${progress}`,
+            'Downloading'
+          )
+        },
       })
+      this.installationLogger.info(
+        `${InstallationStepsEnum.POINT_NODE}:100`,
+        'Downloaded Node'
+      )
 
       downloadStream.on('close', async () => {
-        this.installationLogger.info(
-          `${InstallationStepsEnum.POINT_NODE}:100`,
-          'Downloaded Node'
-        )
-
         decompress(downloadPath, helpers.getPointPath(), {
           plugins: [decompressTargz()],
         }).then(() => {
@@ -169,15 +154,15 @@ export default class Node {
 
     const nodeProcess = spawn(cmd)
 
-    nodeProcess.stdout.on('data', (data) => {
+    nodeProcess.stdout.on('data', data => {
       logger.info(`Launched Node: ${data}`)
     })
 
-    nodeProcess.stderr.on('data', (data) => {
+    nodeProcess.stderr.on('data', data => {
       logger.info(`pointnode launch exec error: ${data}`)
     })
 
-    nodeProcess.on('close', (code) => {
+    nodeProcess.on('close', code => {
       logger.info(`pointnode closed. code ${code}`)
     })
 
@@ -249,7 +234,10 @@ export default class Node {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
-    if (moment().diff(lastCheck, 'hours') >= 1 || installedVersion.lastCheck === undefined) {
+    if (
+      moment().diff(lastCheck, 'hours') >= 1 ||
+      installedVersion.lastCheck === undefined
+    ) {
       const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
