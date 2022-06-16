@@ -1,4 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import {
+  DashboardChannelsEnum,
+  GenericChannelsEnum,
+} from '../@types/ipc_channels'
 
 declare global {
   // eslint-disable-next-line
@@ -33,13 +37,13 @@ export const api = {
     ipcRenderer.send('welcome:launchUninstaller')
   },
   getDashboardVersion: () => {
-    ipcRenderer.send('welcome:getDashboardVersion')
+    ipcRenderer.send(DashboardChannelsEnum.get_version)
   },
   minimizeWindow: () => {
-    ipcRenderer.send(`welcome:minimizeWindow`)
+    ipcRenderer.send(GenericChannelsEnum.minimize_window)
   },
   closeWindow: () => {
-    ipcRenderer.send(`welcome:closeWindow`)
+    ipcRenderer.send(GenericChannelsEnum.close_window)
   },
 }
 

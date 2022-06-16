@@ -9,6 +9,7 @@ import SeedConfirmation from './components/SeedConfirmation'
 import Login from './components/Login'
 import MenuUninstaller from './components/MenuUninstall'
 import TopBar from './components/TopBar'
+import { DashboardChannelsEnum } from '../../@types/ipc_channels'
 
 export default function App() {
   const [seed, setSeed] = useState<string>('')
@@ -18,7 +19,7 @@ export default function App() {
 
   useEffect(() => {
     window.Welcome.getDashboardVersion()
-    window.Welcome.on('installer:getDashboardVersion', (version: string) =>
+    window.Welcome.on(DashboardChannelsEnum.get_version, (version: string) =>
       setVersion(version)
     )
   }, [])

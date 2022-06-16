@@ -12,7 +12,11 @@ import { installationLogReducer, initialState } from '../reducer'
 import Logs from './components/Logs'
 import { parseLog } from '../helpers'
 import TopBar from './components/TopBar'
-import { FirefoxChannelsEnum } from '../../@types/ipc_channels'
+import {
+  DashboardChannelsEnum,
+  FirefoxChannelsEnum,
+  GenericChannelsEnum,
+} from '../../@types/ipc_channels'
 
 export default function App() {
   const loggerRef = useRef<HTMLElement>()
@@ -23,12 +27,13 @@ export default function App() {
 
   useEffect(() => {
     window.Installer.getDashboardVersion()
-    window.Installer.on('installer:getDashboardVersion', (version: string) =>
+    window.Installer.on(DashboardChannelsEnum.get_version, (version: string) =>
       setVersion(version)
     )
     window.Installer.getIdentifier()
-    window.Installer.on('installer:getIdentifier', (identifier: string) =>
-      setIdentifier(identifier)
+    window.Installer.on(
+      GenericChannelsEnum.get_identifier,
+      (identifier: string) => setIdentifier(identifier)
     )
 
     window.Installer.on(FirefoxChannelsEnum.download, () => {

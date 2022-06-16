@@ -5,6 +5,10 @@ import Logger from '../../shared/logger'
 import Installer from './service'
 import helpers from '../../shared/helpers'
 import { getIdentifier } from '../../shared/getIdentifier'
+import {
+  DashboardChannelsEnum,
+  GenericChannelsEnum,
+} from '../@types/ipc_channels'
 export { Installer }
 
 const logger = new Logger()
@@ -59,31 +63,31 @@ export default function () {
       },
     },
     {
-      channel: 'installer:getDashboardVersion',
+      channel: DashboardChannelsEnum.get_version,
       listener() {
         mainWindow!.webContents.send(
-          'installer:getDashboardVersion',
+          DashboardChannelsEnum.get_version,
           helpers.getInstalledDashboardVersion()
         )
       },
     },
     {
-      channel: 'installer:getIdentifier',
+      channel: GenericChannelsEnum.get_identifier,
       listener() {
         mainWindow!.webContents.send(
-          'installer:getIdentifier',
+          GenericChannelsEnum.get_identifier,
           getIdentifier()[0]
         )
       },
     },
     {
-      channel: `installer:minimizeWindow`,
+      channel: GenericChannelsEnum.minimize_window,
       listener() {
         mainWindow!.minimize()
       },
     },
     {
-      channel: `installer:closeWindow`,
+      channel: GenericChannelsEnum.close_window,
       listener() {
         mainWindow!.close()
       },

@@ -5,6 +5,10 @@ import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
 import helpers from '../../shared/helpers'
+import {
+  DashboardChannelsEnum,
+  GenericChannelsEnum,
+} from '../@types/ipc_channels'
 
 const logger = new Logger()
 
@@ -124,22 +128,22 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'welcome:getDashboardVersion',
+      channel: DashboardChannelsEnum.get_version,
       listener() {
         mainWindow!.webContents.send(
-          'installer:getDashboardVersion',
+          DashboardChannelsEnum.get_version,
           helpers.getInstalledDashboardVersion()
         )
       },
     },
     {
-      channel: `welcome:minimizeWindow`,
+      channel: GenericChannelsEnum.minimize_window,
       listener() {
         mainWindow!.minimize()
       },
     },
     {
-      channel: `welcome:closeWindow`,
+      channel: GenericChannelsEnum.close_window,
       listener() {
         mainWindow!.close()
       },
