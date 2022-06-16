@@ -9,15 +9,10 @@ import {
 const download: DownloadFunction = ({
   downloadUrl,
   downloadStream,
-  window,
-  initializerChannel,
-  progressChannel,
-  finishChannel,
+  onProgress,
 }) =>
   new Promise((resolve, reject) => {
     try {
-      window.webContents.send(initializerChannel)
-
       https.get(downloadUrl, async response => {
         response.pipe(downloadStream)
 
@@ -32,12 +27,11 @@ const download: DownloadFunction = ({
 
           if (temp !== percentage) {
             percentage = temp
-            window.webContents.send(progressChannel, percentage)
+            onProgress(percentage)
           }
         })
 
         response.on('close', () => {
-          window.webContents.send(finishChannel)
           resolve()
         })
       })

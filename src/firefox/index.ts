@@ -109,20 +109,26 @@ export default class {
         fs.mkdirSync(browserDir)
       }
 
+      this.installationLogger.info(
+        InstallationStepsEnum.BROWSER,
+        'Downloading Point Browser...'
+      )
       await utils.download({
-        window: this.window,
         downloadUrl,
         downloadStream,
-        initializerChannel: FirefoxChannelsEnum.download,
-        progressChannel: FirefoxChannelsEnum.downloading,
-        finishChannel: FirefoxChannelsEnum.downloaded,
+        onProgress: (progress: number) => {
+          this.installationLogger.info(
+            `${InstallationStepsEnum.BROWSER}:${progress}`,
+            'Downloading'
+          )
+        },
       })
+      this.installationLogger.info(
+        `${InstallationStepsEnum.BROWSER}:100`,
+        'Downloaded Browser'
+      )
 
       downloadStream.on('close', () => {
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Downloaded Firefox'
-        )
         const cb = async () => {
           fs.unlink(donwloadPath, err => {
             if (err) {
