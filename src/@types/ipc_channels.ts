@@ -24,15 +24,10 @@ export enum DashboardChannelsEnum {
 
 export enum FirefoxChannelsEnum {
   download = 'firefox:download',
-  downloading = 'firefox:downloading',
-  downloaded = 'firefox:downloaded',
-  unpack = 'firefox:unpack',
-  unpacking = 'firefox:unpacking',
-  unpacked = 'firefox:unpacked',
   check_for_updates = 'firefox:check_for_updates',
-  get_version = 'firefox:get_version',
   launch = 'firefox:launch',
-  running_status = 'firefox:running_status',
+  get_version = 'firefox:get_version',
+  unpack = 'firefox:unpack',
 }
 
 export enum NodeChannelsEnum {
@@ -43,10 +38,10 @@ export enum NodeChannelsEnum {
   launch = 'node:launch',
   running_status = 'node:running_status',
   stop = 'node:stop',
+  unpack = 'node:unpack',
 }
 
 export enum UninstallerChannelsEnum {
   launch = 'uninstaller:launch',
-  launching = 'uninstaller:launching',
   running_status = 'uninstaller:running_status',
 }
