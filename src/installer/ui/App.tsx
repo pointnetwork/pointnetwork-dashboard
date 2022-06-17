@@ -9,12 +9,15 @@ import Typography from '@mui/material/Typography'
 import UIThemeProvider from '../../../shared/UIThemeProvider'
 import { InstallationStepsEnum } from '../../@types/installation'
 import { installationLogReducer, initialState } from '../reducer'
-import Logs from './components/Logs'
 import { parseLog } from '../helpers'
+// Components
+import Logs from './components/Logs'
+import DownloadExtractLogs from './components/DownloadExtractLogs'
 import TopBar from './components/TopBar'
+// Types
 import {
+  NodeChannelsEnum,
   DashboardChannelsEnum,
-  FirefoxChannelsEnum,
   GenericChannelsEnum,
 } from '../../@types/ipc_channels'
 
@@ -35,26 +38,6 @@ export default function App() {
       GenericChannelsEnum.get_identifier,
       (identifier: string) => setIdentifier(identifier)
     )
-
-    window.Installer.on(FirefoxChannelsEnum.download, () => {
-      console.log(FirefoxChannelsEnum.download)
-    })
-    window.Installer.on(FirefoxChannelsEnum.downloaded, () => {
-      console.log(FirefoxChannelsEnum.downloaded)
-    })
-    window.Installer.on(FirefoxChannelsEnum.downloading, (percent: string) => {
-      console.log(FirefoxChannelsEnum.downloading, percent)
-    })
-
-    window.Installer.on(FirefoxChannelsEnum.unpack, () => {
-      console.log(FirefoxChannelsEnum.unpack)
-    })
-    window.Installer.on(FirefoxChannelsEnum.unpacked, () => {
-      console.log(FirefoxChannelsEnum.unpacked)
-    })
-    window.Installer.on(FirefoxChannelsEnum.unpacking, (percent: string) => {
-      console.log(FirefoxChannelsEnum.unpacking, percent)
-    })
   }, [])
 
   function sendStartInstallation() {
@@ -147,9 +130,9 @@ export default function App() {
             stepCategory={InstallationStepsEnum.BROWSER}
             log={logs[InstallationStepsEnum.BROWSER]}
           />
-          <Logs
-            stepCategory={InstallationStepsEnum.POINT_NODE}
-            log={logs[InstallationStepsEnum.POINT_NODE]}
+          <DownloadExtractLogs
+            downloadChannel={NodeChannelsEnum.download}
+            unpackChannel={NodeChannelsEnum.unpack}
           />
         </Box>
       </Box>
