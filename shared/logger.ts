@@ -38,29 +38,36 @@ const defaultOptions: Partial<LoggerConstructorArgs> = {}
   helpers.noop
 )
 
+const SYSTEM_INFO = `>> SYSTEM_INFO: platform:${platform}, arch:${arch}, release:${release}, version:${version}`
+
 export default class Logger {
   private window?: BrowserWindow
+  // TODO: Remove the channel from here and default to use sendToChannel method instead
   private channel?: string
+  // TODO: Make module a required thing
+  private module?: string
 
-  constructor({ window, channel } = defaultOptions) {
+  constructor({ window, channel, module } = defaultOptions) {
     this.window = window
     this.channel = channel
+    this.module = module
   }
 
   info = (...log: string[]) => {
-    logger.info(
-      ...log,
-      `>> SYSTEM_INFO: platform:${platform}, arch:${arch}, release:${release}, version:${version}`
-    )
+    logger.info(`[${this.module}]`, ...log, SYSTEM_INFO)
+    // TODO: Remove
     this.window?.webContents.send(`${this.channel}:log`, log)
   }
 
   error = (...err: any[]) => {
-    logger.error(
-      ...err,
-      `>> SYSTEM_INFO: platform:${platform}, arch:${arch}, release:${release}, version:${version}`
-    )
+    logger.error(`[${this.module}]`, ...err, SYSTEM_INFO)
+    // TODO: Remove
     this.window?.webContents.send(`${this.channel}:error`, err)
+  }
+
+  sendToChannel = ({ channel, log }: { channel: string; log: string }) => {
+    logger.info(`[${this.module}]`, `[${channel}]`, log, SYSTEM_INFO)
+    this.window?.webContents.send(channel, log)
   }
 
   sendMetric = (payload: Record<string, string | number | boolean>) => {
