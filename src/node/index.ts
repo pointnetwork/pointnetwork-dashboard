@@ -27,11 +27,13 @@ export default class Node {
     this.launch()
   }
 
+  // Done
   getURL(filename: string, version: string) {
     const githubURL = helpers.getGithubURL()
     return `${githubURL}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
+  // Done
   getNodeFileName(version: string) {
     if (global.platform.win32) return `point-win-${version}.tar.gz`
 
@@ -40,6 +42,7 @@ export default class Node {
     return `point-linux-${version}.tar.gz`
   }
 
+  // Done
   async getBinPath() {
     const binPath = await helpers.getBinPath()
     if (global.platform.win32) {
@@ -52,6 +55,7 @@ export default class Node {
     return path.join(binPath, 'linux', 'point')
   }
 
+  // Done
   async isInstalled(): Promise<boolean> {
     this.installationLogger.info('Checking PointNode exists or node')
 
@@ -65,6 +69,7 @@ export default class Node {
     return false
   }
 
+  // Done
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -134,6 +139,7 @@ export default class Node {
       })
     })
 
+  // Done
   async launch() {
     logger.info('Launching Node')
     if (await this.pointNodeCheck()) {
@@ -178,6 +184,7 @@ export default class Node {
     })
   }
 
+  // Done
   async pointNodeCheck(): Promise<boolean> {
     try {
       const httpsAgent = new https.Agent({
@@ -211,10 +218,12 @@ export default class Node {
     }
   }
 
+  // Done
   static getKillCmd(pid: number) {
     return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
   }
 
+  // Done
   static async stopNode() {
     const process = await find('name', 'point', true)
     if (process.length > 0) {
@@ -231,6 +240,7 @@ export default class Node {
     }
   }
 
+  // Done
   async checkNodeVersion() {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
@@ -270,6 +280,7 @@ export default class Node {
     }
   }
 
+  // Done
   async getIdentity() {
     logger.info('Get Identity')
     const addressRes = await axios.get(
