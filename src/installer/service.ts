@@ -2,7 +2,7 @@ import { BrowserWindow } from 'electron'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import Firefox from '../firefox'
-import Node from '../node'
+import Node from '../node/index_new'
 import Uninstaller from '../uninstaller'
 import { InstallationStepsEnum } from '../@types/installation'
 import { getProgressFromGithubMsg } from './helpers'
@@ -33,10 +33,14 @@ class Installer {
   )
 
   constructor(window: BrowserWindow) {
-    this.logger = new Logger({ window, channel: 'installer' })
+    this.logger = new Logger({
+      window,
+      channel: 'installer',
+      module: 'installer',
+    })
     this.window = window
     this.firefox = new Firefox(window)
-    this.node = new Node(window)
+    this.node = new Node({ window })
     this.uninstaller = new Uninstaller(window)
   }
 
@@ -233,8 +237,7 @@ class Installer {
     await Promise.all(
       REPOSITORIES.map(async repo => {
         const dir = path.join(POINT_SRC_DIR, repo)
-        if (fs.existsSync(dir))
-          rimraf.sync(dir)
+        if (fs.existsSync(dir)) rimraf.sync(dir)
         const githubURL = helpers.getGithubURL()
         const url = `${githubURL}/pointnetwork/${repo}`
         await this.firefox.getIdExtension()
@@ -275,7 +278,7 @@ class Installer {
     await this.uninstaller.download()
     await this.firefox.downloadInstallPointSDK()
     await this.firefox.download()
-    await this.node.download()
+    await this.node.downloadAndInstall()
 
     await axios
       .get(
