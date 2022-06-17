@@ -1,10 +1,14 @@
+import util from 'node:util'
 import extract from 'extract-zip'
 import { https } from 'follow-redirects'
 import {
   Utils,
   DownloadFunction,
   ExtractZipFunction,
+  KillFunction,
 } from '../src/@types/utils'
+
+const exec = util.promisify(require('child_process').exec)
 
 const download: DownloadFunction = ({
   downloadUrl,
@@ -59,8 +63,22 @@ const extractZip: ExtractZipFunction = ({ src, dest, onProgress }) =>
     }
   })
 
+const kill: KillFunction = async ({ processId, onMessage }) => {
+  try {
+    onMessage(`Killing process with PID: ${processId}`)
+    const cmd = global.platform.win32
+      ? `taskkill /F /PID "${processId}"`
+      : `kill "${processId}"`
+    const output = await exec(cmd)
+    onMessage(`Killed PID: ${processId} with Output: ${output}`)
+  } catch (error: any) {
+    throw new Error(error)
+  }
+}
+
 const utils: Utils = Object.freeze({
   download,
   extractZip,
+  kill,
 })
 export default utils

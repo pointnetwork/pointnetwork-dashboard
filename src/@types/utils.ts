@@ -12,7 +12,13 @@ export type ExtractZipFunction = (_: {
   onProgress?: (progress: number) => void
 }) => Promise<void>
 
+export type KillFunction = (_: {
+  processId: number
+  onMessage: (message: string) => void
+}) => void
+
 export interface Utils {
   download: DownloadFunction
   extractZip: ExtractZipFunction
+  kill: KillFunction
 }
