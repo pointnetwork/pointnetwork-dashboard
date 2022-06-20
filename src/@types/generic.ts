@@ -1,17 +1,3 @@
-export interface DownloadLog {
-  isDownloading: boolean
-  progress: number | string
-  log: string
-  isDownloaded: boolean
-}
-
-export interface UnpackLog {
-  isUnpacking: boolean
-  log: string
-  progress: number | string
-  isUnpacked: boolean
-}
-
 export interface Process {
   pid: number
   ppid?: number
@@ -20,12 +6,6 @@ export interface Process {
   name: string
   bin?: string
   cmd: string
-}
-
-export interface StopProcessLog {
-  isStopping: boolean
-  log: string
-  isStopped: boolean
 }
 
 export interface LaunchProcessLog {
@@ -43,5 +23,12 @@ export interface IdentityLog {
 export interface UpdateLog {
   isChecking: boolean
   isAvailable: boolean
+  log: string
+}
+
+export interface GenericProgressLog {
+  started: boolean
+  done: boolean
+  progress?: number
   log: string
 }
