@@ -25,11 +25,13 @@ export default class Uninstaller {
     this.installationLogger = new Logger({ window, channel: 'installer' })
   }
 
+  // Done
   getURL(filename: string, version: string) {
     const githubURL = helpers.getGithubURL()
     return `${githubURL}/pointnetwork/pointnetwork-uninstaller/releases/download/${version}/${filename}`
   }
 
+  // Done
   getUninstallerFileName(version: string) {
     if (global.platform.win32)
       return `point-uninstaller-${version}-Windows-installer.zip`
@@ -74,6 +76,7 @@ export default class Uninstaller {
     }
   }
 
+  // Done
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
