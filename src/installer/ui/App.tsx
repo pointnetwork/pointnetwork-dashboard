@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 // MAterial UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -7,11 +7,8 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 // Theme provider
 import UIThemeProvider from '../../../shared/UIThemeProvider'
-import { InstallationStepsEnum } from '../../@types/installation'
-import { installationLogReducer, initialState } from '../reducer'
-import { parseLog } from '../helpers'
 // Components
-import Logs from './components/Logs'
+import CreateDirLogs from './components/CreateDirLogs'
 import DownloadExtractLogs from './components/DownloadExtractLogs'
 import TopBar from './components/TopBar'
 // Types
@@ -19,11 +16,14 @@ import {
   NodeChannelsEnum,
   DashboardChannelsEnum,
   GenericChannelsEnum,
+  FirefoxChannelsEnum,
+  PointSDKChannelsEnum,
+  UninstallerChannelsEnum,
+  InstallerChannelsEnum,
 } from '../../@types/ipc_channels'
 
 export default function App() {
   const loggerRef = useRef<HTMLElement>()
-  const [logs, dispatch] = useReducer(installationLogReducer, initialState)
   const [installing, setInstalling] = useState<boolean>(false)
   const [version, setVersion] = useState<string>('')
   const [identifier, setIdentifier] = useState<string>('')
@@ -43,17 +43,6 @@ export default function App() {
   function sendStartInstallation() {
     window.Installer.startInstallation()
     setInstalling(true)
-
-    window.Installer.on('installer:log', (log: string[]) => {
-      const { category, progress, message } = parseLog(log)
-
-      // The UI will only display logs associated to a category.
-      if (category) {
-        const payload = { message, progress }
-        dispatch({ type: category, payload })
-        loggerRef.current?.scrollTo({ top: loggerRef.current?.scrollHeight })
-      }
-    })
   }
 
   return (
@@ -110,27 +99,30 @@ export default function App() {
           borderRadius={2}
           display={installing ? 'block' : 'none'}
         >
-          <Logs
-            stepCategory={InstallationStepsEnum.DIRECTORIES}
-            log={logs[InstallationStepsEnum.DIRECTORIES]}
+          <CreateDirLogs
+            title="Create Directoires"
+            channel={InstallerChannelsEnum.create_dirs}
           />
-          <Logs
-            stepCategory={InstallationStepsEnum.CODE}
-            log={logs[InstallationStepsEnum.CODE]}
-          />
-          <Logs
-            stepCategory={InstallationStepsEnum.POINT_UNINSTALLER}
-            log={logs[InstallationStepsEnum.POINT_UNINSTALLER]}
-          />
-          <Logs
-            stepCategory={InstallationStepsEnum.POINT_SDK}
-            log={logs[InstallationStepsEnum.POINT_SDK]}
-          />
-          <Logs
-            stepCategory={InstallationStepsEnum.BROWSER}
-            log={logs[InstallationStepsEnum.BROWSER]}
+          <CreateDirLogs
+            title="Clone Repositories"
+            channel={InstallerChannelsEnum.clone_repos}
           />
           <DownloadExtractLogs
+            title="Uninstaller"
+            downloadChannel={UninstallerChannelsEnum.download}
+            unpackChannel={UninstallerChannelsEnum.unpack}
+          />
+          <DownloadExtractLogs
+            title="Browser"
+            downloadChannel={FirefoxChannelsEnum.download}
+            unpackChannel={FirefoxChannelsEnum.unpack}
+          />
+          <DownloadExtractLogs
+            title="SDK Extenstion"
+            downloadChannel={PointSDKChannelsEnum.download}
+          />
+          <DownloadExtractLogs
+            title="Node"
             downloadChannel={NodeChannelsEnum.download}
             unpackChannel={NodeChannelsEnum.unpack}
           />
