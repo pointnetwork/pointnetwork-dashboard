@@ -75,22 +75,27 @@ const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => {
   }
 }
 
-const getLatestReleaseFromGithub: (repository: string) => Promise<string> =
-  async repository => {
-    try {
-      const res = await axios.get(
-        `${getGithubAPIURL()}/repos/pointnetwork/${repository}/releases/latest`,
-        {
-          headers: { 'user-agent': 'node.js' },
-        }
-      )
-      return res.data.tag_name
-    } catch (error) {
-      // TODO: Add a logger to log the error
-      // TODO: Create a standardised GitHub error
-      console.error(error)
-    }
+const getLatestReleaseFromGithub: (
+  repository:
+    | 'pointnetwork-uninstaller'
+    | 'pointnetwork'
+    | 'pointsdk'
+    | 'pointnetwork-dashboard'
+) => Promise<string> = async repository => {
+  try {
+    const res = await axios.get(
+      `${getGithubAPIURL()}/repos/pointnetwork/${repository}/releases/latest`,
+      {
+        headers: { 'user-agent': 'node.js' },
+      }
+    )
+    return res.data.tag_name
+  } catch (error) {
+    // TODO: Add a logger to log the error
+    // TODO: Create a standardised GitHub error
+    console.error(error)
   }
+}
 
 // Deprecate
 const getlatestNodeReleaseVersion = async () => {
@@ -173,6 +178,7 @@ const getlatestSDKReleaseVersion = async () => {
   }
 }
 
+// Deprecate
 const getPortableDashboardDownloadURL = async () => {
   const owner = 'pointnetwork'
   const repo = 'phyrox-esr-portable'
