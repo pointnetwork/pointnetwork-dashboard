@@ -69,7 +69,7 @@ const DownloadExtractLogs = ({
       <Grid item xs={9}>
         <Box display="flex">
           <Typography mr={0.5}>Point {title}</Typography>
-          {unpackLogs.done && downloadLogs.done && (
+          {(!unpackChannel || unpackLogs.done) && downloadLogs.done && (
             <CheckCircleIcon
               color="success"
               sx={{ height: 16, width: 16, mt: 0.2 }}
