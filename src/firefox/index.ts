@@ -42,6 +42,7 @@ export default class {
     return false
   }
 
+  // Done
   getURLMacAndLinux(
     version: unknown,
     osAndArch: any,
@@ -51,11 +52,13 @@ export default class {
     return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`
   }
 
+  // Done
   async getURLWindows() {
     const url = await helpers.getPortableDashboardDownloadURL()
     return url
   }
 
+  // Done
   getFileName(version: unknown) {
     if (global.platform.darwin) {
       return `Firefox%20${version}.dmg`
@@ -64,6 +67,7 @@ export default class {
     return `firefox-${version}.tar.bz2`
   }
 
+  // Done
   download = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -177,6 +181,7 @@ export default class {
       })
     })
 
+  // Done
   getIdExtension = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -195,6 +200,7 @@ export default class {
       })
     })
 
+  // Done
   downloadInstallPointSDK = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -267,6 +273,7 @@ export default class {
       })
     })
 
+  // Done
   async checkSDKVersion() {
     const installedVersion = helpers.getInstalledSDKVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
@@ -293,6 +300,7 @@ export default class {
     return `${githubURL}/pointnetwork/pointsdk/releases/download/${version}/${filename}`
   }
 
+  // Done
   async launch() {
     // const processes = await find('name', /firefox*/gi)
     // if (processes.length > 0) {
@@ -322,10 +330,12 @@ export default class {
     }
   }
 
+  // Done
   getKillCmd(pid: number) {
     return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
   }
 
+  // Done
   async close() {
     const processes: Process[] = await find('name', /firefox/i)
 
@@ -346,6 +356,7 @@ export default class {
     }
   }
 
+  // Done
   async unpack(
     releasePath: string,
     browserDir: string,
@@ -433,6 +444,7 @@ export default class {
     }
   }
 
+  // Done
   async getRootPath() {
     if (global.platform.win32 || global.platform.darwin) {
       return path.join(helpers.getBrowserFolderPath())
@@ -441,6 +453,7 @@ export default class {
     return path.join(helpers.getBrowserFolderPath(), 'firefox')
   }
 
+  // Done
   async getAppPath() {
     const rootPath = await this.getRootPath()
 
@@ -463,6 +476,7 @@ export default class {
     return rootPath
   }
 
+  // Done
   async getPrefPath() {
     const rootPath = await this.getRootPath()
 
@@ -493,6 +507,7 @@ export default class {
     return path.join(rootPath, 'defaults', 'pref')
   }
 
+  // Done
   async getPoliciesPath() {
     const rootPath = await this.getRootPath()
     let distributionPath
@@ -517,6 +532,7 @@ export default class {
     return distributionPath
   }
 
+  // Done
   async getBinPath() {
     const rootPath = await this.getRootPath()
     if (global.platform.win32) {
@@ -530,6 +546,7 @@ export default class {
     return path.join(rootPath, 'firefox')
   }
 
+  // Done
   async createConfigFiles(pacFile: url.URL) {
     this.installationLogger.info('Creating configuration files for Firefox...')
     if (!pacFile)
@@ -661,6 +678,7 @@ pref("browser.startup.upgradeDialog.enabled", false)
     })
   }
 
+  // Done
   async getLastVersionFirefox() {
     const url = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
 
@@ -684,6 +702,7 @@ pref("browser.startup.upgradeDialog.enabled", false)
     })
   }
 
+  // Done
   async checkFirefoxVersion() {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledFirefoxVersion()
