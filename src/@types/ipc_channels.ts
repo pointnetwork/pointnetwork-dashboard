@@ -1,5 +1,10 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-unused-vars */
+export enum InstallerChannelsEnum {
+  create_dirs = 'install:create_dirs',
+  clone_repos = 'install:clone_repos',
+}
+
 export enum WelcomeChannelsEnum {
   copy_mnemonic = 'welcome:generate_mnemonic',
   generate_mnemonic = 'welcome:generate_mnemonic',
@@ -25,9 +30,11 @@ export enum DashboardChannelsEnum {
 export enum FirefoxChannelsEnum {
   download = 'firefox:download',
   check_for_updates = 'firefox:check_for_updates',
-  launch = 'firefox:launch',
   get_version = 'firefox:get_version',
+  launch = 'firefox:launch',
+  running_status = 'firefox:running_status',
   unpack = 'firefox:unpack',
+  stop = 'firefox:stop',
 }
 
 export enum NodeChannelsEnum {
@@ -42,6 +49,13 @@ export enum NodeChannelsEnum {
 }
 
 export enum UninstallerChannelsEnum {
+  download = 'uninstaller:download',
   launch = 'uninstaller:launch',
   running_status = 'uninstaller:running_status',
+  unpack = 'uninstaller:unpack',
+}
+
+export enum PointSDKChannelsEnum {
+  download = 'pointsdk:download',
+  check_for_updates = 'pointsdk:check_for_updates',
 }
