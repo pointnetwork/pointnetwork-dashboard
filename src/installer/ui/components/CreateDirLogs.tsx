@@ -5,6 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 // Icons
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DownloadIcon from '@mui/icons-material/Download'
 import DownloadDoneIcon from '@mui/icons-material/DownloadDone'
 import FolderIcon from '@mui/icons-material/Folder'
@@ -38,7 +39,15 @@ const CreateDirLogs = ({
   return (
     <Grid container p={1}>
       <Grid item xs={9}>
-        <Typography>{title}</Typography>
+        <Box display="flex">
+          <Typography mr={0.5}>{title}</Typography>
+          {progress.done && (
+            <CheckCircleIcon
+              color="success"
+              sx={{ height: 16, width: 16, mt: 0.2 }}
+            />
+          )}
+        </Box>
         <Typography variant="body2" sx={{ opacity: 0.6 }}>
           {progress.log}
         </Typography>

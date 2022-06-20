@@ -5,6 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 // Icons
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
@@ -66,7 +67,15 @@ const DownloadExtractLogs = ({
   return (
     <Grid container p={1}>
       <Grid item xs={9}>
-        <Typography>Point {title}</Typography>
+        <Box display="flex">
+          <Typography mr={0.5}>Point {title}</Typography>
+          {unpackLogs.done && downloadLogs.done && (
+            <CheckCircleIcon
+              color="success"
+              sx={{ height: 16, width: 16, mt: 0.2 }}
+            />
+          )}
+        </Box>
         <Typography variant="body2" sx={{ opacity: 0.6 }}>
           {log}
         </Typography>
