@@ -1,4 +1,3 @@
-import { IdentityLog, LaunchProcessLog, UpdateLog } from './../@types/generic'
 import { BrowserWindow } from 'electron'
 import axios from 'axios'
 import fs, { PathLike } from 'fs-extra'
@@ -7,21 +6,22 @@ import find from 'find-process'
 import { spawn } from 'node:child_process'
 import { https } from 'follow-redirects'
 import moment from 'moment'
+import rimraf from 'rimraf'
 import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 // Types
 import { NodeChannelsEnum } from './../@types/ipc_channels'
 import {
-  DownloadLog,
-  UnpackLog,
   Process,
-  StopProcessLog,
+  GenericProgressLog,
+  IdentityLog,
+  LaunchProcessLog,
+  UpdateLog,
 } from '../@types/generic'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
-const rimraf = require('rimraf')
 
 // TODO: Add JSDoc comments
 /**
@@ -71,8 +71,8 @@ class Node {
         if (fs.existsSync(path.join(this.pointDir, 'bin')))
           rimraf.sync(path.join(this.pointDir, 'bin'))
 
-        const latestVersion = await this.getLatestVersion()
         // 1. Set the parameters for download
+        const latestVersion = await this.getLatestVersion()
         let fileName = `point-linux-${latestVersion}.tar.gz`
         if (global.platform.win32)
           fileName = `point-win-${latestVersion}.tar.gz`
@@ -81,20 +81,18 @@ class Node {
 
         const downloadUrl = this.getDownloadURL(fileName, latestVersion)
         const downloadDest = path.join(this.pointDir, fileName)
-        if (!downloadDest) {
-          fs.mkdirpSync(downloadDest)
-        }
+
         const downloadStream = fs.createWriteStream(downloadDest)
 
         // 2. Start downloading and send logs to window
         this.logger.sendToChannel({
           channel: NodeChannelsEnum.download,
           log: JSON.stringify({
-            isDownloading: true,
+            started: true,
             log: 'Starting to download Point Node',
             progress: 0,
-            isDownloaded: false,
-          } as DownloadLog),
+            done: false,
+          } as GenericProgressLog),
         })
         await utils.download({
           downloadUrl,
@@ -103,22 +101,22 @@ class Node {
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.download,
               log: JSON.stringify({
-                isDownloading: true,
+                started: true,
                 log: 'Downloading Point Node',
                 progress,
-                isDownloaded: false,
-              } as DownloadLog),
+                done: false,
+              } as GenericProgressLog),
             })
           },
         })
         this.logger.sendToChannel({
           channel: NodeChannelsEnum.download,
           log: JSON.stringify({
-            isDownloading: false,
+            started: false,
             log: 'Point Node downloaded',
             progress: 100,
-            isDownloaded: true,
-          } as DownloadLog),
+            done: true,
+          } as GenericProgressLog),
         })
 
         downloadStream.on('close', async () => {
@@ -127,11 +125,11 @@ class Node {
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.unpack,
               log: JSON.stringify({
-                isUnpacking: true,
+                started: true,
                 log: 'Unpacking Point Node',
-                isUnpacked: false,
+                done: false,
                 progress: 0,
-              } as UnpackLog),
+              } as GenericProgressLog),
             })
             await decompress(downloadDest, this.pointDir, {
               plugins: [decompressTargz()],
@@ -139,11 +137,11 @@ class Node {
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.unpack,
               log: JSON.stringify({
-                isUnpacking: false,
+                started: false,
                 log: 'Unpacked Point Node',
-                isUnpacked: true,
+                done: true,
                 progress: 100,
-              } as UnpackLog),
+              } as GenericProgressLog),
             })
 
             // 4. Delete the downloaded file
@@ -238,10 +236,10 @@ class Node {
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.stop,
       log: JSON.stringify({
-        isStopping: true,
+        started: true,
         log: 'Finding running processes for Point Node',
-        isStopped: false,
-      } as StopProcessLog),
+        done: false,
+      } as GenericProgressLog),
     })
     const process = await this._getRunningProcess()
     if (process.length > 0) {
@@ -256,10 +254,10 @@ class Node {
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.stop,
       log: JSON.stringify({
-        isStopping: true,
+        started: true,
         log: 'Killed running processes for Point Node',
-        isStopped: false,
-      } as StopProcessLog),
+        done: false,
+      } as GenericProgressLog),
     })
   }
 
