@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-unused-vars */
 export enum InstallerChannelsEnum {
+  start = 'install:start',
   create_dirs = 'install:create_dirs',
   clone_repos = 'install:clone_repos',
 }

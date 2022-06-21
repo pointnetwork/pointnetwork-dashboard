@@ -1,3 +1,4 @@
+import { InstallerChannelsEnum } from './../@types/ipc_channels'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import welcome from '../welcome'
 import baseWindowConfig from '../../shared/windowConfig'
@@ -5,13 +6,14 @@ import Logger from '../../shared/logger'
 import Installer from './service'
 import helpers from '../../shared/helpers'
 import { getIdentifier } from '../../shared/getIdentifier'
+// Types
 import {
   DashboardChannelsEnum,
   GenericChannelsEnum,
 } from '../@types/ipc_channels'
 export { Installer }
 
-const logger = new Logger()
+const logger = new Logger({ module: 'installer:index' })
 
 app.disableHardwareAcceleration()
 
@@ -20,11 +22,6 @@ let installer: Installer | null
 
 declare const INSTALLER_WINDOW_WEBPACK_ENTRY: string
 declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
-
-// const assetsPath =
-//   process.env.NODE_ENV === 'production'
-//     ? process.resourcesPath
-//     : app.getAppPath()
 
 export default function () {
   async function createWindow() {
@@ -46,7 +43,7 @@ export default function () {
       logger.info('Closed Installer Window')
       events.forEach(event => {
         ipcMain.removeListener(event.channel, event.listener)
-        logger.info('[installer:index.ts] Removed event', event.channel)
+        logger.info('Removed event', event.channel)
       })
       mainWindow = null
       installer = null
@@ -55,9 +52,9 @@ export default function () {
 
   const events = [
     {
-      channel: 'installer:start',
+      channel: InstallerChannelsEnum.start,
       async listener() {
-        await installer!.start()
+        await installer!.install()
         await installer!.close()
         welcome(true)
       },
@@ -97,13 +94,7 @@ export default function () {
   async function registerListeners() {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
-      logger.info('[installer:index.ts] Registered event', event.channel)
-    })
-    ipcMain.on('installer:checkUpdate', async (_, message) => {
-      logger.info(
-        '[installer:index.ts] TODO!! -> implement checkUpdateOrInstall method'
-      )
-      // new Installer(mainWindow!).checkUpdateOrInstall()
+      logger.info('Registered event', event.channel)
     })
   }
 

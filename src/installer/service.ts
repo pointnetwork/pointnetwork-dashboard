@@ -1,13 +1,13 @@
 import { BrowserWindow } from 'electron'
-import helpers from '../../shared/helpers'
-import Logger from '../../shared/logger'
-import Firefox from '../firefox/index_new'
-import PointSDK from '../pointsdk'
-import Node from '../node/index_new'
-import Uninstaller from '../uninstaller/index_new'
 import { getProgressFromGithubMsg } from './helpers'
 import rimraf from 'rimraf'
 import Bounty from '../bounty'
+import Node from '../node/index_new'
+import Firefox from '../firefox/index_new'
+import PointSDK from '../pointsdk'
+import Uninstaller from '../uninstaller/index_new'
+import Logger from '../../shared/logger'
+import helpers from '../../shared/helpers'
 // Types
 import { GenericProgressLog } from './../@types/generic'
 import { InstallerChannelsEnum } from '../@types/ipc_channels'
@@ -27,10 +27,6 @@ const REPOSITORIES = ['liveprofile']
 class Installer {
   private logger: Logger
   private window: BrowserWindow
-  private firefox: Firefox
-  private node: Node
-  private bounty: Bounty
-  private uninstaller: Uninstaller
   private static installationJsonFilePath: string = path.join(
     helpers.getPointPath(),
     'installer.json'
@@ -39,16 +35,14 @@ class Installer {
   constructor(window: BrowserWindow) {
     this.logger = new Logger({
       window,
-      channel: 'installer',
       module: 'installer',
     })
     this.window = window
-    this.firefox = new Firefox({ window })
-    this.node = new Node({ window })
-    this.uninstaller = new Uninstaller({ window })
-    this.bounty = new Bounty({ window })
   }
 
+  /**
+   * Returns the installation status
+   */
   static isInstalled = () => {
     try {
       return JSON.parse(
@@ -62,36 +56,28 @@ class Installer {
     }
   }
 
-  start = async () => {
-    if (!Installer.isInstalled()) {
-      await this.install()
-    }
-  }
-
+  /**
+   * Creates dirs, clones repos, installs Point Node, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
+   */
   install = async () => {
     this.logger.info('Starting installation')
 
-    // Create a json file and set `isInstalled` flag to false
+    const bounty = new Bounty({ window: this.window })
+
     fs.writeFileSync(
       Installer.installationJsonFilePath,
       JSON.stringify({ isInstalled: false })
     )
 
-    await this.bounty.sendInstallStarted()
-
-    // Create the appropriate directories
+    await bounty.sendInstallStarted()
     this._createDirs()
-
-    // Clone the repos
     await this._cloneRepos()
-
-    await this.uninstaller.downloadAndInstall()
-    await this.firefox.downloadAndInstall()
+    await new Firefox({ window: this.window }).downloadAndInstall()
     await new PointSDK({ window: this.window }).downloadAndInstall()
-    await this.node.downloadAndInstall()
+    await new Node({ window: this.window }).downloadAndInstall()
+    await new Uninstaller({ window: this.window }).downloadAndInstall()
+    await bounty.sendInstalled()
 
-    await this.bounty.sendInstalled()
-    // Set the `isInstalled` flag to true
     fs.writeFileSync(
       Installer.installationJsonFilePath,
       JSON.stringify({ isInstalled: true })
@@ -99,6 +85,9 @@ class Installer {
     this.logger.info('Installation complete')
   }
 
+  /**
+   * Closes the window
+   */
   close() {
     this.window.close()
   }

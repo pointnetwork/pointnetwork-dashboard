@@ -108,11 +108,6 @@ export default function App() {
             channel={InstallerChannelsEnum.clone_repos}
           />
           <DownloadExtractLogs
-            title="Uninstaller"
-            downloadChannel={UninstallerChannelsEnum.download}
-            unpackChannel={UninstallerChannelsEnum.unpack}
-          />
-          <DownloadExtractLogs
             title="Browser"
             downloadChannel={FirefoxChannelsEnum.download}
             unpackChannel={FirefoxChannelsEnum.unpack}
@@ -125,6 +120,11 @@ export default function App() {
             title="Node"
             downloadChannel={NodeChannelsEnum.download}
             unpackChannel={NodeChannelsEnum.unpack}
+          />
+          <DownloadExtractLogs
+            title="Uninstaller"
+            downloadChannel={UninstallerChannelsEnum.download}
+            unpackChannel={UninstallerChannelsEnum.unpack}
           />
         </Box>
       </Box>
