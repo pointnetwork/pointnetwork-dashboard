@@ -26,12 +26,13 @@ export default class AutoUpdater {
     this.logger = new Logger()
     this.currentVersion = app.getVersion()
     this.feedUrl = ''
-    if (global.platform.win32) {
-      this.feedUrl = this.downloadsDirectory
-    }
-    if (global.platform.darwin) {
-      this.feedUrl = path.join(this.downloadsDirectory, 'feed.json')
-    }
+    // if (global.platform.win32) {
+    //   this.feedUrl = this.downloadsDirectory
+    // }
+    this.feedUrl = this.downloadsDirectory
+    // if (global.platform.darwin) {
+    //   this.feedUrl = path.join(this.downloadsDirectory, 'feed.json')
+    // }
   }
 
   getLatestRelease: () => Promise<GithubRelease> = () =>
