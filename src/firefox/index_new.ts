@@ -117,38 +117,12 @@ class Firefox {
         const browserDir = path.join(this.pointDir, 'src', 'point-browser')
 
         // 2. Start downloading and send logs to window
-        this.logger.sendToChannel({
-          channel: FirefoxChannelsEnum.download,
-          log: JSON.stringify({
-            started: true,
-            log: 'Starting to download Point Browser',
-            progress: 0,
-            done: false,
-          } as GenericProgressLog),
-        })
         await utils.download({
+          asset: 'Browser',
+          channel: FirefoxChannelsEnum.download,
+          logger: this.logger,
           downloadUrl,
           downloadStream,
-          onProgress: progress => {
-            this.logger.sendToChannel({
-              channel: FirefoxChannelsEnum.download,
-              log: JSON.stringify({
-                started: true,
-                log: 'Downloading Point Browser',
-                progress,
-                done: false,
-              } as GenericProgressLog),
-            })
-          },
-        })
-        this.logger.sendToChannel({
-          channel: FirefoxChannelsEnum.download,
-          log: JSON.stringify({
-            started: false,
-            log: 'Point Browser downloaded',
-            progress: 100,
-            done: true,
-          } as GenericProgressLog),
         })
 
         downloadStream.on('close', async () => {

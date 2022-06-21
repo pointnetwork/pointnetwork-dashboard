@@ -64,38 +64,12 @@ class Uninstaller {
         const downloadStream = fs.createWriteStream(downloadDest)
 
         // 2. Start downloading and send logs to window
-        this.logger.sendToChannel({
-          channel: UninstallerChannelsEnum.download,
-          log: JSON.stringify({
-            started: true,
-            log: 'Starting to download Point Uninstaller',
-            progress: 0,
-            done: false,
-          } as GenericProgressLog),
-        })
         await utils.download({
+          asset: 'Uninstaller',
+          channel: UninstallerChannelsEnum.download,
+          logger: this.logger,
           downloadUrl,
           downloadStream,
-          onProgress: progress => {
-            this.logger.sendToChannel({
-              channel: UninstallerChannelsEnum.download,
-              log: JSON.stringify({
-                started: true,
-                log: 'Downloading Point Uninstaller',
-                progress,
-                done: false,
-              } as GenericProgressLog),
-            })
-          },
-        })
-        this.logger.sendToChannel({
-          channel: UninstallerChannelsEnum.download,
-          log: JSON.stringify({
-            started: false,
-            log: 'Point Uninstaller downloaded',
-            progress: 100,
-            done: true,
-          } as GenericProgressLog),
         })
 
         // 3. Unpack the downloaded file and send logs to window

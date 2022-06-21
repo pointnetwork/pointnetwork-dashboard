@@ -7,17 +7,35 @@ import {
   ExtractZipFunction,
   KillFunction,
 } from '../src/@types/utils'
+import { GenericProgressLog } from '../src/@types/generic'
 
 const exec = util.promisify(require('child_process').exec)
 
+/**
+ * Downloads from the given downloadURL and pips it to downloadStream
+ * Takes optional logger, asset and channel arguments to send logs to the window channel
+ * onProgress callback returns the download progress
+ */
 const download: DownloadFunction = ({
+  asset,
+  logger,
+  channel,
   downloadUrl,
   downloadStream,
   onProgress,
 }) =>
   new Promise((resolve, reject) => {
     try {
-      https.get(downloadUrl, async response => {
+      channel &&
+        logger?.sendToChannel({
+          channel,
+          log: JSON.stringify({
+            started: true,
+            log: `Starting to download Point ${asset}`,
+          } as GenericProgressLog),
+        })
+
+      https.get(downloadUrl, { timeout: 10000 }, async response => {
         response.pipe(downloadStream)
 
         const total = response.headers['content-length']
@@ -32,10 +50,29 @@ const download: DownloadFunction = ({
           if (temp !== percentage) {
             percentage = temp
             onProgress && onProgress(percentage)
+
+            channel &&
+              logger?.sendToChannel({
+                channel,
+                log: JSON.stringify({
+                  log: `Downloading Point ${asset}`,
+                  progress: percentage,
+                } as GenericProgressLog),
+              })
           }
         })
 
         response.on('close', () => {
+          channel &&
+            logger?.sendToChannel({
+              channel,
+              log: JSON.stringify({
+                started: false,
+                log: `Point ${asset} downloaded`,
+                progress: 100,
+                done: true,
+              } as GenericProgressLog),
+            })
           resolve()
         })
       })

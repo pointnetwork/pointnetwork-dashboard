@@ -85,38 +85,12 @@ class Node {
         const downloadStream = fs.createWriteStream(downloadDest)
 
         // 2. Start downloading and send logs to window
-        this.logger.sendToChannel({
-          channel: NodeChannelsEnum.download,
-          log: JSON.stringify({
-            started: true,
-            log: 'Starting to download Point Node',
-            progress: 0,
-            done: false,
-          } as GenericProgressLog),
-        })
         await utils.download({
+          asset: 'Node',
+          channel: NodeChannelsEnum.download,
+          logger: this.logger,
           downloadUrl,
           downloadStream,
-          onProgress: progress => {
-            this.logger.sendToChannel({
-              channel: NodeChannelsEnum.download,
-              log: JSON.stringify({
-                started: true,
-                log: 'Downloading Point Node',
-                progress,
-                done: false,
-              } as GenericProgressLog),
-            })
-          },
-        })
-        this.logger.sendToChannel({
-          channel: NodeChannelsEnum.download,
-          log: JSON.stringify({
-            started: false,
-            log: 'Point Node downloaded',
-            progress: 100,
-            done: true,
-          } as GenericProgressLog),
         })
 
         downloadStream.on('close', async () => {

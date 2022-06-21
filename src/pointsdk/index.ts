@@ -6,7 +6,7 @@ import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import utils from '../../shared/utils'
 import { PointSDKChannelsEnum } from '../@types/ipc_channels'
-import { GenericProgressLog, UpdateLog } from '../@types/generic'
+import { UpdateLog } from '../@types/generic'
 
 /**
  * WHAT THIS MODULE DOES
@@ -78,38 +78,12 @@ class PointSDK {
 
           helpers.setIsFirefoxInit(false)
 
-          this.logger.sendToChannel({
-            channel: PointSDKChannelsEnum.download,
-            log: JSON.stringify({
-              started: true,
-              log: 'Starting to download Point SDK Extension',
-              progress: 0,
-              done: false,
-            } as GenericProgressLog),
-          })
           await utils.download({
+            asset: 'SDK Extension',
+            channel: PointSDKChannelsEnum.download,
+            logger: this.logger,
             downloadUrl,
             downloadStream,
-            onProgress: progress => {
-              this.logger.sendToChannel({
-                channel: PointSDKChannelsEnum.download,
-                log: JSON.stringify({
-                  started: true,
-                  log: 'Downloading Point SDK Extension',
-                  progress,
-                  done: false,
-                } as GenericProgressLog),
-              })
-            },
-          })
-          this.logger.sendToChannel({
-            channel: PointSDKChannelsEnum.download,
-            log: JSON.stringify({
-              started: false,
-              log: 'Point Point SDK Extension downloaded',
-              progress: 100,
-              done: true,
-            } as GenericProgressLog),
           })
 
           downloadStream.on('close', () => {
