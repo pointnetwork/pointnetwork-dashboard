@@ -21,6 +21,7 @@ import {
 import { GithubRelease } from '../@types/github-release'
 import { FirefoxChannelsEnum } from '../@types/ipc_channels'
 import { Process } from '../@types/process'
+import { ErrorsEnum } from './../@types/errors'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
@@ -118,7 +119,6 @@ class Firefox {
 
         // 2. Start downloading and send logs to window
         await utils.download({
-          asset: 'Browser',
           channel: FirefoxChannelsEnum.download,
           logger: this.logger,
           downloadUrl,
@@ -145,7 +145,7 @@ class Firefox {
           resolve()
         })
       } catch (error) {
-        reject(error)
+        utils.throwError({ type: ErrorsEnum.FIREFOX_ERROR, error, reject })
       }
     })
   }

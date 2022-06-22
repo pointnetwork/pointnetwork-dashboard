@@ -19,6 +19,7 @@ import {
   LaunchProcessLog,
   UpdateLog,
 } from '../@types/generic'
+import { ErrorsEnum } from './../@types/errors'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -86,7 +87,6 @@ class Node {
 
         // 2. Start downloading and send logs to window
         await utils.download({
-          asset: 'Node',
           channel: NodeChannelsEnum.download,
           logger: this.logger,
           downloadUrl,
@@ -137,7 +137,7 @@ class Node {
           }
         })
       } catch (error) {
-        reject(error)
+        utils.throwError({ type: ErrorsEnum.NODE_ERROR, error, reject })
       }
     })
   }

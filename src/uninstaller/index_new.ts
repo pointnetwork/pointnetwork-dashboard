@@ -4,10 +4,11 @@ import path from 'node:path'
 import rimraf from 'rimraf'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import utils from '../../shared/utils'
 // Types
+import { ErrorsEnum } from './../@types/errors'
 import { UninstallerChannelsEnum } from './../@types/ipc_channels'
 import { GenericProgressLog } from '../@types/generic'
-import utils from '../../shared/utils'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -65,7 +66,6 @@ class Uninstaller {
 
         // 2. Start downloading and send logs to window
         await utils.download({
-          asset: 'Uninstaller',
           channel: UninstallerChannelsEnum.download,
           logger: this.logger,
           downloadUrl,
@@ -132,11 +132,15 @@ class Uninstaller {
 
             resolve()
           } catch (error) {
-            reject(error)
+            utils.throwError({
+              type: ErrorsEnum.UNINSTALLER_ERROR,
+              error,
+              reject,
+            })
           }
         })
       } catch (error) {
-        reject(error)
+        utils.throwError({ type: ErrorsEnum.UNINSTALLER_ERROR, error, reject })
       }
     })
   }

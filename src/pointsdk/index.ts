@@ -5,8 +5,10 @@ import path from 'node:path'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import utils from '../../shared/utils'
+// Types
 import { PointSDKChannelsEnum } from '../@types/ipc_channels'
 import { UpdateLog } from '../@types/generic'
+import { ErrorsEnum } from './../@types/errors'
 
 /**
  * WHAT THIS MODULE DOES
@@ -79,7 +81,6 @@ class PointSDK {
           helpers.setIsFirefoxInit(false)
 
           await utils.download({
-            asset: 'SDK Extension',
             channel: PointSDKChannelsEnum.download,
             logger: this.logger,
             downloadUrl,
@@ -99,8 +100,7 @@ class PointSDK {
           })
         })
       } catch (error) {
-        this.logger.error(error)
-        reject(error)
+        utils.throwError({ type: ErrorsEnum.POINTSDK_ERROR, error, reject })
       }
     })
   }
