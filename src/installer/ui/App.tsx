@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 // MAterial UI
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import List from '@mui/material/List'
@@ -24,6 +25,7 @@ import {
 
 export default function App() {
   const loggerRef = useRef<HTMLElement>()
+  const [attempts, setAttempts] = useState<number>(0)
   const [installing, setInstalling] = useState<boolean>(false)
   const [version, setVersion] = useState<string>('')
   const [identifier, setIdentifier] = useState<string>('')
@@ -38,9 +40,13 @@ export default function App() {
       GenericChannelsEnum.get_identifier,
       (identifier: string) => setIdentifier(identifier)
     )
+    window.Installer.on(InstallerChannelsEnum.error, (_attempt: string) => {
+      setAttempts(Number(_attempt))
+    })
   }, [])
 
   function sendStartInstallation() {
+    setAttempts(0)
     window.Installer.startInstallation()
     setInstalling(true)
   }
@@ -92,6 +98,28 @@ export default function App() {
             Start Installation
           </Button>
         </Box>
+        {attempts ? (
+          <Alert severity="error">
+            <Typography mb={1} variant="body2">
+              {attempts >= 5
+                ? `An error occurred during installation. Please quit and try installing again. Make sure you have a stable internet connection and use a VPN (if you can). If you're
+        still facing issues, then please contact us. We'll be glad to help
+        you out.`
+                : `An error occurred during installation. Please try again. Make sure you have a stable internet connection
+                and use a VPN (if you can)`}
+            </Typography>
+            {attempts < 5 ? (
+              <Button
+                size="small"
+                color="error"
+                onClick={sendStartInstallation}
+                variant="contained"
+              >
+                Retry Installation
+              </Button>
+            ) : null}
+          </Alert>
+        ) : null}
         <Box
           ref={loggerRef}
           sx={{ p: '1rem', mt: '.5rem', overflowY: 'scroll' }}

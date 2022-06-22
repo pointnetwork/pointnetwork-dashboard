@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DownloadIcon from '@mui/icons-material/Download'
 import DownloadDoneIcon from '@mui/icons-material/DownloadDone'
+import ErrorIcon from '@mui/icons-material/Error'
 import FolderIcon from '@mui/icons-material/Folder'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 // Types
@@ -27,6 +28,7 @@ const CreateDirLogs = ({
     done: false,
     progress: 0,
     log: 'Waiting...',
+    error: false,
   })
 
   useEffect(() => {
@@ -41,6 +43,9 @@ const CreateDirLogs = ({
       <Grid item xs={9}>
         <Box display="flex">
           <Typography mr={0.5}>{title}</Typography>
+          {progress.error && (
+            <ErrorIcon color="error" sx={{ height: 16, width: 16, mt: 0.2 }} />
+          )}
           {progress.done && (
             <CheckCircleIcon
               color="success"
@@ -60,6 +65,7 @@ const CreateDirLogs = ({
                 ? 'indeterminate'
                 : 'determinate'
             }
+            color={progress.error ? 'error' : 'primary'}
             value={Number(progress.progress)}
             size={32}
           />

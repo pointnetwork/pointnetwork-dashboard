@@ -6,6 +6,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 // Icons
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ErrorIcon from '@mui/icons-material/Error'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
@@ -41,12 +42,14 @@ const DownloadExtractLogs = ({
     done: false,
     progress: 0,
     log: '',
+    error: false,
   })
   const [unpackLogs, setUnpackLogs] = useState<GenericProgressLog>({
     started: false,
     done: false,
     progress: 0,
     log: '',
+    error: false,
   })
 
   useEffect(() => {
@@ -69,6 +72,9 @@ const DownloadExtractLogs = ({
       <Grid item xs={9}>
         <Box display="flex">
           <Typography mr={0.5}>Point {title}</Typography>
+          {(downloadLogs.error || unpackLogs.error) && (
+            <ErrorIcon color="error" sx={{ height: 16, width: 16, mt: 0.2 }} />
+          )}
           {(!unpackChannel || unpackLogs.done) && downloadLogs.done && (
             <CheckCircleIcon
               color="success"
@@ -88,6 +94,7 @@ const DownloadExtractLogs = ({
                 ? 'indeterminate'
                 : 'determinate'
             }
+            color={downloadLogs.error ? 'error' : 'primary'}
             value={Number(downloadLogs.progress)}
             size={32}
           />
@@ -107,6 +114,7 @@ const DownloadExtractLogs = ({
                   ? 'indeterminate'
                   : 'determinate'
               }
+              color={unpackLogs.error ? 'error' : 'primary'}
               value={Number(unpackLogs.progress)}
               size={32}
             />
