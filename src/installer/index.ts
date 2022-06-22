@@ -54,9 +54,13 @@ export default function () {
     {
       channel: InstallerChannelsEnum.start,
       async listener() {
-        await installer!.install()
-        await installer!.close()
-        welcome(true)
+        try {
+          await installer!.install()
+          await installer!.close()
+          welcome(true)
+        } catch (error) {
+          logger.error(error)
+        }
       },
     },
     {
