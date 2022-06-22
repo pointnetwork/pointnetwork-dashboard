@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 export enum InstallerChannelsEnum {
   start = 'install:start',
+  error = 'install:error',
   create_dirs = 'install:create_dirs',
   clone_repos = 'install:clone_repos',
 }
