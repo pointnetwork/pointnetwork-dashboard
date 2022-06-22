@@ -27,8 +27,9 @@ export interface UpdateLog {
 }
 
 export interface GenericProgressLog {
-  started: boolean
-  done: boolean
+  started?: boolean
+  done?: boolean
   progress?: number
   log: string
+  error?: boolean
 }
