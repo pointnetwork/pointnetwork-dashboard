@@ -8,9 +8,11 @@ import PointSDK from '../pointsdk'
 import Uninstaller from '../uninstaller/index_new'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import utils from '../../shared/utils'
 // Types
 import { GenericProgressLog } from './../@types/generic'
 import { InstallerChannelsEnum } from '../@types/ipc_channels'
+import { ErrorsEnum } from './../@types/errors'
 
 const path = require('path')
 const git = require('isomorphic-git')
@@ -27,6 +29,7 @@ const REPOSITORIES = ['liveprofile']
 class Installer {
   private logger: Logger
   private window: BrowserWindow
+  private _attempts: number = 0
   private static installationJsonFilePath: string = path.join(
     helpers.getPointPath(),
     'installer.json'
@@ -60,29 +63,39 @@ class Installer {
    * Creates dirs, clones repos, installs Point Node, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
    */
   install = async () => {
-    this.logger.info('Starting installation')
+    try {
+      this.logger.info('Starting installation')
 
-    const bounty = new Bounty({ window: this.window })
+      this._attempts++
 
-    fs.writeFileSync(
-      Installer.installationJsonFilePath,
-      JSON.stringify({ isInstalled: false })
-    )
+      const bounty = new Bounty({ window: this.window })
 
-    await bounty.sendInstallStarted()
-    this._createDirs()
-    await this._cloneRepos()
-    await new Firefox({ window: this.window }).downloadAndInstall()
-    await new PointSDK({ window: this.window }).downloadAndInstall()
-    await new Node({ window: this.window }).downloadAndInstall()
-    await new Uninstaller({ window: this.window }).downloadAndInstall()
-    await bounty.sendInstalled()
+      fs.writeFileSync(
+        Installer.installationJsonFilePath,
+        JSON.stringify({ isInstalled: false })
+      )
 
-    fs.writeFileSync(
-      Installer.installationJsonFilePath,
-      JSON.stringify({ isInstalled: true })
-    )
-    this.logger.info('Installation complete')
+      await bounty.sendInstallStarted()
+      this._createDirs()
+      await this._cloneRepos()
+      await new Firefox({ window: this.window }).downloadAndInstall()
+      await new PointSDK({ window: this.window }).downloadAndInstall()
+      await new Node({ window: this.window }).downloadAndInstall()
+      await new Uninstaller({ window: this.window }).downloadAndInstall()
+      await bounty.sendInstalled()
+
+      fs.writeFileSync(
+        Installer.installationJsonFilePath,
+        JSON.stringify({ isInstalled: true })
+      )
+      this.logger.info('Installation complete')
+    } catch (error) {
+      this.logger.sendToChannel({
+        channel: InstallerChannelsEnum.error,
+        log: this._attempts.toString(),
+      })
+      utils.throwError({ type: ErrorsEnum.INSTALLATION_ERROR, error })
+    }
   }
 
   /**
@@ -96,115 +109,126 @@ class Installer {
    * Created the required directories
    */
   _createDirs(): void {
-    this.logger.sendToChannel({
-      channel: InstallerChannelsEnum.create_dirs,
-      log: JSON.stringify({
-        started: true,
-        done: false,
-        progress: 0,
-        log: 'Creating required directories',
-      } as GenericProgressLog),
-    })
-
-    DIRECTORIES.forEach(dir => {
-      const total = DIRECTORIES.length
-      let created = 0
-
-      fs.mkdirSync(dir, { recursive: true })
-
-      created++
-      const progress = Math.round((created / total) * 100)
-
+    try {
       this.logger.sendToChannel({
         channel: InstallerChannelsEnum.create_dirs,
         log: JSON.stringify({
           started: true,
-          done: false,
-          progress,
-          log: `Created ${dir}`,
+          log: 'Creating required directories',
         } as GenericProgressLog),
       })
-    })
-    this.logger.sendToChannel({
-      channel: InstallerChannelsEnum.create_dirs,
-      log: JSON.stringify({
-        started: false,
-        done: true,
-        progress: 100,
-        log: `Created required directories`,
-      } as GenericProgressLog),
-    })
+
+      DIRECTORIES.forEach(dir => {
+        const total = DIRECTORIES.length
+        let created = 0
+
+        fs.mkdirSync(dir, { recursive: true })
+
+        created++
+        const progress = Math.round((created / total) * 100)
+
+        this.logger.sendToChannel({
+          channel: InstallerChannelsEnum.create_dirs,
+          log: JSON.stringify({
+            progress,
+            log: `Created ${dir}`,
+          } as GenericProgressLog),
+        })
+      })
+      this.logger.sendToChannel({
+        channel: InstallerChannelsEnum.create_dirs,
+        log: JSON.stringify({
+          started: false,
+          done: true,
+          progress: 100,
+          log: `Created required directories`,
+        } as GenericProgressLog),
+      })
+    } catch (error: any) {
+      this.logger.sendToChannel({
+        channel: InstallerChannelsEnum.create_dirs,
+        log: JSON.stringify({
+          error: true,
+          log: 'Error creating directories',
+        } as GenericProgressLog),
+      })
+      utils.throwError({ type: ErrorsEnum.CREATE_DIRS_ERROR, error })
+    }
   }
 
   /**
    * Clones the required repositories and copies the live profile
    */
   async _cloneRepos(): Promise<void> {
-    this.logger.sendToChannel({
-      channel: InstallerChannelsEnum.clone_repos,
-      log: JSON.stringify({
-        started: true,
-        done: false,
-        progress: 0,
-        log: 'Cloning the repositores',
-      } as GenericProgressLog),
-    })
-    await Promise.all(
-      REPOSITORIES.map(async repo => {
-        const dir = path.join(POINT_SRC_DIR, repo)
-        if (fs.existsSync(dir)) rimraf.sync(dir)
-        const githubURL = helpers.getGithubURL()
-        const url = `${githubURL}/pointnetwork/${repo}`
-
-        await git.clone({
-          fs,
-          http,
-          dir,
-          url,
-          depth: 1,
-          onMessage: (msg: string) => {
-            const progressData = getProgressFromGithubMsg(msg)
-
-            if (progressData) {
-              const cap = 90 // Don't go to 100% since there are further steps.
-              const progress =
-                progressData.progress <= cap ? progressData.progress : cap
-
-              this.logger.sendToChannel({
-                channel: InstallerChannelsEnum.clone_repos,
-                log: JSON.stringify({
-                  started: true,
-                  done: false,
-                  progress,
-                  log: `Cloning repo: ${url}`,
-                } as GenericProgressLog),
-              })
-            } else {
-              this.logger.info(msg)
-            }
-          },
-        })
-        this.logger.sendToChannel({
-          channel: InstallerChannelsEnum.clone_repos,
-          log: JSON.stringify({
-            started: false,
-            done: true,
-            progress: 90,
-            log: 'Copying live profile',
-          } as GenericProgressLog),
-        })
-        helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
+    try {
+      this.logger.sendToChannel({
+        channel: InstallerChannelsEnum.clone_repos,
+        log: JSON.stringify({
+          started: true,
+          log: 'Cloning the repositores',
+        } as GenericProgressLog),
       })
-    )
-    this.logger.sendToChannel({
-      channel: InstallerChannelsEnum.clone_repos,
-      log: JSON.stringify({
-        started: false,
-        done: true,
-        progress: 100,
-        log: 'Cloned required repositories',
-      } as GenericProgressLog),
-    })
+      await Promise.all(
+        REPOSITORIES.map(async repo => {
+          const dir = path.join(POINT_SRC_DIR, repo)
+          if (fs.existsSync(dir)) rimraf.sync(dir)
+          const githubURL = helpers.getGithubURL()
+          const url = `${githubURL}/pointnetwork/${repo}`
+
+          await git.clone({
+            fs,
+            http,
+            dir,
+            url,
+            depth: 1,
+            onMessage: (msg: string) => {
+              const progressData = getProgressFromGithubMsg(msg)
+
+              if (progressData) {
+                const cap = 90 // Don't go to 100% since there are further steps.
+                const progress =
+                  progressData.progress <= cap ? progressData.progress : cap
+
+                this.logger.sendToChannel({
+                  channel: InstallerChannelsEnum.clone_repos,
+                  log: JSON.stringify({
+                    progress,
+                    log: `Cloning repo: ${url}`,
+                  } as GenericProgressLog),
+                })
+              } else {
+                this.logger.info(msg)
+              }
+            },
+          })
+          this.logger.sendToChannel({
+            channel: InstallerChannelsEnum.clone_repos,
+            log: JSON.stringify({
+              log: 'Copying live profile',
+            } as GenericProgressLog),
+          })
+          helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
+        })
+      )
+      this.logger.sendToChannel({
+        channel: InstallerChannelsEnum.clone_repos,
+        log: JSON.stringify({
+          started: false,
+          done: true,
+          progress: 100,
+          log: 'Cloned required repositories',
+        } as GenericProgressLog),
+      })
+    } catch (error) {
+      this.logger.sendToChannel({
+        channel: InstallerChannelsEnum.clone_repos,
+        log: JSON.stringify({
+          error: true,
+          log: 'Error cloning repositories',
+        } as GenericProgressLog),
+      })
+      utils.throwError({ type: ErrorsEnum.CLONE_REPOS_ERROR, error })
+    }
   }
 }
 
