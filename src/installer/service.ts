@@ -30,6 +30,7 @@ class Installer {
   private logger: Logger
   private window: BrowserWindow
   private _attempts: number = 0
+  private _stepsCompleted: number = 0
   private static installationJsonFilePath: string = path.join(
     helpers.getPointPath(),
     'installer.json'
@@ -64,9 +65,9 @@ class Installer {
    */
   install = async () => {
     try {
-      this.logger.info('Starting installation')
-
       this._attempts++
+
+      this.logger.info('Starting installation')
 
       const bounty = new Bounty({ window: this.window })
 
@@ -76,12 +77,27 @@ class Installer {
       )
 
       await bounty.sendInstallStarted()
-      this._createDirs()
-      await this._cloneRepos()
-      await new Firefox({ window: this.window }).downloadAndInstall()
-      await new PointSDK({ window: this.window }).downloadAndInstall()
-      await new Node({ window: this.window }).downloadAndInstall()
-      await new Uninstaller({ window: this.window }).downloadAndInstall()
+      if (this._stepsCompleted === 0) {
+        this._createDirs()
+        this._stepsCompleted++
+      }
+      if (this._stepsCompleted === 1) {
+        await this._cloneRepos()
+        this._stepsCompleted++
+      }
+      if (this._stepsCompleted === 2) {
+        await new Firefox({ window: this.window }).downloadAndInstall()
+        this._stepsCompleted++
+      }
+      if (this._stepsCompleted === 3)
+        await new PointSDK({ window: this.window }).downloadAndInstall()
+      this._stepsCompleted++
+      if (this._stepsCompleted === 4) {
+        await new Node({ window: this.window }).downloadAndInstall()
+        this._stepsCompleted++
+      }
+      if (this._stepsCompleted === 5)
+        await new Uninstaller({ window: this.window }).downloadAndInstall()
       await bounty.sendInstalled()
 
       fs.writeFileSync(
