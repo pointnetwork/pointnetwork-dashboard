@@ -1,12 +1,21 @@
 import util from 'node:util'
 import extract from 'extract-zip'
 import { https } from 'follow-redirects'
+// Types
+import {
+  NodeChannelsEnum,
+  FirefoxChannelsEnum,
+  PointSDKChannelsEnum,
+  UninstallerChannelsEnum,
+} from './../src/@types/ipc_channels'
 import {
   Utils,
   DownloadFunction,
   ExtractZipFunction,
   KillFunction,
+  ThrowErrorFunction,
 } from '../src/@types/utils'
+import { ErrorsEnum } from './../src/@types/errors'
 import { GenericProgressLog } from '../src/@types/generic'
 
 const exec = util.promisify(require('child_process').exec)
@@ -17,15 +26,30 @@ const exec = util.promisify(require('child_process').exec)
  * onProgress callback returns the download progress
  */
 const download: DownloadFunction = ({
-  asset,
   logger,
   channel,
   downloadUrl,
   downloadStream,
   onProgress,
 }) =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
+    let asset = ''
     try {
+      switch (channel) {
+        case NodeChannelsEnum.download:
+          asset = 'Node'
+          break
+        case FirefoxChannelsEnum.download:
+          asset = 'Browser'
+          break
+        case PointSDKChannelsEnum.download:
+          asset = 'SDK Extension'
+          break
+        case UninstallerChannelsEnum.download:
+          asset = 'Uninstaller'
+          break
+      }
+
       channel &&
         logger?.sendToChannel({
           channel,
@@ -62,6 +86,10 @@ const download: DownloadFunction = ({
           }
         })
 
+        response.on('error', error => {
+          throwError({ type: ErrorsEnum.DOWNLOAD_ERROR, error })
+        })
+
         response.on('close', () => {
           channel &&
             logger?.sendToChannel({
@@ -77,7 +105,15 @@ const download: DownloadFunction = ({
         })
       })
     } catch (error) {
-      reject(error)
+      channel &&
+        logger?.sendToChannel({
+          channel,
+          log: JSON.stringify({
+            log: `Error downloading Point ${asset}`,
+            error: true,
+          } as GenericProgressLog),
+        })
+      throwError({ type: ErrorsEnum.DOWNLOAD_ERROR, error })
     }
   })
 
@@ -113,9 +149,15 @@ const kill: KillFunction = async ({ processId, onMessage }) => {
   }
 }
 
+const throwError: ThrowErrorFunction = ({ error, type, reject }) => {
+  if (reject) reject(new Error(`${type} >> ` + error))
+  else throw new Error(`${type} >> ` + error)
+}
+
 const utils: Utils = Object.freeze({
   download,
   extractZip,
   kill,
+  throwError,
 })
 export default utils
