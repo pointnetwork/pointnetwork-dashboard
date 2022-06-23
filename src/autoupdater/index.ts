@@ -133,7 +133,7 @@ export default class AutoUpdater {
 
               this.logger.info(
                 '[autoUpdater]:',
-                `Trying to download resource from ${assetUrl}`
+                `Trying to download resource ${assetUrl}`
               )
 
               const { data } = await axios.get(assetUrl, {
@@ -212,7 +212,7 @@ export default class AutoUpdater {
               resolve(this.window.webContents.send('autoupdater:linux-update'))
 
             await this.downloadUpdateFromRelease(latestRelease)
-            autoUpdater.setFeedURL({ url: this.feedUrl })
+            // autoUpdater.setFeedURL({ url: this.feedUrl })
             this.logger.info(
               `[autoUpdater]: Calling electron autoUpdater's checkForUpdates()`
             )
