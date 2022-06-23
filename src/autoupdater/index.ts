@@ -89,8 +89,8 @@ export default class AutoUpdater {
           if (global.platform.win32)
             requiredFiles = [/[^ ]*-full\.nupkg/gim, /RELEASES/]
 
-          // if (global.platform.darwin)
-          //   requiredFiles = [/[^ ]*\.zip/gim, /feed.json/]
+          if (global.platform.darwin)
+            requiredFiles = [/[^ ]*\.zip/gim]
           // Find the required files in the release
           this.logger.info('[autoUpdater]:', 'Checking for required files')
           const assets = requiredFiles.map(filePattern => {
@@ -213,7 +213,7 @@ export default class AutoUpdater {
 
             await this.downloadUpdateFromRelease(latestRelease)
             // autoUpdater.setFeedURL({ url: this.feedUrl })
-            autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/tag/v0.2.33' })
+            // autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.2.33' })
             this.logger.info(
               `[autoUpdater]: Calling electron autoUpdater's checkForUpdates()`
             )
