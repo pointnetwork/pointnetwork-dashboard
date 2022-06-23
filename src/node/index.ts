@@ -227,7 +227,7 @@ export default class Node {
   }
 
   static getKillCmd(pid: number) {
-    return global.platform.win32 ? `taskkill /PID "${pid}"` : `kill "${pid}"`
+    return global.platform.win32 ? `taskkill /t /PID "${pid}"` : `kill "${pid}"`
   }
 
   static async stopNode() {
