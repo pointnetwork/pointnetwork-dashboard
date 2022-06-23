@@ -89,8 +89,8 @@ export default class AutoUpdater {
           if (global.platform.win32)
             requiredFiles = [/[^ ]*-full\.nupkg/gim, /RELEASES/]
 
-          if (global.platform.darwin)
-            requiredFiles = [/[^ ]*\.zip/gim, /feed.json/]
+          // if (global.platform.darwin)
+          //   requiredFiles = [/[^ ]*\.zip/gim, /feed.json/]
           // Find the required files in the release
           this.logger.info('[autoUpdater]:', 'Checking for required files')
           const assets = requiredFiles.map(filePattern => {
