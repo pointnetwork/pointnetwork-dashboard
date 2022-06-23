@@ -218,6 +218,14 @@ export default class AutoUpdater {
             )
             autoUpdater.checkForUpdates()
 
+            // TODO: Move before `autoUpdater.checkForUpdates()`
+            // Leaving here to know if there's an issue calling `checkForUpdates`
+            const feedURL = autoUpdater.getFeedURL()
+            this.logger.info(
+              `[autoUpdater]: Feed URL: ${feedURL}`
+            )
+            //
+
             autoUpdater.on('update-downloaded', () => {
               this.logger.info(
                 `[autoUpdater]: Electron autoUpdater's "update-downloaded" event. Calling electron autoUpdater's quitAndInstall()`
