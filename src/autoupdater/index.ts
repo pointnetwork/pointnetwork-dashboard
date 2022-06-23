@@ -131,6 +131,11 @@ export default class AutoUpdater {
               const outputPath = path.join(this.downloadsDirectory, asset.name)
               const assetUrl = `${this.baseUrl}/repos/${this.owner}/${this.repo}/releases/assets/${asset.id}`
 
+              this.logger.info(
+                '[autoUpdater]:',
+                `Trying to download resource from ${assetUrl}`
+              )
+
               const { data } = await axios.get(assetUrl, {
                 headers: {
                   Accept: 'application/octet-stream',
