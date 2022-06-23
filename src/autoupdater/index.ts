@@ -213,6 +213,7 @@ export default class AutoUpdater {
 
             await this.downloadUpdateFromRelease(latestRelease)
             // autoUpdater.setFeedURL({ url: this.feedUrl })
+            autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/tag/v0.2.33' })
             this.logger.info(
               `[autoUpdater]: Calling electron autoUpdater's checkForUpdates()`
             )
