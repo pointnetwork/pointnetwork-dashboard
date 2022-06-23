@@ -1,6 +1,7 @@
 import util from 'node:util'
 import extract from 'extract-zip'
-import { https } from 'follow-redirects'
+import { FollowResponse, https } from 'follow-redirects'
+import { IncomingMessage } from 'http'
 // Types
 import {
   NodeChannelsEnum,
@@ -32,8 +33,9 @@ const download: DownloadFunction = ({
   downloadStream,
   onProgress,
 }) =>
-  new Promise(resolve => {
+  new Promise((resolve, reject) => {
     let asset = ''
+    let res: IncomingMessage & FollowResponse
     try {
       switch (channel) {
         case NodeChannelsEnum.download:
@@ -59,7 +61,9 @@ const download: DownloadFunction = ({
           } as GenericProgressLog),
         })
 
-      https.get(downloadUrl, { timeout: 10000 }, async response => {
+      const req = https.get(downloadUrl, { timeout: 15000 }, async response => {
+        res = response
+
         response.pipe(downloadStream)
 
         const total = response.headers['content-length']
@@ -86,10 +90,6 @@ const download: DownloadFunction = ({
           }
         })
 
-        response.on('error', error => {
-          throwError({ type: ErrorsEnum.DOWNLOAD_ERROR, error })
-        })
-
         response.on('close', () => {
           channel &&
             logger?.sendToChannel({
@@ -104,6 +104,40 @@ const download: DownloadFunction = ({
           resolve()
         })
       })
+
+      req.on('error', error => {
+        channel &&
+          logger?.sendToChannel({
+            channel,
+            log: JSON.stringify({
+              log: 'Request failed',
+              error: true,
+            } as GenericProgressLog),
+          })
+        throwError({
+          type: ErrorsEnum.DOWNLOAD_ERROR,
+          error: error,
+          reject,
+        })
+      })
+
+      req.on('timeout', () => {
+        channel &&
+          logger?.sendToChannel({
+            channel,
+            log: JSON.stringify({
+              log: 'Internet connection lost',
+              error: true,
+            } as GenericProgressLog),
+          })
+        throwError({
+          type: ErrorsEnum.DOWNLOAD_ERROR,
+          error: 'Request timed out after 30s',
+          reject,
+        })
+        req.destroy()
+        res.pause()
+      })
     } catch (error) {
       channel &&
         logger?.sendToChannel({
@@ -113,7 +147,7 @@ const download: DownloadFunction = ({
             error: true,
           } as GenericProgressLog),
         })
-      throwError({ type: ErrorsEnum.DOWNLOAD_ERROR, error })
+      throwError({ type: ErrorsEnum.DOWNLOAD_ERROR, error, reject })
     }
   })
 

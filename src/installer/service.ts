@@ -89,15 +89,17 @@ class Installer {
         await new Firefox({ window: this.window }).downloadAndInstall()
         this._stepsCompleted++
       }
-      if (this._stepsCompleted === 3)
+      if (this._stepsCompleted === 3) {
         await new PointSDK({ window: this.window }).downloadAndInstall()
-      this._stepsCompleted++
+        this._stepsCompleted++
+      }
       if (this._stepsCompleted === 4) {
         await new Node({ window: this.window }).downloadAndInstall()
         this._stepsCompleted++
       }
       if (this._stepsCompleted === 5)
         await new Uninstaller({ window: this.window }).downloadAndInstall()
+
       await bounty.sendInstalled()
 
       fs.writeFileSync(

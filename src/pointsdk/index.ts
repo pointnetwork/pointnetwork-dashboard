@@ -57,6 +57,8 @@ class PointSDK {
           fs.createWriteStream(manifestDownloadDest)
 
         await utils.download({
+          channel: PointSDKChannelsEnum.download,
+          logger: this.logger,
           downloadUrl: manifestDownloadUrl,
           downloadStream: manifestDownloadStream,
         })
