@@ -103,11 +103,23 @@ class Node {
                 log: 'Unpacking Point Node',
                 done: false,
                 progress: 0,
+                error: false,
               } as GenericProgressLog),
             })
-            await decompress(downloadDest, this.pointDir, {
-              plugins: [decompressTargz()],
-            })
+            try {
+              await decompress(downloadDest, this.pointDir, {
+                plugins: [decompressTargz()],
+              })
+            } catch (error) {
+              this.logger.sendToChannel({
+                channel: NodeChannelsEnum.unpack,
+                log: JSON.stringify({
+                  log: 'Error unpacking the Point Node',
+                  error: true,
+                } as GenericProgressLog),
+              })
+              utils.throwError({ type: ErrorsEnum.UNPACK_ERROR, error })
+            }
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.unpack,
               log: JSON.stringify({
@@ -132,8 +144,8 @@ class Node {
             )
 
             resolve()
-          } catch (error: any) {
-            throw new Error(error)
+          } catch (error) {
+            utils.throwError({ type: ErrorsEnum.NODE_ERROR, error, reject })
           }
         })
       } catch (error) {

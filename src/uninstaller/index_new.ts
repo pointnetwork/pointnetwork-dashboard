@@ -79,53 +79,67 @@ class Uninstaller {
             if (fs.existsSync(temp)) rimraf.sync(temp)
             fs.mkdirpSync(temp)
 
-            this.logger.sendToChannel({
-              channel: UninstallerChannelsEnum.unpack,
-              log: JSON.stringify({
-                started: true,
-                log: 'Unpacking Point Uninstaller',
-                done: false,
-                progress: 0,
-              } as GenericProgressLog),
-            })
+            try {
+              this.logger.sendToChannel({
+                channel: UninstallerChannelsEnum.unpack,
+                log: JSON.stringify({
+                  started: true,
+                  log: 'Unpacking Point Uninstaller',
+                  done: false,
+                  progress: 0,
+                  error: false,
+                } as GenericProgressLog),
+              })
+              if (global.platform.win32) {
+                await utils.extractZip({
+                  src: downloadDest,
+                  dest: temp,
+                  onProgress: (progress: number) => {
+                    this.logger.sendToChannel({
+                      channel: UninstallerChannelsEnum.unpack,
+                      log: JSON.stringify({
+                        started: true,
+                        log: 'Unpacking Point Uninstaller',
+                        done: false,
+                        progress,
+                      } as GenericProgressLog),
+                    })
+                  },
+                })
+              }
 
-            if (global.platform.win32) {
-              await utils.extractZip({
-                src: downloadDest,
-                dest: temp,
-                onProgress: (progress: number) => {
-                  this.logger.sendToChannel({
-                    channel: UninstallerChannelsEnum.unpack,
-                    log: JSON.stringify({
-                      started: true,
-                      log: 'Unpacking Point Uninstaller',
-                      done: false,
-                      progress,
-                    } as GenericProgressLog),
-                  })
-                },
+              if (global.platform.darwin) {
+                await decompress(downloadDest, this.pointDir, {
+                  plugins: [decompressTargz()],
+                })
+              }
+
+              if (global.platform.linux) {
+                // TODO: Add code for linux
+              }
+
+              this.logger.sendToChannel({
+                channel: UninstallerChannelsEnum.unpack,
+                log: JSON.stringify({
+                  started: false,
+                  log: 'Unpacked Point Uninstaller',
+                  done: true,
+                  progress: 100,
+                } as GenericProgressLog),
+              })
+            } catch (error) {
+              this.logger.sendToChannel({
+                channel: UninstallerChannelsEnum.unpack,
+                log: JSON.stringify({
+                  error: true,
+                  log: 'Error unpacking Point Uninstaller',
+                } as GenericProgressLog),
+              })
+              utils.throwError({
+                type: ErrorsEnum.UNPACK_ERROR,
+                error,
               })
             }
-
-            if (global.platform.darwin) {
-              await decompress(downloadDest, this.pointDir, {
-                plugins: [decompressTargz()],
-              })
-            }
-
-            if (global.platform.linux) {
-              // TODO: Add code for linux
-            }
-
-            this.logger.sendToChannel({
-              channel: UninstallerChannelsEnum.unpack,
-              log: JSON.stringify({
-                started: false,
-                log: 'Unpacked Point Uninstaller',
-                done: true,
-                progress: 100,
-              } as GenericProgressLog),
-            })
 
             // 4. Delete the downloaded file
             fs.unlinkSync(downloadDest)

@@ -126,23 +126,27 @@ class Firefox {
         })
 
         downloadStream.on('close', async () => {
-          // Unack
-          await this._unpack({ src: downloadDest, dest: browserDir })
-          // Create configuration files
-          this._createConfigFiles()
-          // Delete downloaded file
-          fs.unlinkSync(downloadDest)
-          // Write JSON file
-          fs.writeFileSync(
-            path.join(this.pointDir, 'infoFirefox.json'),
-            JSON.stringify({
-              installedReleaseVersion: version,
-              lastCheck: moment().unix(),
-              isInitialized: false,
-            }),
-            'utf8'
-          )
-          resolve()
+          try {
+            // Unack
+            await this._unpack({ src: downloadDest, dest: browserDir })
+            // Create configuration files
+            this._createConfigFiles()
+            // Delete downloaded file
+            fs.unlinkSync(downloadDest)
+            // Write JSON file
+            fs.writeFileSync(
+              path.join(this.pointDir, 'infoFirefox.json'),
+              JSON.stringify({
+                installedReleaseVersion: version,
+                lastCheck: moment().unix(),
+                isInitialized: false,
+              }),
+              'utf8'
+            )
+            resolve()
+          } catch (error) {
+            utils.throwError({ type: ErrorsEnum.FIREFOX_ERROR, error, reject })
+          }
         })
       } catch (error) {
         utils.throwError({ type: ErrorsEnum.FIREFOX_ERROR, error, reject })
@@ -290,6 +294,7 @@ class Firefox {
         })
         resolve()
       }
+
       try {
         this.logger.sendToChannel({
           channel: FirefoxChannelsEnum.unpack,
@@ -298,6 +303,7 @@ class Firefox {
             log: 'Unpacking Point Browser (this might take a few minutes)',
             done: false,
             progress: 0,
+            error: false,
           } as GenericProgressLog),
         })
 
@@ -350,11 +356,16 @@ class Firefox {
                   return true // To actually copy the file
                 },
               })
-            } catch (err: any) {
-              reject(err)
+            } catch (error: any) {
+              utils.throwError({ type: ErrorsEnum.UNPACK_ERROR, error, reject })
             } finally {
-              dmg.unmount(dmgPath, (err: any) => {
-                if (err) reject(err)
+              dmg.unmount(dmgPath, (error: any) => {
+                if (error)
+                  utils.throwError({
+                    type: ErrorsEnum.UNPACK_ERROR,
+                    error,
+                    reject,
+                  })
                 _resolve()
               })
             }
@@ -385,7 +396,14 @@ class Firefox {
           readStream.on('finish', _resolve)
         }
       } catch (error: any) {
-        reject(error)
+        this.logger.sendToChannel({
+          channel: FirefoxChannelsEnum.unpack,
+          log: JSON.stringify({
+            log: 'Unpacking Error',
+            error: true,
+          } as GenericProgressLog),
+        })
+        utils.throwError({ type: ErrorsEnum.UNPACK_ERROR, error, reject })
       }
     })
   }
@@ -469,7 +487,7 @@ pref("browser.startup.upgradeDialog.enabled", false)
         policiesCfgContent
       )
     } catch (error: any) {
-      throw new Error(error)
+      utils.throwError({ error, type: ErrorsEnum.FIREFOX_CONFIG_ERROR })
     }
   }
 
