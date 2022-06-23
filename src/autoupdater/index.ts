@@ -25,11 +25,11 @@ export default class AutoUpdater {
     this.window = window
     this.logger = new Logger()
     this.currentVersion = app.getVersion()
-    this.feedUrl = ''
+    // this.feedUrl = ''
     // if (global.platform.win32) {
     //   this.feedUrl = this.downloadsDirectory
     // }
-    this.feedUrl = this.downloadsDirectory
+    // this.feedUrl = this.downloadsDirectory
     // if (global.platform.darwin) {
     //   this.feedUrl = path.join(this.downloadsDirectory, 'feed.json')
     // }
