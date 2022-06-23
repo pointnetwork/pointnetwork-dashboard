@@ -174,7 +174,7 @@ const kill: KillFunction = async ({ processId, onMessage }) => {
   try {
     onMessage(`Killing process with PID: ${processId}`)
     const cmd = global.platform.win32
-      ? `taskkill /F /PID "${processId}"`
+      ? `taskkill /PID "${processId}"`
       : `kill "${processId}"`
     const output = await exec(cmd)
     onMessage(`Killed PID: ${processId} with Output: ${output}`)
