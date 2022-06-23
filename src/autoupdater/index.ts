@@ -236,6 +236,23 @@ export default class AutoUpdater {
               )
               throw error
             })
+
+            //
+            autoUpdater.on('checking-for-update', () => {
+              this.logger.info(
+                `[autoUpdater]: Electron autoUpdater's "checking-for-update" event.`
+              )
+            })
+            autoUpdater.on('update-available', () => {
+              this.logger.info(
+                `[autoUpdater]: Electron autoUpdater's "update-available" event.`
+              )
+            })
+            autoUpdater.on('update-not-available', () => {
+              this.logger.info(
+                `[autoUpdater]: Electron autoUpdater's "update-not-available" event.`
+              )
+            })
           }
           resolve(0)
         } catch (error: any) {
