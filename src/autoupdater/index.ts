@@ -136,7 +136,7 @@ export default class AutoUpdater {
                 `Trying to download resource ${assetUrl}`
               )
 
-              const { data } = await axios.get(assetUrl, {
+              const { data } = await axios.get(asset.browser_download_url, {
                 headers: {
                   Accept: 'application/octet-stream',
                 },
