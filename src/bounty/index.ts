@@ -1,3 +1,4 @@
+import { ErrorsEnum } from './../@types/errors'
 import axios from 'axios'
 import { BrowserWindow } from 'electron'
 import fs from 'fs-extra'
@@ -29,39 +30,59 @@ class Bounty {
    * Sends the referral code to bounty server with `event=install`
    */
   async sendInstalled(): Promise<void> {
-    await axios.get(
-      `https://bounty.pointnetwork.io/ref_success?event=install&ref=${this.referralCode}&addr=0x0000000000000000000000000000000000000000`
-    )
-    this.isInstalledEventSent = true
-    this.logger.info('Sent event=install to https://bounty.pointnetwork.io')
+    try {
+      this.logger.info('Sending "event=install" to bounty server')
+      await axios.get(
+        `https://bounty.pointnetwork.io/ref_success?event=install&ref=${this.referralCode}&addr=0x0000000000000000000000000000000000000000`
+      )
+      this.isInstalledEventSent = true
+      this.logger.info('Sent event=install to https://bounty.pointnetwork.io')
+      this._saveReferralInfo()
+    } catch (error) {
+      this.logger.error(
+        `${ErrorsEnum.BOUNTY_ERROR} >> Failed to send "event=install" to bounty server`
+      )
+    }
   }
 
   /**
    * Sends the referral code to bounty server with `event=install_started`
    */
   async sendInstallStarted(): Promise<void> {
-    await axios.get(
-      `https://bounty.pointnetwork.io/ref_success?event=install_started&ref=${this.referralCode}&addr=0x0000000000000000000000000000000000000000`
-    )
-    this.logger.info(
-      'Sent event=install_started to https://bounty.pointnetwork.io'
-    )
-    this._saveReferralInfo()
+    try {
+      this.logger.info('Sending "event=install_started" to bounty server')
+      await axios.get(
+        `https://bounty.pointnetwork.io/ref_success?event=install_started&ref=${this.referralCode}&addr=0x0000000000000000000000000000000000000000`
+      )
+      this.logger.info(
+        'Sent event=install_started to https://bounty.pointnetwork.io'
+      )
+    } catch (error) {
+      this.logger.error(
+        `${ErrorsEnum.BOUNTY_ERROR} >> Failed to send "event=install_started" to bounty server`
+      )
+    }
   }
 
   /**
    * Saves that referral code in ~/.point/infoReferral.json
    */
   _saveReferralInfo() {
-    this.logger.info('Saving referralCode to "infoReferral.json"')
-    fs.writeFileSync(
-      path.join(this.pointDir, 'infoReferral.json'),
-      JSON.stringify({
-        referralCode: this.referralCode,
-        isInstalledEventSent: this.isInstalledEventSent,
-      })
-    )
-    this.logger.info('Saved referralCode to "infoReferral.json"')
+    try {
+      this.logger.info('Saving referralCode to "infoReferral.json"')
+      fs.writeFileSync(
+        path.join(this.pointDir, 'infoReferral.json'),
+        JSON.stringify({
+          referralCode: this.referralCode,
+          isInstalledEventSent: this.isInstalledEventSent,
+        })
+      )
+      this.logger.info('Saved referralCode to "infoReferral.json"')
+    } catch (error) {
+      this.logger.error(
+        `${ErrorsEnum.BOUNTY_ERROR} >> Failed to save "infoReferral.json"`
+      )
+    }
   }
 
   /**
@@ -72,7 +93,7 @@ class Bounty {
     let trashDir
     let trashDirContent: string[] = []
 
-    this.logger.info('Beginning the process to check the referralCode')
+    this.logger.info('Checking for the referralCode...')
     if (global.platform.darwin) {
       try {
         this.logger.info('Reading ".Trash" directory')
@@ -80,7 +101,9 @@ class Bounty {
         trashDirContent = fs.readdirSync(trashDir)
         this.logger.info('".Trash" directory read')
       } catch (e) {
-        this.logger.info('Not allowed to read ".Trash" directory')
+        this.logger.error(
+          `${ErrorsEnum.BOUNTY_ERROR} >> Not allowed to read ".Trash" directory`
+        )
       }
     }
 
@@ -93,7 +116,9 @@ class Bounty {
       downloadDirContent = fs.readdirSync(downloadDir)
       this.logger.info('"Downloads" directory read')
     } catch (e) {
-      this.logger.info('Not allowed to read "Downloads" directory')
+      this.logger.error(
+        `${ErrorsEnum.BOUNTY_ERROR} >> Not allowed to read "Downloads" directory`
+      )
     }
 
     // Get referral code from the desktop folder
@@ -105,7 +130,9 @@ class Bounty {
       desktopDirContent = fs.readdirSync(desktopDir)
       this.logger.info('"Desktop" directory read')
     } catch (e) {
-      this.logger.info('Not allowed to read "Desktop" directory')
+      this.logger.error(
+        `${ErrorsEnum.BOUNTY_ERROR} >> Not allowed to read "Desktop" directory`
+      )
     }
 
     // Make sure it's one of our file downloads and pick the first one
