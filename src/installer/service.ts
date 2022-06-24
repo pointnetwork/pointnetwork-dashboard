@@ -8,7 +8,6 @@ import PointSDK from '../pointsdk'
 import Uninstaller from '../uninstaller/index_new'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
-import utils from '../../shared/utils'
 // Types
 import { GenericProgressLog } from './../@types/generic'
 import { InstallerChannelsEnum } from '../@types/ipc_channels'
@@ -108,11 +107,12 @@ class Installer {
       )
       this.logger.info('Installation complete')
     } catch (error) {
+      this.logger.error(ErrorsEnum.INSTALLATION_ERROR, error)
       this.logger.sendToChannel({
         channel: InstallerChannelsEnum.error,
         log: this._attempts.toString(),
       })
-      utils.throwError({ type: ErrorsEnum.INSTALLATION_ERROR, error })
+      throw error
     }
   }
 
@@ -128,6 +128,7 @@ class Installer {
    */
   _createDirs(): void {
     try {
+      this.logger.info('Creating directories')
       this.logger.sendToChannel({
         channel: InstallerChannelsEnum.create_dirs,
         log: JSON.stringify({
@@ -153,6 +154,8 @@ class Installer {
           } as GenericProgressLog),
         })
       })
+
+      this.logger.info('Created directories')
       this.logger.sendToChannel({
         channel: InstallerChannelsEnum.create_dirs,
         log: JSON.stringify({
@@ -170,7 +173,8 @@ class Installer {
           log: 'Error creating directories',
         } as GenericProgressLog),
       })
-      utils.throwError({ type: ErrorsEnum.CREATE_DIRS_ERROR, error })
+      this.logger.error(ErrorsEnum.CREATE_DIRS_ERROR, error)
+      throw error
     }
   }
 
@@ -179,6 +183,7 @@ class Installer {
    */
   async _cloneRepos(): Promise<void> {
     try {
+      this.logger.info('Cloning repositories')
       this.logger.sendToChannel({
         channel: InstallerChannelsEnum.clone_repos,
         log: JSON.stringify({
@@ -214,11 +219,10 @@ class Installer {
                     log: `Cloning repo: ${url}`,
                   } as GenericProgressLog),
                 })
-              } else {
-                this.logger.info(msg)
               }
             },
           })
+          this.logger.info('Copying liveprofile')
           this.logger.sendToChannel({
             channel: InstallerChannelsEnum.clone_repos,
             log: JSON.stringify({
@@ -226,8 +230,10 @@ class Installer {
             } as GenericProgressLog),
           })
           helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
+          this.logger.info('Copied liveprofile')
         })
       )
+      this.logger.info('Cloned repositories')
       this.logger.sendToChannel({
         channel: InstallerChannelsEnum.clone_repos,
         log: JSON.stringify({
@@ -245,7 +251,8 @@ class Installer {
           log: 'Error cloning repositories',
         } as GenericProgressLog),
       })
-      utils.throwError({ type: ErrorsEnum.CLONE_REPOS_ERROR, error })
+      this.logger.error(ErrorsEnum.CLONE_REPOS_ERROR, error)
+      throw error
     }
   }
 }

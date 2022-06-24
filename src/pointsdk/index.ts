@@ -47,12 +47,13 @@ class PointSDK {
       try {
         const latestVersion = await this.getLatestVersion()
         // Donwload the manifest first
-        this.logger.info('Downloading Manifest file')
         const manifestDownloadUrl = this.getDownloadURL(
           'manifest.json',
           latestVersion
         )
         const manifestDownloadDest = path.join(this.pointDir, 'manifest.json')
+        this.logger.info('Downloading Manifest file from', manifestDownloadUrl)
+
         const manifestDownloadStream =
           fs.createWriteStream(manifestDownloadDest)
 
@@ -62,7 +63,6 @@ class PointSDK {
           downloadUrl: manifestDownloadUrl,
           downloadStream: manifestDownloadStream,
         })
-        this.logger.info('Downloaded Manifest file')
 
         // Download the extension
         manifestDownloadStream.on('close', async () => {
@@ -78,6 +78,8 @@ class PointSDK {
 
           const downloadUrl = this.getDownloadURL(filename, latestVersion)
           const downloadPath = path.join(extensionsPath, `${extensionId}.xpi`)
+          this.logger.info('Downloading SDK from', downloadUrl)
+
           const downloadStream = fs.createWriteStream(downloadPath)
 
           helpers.setIsFirefoxInit(false)
@@ -90,6 +92,7 @@ class PointSDK {
           })
 
           downloadStream.on('close', () => {
+            this.logger.info('Saving "infoSDK.json"')
             fs.writeFileSync(
               path.join(this.pointDir, 'infoSDK.json'),
               JSON.stringify({
@@ -98,11 +101,14 @@ class PointSDK {
               }),
               'utf8'
             )
+            this.logger.info('Saved "infoSDK.json"')
+
             resolve()
           })
         })
       } catch (error) {
-        utils.throwError({ type: ErrorsEnum.POINTSDK_ERROR, error, reject })
+        this.logger.error(ErrorsEnum.POINTSDK_ERROR, reject)
+        reject(error)
       }
     })
   }
@@ -111,41 +117,49 @@ class PointSDK {
    * Checks for Point Node updates
    */
   async checkForUpdates() {
-    this.logger.sendToChannel({
-      channel: PointSDKChannelsEnum.check_for_updates,
-      log: JSON.stringify({
-        isChecking: true,
-        isAvailable: false,
-        log: 'Checking for updates',
-      } as UpdateLog),
-    })
-    const installInfo = helpers.getInstalledVersionInfo('sdk')
+    try {
+      this.logger.info('Checking for updates')
+      this.logger.sendToChannel({
+        channel: PointSDKChannelsEnum.check_for_updates,
+        log: JSON.stringify({
+          isChecking: true,
+          isAvailable: false,
+          log: 'Checking for updates',
+        } as UpdateLog),
+      })
+      const installInfo = helpers.getInstalledVersionInfo('sdk')
 
-    if (
-      !installInfo.installedReleaseVersion ||
-      moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
-    ) {
-      const latestVersion = await this.getLatestVersion()
+      if (
+        !installInfo.installedReleaseVersion ||
+        moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+      ) {
+        const latestVersion = await this.getLatestVersion()
 
-      if (installInfo.installedReleaseVersion !== latestVersion) {
+        if (installInfo.installedReleaseVersion !== latestVersion) {
+          this.logger.info('Update available')
+          this.logger.sendToChannel({
+            channel: PointSDKChannelsEnum.check_for_updates,
+            log: JSON.stringify({
+              isChecking: false,
+              isAvailable: true,
+              log: 'Update available. Proceeding to download the update',
+            } as UpdateLog),
+          })
+        }
+      } else {
+        this.logger.info('Already upto date')
         this.logger.sendToChannel({
           channel: PointSDKChannelsEnum.check_for_updates,
           log: JSON.stringify({
             isChecking: false,
-            isAvailable: true,
-            log: 'Update available. Proceeding to download the update',
+            isAvailable: false,
+            log: 'Already upto date',
           } as UpdateLog),
         })
       }
-    } else {
-      this.logger.sendToChannel({
-        channel: PointSDKChannelsEnum.check_for_updates,
-        log: JSON.stringify({
-          isChecking: false,
-          isAvailable: false,
-          log: 'Already upto date',
-        } as UpdateLog),
-      })
+    } catch (error) {
+      this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      throw error
     }
   }
 }

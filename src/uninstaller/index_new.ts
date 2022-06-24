@@ -61,6 +61,7 @@ class Uninstaller {
 
         const downloadUrl = this.getDownloadURL(filename, latestVersion)
         const downloadDest = path.join(this.pointDir, filename)
+        this.logger.info('Downloading from', downloadUrl)
 
         const downloadStream = fs.createWriteStream(downloadDest)
 
@@ -80,6 +81,7 @@ class Uninstaller {
             fs.mkdirpSync(temp)
 
             try {
+              this.logger.info('Unpacking')
               this.logger.sendToChannel({
                 channel: UninstallerChannelsEnum.unpack,
                 log: JSON.stringify({
@@ -118,6 +120,7 @@ class Uninstaller {
                 // TODO: Add code for linux
               }
 
+              this.logger.info('Unpacked')
               this.logger.sendToChannel({
                 channel: UninstallerChannelsEnum.unpack,
                 log: JSON.stringify({
@@ -135,26 +138,23 @@ class Uninstaller {
                   log: 'Error unpacking Point Uninstaller',
                 } as GenericProgressLog),
               })
-              utils.throwError({
-                type: ErrorsEnum.UNPACK_ERROR,
-                error,
-              })
+              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
             }
 
             // 4. Delete the downloaded file
+            this.logger.info('Removing downloaded file')
             fs.unlinkSync(downloadDest)
+            this.logger.info('Removed downloaded file')
 
             resolve()
           } catch (error) {
-            utils.throwError({
-              type: ErrorsEnum.UNINSTALLER_ERROR,
-              error,
-              reject,
-            })
+            this.logger.error(ErrorsEnum.UNINSTALLER_ERROR, error)
+            reject(error)
           }
         })
       } catch (error) {
-        utils.throwError({ type: ErrorsEnum.UNINSTALLER_ERROR, error, reject })
+        this.logger.error(ErrorsEnum.UNINSTALLER_ERROR, error)
+        reject(error)
       }
     })
   }

@@ -48,12 +48,14 @@ class Firefox {
    */
   async getLatestVersion(): Promise<string> {
     try {
+      this.logger.info('Getting the latest version')
       const res = await axios.get(
         'https://product-details.mozilla.org/1.0/firefox_versions.json'
       )
       return res.data.LATEST_FIREFOX_VERSION
     } catch (error: any) {
-      throw new Error(error)
+      this.logger.error('Failed to get the latest version')
+      throw error
     }
   }
 
@@ -101,7 +103,9 @@ class Firefox {
     return new Promise(async (resolve, reject) => {
       try {
         // 0. Delete previous installation
-        rimraf.sync(helpers.getBrowserFolderPath())
+        this.logger.info('Removing previous installations')
+        const browserDir = path.join(this.pointDir, 'src', 'point-browser')
+        rimraf.sync(browserDir)
 
         // 1. Set the parameters for download
         const version = await this.getLatestVersion()
@@ -113,9 +117,9 @@ class Firefox {
 
         const downloadUrl = await this.getDownloadURL({ version, filename })
         const downloadDest = path.join(this.pointDir, filename)
+        this.logger.info('Downloading from', downloadUrl)
 
         const downloadStream = fs.createWriteStream(downloadDest)
-        const browserDir = path.join(this.pointDir, 'src', 'point-browser')
 
         // 2. Start downloading and send logs to window
         await utils.download({
@@ -132,8 +136,11 @@ class Firefox {
             // Create configuration files
             this._createConfigFiles()
             // Delete downloaded file
+            this.logger.info('Removing downloaded file')
             fs.unlinkSync(downloadDest)
+            this.logger.info('Removed downloaded file')
             // Write JSON file
+            this.logger.info('Saving "infoFirefox.json"')
             fs.writeFileSync(
               path.join(this.pointDir, 'infoFirefox.json'),
               JSON.stringify({
@@ -143,13 +150,17 @@ class Firefox {
               }),
               'utf8'
             )
+            this.logger.info('Saved "infoFirefox.json"')
+
             resolve()
           } catch (error) {
-            utils.throwError({ type: ErrorsEnum.FIREFOX_ERROR, error, reject })
+            this.logger.error(ErrorsEnum.FIREFOX_ERROR, error)
+            reject(error)
           }
         })
       } catch (error) {
-        utils.throwError({ type: ErrorsEnum.FIREFOX_ERROR, error, reject })
+        this.logger.error(ErrorsEnum.FIREFOX_ERROR, error)
+        reject(error)
       }
     })
   }
@@ -158,43 +169,43 @@ class Firefox {
    * Launches the Firefox brwoser if Firefox is not running already
    */
   async launch() {
-    if ((await this._getRunningProcess()).length)
-      return this.logger.sendToChannel({
+    try {
+      if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
+      if ((await this._getRunningProcess()).length) return
+
+      const binFile = this._getBinFile()
+      const profilePath = path.join(
+        helpers.getHomePath(),
+        '.point/keystore/liveprofile'
+      )
+      let browserCmd = `"${binFile}" --first-startup --profile "${profilePath}" --url https://point`
+      if (global.platform.darwin)
+        browserCmd = `open -W "${binFile}" --args --first-startup --profile "${profilePath}" --url https://point`
+
+      this.logger.sendToChannel({
         channel: FirefoxChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: true,
           log: 'Point Browser is running',
         } as LaunchProcessLog),
       })
-
-    const binFile = this._getBinFile()
-    const profilePath = path.join(
-      helpers.getHomePath(),
-      '.point/keystore/liveprofile'
-    )
-    let browserCmd = `"${binFile}" --first-startup --profile "${profilePath}" --url https://point`
-    if (global.platform.darwin)
-      browserCmd = `open -W "${binFile}" --args --first-startup --profile "${profilePath}" --url https://point`
-
-    this.logger.sendToChannel({
-      channel: FirefoxChannelsEnum.running_status,
-      log: JSON.stringify({
-        isRunning: true,
-        log: 'Point Browser is running',
-      } as LaunchProcessLog),
-    })
-    exec(browserCmd, (err, stdout, stderr) => {
-      if (err) this.logger.error(err)
-      if (stderr) this.logger.error(stderr)
-      this.logger.info(stdout)
-      this.logger.sendToChannel({
-        channel: FirefoxChannelsEnum.running_status,
-        log: JSON.stringify({
-          isRunning: false,
-          log: 'Point Browser is not running',
-        } as LaunchProcessLog),
+      this.logger.info('Launching')
+      exec(browserCmd, (err, stdout, stderr) => {
+        if (err) this.logger.error(ErrorsEnum.LAUNCH_ERROR, err)
+        if (stderr) this.logger.error(ErrorsEnum.LAUNCH_ERROR, stderr)
+        this.logger.info('Ran: STDOUT', stdout)
+        this.logger.sendToChannel({
+          channel: FirefoxChannelsEnum.running_status,
+          log: JSON.stringify({
+            isRunning: false,
+            log: 'Point Browser is not running',
+          } as LaunchProcessLog),
+        })
       })
-    })
+    } catch (error) {
+      this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+      throw error
+    }
   }
 
   /**
@@ -211,11 +222,13 @@ class Firefox {
     })
     const process = await this._getRunningProcess()
     if (process.length > 0) {
+      this.logger.info('Stopping')
       for (const p of process) {
         try {
           await utils.kill({ processId: p.pid, onMessage: this.logger.info })
         } catch (err) {
-          this.logger.error(err)
+          this.logger.error(ErrorsEnum.STOP_ERROR, err)
+          throw err
         }
       }
     }
@@ -227,52 +240,61 @@ class Firefox {
         done: false,
       } as GenericProgressLog),
     })
+    this.logger.info('Stopped')
   }
 
   /**
    * Checks for Point Node updates
    */
   async checkForUpdates() {
-    this.logger.sendToChannel({
-      channel: FirefoxChannelsEnum.check_for_updates,
-      log: JSON.stringify({
-        isChecking: true,
-        isAvailable: false,
-        log: 'Checking for updates',
-      } as UpdateLog),
-    })
-    const installInfo = helpers.getInstalledVersionInfo('firefox')
-    const isBinMissing = !fs.existsSync(this._getBinFile())
-
-    if (
-      isBinMissing ||
-      !installInfo.installedReleaseVersion ||
-      moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
-    ) {
-      const latestVersion = await this.getLatestVersion()
+    try {
+      this.logger.info('Checking for updates')
+      this.logger.sendToChannel({
+        channel: FirefoxChannelsEnum.check_for_updates,
+        log: JSON.stringify({
+          isChecking: true,
+          isAvailable: false,
+          log: 'Checking for updates',
+        } as UpdateLog),
+      })
+      const installInfo = helpers.getInstalledVersionInfo('firefox')
+      const isBinMissing = !fs.existsSync(this._getBinFile())
 
       if (
-        installInfo.installedReleaseVersion !== latestVersion ||
-        isBinMissing
+        isBinMissing ||
+        !installInfo.installedReleaseVersion ||
+        moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
       ) {
+        const latestVersion = await this.getLatestVersion()
+
+        if (
+          installInfo.installedReleaseVersion !== latestVersion ||
+          isBinMissing
+        ) {
+          this.logger.info('Update available')
+          this.logger.sendToChannel({
+            channel: FirefoxChannelsEnum.check_for_updates,
+            log: JSON.stringify({
+              isChecking: false,
+              isAvailable: true,
+              log: 'Update available. Proceeding to download the update',
+            } as UpdateLog),
+          })
+        }
+      } else {
+        this.logger.info('Already upto date')
         this.logger.sendToChannel({
           channel: FirefoxChannelsEnum.check_for_updates,
           log: JSON.stringify({
             isChecking: false,
-            isAvailable: true,
-            log: 'Update available. Proceeding to download the update',
+            isAvailable: false,
+            log: 'Already upto date',
           } as UpdateLog),
         })
       }
-    } else {
-      this.logger.sendToChannel({
-        channel: FirefoxChannelsEnum.check_for_updates,
-        log: JSON.stringify({
-          isChecking: false,
-          isAvailable: false,
-          log: 'Already upto date',
-        } as UpdateLog),
-      })
+    } catch (error) {
+      this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      throw error
     }
   }
 
@@ -292,10 +314,12 @@ class Firefox {
             progress: 100,
           } as GenericProgressLog),
         })
+        this.logger.info('Unpacked')
         resolve()
       }
 
       try {
+        this.logger.info('Unpacking')
         this.logger.sendToChannel({
           channel: FirefoxChannelsEnum.unpack,
           log: JSON.stringify({
@@ -357,15 +381,14 @@ class Firefox {
                 },
               })
             } catch (error: any) {
-              utils.throwError({ type: ErrorsEnum.UNPACK_ERROR, error, reject })
+              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+              throw error
             } finally {
               dmg.unmount(dmgPath, (error: any) => {
-                if (error)
-                  utils.throwError({
-                    type: ErrorsEnum.UNPACK_ERROR,
-                    error,
-                    reject,
-                  })
+                if (error) {
+                  this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+                  throw error
+                }
                 _resolve()
               })
             }
@@ -403,7 +426,8 @@ class Firefox {
             error: true,
           } as GenericProgressLog),
         })
-        utils.throwError({ type: ErrorsEnum.UNPACK_ERROR, error, reject })
+        this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+        throw error
       }
     })
   }
@@ -413,6 +437,8 @@ class Firefox {
    */
   _createConfigFiles(): void {
     try {
+      this.logger.info('Creating configuration files')
+
       const pacFile = url.pathToFileURL(
         path.join(
           helpers.getLiveDirectoryPathResources(),
@@ -486,8 +512,11 @@ pref("browser.startup.upgradeDialog.enabled", false)
         path.join(this._getPoliciesPath(), 'policies.json'),
         policiesCfgContent
       )
+
+      this.logger.info('Created configuration files')
     } catch (error: any) {
-      utils.throwError({ error, type: ErrorsEnum.FIREFOX_CONFIG_ERROR })
+      this.logger.error(ErrorsEnum.FIREFOX_CONFIG_ERROR, error)
+      throw error
     }
   }
 
@@ -574,6 +603,8 @@ pref("browser.startup.upgradeDialog.enabled", false)
    * Returns the running instances of Firefox
    */
   async _getRunningProcess(): Promise<Process[]> {
+    this.logger.info('Getting running processes')
+
     return await (
       await find('name', /firefox/i)
     ).filter(p => p.cmd.includes('point-browser') && !p.cmd.includes('tab'))

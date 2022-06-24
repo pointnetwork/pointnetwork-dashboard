@@ -67,6 +67,8 @@ class Node {
     return new Promise(async (resolve, reject) => {
       try {
         // Delete any residual files and stop any residual processes
+        this.logger.info('Removing previous installations')
+
         if (fs.existsSync(path.join(this.pointDir, 'contracts')))
           rimraf.sync(path.join(this.pointDir, 'contracts'))
         if (fs.existsSync(path.join(this.pointDir, 'bin')))
@@ -82,6 +84,7 @@ class Node {
 
         const downloadUrl = this.getDownloadURL(fileName, latestVersion)
         const downloadDest = path.join(this.pointDir, fileName)
+        this.logger.info('Downloading from', downloadUrl)
 
         const downloadStream = fs.createWriteStream(downloadDest)
 
@@ -95,6 +98,7 @@ class Node {
 
         downloadStream.on('close', async () => {
           try {
+            this.logger.info('Unpacking')
             // 3. Unpack the downloaded file and send logs to window
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.unpack,
@@ -118,7 +122,8 @@ class Node {
                   error: true,
                 } as GenericProgressLog),
               })
-              utils.throwError({ type: ErrorsEnum.UNPACK_ERROR, error })
+              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+              throw error
             }
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.unpack,
@@ -129,11 +134,14 @@ class Node {
                 progress: 100,
               } as GenericProgressLog),
             })
-
+            this.logger.info('Unpacked')
             // 4. Delete the downloaded file
+            this.logger.info('Removing downloaded file')
             fs.unlinkSync(downloadDest)
+            this.logger.info('Removed downloaded file')
 
             // 5. Save infoNode.json file
+            this.logger.info('Saving "infoNode.json"')
             fs.writeFile(
               path.join(this.pointDir, 'infoNode.json'),
               JSON.stringify({
@@ -142,14 +150,17 @@ class Node {
               }),
               'utf8'
             )
+            this.logger.info('Saved "infoNode.json"')
 
             resolve()
           } catch (error) {
-            utils.throwError({ type: ErrorsEnum.NODE_ERROR, error, reject })
+            this.logger.error(ErrorsEnum.NODE_ERROR, error)
+            reject(error)
           }
         })
       } catch (error) {
-        utils.throwError({ type: ErrorsEnum.NODE_ERROR, error, reject })
+        this.logger.error(ErrorsEnum.NODE_ERROR, error)
+        reject(error)
       }
     })
   }
@@ -161,24 +172,29 @@ class Node {
    * 3. Launches the Point Node
    */
   async launch() {
-    if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
-    if ((await this._getRunningProcess()).length) return
+    try {
+      if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
+      if ((await this._getRunningProcess()).length) return
 
-    const file = this._getBinFile()
-    let cmd = `NODE_ENV=production "${file}"`
-    if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
+      const file = this._getBinFile()
+      let cmd = `NODE_ENV=production "${file}"`
+      if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
 
-    this.logger.info(`Launching Point Node`)
-    const nodeProcess = spawn(cmd)
-    nodeProcess.stdout.on('data', data => {
-      this.logger.info(`Launched Point Node. STDOUT: ${data}`)
-    })
-    nodeProcess.stderr.on('data', data => {
-      this.logger.error(`Falied to launch Point Node. STDERR: ${data}`)
-    })
-    nodeProcess.on('close', code => {
-      this.logger.info(`Point Node exitted. CODE: ${code}`)
-    })
+      this.logger.info('Launching')
+      const nodeProcess = spawn(cmd)
+      nodeProcess.stdout.on('data', data => {
+        this.logger.info('Ran: STDOUT', data)
+      })
+      nodeProcess.stderr.on('data', data => {
+        this.logger.error(ErrorsEnum.LAUNCH_ERROR, data)
+      })
+      nodeProcess.on('close', code => {
+        this.logger.error('Ran', code)
+      })
+    } catch (error) {
+      this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+      throw error
+    }
   }
 
   /**
@@ -186,6 +202,7 @@ class Node {
    */
   async ping() {
     try {
+      this.logger.info('Pinging')
       await axios.get('https://point/v1/api/status/meta', {
         timeout: 3000,
         proxy: {
@@ -204,6 +221,7 @@ class Node {
           log: 'Point Node is running',
         } as LaunchProcessLog),
       })
+      this.logger.info('Pinged')
     } catch (error) {
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
@@ -212,6 +230,7 @@ class Node {
           log: 'Point Node is not running',
         } as LaunchProcessLog),
       })
+      this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to Ping')
     }
   }
 
@@ -229,11 +248,13 @@ class Node {
     })
     const process = await this._getRunningProcess()
     if (process.length > 0) {
+      this.logger.info('Stopping')
       for (const p of process) {
         try {
           await utils.kill({ processId: p.pid, onMessage: this.logger.info })
         } catch (err) {
-          this.logger.error(err)
+          this.logger.error(ErrorsEnum.STOP_ERROR, err)
+          throw err
         }
       }
     }
@@ -245,52 +266,61 @@ class Node {
         done: false,
       } as GenericProgressLog),
     })
+    this.logger.info('Stopped')
   }
 
   /**
    * Checks for Point Node updates
    */
   async checkForUpdates() {
-    this.logger.sendToChannel({
-      channel: NodeChannelsEnum.check_for_updates,
-      log: JSON.stringify({
-        isChecking: true,
-        isAvailable: false,
-        log: 'Checking for updates',
-      } as UpdateLog),
-    })
-    const installInfo = helpers.getInstalledVersionInfo('node')
-    const isBinMissing = !fs.existsSync(this._getBinFile())
-
-    if (
-      isBinMissing ||
-      !installInfo.installedReleaseVersion ||
-      moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
-    ) {
-      const latestVersion = await this.getLatestVersion()
+    try {
+      this.logger.info('Checking for updates')
+      this.logger.sendToChannel({
+        channel: NodeChannelsEnum.check_for_updates,
+        log: JSON.stringify({
+          isChecking: true,
+          isAvailable: false,
+          log: 'Checking for updates',
+        } as UpdateLog),
+      })
+      const installInfo = helpers.getInstalledVersionInfo('node')
+      const isBinMissing = !fs.existsSync(this._getBinFile())
 
       if (
-        installInfo.installedReleaseVersion !== latestVersion ||
-        isBinMissing
+        isBinMissing ||
+        !installInfo.installedReleaseVersion ||
+        moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
       ) {
+        const latestVersion = await this.getLatestVersion()
+
+        if (
+          installInfo.installedReleaseVersion !== latestVersion ||
+          isBinMissing
+        ) {
+          this.logger.info('Update available')
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.check_for_updates,
+            log: JSON.stringify({
+              isChecking: false,
+              isAvailable: true,
+              log: 'Update available. Proceeding to download the update',
+            } as UpdateLog),
+          })
+        }
+      } else {
+        this.logger.info('Already upto date')
         this.logger.sendToChannel({
           channel: NodeChannelsEnum.check_for_updates,
           log: JSON.stringify({
             isChecking: false,
-            isAvailable: true,
-            log: 'Update available. Proceeding to download the update',
+            isAvailable: false,
+            log: 'Already upto date',
           } as UpdateLog),
         })
       }
-    } else {
-      this.logger.sendToChannel({
-        channel: NodeChannelsEnum.check_for_updates,
-        log: JSON.stringify({
-          isChecking: false,
-          isAvailable: false,
-          log: 'Already upto date',
-        } as UpdateLog),
-      })
+    } catch (error) {
+      this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      throw error
     }
   }
 
@@ -298,6 +328,7 @@ class Node {
    * Returns the identity currently active on Point Node
    */
   async getIdentity() {
+    this.logger.info('Getting identity')
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.get_identity,
       log: JSON.stringify({
@@ -314,6 +345,7 @@ class Node {
       res = await axios.get(
         `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
       )
+      this.logger.info('Fetched identity')
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.get_identity,
         log: JSON.stringify({
@@ -324,7 +356,8 @@ class Node {
         } as IdentityLog),
       })
     } catch (e) {
-      this.logger.error(e)
+      this.logger.error(ErrorsEnum.NODE_ERROR, e)
+      throw e
     }
   }
 
