@@ -9,6 +9,7 @@ import axios from 'axios'
 import { InstallationStepsEnum } from '../@types/installation'
 import moment from 'moment'
 import { spawn } from 'node:child_process'
+import utils from '../../shared/utils'
 
 const rimraf = require('rimraf')
 const decompress = require('decompress')
@@ -26,11 +27,13 @@ export default class Node {
     this.launch()
   }
 
+  // Done
   getURL(filename: string, version: string) {
     const githubURL = helpers.getGithubURL()
     return `${githubURL}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
+  // Done
   getNodeFileName(version: string) {
     if (global.platform.win32) return `point-win-${version}.tar.gz`
 
@@ -39,6 +42,7 @@ export default class Node {
     return `point-linux-${version}.tar.gz`
   }
 
+  // Done
   async getBinPath() {
     const binPath = await helpers.getBinPath()
     if (global.platform.win32) {
@@ -51,6 +55,7 @@ export default class Node {
     return path.join(binPath, 'linux', 'point')
   }
 
+  // Done
   async isInstalled(): Promise<boolean> {
     this.installationLogger.info('Checking PointNode exists or node')
 
@@ -64,6 +69,7 @@ export default class Node {
     return false
   }
 
+  // Done
   download = () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -78,42 +84,26 @@ export default class Node {
       const downloadStream = fs.createWriteStream(downloadPath)
       const downloadUrl = this.getURL(filename, version)
 
-      https.get(downloadUrl, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.POINT_NODE,
-          'Downloading Node...'
-        )
-
-        await response.pipe(downloadStream)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Don't let this progress reach 100% as there are some minor final tasks after.
-            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.POINT_NODE}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
+      this.installationLogger.info(
+        InstallationStepsEnum.POINT_NODE,
+        'Downloading Point Node...'
+      )
+      await utils.download({
+        downloadUrl,
+        downloadStream,
+        onProgress: progress => {
+          this.installationLogger.info(
+            `${InstallationStepsEnum.POINT_NODE}:${progress}`,
+            'Downloading'
+          )
+        },
       })
+      this.installationLogger.info(
+        `${InstallationStepsEnum.POINT_NODE}:100`,
+        'Downloaded Node'
+      )
 
       downloadStream.on('close', async () => {
-        this.installationLogger.info(
-          `${InstallationStepsEnum.POINT_NODE}:100`,
-          'Downloaded Node'
-        )
-
         decompress(downloadPath, helpers.getPointPath(), {
           plugins: [decompressTargz()],
         }).then(() => {
@@ -149,6 +139,7 @@ export default class Node {
       })
     })
 
+  // Done
   async launch() {
     logger.info('Launching Node')
     if (await this.pointNodeCheck()) {
@@ -170,15 +161,15 @@ export default class Node {
 
     const nodeProcess = spawn(cmd)
 
-    nodeProcess.stdout.on('data', (data) => {
+    nodeProcess.stdout.on('data', data => {
       logger.info(`Launched Node: ${data}`)
     })
 
-    nodeProcess.stderr.on('data', (data) => {
+    nodeProcess.stderr.on('data', data => {
       logger.info(`pointnode launch exec error: ${data}`)
     })
 
-    nodeProcess.on('close', (code) => {
+    nodeProcess.on('close', code => {
       logger.info(`pointnode closed. code ${code}`)
     })
 
@@ -193,6 +184,7 @@ export default class Node {
     })
   }
 
+  // Done
   async pointNodeCheck(): Promise<boolean> {
     try {
       const httpsAgent = new https.Agent({
@@ -226,10 +218,12 @@ export default class Node {
     }
   }
 
+  // Done
   static getKillCmd(pid: number) {
-    return global.platform.win32 ? `taskkill /PID "${pid}"` : `kill "${pid}"`
+    return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
   }
 
+  // Done
   static async stopNode() {
     const process = await find('name', 'point', true)
     if (process.length > 0) {
@@ -246,6 +240,7 @@ export default class Node {
     }
   }
 
+  // Done
   async checkNodeVersion() {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledNodeVersion()
@@ -254,12 +249,19 @@ export default class Node {
     const binPath = await this.getBinPath()
     const isBinMissing = !fs.existsSync(binPath)
 
-    if (moment().diff(lastCheck, 'hours') >= 1 || installedVersion.lastCheck === undefined || isBinMissing) {
+    if (
+      moment().diff(lastCheck, 'hours') >= 1 ||
+      installedVersion.lastCheck === undefined ||
+      isBinMissing
+    ) {
       const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
 
       logger.info('installed', installedVersion.installedReleaseVersion)
       logger.info('last', latestReleaseVersion)
-      if (installedVersion.installedReleaseVersion !== latestReleaseVersion || isBinMissing) {
+      if (
+        installedVersion.installedReleaseVersion !== latestReleaseVersion ||
+        isBinMissing
+      ) {
         logger.info('Node Update need it')
         this.window.webContents.send('node:update', true)
         setTimeout(() => {
@@ -278,6 +280,7 @@ export default class Node {
     }
   }
 
+  // Done
   async getIdentity() {
     logger.info('Get Identity')
     const addressRes = await axios.get(

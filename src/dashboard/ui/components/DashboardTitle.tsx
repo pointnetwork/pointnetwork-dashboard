@@ -10,6 +10,8 @@ import MenuItem from '@mui/material/MenuItem'
 // Icons
 import CancelPresentationIcon from '@mui/icons-material/CancelPresentation'
 import HelpIcon from '@mui/icons-material/Help'
+// Types
+import { DashboardChannelsEnum } from '../../../@types/ipc_channels'
 
 const DashboardTitle = ({
   handleOpenSettingsMenu,
@@ -39,9 +41,12 @@ const DashboardTitle = ({
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
 
   useEffect(() => {
-    window.Dashboard.on('node:getDashboardVersion', (dversion: string) => {
-      setDashboardVersion(dversion)
-    })
+    window.Dashboard.on(
+      DashboardChannelsEnum.get_version,
+      (dversion: string) => {
+        setDashboardVersion(dversion)
+      }
+    )
   }, [])
 
   return (

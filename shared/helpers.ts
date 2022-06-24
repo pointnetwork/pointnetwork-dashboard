@@ -37,7 +37,7 @@ const getOSAndArch = () => {
 
 const defaultFirefoxInfo = {
   installedReleaseVersion: 'old',
-  isInitialized: false
+  isInitialized: false,
 }
 
 const getPlatform = () => {
@@ -48,11 +48,60 @@ const getPlatform = () => {
   }
 }
 
+const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => {
+  installedReleaseVersion: string
+  lastCheck: number
+} = resource => {
+  let file
+  switch (resource) {
+    case 'firefox':
+      file = 'infoFirefox'
+      break
+    case 'node':
+      file = 'infoNode'
+      break
+    case 'sdk':
+      file = 'infoSDK.json'
+  }
+  const pointPath = getPointPath()
+  try {
+    return JSON.parse(
+      fs.readFileSync(path.join(pointPath, `${file}.json`)).toString()
+    )
+  } catch (error) {
+    return {
+      installedReleaseVersion: undefined,
+    }
+  }
+}
+
+const getLatestReleaseFromGithub: (
+  repository:
+    | 'pointnetwork-uninstaller'
+    | 'pointnetwork'
+    | 'pointsdk'
+    | 'pointnetwork-dashboard'
+) => Promise<string> = async repository => {
+  try {
+    const res = await axios.get(
+      `${getGithubAPIURL()}/repos/pointnetwork/${repository}/releases/latest`,
+      {
+        headers: { 'user-agent': 'node.js' },
+      }
+    )
+    return res.data.tag_name
+  } catch (error) {
+    // TODO: Add a logger to log the error
+    // TODO: Create a standardised GitHub error
+    console.error(error)
+  }
+}
+
+// Deprecate
 const getlatestNodeReleaseVersion = async () => {
   try {
     const githubAPIURL = getGithubAPIURL()
-    const url =
-      `${githubAPIURL}/repos/pointnetwork/pointnetwork/releases/latest`
+    const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -64,12 +113,11 @@ const getlatestNodeReleaseVersion = async () => {
     console.error(error)
   }
 }
-
+// Deprecate
 const getlatestUninstallerReleaseVersion = async () => {
   try {
     const githubAPIURL = getGithubAPIURL()
-    const url =
-      `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
+    const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -81,12 +129,11 @@ const getlatestUninstallerReleaseVersion = async () => {
     console.error(error)
   }
 }
-
+// Deprecate
 const getlatestUnistallerReleaseVersion = async () => {
   try {
     const githubAPIURL = getGithubAPIURL()
-    const url =
-      `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
+    const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -98,12 +145,11 @@ const getlatestUnistallerReleaseVersion = async () => {
     console.error(error)
   }
 }
-
+// Deprecate
 const getlatestSdkVersion = async () => {
   try {
     const githubAPIURL = getGithubAPIURL()
-    const url =
-      `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
+    const url = `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -115,12 +161,11 @@ const getlatestSdkVersion = async () => {
     console.error(error)
   }
 }
-
+// Deprecate
 const getlatestSDKReleaseVersion = async () => {
   try {
     const githubAPIURL = getGithubAPIURL()
-    const url =
-      `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
+    const url = `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -133,6 +178,7 @@ const getlatestSDKReleaseVersion = async () => {
   }
 }
 
+// Deprecate
 const getPortableDashboardDownloadURL = async () => {
   const owner = 'pointnetwork'
   const repo = 'phyrox-esr-portable'
@@ -202,7 +248,13 @@ const getLiveDirectoryPathResources = () => {
 }
 
 const getLiveExtensionsDirectoryPathResources = () => {
-  return path.join(getHomePath(), '.point', 'keystore', 'liveprofile', 'extensions')
+  return path.join(
+    getHomePath(),
+    '.point',
+    'keystore',
+    'liveprofile',
+    'extensions'
+  )
 }
 
 const getKeyFileName = () => {
@@ -216,7 +268,7 @@ const getArweaveKeyFileName = () => {
 const isLoggedIn = () => {
   return fs.existsSync(getKeyFileName())
 }
-
+// Deprecate
 const getInstalledNodeVersion = () => {
   const pointPath = getPointPath()
   try {
@@ -228,7 +280,7 @@ const getInstalledNodeVersion = () => {
     }
   }
 }
-
+// Deprecate
 const getInstalledSDKVersion = () => {
   const pointPath = getPointPath()
   try {
@@ -240,15 +292,13 @@ const getInstalledSDKVersion = () => {
     }
   }
 }
-
 // Retrieves from `infoFirefox.json` if Firefox has been initialized.
 const getIsFirefoxInit = () => {
   const pointPath = getPointPath()
   try {
     const info = JSON.parse(
-      fs.readFileSync(
-        path.join(pointPath, 'infoFirefox.json'))
-        .toString())
+      fs.readFileSync(path.join(pointPath, 'infoFirefox.json')).toString()
+    )
     return info.isInitialized
   } catch (error) {
     return defaultFirefoxInfo
@@ -260,9 +310,8 @@ const setIsFirefoxInit = (value: boolean) => {
   const pointPath = getPointPath()
   try {
     const info = JSON.parse(
-      fs.readFileSync(
-        path.join(pointPath, infoFilename))
-        .toString())
+      fs.readFileSync(path.join(pointPath, infoFilename)).toString()
+    )
     info.isInitialized = value
     fs.writeFile(
       path.join(pointPath, infoFilename),
@@ -276,18 +325,19 @@ const setIsFirefoxInit = (value: boolean) => {
     console.log(error)
   }
 }
-
+// Deprecate
 const getInstalledFirefoxVersion = () => {
   const pointPath = getPointPath()
   try {
-    const versionData = fs.readFileSync(path.join(pointPath, 'infoFirefox.json'))
+    const versionData = fs.readFileSync(
+      path.join(pointPath, 'infoFirefox.json')
+    )
     const version = versionData.toString()
     const installedVersion = JSON.parse(version)
     return installedVersion
   } catch (error) {
     return defaultFirefoxInfo
   }
-
 }
 
 const logout = () => {
@@ -360,7 +410,7 @@ const getBinPath = () => {
   return dir
 }
 
-function noop(): void { }
+function noop(): void {}
 
 const countFilesinDir = async (dir: string): Promise<number> => {
   let fileCount = 0
@@ -387,8 +437,7 @@ const getInstalledDashboardVersion = () => {
 const isNewDashboardReleaseAvailable = async () => {
   try {
     const githubAPIURL = getGithubAPIURL()
-    const url =
-      `${githubAPIURL}/repos/pointnetwork/pointnetwork-dashboard/releases/latest`
+    const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-dashboard/releases/latest`
     const headers = { 'user-agent': 'node.js' }
     const res = await axios.get(url, {
       headers: headers,
@@ -412,20 +461,26 @@ const isNewDashboardReleaseAvailable = async () => {
 }
 
 const isChineseTimezone = () => {
-  const offset = new Date().getTimezoneOffset();
+  const offset = new Date().getTimezoneOffset()
   return offset / 60 === -8
 }
 
 const getFaucetURL = () => {
-  return isChineseTimezone() ? 'https://faucet.point.space' : 'https://point-faucet.herokuapp.com'
+  return isChineseTimezone()
+    ? 'https://faucet.point.space'
+    : 'https://point-faucet.herokuapp.com'
 }
 
 const getGithubURL = () => {
-  return isChineseTimezone() ? 'https://gh-connector.point.space:3888' : 'https://github.com'
+  return isChineseTimezone()
+    ? 'https://gh-connector.point.space:3888'
+    : 'https://github.com'
 }
 
 const getGithubAPIURL = () => {
-  return isChineseTimezone() ? 'https://gh-connector.point.space:3889' : 'https://api.github.com'
+  return isChineseTimezone()
+    ? 'https://gh-connector.point.space:3889'
+    : 'https://api.github.com'
 }
 
 export default Object.freeze({
@@ -469,5 +524,7 @@ export default Object.freeze({
   isChineseTimezone,
   getFaucetURL,
   getGithubURL,
-  getGithubAPIURL
+  getGithubAPIURL,
+  getLatestReleaseFromGithub,
+  getInstalledVersionInfo,
 })

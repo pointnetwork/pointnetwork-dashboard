@@ -16,6 +16,14 @@ import Logger from '../../shared/logger'
 import Uninstaller from '../uninstaller'
 import { readFileSync, writeFileSync } from 'fs-extra'
 import process from 'node:process'
+// Types
+import {
+  DashboardChannelsEnum,
+  FirefoxChannelsEnum,
+  GenericChannelsEnum,
+  NodeChannelsEnum,
+  UninstallerChannelsEnum,
+} from '../@types/ipc_channels'
 
 const path = require('path')
 
@@ -141,7 +149,7 @@ export default function (isExplicitRun = false) {
       }
 
       if (quit) {
-        mainWindow?.webContents.send('dashboard:close')
+        mainWindow?.webContents.send(DashboardChannelsEnum.closing)
         logger.info('Closed Dashboard Window')
         events.forEach(event => {
           ipcMain.removeListener(event.channel, event.listener)
@@ -167,7 +175,7 @@ export default function (isExplicitRun = false) {
 
   const events = [
     {
-      channel: 'firefox:launch',
+      channel: FirefoxChannelsEnum.launch,
       listener() {
         firefox!.launch()
         if (!helpers.getIsFirefoxInit()) {
@@ -177,19 +185,19 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'firefox:status',
+      channel: FirefoxChannelsEnum.running_status,
       listener(_ev: IpcMainEvent, isRunning: boolean) {
         isFirefoxRunning = isRunning
       },
     },
     {
-      channel: 'node:launch',
+      channel: NodeChannelsEnum.launch,
       listener() {
         node!.launch()
       },
     },
     {
-      channel: 'node:launchUninstaller',
+      channel: UninstallerChannelsEnum.launch,
       async listener() {
         const confirmationAnswer = dialog.showMessageBoxSync({
           type: 'question',
@@ -204,7 +212,7 @@ export default function (isExplicitRun = false) {
         if (confirmationAnswer === 0) {
           try {
             if (global.platform.linux) {
-              mainWindow?.webContents.send('dashboard:close')
+              mainWindow?.webContents.send(DashboardChannelsEnum.closing)
               logger.info('Closed Dashboard Window')
               events.forEach(event => {
                 ipcMain.removeListener(event.channel, event.listener)
@@ -214,12 +222,15 @@ export default function (isExplicitRun = false) {
               await uninstaller!.launch()
               mainWindow?.destroy()
             } else {
-              mainWindow?.webContents.send('dashboard:launch_uninstaller', true)
+              mainWindow?.webContents.send(
+                UninstallerChannelsEnum.launching,
+                true
+              )
               logger.info('Launching Uninstaller')
               await uninstaller!.launch()
               setTimeout(() => {
                 mainWindow?.webContents.send(
-                  'dashboard:launch_uninstaller',
+                  UninstallerChannelsEnum.launching,
                   false
                 )
               }, 5000)
@@ -249,38 +260,38 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'node:download',
+      channel: NodeChannelsEnum.download,
       listener() {
         node!.download()
       },
     },
     {
-      channel: 'node:checkUpdate',
+      channel: NodeChannelsEnum.check_for_updates,
       listener() {
         node!.checkNodeVersion()
       },
     },
     {
-      channel: 'firefox:checkUpdate',
+      channel: FirefoxChannelsEnum.check_for_updates,
       listener() {
         firefox!.checkFirefoxVersion()
       },
     },
     {
-      channel: 'firefox:download',
+      channel: FirefoxChannelsEnum.download,
       listener() {
         console.log('listener firefox!.download() called')
         firefox!.download()
       },
     },
     {
-      channel: 'node:getIdentity',
+      channel: NodeChannelsEnum.get_identity,
       listener() {
         node!.getIdentity()
       },
     },
     {
-      channel: 'dashboard:openDownloadLink',
+      channel: DashboardChannelsEnum.open_download_link,
       listener(event: IpcMainEvent, url: string) {
         try {
           shell.openExternal(url)
@@ -309,25 +320,25 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'node:getDashboardVersion',
+      channel: DashboardChannelsEnum.get_version,
       listener() {
         mainWindow!.webContents.send(
-          'node:getDashboardVersion',
+          DashboardChannelsEnum.get_version,
           helpers.getInstalledDashboardVersion()
         )
       },
     },
     {
-      channel: 'dashboard:getIdentifier',
+      channel: GenericChannelsEnum.get_identifier,
       listener() {
         mainWindow!.webContents.send(
-          'dashboard:getIdentifier',
+          GenericChannelsEnum.get_identifier,
           getIdentifier()[0]
         )
       },
     },
     {
-      channel: 'logOut',
+      channel: DashboardChannelsEnum.log_out,
       async listener() {
         const confirmationAnswer = dialog.showMessageBoxSync({
           type: 'question',
@@ -349,13 +360,13 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'node:stop',
+      channel: NodeChannelsEnum.stop,
       async listener() {
         await Node.stopNode()
       },
     },
     {
-      channel: 'node:getVersion',
+      channel: NodeChannelsEnum.get_version,
       async listener(event: IpcMainEvent) {
         event.returnValue = await helpers.getInstalledNodeVersion()
       },
@@ -383,9 +394,7 @@ export default function (isExplicitRun = false) {
               '[node:check_balance_and_airdrop] Airdropping wallet address with POINTS'
             )
             try {
-              await axios.get(
-                `${faucetURL}/airdrop?address=${address}`
-              )
+              await axios.get(`${faucetURL}/airdrop?address=${address}`)
             } catch (e) {
               logger.error(e)
             }
@@ -475,13 +484,13 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: `dashboard:minimizeWindow`,
+      channel: GenericChannelsEnum.minimize_window,
       listener() {
         mainWindow!.minimize()
       },
     },
     {
-      channel: `dashboard:closeWindow`,
+      channel: GenericChannelsEnum.close_window,
       listener() {
         mainWindow!.close()
       },

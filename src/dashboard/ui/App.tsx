@@ -15,6 +15,13 @@ import UpdateProgress from './components/UpdateProgress'
 import DefaultLoader from './components/DefaultLoader'
 import NodeRestartAlert from './components/NodeRestartAlert'
 import Typography from '@mui/material/Typography'
+// Types
+import {
+  DashboardChannelsEnum,
+  FirefoxChannelsEnum,
+  GenericChannelsEnum,
+  UninstallerChannelsEnum,
+} from '../../@types/ipc_channels'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -109,9 +116,12 @@ export default function App() {
     // Get the versions
     window.Dashboard.getDashboardVersion()
 
-    window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
-      setFirefoxVersion(firefoxVersion)
-    })
+    window.Dashboard.on(
+      FirefoxChannelsEnum.get_version,
+      (firefoxVersion: string) => {
+        setFirefoxVersion(firefoxVersion)
+      }
+    )
 
     window.Dashboard.on('node:identity', (identity: string) => {
       setIdentity(identity)
@@ -131,24 +141,28 @@ export default function App() {
       setIsLoadingWalletInfo(false)
     })
 
-    window.Dashboard.on('dashboard:close', () => {
+    window.Dashboard.on(DashboardChannelsEnum.closing, () => {
       setLoadingMessage('Closing Dashboard')
       setIsLoading(true)
     })
 
-    window.Dashboard.on('dashboard:launch_uninstaller', (status: boolean) => {
-      if (status) {
-        setLoadingMessage('Launching Uninstaller')
-        setIsLoading(true)
-      } else {
-        setLoadingMessage('')
-        setIsLoading(false)
+    window.Dashboard.on(
+      UninstallerChannelsEnum.launching,
+      (status: boolean) => {
+        if (status) {
+          setLoadingMessage('Launching Uninstaller')
+          setIsLoading(true)
+        } else {
+          setLoadingMessage('')
+          setIsLoading(false)
+        }
       }
-    })
+    )
 
     window.Dashboard.getIdentifier()
-    window.Dashboard.on('dashboard:getIdentifier', (identifier: string) =>
-      setIdentifier(identifier)
+    window.Dashboard.on(
+      GenericChannelsEnum.get_identifier,
+      (identifier: string) => setIdentifier(identifier)
     )
   }, [])
 

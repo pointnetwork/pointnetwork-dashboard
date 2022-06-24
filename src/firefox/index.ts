@@ -1,6 +1,5 @@
 import fs from 'fs-extra'
 import path from 'path'
-import extract from 'extract-zip'
 import tarfs from 'tar-fs'
 import url from 'url'
 import helpers from '../../shared/helpers'
@@ -12,6 +11,8 @@ import type { Process } from '../@types/process'
 import { InstallationStepsEnum } from '../@types/installation'
 import progress from 'progress-stream'
 import moment from 'moment'
+import { FirefoxChannelsEnum } from '../@types/ipc_channels'
+import utils from '../../shared/utils'
 
 const rimraf = require('rimraf')
 const dmg = require('dmg')
@@ -41,6 +42,7 @@ export default class {
     return false
   }
 
+  // Done
   getURLMacAndLinux(
     version: unknown,
     osAndArch: any,
@@ -50,11 +52,13 @@ export default class {
     return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`
   }
 
+  // Done
   async getURLWindows() {
     const url = await helpers.getPortableDashboardDownloadURL()
     return url
   }
 
+  // Done
   getFileName(version: unknown) {
     if (global.platform.darwin) {
       return `Firefox%20${version}.dmg`
@@ -63,6 +67,7 @@ export default class {
     return `firefox-${version}.tar.bz2`
   }
 
+  // Done
   download = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -84,14 +89,14 @@ export default class {
         )
       )
 
-      let firefoxURL = ''
+      let downloadUrl = ''
       let filename = ''
       if (global.platform.win32) {
-        firefoxURL = await this.getURLWindows()
-        filename = firefoxURL.split('/').pop()!
+        downloadUrl = await this.getURLWindows()
+        filename = downloadUrl.split('/').pop()!
       } else {
         filename = this.getFileName(version)
-        firefoxURL = this.getURLMacAndLinux(
+        downloadUrl = this.getURLMacAndLinux(
           version,
           osAndArch,
           language,
@@ -99,57 +104,45 @@ export default class {
         )
       }
 
-      const releasePath = path.join(browserDir, filename)
-      const firefoxRelease = fs.createWriteStream(releasePath)
+      const donwloadPath = path.join(browserDir, filename)
+      const downloadStream = fs.createWriteStream(donwloadPath)
 
       if (!fs.existsSync(browserDir)) {
         this.installationLogger.info('Creating browser directory')
         fs.mkdirSync(browserDir)
       }
 
-      https.https.get(firefoxURL, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Downloading Firefox...'
-        )
-        await response.pipe(firefoxRelease)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Downloading is the first half of the process (second is unpacking),
-            // hence the division by 2.
-            const progress = Math.round(Number(percentage) / 2)
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.BROWSER}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
+      this.installationLogger.info(
+        InstallationStepsEnum.BROWSER,
+        'Downloading Point Browser...'
+      )
+      await utils.download({
+        downloadUrl,
+        downloadStream,
+        onProgress: (progress: number) => {
+          this.installationLogger.info(
+            `${InstallationStepsEnum.BROWSER}:${progress}`,
+            'Downloading'
+          )
+        },
       })
+      this.installationLogger.info(
+        `${InstallationStepsEnum.BROWSER}:100`,
+        'Downloaded Browser'
+      )
 
-      firefoxRelease.on('finish', () => {
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Downloaded Firefox'
-        )
+      downloadStream.on('close', () => {
         const cb = async () => {
-          fs.unlink(releasePath, err => {
+          fs.unlink(donwloadPath, err => {
             if (err) {
               this.installationLogger.error(err)
               reject(err)
             } else {
-              this.installationLogger.info(`\nDeleted file: ${releasePath}`)
-              this.window.webContents.send('firefox:setVersion', version)
+              this.installationLogger.info(`\nDeleted file: ${donwloadPath}`)
+              this.window.webContents.send(
+                FirefoxChannelsEnum.get_version,
+                version
+              )
               this.window.webContents.send('firefox:finishDownload', true)
               // write firefox version to a file
               fs.writeFile(
@@ -184,28 +177,30 @@ export default class {
 
           await this.createConfigFiles(pacFile)
         }
-        this.unpack(releasePath, browserDir, cb)
+        this.unpack(donwloadPath, browserDir, cb)
       })
     })
 
+  // Done
   getIdExtension = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
       const version = await helpers.getlatestSDKReleaseVersion()
       const extensionPath = helpers.getPointPath()
-      const downloadManifest = this.getURL('manifest.json', version)
+      const downloadUrl = this.getURL('manifest.json', version)
       const downloadPathManifest = path.join(extensionPath, 'manifest.json')
-      const manifest = fs.createWriteStream(downloadPathManifest)
-      https.https.get(downloadManifest, function (response) {
-        response.pipe(manifest)
+      const downloadStream = fs.createWriteStream(downloadPathManifest)
+      await utils.download({
+        downloadUrl,
+        downloadStream,
       })
-      manifest.on('finish', async () => {
-        manifest.close()
+      downloadStream.on('close', async () => {
         console.log('Download Manifest Completed')
         resolve(true)
       })
     })
 
+  // Done
   downloadInstallPointSDK = async () =>
     // eslint-disable-next-line no-async-promise-executor
     new Promise(async (resolve, reject) => {
@@ -230,34 +225,19 @@ export default class {
       // this.setDisableScopes(false)
       helpers.setIsFirefoxInit(false)
 
-      https.https.get(downloadUrl, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.POINT_SDK,
-          'Downloading PointSDK...'
-        )
-
-        await response.pipe(downloadStream)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Don't let this progress reach 100% as there are some minor final tasks after.
-            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.POINT_SDK}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
+      this.installationLogger.info(
+        InstallationStepsEnum.POINT_SDK,
+        'Downloading Point SDK...'
+      )
+      await utils.download({
+        downloadUrl,
+        downloadStream,
+        onProgress: progress => {
+          this.installationLogger.info(
+            `${InstallationStepsEnum.POINT_SDK}:${progress}`,
+            'Downloading'
+          )
+        },
       })
 
       downloadStream.on('close', async () => {
@@ -293,6 +273,7 @@ export default class {
       })
     })
 
+  // Done
   async checkSDKVersion() {
     const installedVersion = helpers.getInstalledSDKVersion()
     const lastCheck = moment.unix(installedVersion.lastCheck)
@@ -319,6 +300,7 @@ export default class {
     return `${githubURL}/pointnetwork/pointsdk/releases/download/${version}/${filename}`
   }
 
+  // Done
   async launch() {
     // const processes = await find('name', /firefox*/gi)
     // if (processes.length > 0) {
@@ -348,10 +330,12 @@ export default class {
     }
   }
 
+  // Done
   getKillCmd(pid: number) {
-    return global.platform.win32 ? `taskkill /PID "${pid}"` : `kill "${pid}"`
+    return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
   }
 
+  // Done
   async close() {
     const processes: Process[] = await find('name', /firefox/i)
 
@@ -372,6 +356,7 @@ export default class {
     }
   }
 
+  // Done
   async unpack(
     releasePath: string,
     browserDir: string,
@@ -383,26 +368,16 @@ export default class {
     )
     if (global.platform.win32) {
       try {
-        await extract(releasePath, {
-          dir: browserDir,
-          onEntry: (_, zipfile) => {
-            const extracted = zipfile.entriesRead
-            const total = zipfile.entryCount
-
-            // Unpacking is the second half of the process (first is downloading),
-            // hence the division by 2 and the plus 50.
-            const progress = Math.round(((extracted / total) * 100) / 2 + 50)
-
+        await utils.extractZip({
+          src: releasePath,
+          dest: browserDir,
+          onProgress: (progress: number) => {
             this.installationLogger.info(
               `${InstallationStepsEnum.BROWSER}:${progress}`,
               'Unpacking Firefox'
             )
           },
         })
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Extraction complete'
-        )
         cb()
       } catch (err: any) {
         logger.info(err)
@@ -469,6 +444,7 @@ export default class {
     }
   }
 
+  // Done
   async getRootPath() {
     if (global.platform.win32 || global.platform.darwin) {
       return path.join(helpers.getBrowserFolderPath())
@@ -477,6 +453,7 @@ export default class {
     return path.join(helpers.getBrowserFolderPath(), 'firefox')
   }
 
+  // Done
   async getAppPath() {
     const rootPath = await this.getRootPath()
 
@@ -499,6 +476,7 @@ export default class {
     return rootPath
   }
 
+  // Done
   async getPrefPath() {
     const rootPath = await this.getRootPath()
 
@@ -529,6 +507,7 @@ export default class {
     return path.join(rootPath, 'defaults', 'pref')
   }
 
+  // Done
   async getPoliciesPath() {
     const rootPath = await this.getRootPath()
     let distributionPath
@@ -553,6 +532,7 @@ export default class {
     return distributionPath
   }
 
+  // Done
   async getBinPath() {
     const rootPath = await this.getRootPath()
     if (global.platform.win32) {
@@ -560,15 +540,13 @@ export default class {
       return path.join(rootPath, 'app', 'firefox.exe')
     }
     if (global.platform.darwin) {
-      return `${path.join(
-        rootPath,
-        'Firefox.app'
-      )}`
+      return `${path.join(rootPath, 'Firefox.app')}`
     }
     // linux
     return path.join(rootPath, 'firefox')
   }
 
+  // Done
   async createConfigFiles(pacFile: url.URL) {
     this.installationLogger.info('Creating configuration files for Firefox...')
     if (!pacFile)
@@ -700,6 +678,7 @@ pref("browser.startup.upgradeDialog.enabled", false)
     })
   }
 
+  // Done
   async getLastVersionFirefox() {
     const url = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
 
@@ -723,6 +702,7 @@ pref("browser.startup.upgradeDialog.enabled", false)
     })
   }
 
+  // Done
   async checkFirefoxVersion() {
     const pointPath = helpers.getPointPath()
     const installedVersion = helpers.getInstalledFirefoxVersion()
@@ -734,7 +714,7 @@ pref("browser.startup.upgradeDialog.enabled", false)
       installedVersion.installedReleaseVersion
     )
     this.window.webContents.send(
-      'firefox:setVersion',
+      FirefoxChannelsEnum.get_version,
       installedVersion.installedReleaseVersion
     )
     this.installationLogger.info(

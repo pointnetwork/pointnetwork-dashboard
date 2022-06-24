@@ -6,11 +6,6 @@ import { createUdpLogTransport } from './udpLogTransport'
 import { getIdentifier } from './getIdentifier'
 import * as os from 'node:os'
 
-const platform = os.platform()
-const arch = os.arch()
-const release = os.release()
-const version = os.version()
-
 export const DEFAULT_LEVEL = 'info'
 const pointPath = helpers.getPointPath()
 const address = 'logstash.pointspace.io'
@@ -19,6 +14,10 @@ const [identifier, isNewIdentifier] = getIdentifier()
 
 logger.transports.udp = createUdpLogTransport(address, port, DEFAULT_LEVEL, {
   identifier,
+  osPlatform: os.platform(),
+  osArch: os.arch(),
+  osRelease: os.release(),
+  osVersion: os.version(),
 })
 logger.transports.console.level = DEFAULT_LEVEL
 logger.transports.file.level = DEFAULT_LEVEL
@@ -27,7 +26,6 @@ logger.transports.file.resolvePath = () =>
 
 interface LoggerConstructorArgs {
   window: BrowserWindow
-  channel: string
   module: string
 }
 
@@ -40,27 +38,26 @@ const defaultOptions: Partial<LoggerConstructorArgs> = {}
 
 export default class Logger {
   private window?: BrowserWindow
-  private channel?: string
+  // TODO: Make module a required thing
+  private module?: string
 
-  constructor({ window, channel } = defaultOptions) {
+  constructor({ window, module } = defaultOptions) {
     this.window = window
-    this.channel = channel
+    this.module = module
   }
 
   info = (...log: string[]) => {
-    logger.info(
-      ...log,
-      `>> SYSTEM_INFO: platform:${platform}, arch:${arch}, release:${release}, version:${version}`
-    )
-    this.window?.webContents.send(`${this.channel}:log`, log)
+    // TODO: Add back SYSTEM_INFO or find a better way to log it only once
+    logger.info(`[${this.module}]`, ...log)
   }
 
   error = (...err: any[]) => {
-    logger.error(
-      ...err,
-      `>> SYSTEM_INFO: platform:${platform}, arch:${arch}, release:${release}, version:${version}`
-    )
-    this.window?.webContents.send(`${this.channel}:error`, err)
+    // TODO: Add back SYSTEM_INFO or find a better way to log it only once
+    logger.error(`[${this.module}]`, ...err)
+  }
+
+  sendToChannel = ({ channel, log }: { channel: string; log: string }) => {
+    this.window?.webContents.send(channel, log)
   }
 
   sendMetric = (payload: Record<string, string | number | boolean>) => {
