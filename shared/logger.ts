@@ -27,7 +27,6 @@ logger.transports.file.resolvePath = () =>
 
 interface LoggerConstructorArgs {
   window: BrowserWindow
-  channel: string
   module: string
 }
 
@@ -42,31 +41,25 @@ const SYSTEM_INFO = `>> SYSTEM_INFO: platform:${platform}, arch:${arch}, release
 
 export default class Logger {
   private window?: BrowserWindow
-  // TODO: Remove the channel from here and default to use sendToChannel method instead
-  private channel?: string
   // TODO: Make module a required thing
   private module?: string
 
-  constructor({ window, channel, module } = defaultOptions) {
+  constructor({ window, module } = defaultOptions) {
     this.window = window
-    this.channel = channel
     this.module = module
   }
 
   info = (...log: string[]) => {
-    logger.info(`[${this.module}]`, ...log, SYSTEM_INFO)
-    // TODO: Remove
-    this.window?.webContents.send(`${this.channel}:log`, log)
+    // TODO: Add back SYSTEM_INFO or find a better way to log it only once
+    logger.info(`[${this.module}]`, ...log)
   }
 
   error = (...err: any[]) => {
-    logger.error(`[${this.module}]`, ...err, SYSTEM_INFO)
-    // TODO: Remove
-    this.window?.webContents.send(`${this.channel}:error`, err)
+    // TODO: Add back SYSTEM_INFO or find a better way to log it only once
+    logger.error(`[${this.module}]`, ...err)
   }
 
   sendToChannel = ({ channel, log }: { channel: string; log: string }) => {
-    logger.info(`[${this.module}]`, `[${channel}]`, log, SYSTEM_INFO)
     this.window?.webContents.send(channel, log)
   }
 
