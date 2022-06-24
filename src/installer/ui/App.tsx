@@ -6,12 +6,11 @@ import Button from '@mui/material/Button'
 import List from '@mui/material/List'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
-// Theme provider
-import UIThemeProvider from '../../../shared/UIThemeProvider'
 // Components
 import CreateDirLogs from './components/CreateDirLogs'
 import DownloadExtractLogs from './components/DownloadExtractLogs'
 import TopBar from './components/TopBar'
+import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 // Types
 import {
   NodeChannelsEnum,

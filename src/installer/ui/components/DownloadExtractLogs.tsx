@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
 // MUI
 import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 // Icons
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ErrorIcon from '@mui/icons-material/Error'
-import FileDownloadIcon from '@mui/icons-material/FileDownload'
-import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone'
-import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import FolderZipIcon from '@mui/icons-material/FolderZip'
+// Components
+import DownloadProgress from '../../../../shared/react-components/DownloadProgress'
+import UnpackProgress from '../../../../shared/react-components/UnpackProgress'
 // Types
 import {
   FirefoxChannelsEnum,
@@ -87,46 +85,8 @@ const DownloadExtractLogs = ({
         </Typography>
       </Grid>
       <Grid item xs={3} display="flex">
-        <Box position="relative" mr={1.25}>
-          <CircularProgress
-            variant={
-              downloadLogs.started && !downloadLogs.progress
-                ? 'indeterminate'
-                : 'determinate'
-            }
-            color={downloadLogs.error ? 'error' : 'primary'}
-            value={Number(downloadLogs.progress)}
-            size={32}
-          />
-          <Box position="absolute" top={6} left={6}>
-            {downloadLogs.done ? (
-              <FileDownloadDoneIcon fontSize="small" />
-            ) : (
-              <FileDownloadIcon fontSize="small" />
-            )}
-          </Box>
-        </Box>
-        {unpackChannel && (
-          <Box position="relative">
-            <CircularProgress
-              variant={
-                unpackLogs.started && !unpackLogs.progress
-                  ? 'indeterminate'
-                  : 'determinate'
-              }
-              color={unpackLogs.error ? 'error' : 'primary'}
-              value={Number(unpackLogs.progress)}
-              size={32}
-            />
-            <Box position="absolute" top={6} left={6}>
-              {unpackLogs.done ? (
-                <FolderOpenIcon fontSize="small" />
-              ) : (
-                <FolderZipIcon fontSize="small" />
-              )}
-            </Box>
-          </Box>
-        )}
+        <DownloadProgress downloadLogs={downloadLogs} />
+        {unpackChannel && <UnpackProgress unpackLogs={unpackLogs} />}
       </Grid>
     </Grid>
   )
