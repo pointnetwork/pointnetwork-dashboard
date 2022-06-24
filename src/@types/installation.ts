@@ -1,3 +1,4 @@
+// TODO: Delete this file
 /* eslint-disable no-unused-vars */
 export enum InstallationStepsEnum {
   DIRECTORIES = 'DIRECTORIES',

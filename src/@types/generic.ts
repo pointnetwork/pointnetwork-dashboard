@@ -1,3 +1,10 @@
+import { IpcMainEvent } from 'electron'
+
+export interface EventListener {
+  channel: string
+  listener: (_: IpcMainEvent, args: any[]) => void
+}
+
 export interface Process {
   pid: number
   ppid?: number

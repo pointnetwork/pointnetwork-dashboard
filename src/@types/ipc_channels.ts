@@ -18,6 +18,7 @@ export enum WelcomeChannelsEnum {
 
 export enum GenericChannelsEnum {
   close_window = 'generic:close_window',
+  check_for_updates = 'generic:check_for_updates',
   get_identifier = 'generic:get_identifier',
   minimize_window = 'generic:minimize_window',
 }
