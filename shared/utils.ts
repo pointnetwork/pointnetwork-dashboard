@@ -14,7 +14,6 @@ import {
   DownloadFunction,
   ExtractZipFunction,
   KillFunction,
-  ThrowErrorFunction,
 } from '../src/@types/utils'
 import { ErrorsEnum } from './../src/@types/errors'
 import { GenericProgressLog } from '../src/@types/generic'
@@ -23,7 +22,7 @@ const exec = util.promisify(require('child_process').exec)
 
 /**
  * Downloads from the given downloadURL and pips it to downloadStream
- * Takes optional logger, asset and channel arguments to send logs to the window channel
+ * Takes optional logger, asset and channel arguments to log and send logs to the window channel
  * onProgress callback returns the download progress
  */
 const download: DownloadFunction = ({
@@ -52,6 +51,7 @@ const download: DownloadFunction = ({
           break
       }
 
+      logger?.info(`Downloading Point ${asset}`)
       channel &&
         logger?.sendToChannel({
           channel,
@@ -91,6 +91,7 @@ const download: DownloadFunction = ({
         })
 
         response.on('close', () => {
+          logger?.info(`Downloaded Point ${asset}`)
           channel &&
             logger?.sendToChannel({
               channel,
@@ -114,14 +115,11 @@ const download: DownloadFunction = ({
               error: true,
             } as GenericProgressLog),
           })
-        throwError({
-          type: ErrorsEnum.DOWNLOAD_ERROR,
-          error: error,
-          reject,
-        })
+        logger?.error(ErrorsEnum.DOWNLOAD_ERROR, 'Request failed', error)
+        reject(error)
       })
 
-      req.on('timeout', () => {
+      req.on('timeout', error => {
         channel &&
           logger?.sendToChannel({
             channel,
@@ -130,11 +128,8 @@ const download: DownloadFunction = ({
               error: true,
             } as GenericProgressLog),
           })
-        throwError({
-          type: ErrorsEnum.DOWNLOAD_ERROR,
-          error: 'Request timed out after 30s',
-          reject,
-        })
+        logger?.error(ErrorsEnum.DOWNLOAD_ERROR, 'TIMEOUT', error)
+        reject(error)
         req.destroy()
         res.pause()
       })
@@ -147,10 +142,15 @@ const download: DownloadFunction = ({
             error: true,
           } as GenericProgressLog),
         })
-      throwError({ type: ErrorsEnum.DOWNLOAD_ERROR, error, reject })
+      logger?.error(ErrorsEnum.DOWNLOAD_ERROR, error)
+      reject(error)
     }
   })
 
+/**
+ * Extracts given 'zipped' `src` to `dest`
+ * Takes optional onProgress callback to show the progress
+ */
 const extractZip: ExtractZipFunction = ({ src, dest, onProgress }) =>
   // eslint-disable-next-line no-async-promise-executor
   new Promise(async (resolve, reject) => {
@@ -170,28 +170,21 @@ const extractZip: ExtractZipFunction = ({ src, dest, onProgress }) =>
     }
   })
 
+/**
+ * Kills the process with the given `processId`
+ */
 const kill: KillFunction = async ({ processId, onMessage }) => {
-  try {
-    onMessage(`Killing process with PID: ${processId}`)
-    const cmd = global.platform.win32
-      ? `taskkill /PID "${processId}"`
-      : `kill "${processId}"`
-    const output = await exec(cmd)
-    onMessage(`Killed PID: ${processId} with Output: ${output}`)
-  } catch (error: any) {
-    throw new Error(error)
-  }
-}
-
-const throwError: ThrowErrorFunction = ({ error, type, reject }) => {
-  if (reject) reject(new Error(`${type} >> ` + error))
-  else throw new Error(`${type} >> ` + error)
+  onMessage(`Killing process with PID: ${processId}`)
+  const cmd = global.platform.win32
+    ? `taskkill /PID "${processId}"`
+    : `kill "${processId}"`
+  const output = await exec(cmd)
+  onMessage(`Killed PID: ${processId} with Output: ${output}`)
 }
 
 const utils: Utils = Object.freeze({
   download,
   extractZip,
   kill,
-  throwError,
 })
 export default utils

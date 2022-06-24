@@ -30,15 +30,8 @@ export type KillFunction = (_: {
   onMessage: (message: string) => void
 }) => void
 
-export type ThrowErrorFunction = (_: {
-  type: string
-  error: any
-  reject?: Function
-}) => void
-
 export interface Utils {
   download: DownloadFunction
   extractZip: ExtractZipFunction
   kill: KillFunction
-  throwError: ThrowErrorFunction
 }
