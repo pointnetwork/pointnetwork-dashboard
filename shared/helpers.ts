@@ -61,7 +61,7 @@ const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => {
       file = 'infoNode'
       break
     case 'sdk':
-      file = 'infoSDK.json'
+      file = 'infoSDK'
   }
   const pointPath = getPointPath()
   try {
