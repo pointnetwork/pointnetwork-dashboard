@@ -40,7 +40,9 @@ class Bounty {
       this._saveReferralInfo()
     } catch (error) {
       this.logger.error(
-        `${ErrorsEnum.BOUNTY_ERROR} >> Failed to send "event=install" to bounty server`
+        ErrorsEnum.BOUNTY_ERROR,
+        'Failed to send "event=install" to bounty server',
+        error
       )
     }
   }
@@ -59,7 +61,9 @@ class Bounty {
       )
     } catch (error) {
       this.logger.error(
-        `${ErrorsEnum.BOUNTY_ERROR} >> Failed to send "event=install_started" to bounty server`
+        ErrorsEnum.BOUNTY_ERROR,
+        'Failed to send "event=install_started" to bounty server',
+        error
       )
     }
   }
@@ -80,7 +84,9 @@ class Bounty {
       this.logger.info('Saved referralCode to "infoReferral.json"')
     } catch (error) {
       this.logger.error(
-        `${ErrorsEnum.BOUNTY_ERROR} >> Failed to save "infoReferral.json"`
+        ErrorsEnum.BOUNTY_ERROR,
+        'Failed to save "infoReferral.json"',
+        error
       )
     }
   }
@@ -102,7 +108,8 @@ class Bounty {
         this.logger.info('".Trash" directory read')
       } catch (e) {
         this.logger.error(
-          `${ErrorsEnum.BOUNTY_ERROR} >> Not allowed to read ".Trash" directory`
+          ErrorsEnum.BOUNTY_ERROR,
+          'Not allowed to read ".Trash" directory'
         )
       }
     }
@@ -117,7 +124,8 @@ class Bounty {
       this.logger.info('"Downloads" directory read')
     } catch (e) {
       this.logger.error(
-        `${ErrorsEnum.BOUNTY_ERROR} >> Not allowed to read "Downloads" directory`
+        ErrorsEnum.BOUNTY_ERROR,
+        'Not allowed to read "Downloads" directory'
       )
     }
 
@@ -131,7 +139,8 @@ class Bounty {
       this.logger.info('"Desktop" directory read')
     } catch (e) {
       this.logger.error(
-        `${ErrorsEnum.BOUNTY_ERROR} >> Not allowed to read "Desktop" directory`
+        ErrorsEnum.BOUNTY_ERROR,
+        'Not allowed to read "Desktop" directory'
       )
     }
 
