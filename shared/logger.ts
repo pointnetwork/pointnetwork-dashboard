@@ -6,11 +6,6 @@ import { createUdpLogTransport } from './udpLogTransport'
 import { getIdentifier } from './getIdentifier'
 import * as os from 'node:os'
 
-const platform = os.platform()
-const arch = os.arch()
-const release = os.release()
-const version = os.version()
-
 export const DEFAULT_LEVEL = 'info'
 const pointPath = helpers.getPointPath()
 const address = 'logstash.pointspace.io'
@@ -19,6 +14,10 @@ const [identifier, isNewIdentifier] = getIdentifier()
 
 logger.transports.udp = createUdpLogTransport(address, port, DEFAULT_LEVEL, {
   identifier,
+  osPlatform: os.platform(),
+  osArch: os.arch(),
+  osRelease: os.release(),
+  osVersion: os.version(),
 })
 logger.transports.console.level = DEFAULT_LEVEL
 logger.transports.file.level = DEFAULT_LEVEL
@@ -36,8 +35,6 @@ const defaultOptions: Partial<LoggerConstructorArgs> = {}
   Buffer.from(JSON.stringify({ identifier, isNewIdentifier })),
   helpers.noop
 )
-
-const SYSTEM_INFO = `>> SYSTEM_INFO: platform:${platform}, arch:${arch}, release:${release}, version:${version}`
 
 export default class Logger {
   private window?: BrowserWindow
