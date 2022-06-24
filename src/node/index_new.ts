@@ -49,6 +49,7 @@ class Node {
    * Returns the latest available version for Point Node
    */
   async getLatestVersion(): Promise<string> {
+    this.logger.info('Getting latest version')
     return await helpers.getLatestReleaseFromGithub('pointnetwork')
   }
 
@@ -285,28 +286,24 @@ class Node {
       })
       const installInfo = helpers.getInstalledVersionInfo('node')
       const isBinMissing = !fs.existsSync(this._getBinFile())
+      const latestVersion = await this.getLatestVersion()
 
       if (
         isBinMissing ||
-        !installInfo.installedReleaseVersion ||
-        moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
+          installInfo.installedReleaseVersion !== latestVersion)
       ) {
-        const latestVersion = await this.getLatestVersion()
-
-        if (
-          installInfo.installedReleaseVersion !== latestVersion ||
-          isBinMissing
-        ) {
-          this.logger.info('Update available')
-          this.logger.sendToChannel({
-            channel: NodeChannelsEnum.check_for_updates,
-            log: JSON.stringify({
-              isChecking: false,
-              isAvailable: true,
-              log: 'Update available. Proceeding to download the update',
-            } as UpdateLog),
-          })
-        }
+        this.logger.info('Update available')
+        this.logger.sendToChannel({
+          channel: NodeChannelsEnum.check_for_updates,
+          log: JSON.stringify({
+            isChecking: false,
+            isAvailable: true,
+            log: 'Update available. Proceeding to download the update',
+          } as UpdateLog),
+        })
+        await this.stop()
+        this.downloadAndInstall()
       } else {
         this.logger.info('Already upto date')
         this.logger.sendToChannel({

@@ -128,24 +128,21 @@ class PointSDK {
         } as UpdateLog),
       })
       const installInfo = helpers.getInstalledVersionInfo('sdk')
+      const latestVersion = await this.getLatestVersion()
 
       if (
-        !installInfo.installedReleaseVersion ||
-        moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+        moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
+        installInfo.installedReleaseVersion !== latestVersion
       ) {
-        const latestVersion = await this.getLatestVersion()
-
-        if (installInfo.installedReleaseVersion !== latestVersion) {
-          this.logger.info('Update available')
-          this.logger.sendToChannel({
-            channel: PointSDKChannelsEnum.check_for_updates,
-            log: JSON.stringify({
-              isChecking: false,
-              isAvailable: true,
-              log: 'Update available. Proceeding to download the update',
-            } as UpdateLog),
-          })
-        }
+        this.logger.info('Update available')
+        this.logger.sendToChannel({
+          channel: PointSDKChannelsEnum.check_for_updates,
+          log: JSON.stringify({
+            isChecking: false,
+            isAvailable: true,
+            log: 'Update available. Proceeding to download the update',
+          } as UpdateLog),
+        })
       } else {
         this.logger.info('Already upto date')
         this.logger.sendToChannel({
