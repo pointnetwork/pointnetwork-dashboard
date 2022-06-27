@@ -5,6 +5,7 @@ import Logger from '../../shared/logger'
 import { gte as semverGte, rcompare as semverCompare } from 'semver'
 import { GithubRelease, GithubReleaseAsset } from './types'
 import fs from 'node:fs'
+import os from 'os'
 
 export default class AutoUpdater {
   private window: BrowserWindow
@@ -14,12 +15,13 @@ export default class AutoUpdater {
   private logger: Logger
   private currentVersion: string
   private feedUrl: string
-  private downloadsDirectory = path.join(
+  private downloadsDirectory = global.platform.win32 ? path.join(
     app.getPath('temp'),
     app.getName(),
     'updates',
     'downloads'
   )
+    : os.tmpdir()
 
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
@@ -219,14 +221,6 @@ export default class AutoUpdater {
             )
             autoUpdater.checkForUpdates()
 
-            // TODO: Move before `autoUpdater.checkForUpdates()`
-            // Leaving here to know if there's an issue calling `checkForUpdates`
-            const feedURL = autoUpdater.getFeedURL()
-            this.logger.info(
-              `[autoUpdater]: Feed URL: ${feedURL}`
-            )
-            //
-
             autoUpdater.on('update-downloaded', () => {
               this.logger.info(
                 `[autoUpdater]: Electron autoUpdater's "update-downloaded" event. Calling electron autoUpdater's quitAndInstall()`
@@ -246,7 +240,6 @@ export default class AutoUpdater {
               throw error
             })
 
-            //
             autoUpdater.on('checking-for-update', () => {
               this.logger.info(
                 `[autoUpdater]: Electron autoUpdater's "checking-for-update" event.`
