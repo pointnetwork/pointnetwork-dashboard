@@ -29,7 +29,7 @@ export default class AutoUpdater {
     this.currentVersion = app.getVersion()
     // this.feedUrl = ''
     // if (global.platform.win32) {
-    //   this.feedUrl = this.downloadsDirectory
+    this.feedUrl = this.downloadsDirectory
     // }
     // this.feedUrl = this.downloadsDirectory
     // if (global.platform.darwin) {
@@ -214,7 +214,7 @@ export default class AutoUpdater {
               resolve(this.window.webContents.send('autoupdater:linux-update'))
 
             await this.downloadUpdateFromRelease(latestRelease)
-            // autoUpdater.setFeedURL({ url: this.feedUrl })
+            autoUpdater.setFeedURL({ url: this.feedUrl })
             // autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.2.33' })
             this.logger.info(
               `[autoUpdater]: Calling electron autoUpdater's checkForUpdates()`
