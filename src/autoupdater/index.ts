@@ -1,4 +1,5 @@
-import { autoUpdater, BrowserWindow, app } from 'electron'
+import { BrowserWindow, app } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import axios from 'axios'
 import path from 'node:path'
 import Logger from '../../shared/logger'
@@ -215,7 +216,7 @@ export default class AutoUpdater {
 
             await this.downloadUpdateFromRelease(latestRelease)
             // const releasePath = `this.feedUrl/point-${latestVersion}-MacOS-app.zip`
-            autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.2.36/point-v0.2.36-MacOS-app.zip' })
+            // autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.2.36/point-v0.2.36-MacOS-app.zip' })
             // autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.2.33' })
             this.logger.info(
               `[autoUpdater]: Calling electron autoUpdater's checkForUpdates()`
