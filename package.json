@@ -8,11 +8,11 @@
     "url": "https://github.com/pointnetwork/pointnetwork-dashboard"
   },
   "build": {
-    "publish": [{
+    "publish": {
       "provider": "github",
       "owner": "pointnetwork",
       "repo": "pointnetwork-dashboard"
-    }],
+    }
   },
   "main": "./.webpack/main",
   "scripts": {
