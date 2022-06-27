@@ -214,8 +214,8 @@ export default class AutoUpdater {
               resolve(this.window.webContents.send('autoupdater:linux-update'))
 
             await this.downloadUpdateFromRelease(latestRelease)
-            const releasePath = `this.feedUrl/point-${latestVersion}-MacOS-app.zip`
-            autoUpdater.setFeedURL({ url: releasePath })
+            // const releasePath = `this.feedUrl/point-${latestVersion}-MacOS-app.zip`
+            autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.2.36/point-v0.2.36-MacOS-app.zip' })
             // autoUpdater.setFeedURL({ url: 'https://github.com/pointnetwork/pointnetwork-dashboard/releases/download/v0.2.33' })
             this.logger.info(
               `[autoUpdater]: Calling electron autoUpdater's checkForUpdates()`
