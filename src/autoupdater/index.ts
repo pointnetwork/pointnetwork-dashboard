@@ -1,5 +1,4 @@
-import { BrowserWindow, app } from 'electron'
-import { autoUpdater } from 'electron-updater'
+import { autoUpdater, BrowserWindow, app } from 'electron'
 import axios from 'axios'
 import path from 'node:path'
 import Logger from '../../shared/logger'
@@ -221,7 +220,7 @@ export default class AutoUpdater {
             this.logger.info(
               `[autoUpdater]: Calling electron autoUpdater's checkForUpdates()`
             )
-            autoUpdater.checkForUpdates()
+            // autoUpdater.checkForUpdates()
 
             autoUpdater.on('update-downloaded', () => {
               this.logger.info(

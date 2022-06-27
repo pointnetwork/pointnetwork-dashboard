@@ -48,7 +48,6 @@
     "electron-github-autoupdater": "^2.0.0",
     "electron-log": "^4.4.6",
     "electron-squirrel-startup": "^1.0.0",
-    "electron-updater": "^5.0.5",
     "extract-zip": "^2.0.1",
     "find-process": "^1.4.7",
     "fs-extra": "8.1.0",
