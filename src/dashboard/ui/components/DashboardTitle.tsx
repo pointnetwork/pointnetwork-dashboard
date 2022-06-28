@@ -2,6 +2,7 @@ import { Fragment, ReactEventHandler, useEffect, useState } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import SettingsIcon from '@mui/icons-material/Settings'
@@ -14,6 +15,8 @@ import HelpIcon from '@mui/icons-material/Help'
 import { DashboardChannelsEnum } from '../../../@types/ipc_channels'
 
 const DashboardTitle = () => {
+  const [closeDialogOpen, setCloseDialogOpen] = useState<boolean>(false)
+
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
   const [anchorElSettings, setAnchorElSettings] = useState<
     null | (EventTarget & Element)
@@ -50,6 +53,11 @@ const DashboardTitle = () => {
     )
   }, [])
 
+  const handleLogout = () => {
+    window.Dashboard.logOut()
+    setCloseDialogOpen(false)
+  }
+
   return (
     <Fragment>
       <Box display="flex" alignItems="baseline">
@@ -61,7 +69,11 @@ const DashboardTitle = () => {
         </Typography>
         <Box position="fixed" right={16} top={56}>
           <Box display="flex" alignItems="center">
-            <Button color="inherit" style={{ opacity: 0.6 }}>
+            <Button
+              color="inherit"
+              onClick={() => setCloseDialogOpen(true)}
+              style={{ opacity: 0.6 }}
+            >
               Log Out
             </Button>
             <IconButton onClick={openHelpMenu}>
@@ -96,6 +108,31 @@ const DashboardTitle = () => {
       <Typography color="text.secondary">
         Manage and control Point Network components from here
       </Typography>
+
+      <Dialog open={closeDialogOpen}>
+        <Box p={3}>
+          <Typography>Are you sure you want to log out?</Typography>
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button
+              color="inherit"
+              variant="outlined"
+              size="small"
+              onClick={() => setCloseDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              size="small"
+              sx={{ ml: 1 }}
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </Fragment>
   )
 }

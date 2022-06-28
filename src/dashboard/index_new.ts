@@ -5,6 +5,7 @@ import Firefox from '../firefox/index_new'
 import Node from '../node/index_new'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import welcome from '../welcome'
 import { getIdentifier } from '../../shared/getIdentifier'
 import baseWindowConfig from '../../shared/windowConfig'
 // Types
@@ -81,6 +82,18 @@ export default function (isExplicitRun = false) {
       },
     },
     // Dashboard channels
+    {
+      channel: DashboardChannelsEnum.log_out,
+      async listener() {
+        try {
+          window?.close()
+          helpers.logout()
+          welcome(true)
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
     {
       channel: DashboardChannelsEnum.get_version,
       async listener() {
