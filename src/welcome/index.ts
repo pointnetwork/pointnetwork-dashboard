@@ -3,7 +3,6 @@ import WelcomeService from './services'
 import dashboard from '../dashboard/index_new'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
-import Uninstaller from '../uninstaller'
 import helpers from '../../shared/helpers'
 import {
   DashboardChannelsEnum,
@@ -14,7 +13,6 @@ const logger = new Logger()
 
 let mainWindow: BrowserWindow | null
 let welcomeService: WelcomeService | null
-let uninstaller: Uninstaller | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
@@ -50,7 +48,6 @@ export default function (isExplicitRun = false) {
     // debug
     // mainWindow.webContents.openDevTools()
     welcomeService = new WelcomeService(mainWindow!)
-    uninstaller = new Uninstaller(mainWindow!)
 
     mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
 
@@ -122,7 +119,6 @@ export default function (isExplicitRun = false) {
         })
 
         if (confirmationAnswer === 0) {
-          uninstaller!.launch()
           mainWindow?.destroy()
         }
       },
