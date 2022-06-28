@@ -1,5 +1,10 @@
 import { IpcMainEvent } from 'electron'
 
+export interface IsUpdatingState {
+  firefox: boolean
+  node: boolean
+}
+
 export interface EventListener {
   channel: string
   listener: (_: IpcMainEvent, args: any[]) => void

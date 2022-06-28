@@ -1,0 +1,216 @@
+import { app, BrowserWindow, ipcMain } from 'electron'
+import Firefox from '../firefox/index_new'
+import Node from '../node/index_new'
+import Logger from '../../shared/logger'
+import helpers from '../../shared/helpers'
+import { getIdentifier } from '../../shared/getIdentifier'
+import baseWindowConfig from '../../shared/windowConfig'
+// Types
+import {
+  DashboardChannelsEnum,
+  FirefoxChannelsEnum,
+  GenericChannelsEnum,
+  NodeChannelsEnum,
+} from '../@types/ipc_channels'
+import { EventListener } from '../@types/generic'
+import { ErrorsEnum } from '../@types/errors'
+
+let window: BrowserWindow | null
+let node: Node | null
+let firefox: Firefox | null
+
+declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
+declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
+
+const logger = new Logger({ module: 'dashboard_window' })
+
+export default function (isExplicitRun = false) {
+  async function createWindow() {
+    window = new BrowserWindow({
+      ...baseWindowConfig,
+      width: 860,
+      height: 560,
+      webPreferences: {
+        ...baseWindowConfig.webPreferences,
+        preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      },
+    })
+
+    window.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
+
+    firefox = new Firefox({ window })
+    node = new Node({ window })
+
+    window.on('close', async ev => {
+      ev.preventDefault()
+
+      logger.info('Removing all event listeners')
+      ipcMain.removeAllListeners()
+      logger.info('Removed all event listeners')
+
+      try {
+        await node?.stop()
+        await firefox?.stop()
+      } catch (error) {
+        logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+      }
+
+      window?.destroy()
+    })
+
+    window.on('closed', () => {
+      node = null
+      firefox = null
+      window = null
+    })
+  }
+
+  const events: EventListener[] = [
+    // Dashboard channels
+    {
+      channel: DashboardChannelsEnum.get_version,
+      async listener() {
+        try {
+          window?.webContents.send(
+            DashboardChannelsEnum.get_version,
+            helpers.getInstalledDashboardVersion()
+          )
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    // Firefox channels
+    {
+      channel: FirefoxChannelsEnum.launch,
+      async listener() {
+        try {
+          await firefox?.launch()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: FirefoxChannelsEnum.get_version,
+      listener() {
+        window?.webContents.send(
+          FirefoxChannelsEnum.get_version,
+          helpers.getInstalledVersionInfo('firefox').installedReleaseVersion
+        )
+      },
+    },
+    // Node channels
+    {
+      channel: NodeChannelsEnum.launch,
+      async listener() {
+        try {
+          await node?.launch()
+          setTimeout(() => node?.ping(), 3000)
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: NodeChannelsEnum.get_identity,
+      async listener() {
+        try {
+          await node?.getIdentityInfo()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: NodeChannelsEnum.running_status,
+      async listener() {
+        try {
+          await node?.ping()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: NodeChannelsEnum.get_version,
+      listener() {
+        window?.webContents.send(
+          NodeChannelsEnum.get_version,
+          helpers.getInstalledVersionInfo('node').installedReleaseVersion
+        )
+      },
+    },
+    // Generic channels
+    {
+      channel: GenericChannelsEnum.get_identifier,
+      listener() {
+        window?.webContents.send(
+          GenericChannelsEnum.get_identifier,
+          getIdentifier()[0]
+        )
+      },
+    },
+    {
+      channel: GenericChannelsEnum.check_for_updates,
+      async listener() {
+        try {
+          // TODO: Check for SDK, dashboard, and installer updates too
+          await node?.checkForUpdates()
+          await firefox?.checkForUpdates()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: GenericChannelsEnum.close_window,
+      async listener() {
+        window?.webContents.send(DashboardChannelsEnum.closing)
+        window?.close()
+      },
+    },
+    {
+      channel: GenericChannelsEnum.minimize_window,
+      listener() {
+        window?.minimize()
+      },
+    },
+  ]
+
+  async function registerListeners() {
+    events.forEach(event => {
+      ipcMain.on(event.channel, event.listener)
+      logger.info('Registered event', event.channel)
+    })
+  }
+
+  if (isExplicitRun) {
+    createWindow()
+    registerListeners()
+  }
+
+  app.on('will-quit', async function () {
+    // This is a good place to add tests insuring the app is still
+    // responsive and all windows are closed.
+    logger.info('Dashboard Window "will-quit" event')
+  })
+
+  if (!isExplicitRun) {
+    app
+      .on('ready', createWindow)
+      .whenReady()
+      .then(registerListeners)
+      .catch(e => logger.error(e))
+
+    app.on('window-all-closed', () => {
+      app.quit()
+    })
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+      }
+    })
+  }
+}
