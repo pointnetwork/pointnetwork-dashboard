@@ -15,6 +15,7 @@ import ErrorIcon from '@mui/icons-material/Error'
 import {
   FirefoxChannelsEnum,
   NodeChannelsEnum,
+  PointSDKChannelsEnum,
 } from '../../../@types/ipc_channels'
 import {
   GenericProgressLog,
@@ -29,7 +30,10 @@ const ResourceUpdateCard = ({
   channel,
   setIsUpdating,
 }: {
-  channel: typeof FirefoxChannelsEnum | typeof NodeChannelsEnum
+  channel:
+    | typeof FirefoxChannelsEnum
+    | typeof NodeChannelsEnum
+    | typeof PointSDKChannelsEnum
   setIsUpdating: Dispatch<SetStateAction<IsUpdatingState>>
 }) => {
   let title = ''
@@ -39,6 +43,9 @@ const ResourceUpdateCard = ({
       break
     case NodeChannelsEnum:
       title = 'Node'
+      break
+    case PointSDKChannelsEnum:
+      title = 'SDK Extension'
       break
   }
 
@@ -73,14 +80,20 @@ const ResourceUpdateCard = ({
         setIsUpdating(prev => ({ ...prev, node: parsed.isAvailable }))
       if (channel === FirefoxChannelsEnum)
         setIsUpdating(prev => ({ ...prev, firefox: parsed.isAvailable }))
+      if (channel === PointSDKChannelsEnum)
+        setIsUpdating(prev => ({ ...prev, pointsdk: parsed.isAvailable }))
     })
 
     window.Dashboard.on(channel.download, (logs: string) => {
       const parsed = JSON.parse(logs) as GenericProgressLog
       setDownloadLogs(parsed)
       setLog(parsed.log)
+
+      if (channel === PointSDKChannelsEnum)
+        setIsUpdating(prev => ({ ...prev, pointsdk: !parsed.done! }))
     })
 
+    // @ts-ignore
     window.Dashboard.on(channel.unpack, (logs: string) => {
       const parsed = JSON.parse(logs) as GenericProgressLog
       setUnpackLogs(parsed)
@@ -162,6 +175,10 @@ const CheckForUpdatesDailog = ({
           />
           <ResourceUpdateCard
             channel={FirefoxChannelsEnum}
+            setIsUpdating={setIsUpdating}
+          />
+          <ResourceUpdateCard
+            channel={PointSDKChannelsEnum}
             setIsUpdating={setIsUpdating}
           />
         </Grid>

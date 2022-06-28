@@ -3,6 +3,7 @@ import { IpcMainEvent } from 'electron'
 export interface IsUpdatingState {
   firefox: boolean
   node: boolean
+  pointsdk: boolean
 }
 
 export interface EventListener {

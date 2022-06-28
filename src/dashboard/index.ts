@@ -3,6 +3,7 @@ import axios from 'axios'
 import Bounty from '../bounty'
 import Firefox from '../firefox'
 import Node from '../node'
+import PointSDK from '../pointsdk'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 import welcome from '../welcome'
@@ -22,6 +23,7 @@ import { ErrorsEnum } from '../@types/errors'
 let window: BrowserWindow | null
 let node: Node | null
 let firefox: Firefox | null
+let pointSDK: PointSDK | null
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
@@ -44,6 +46,7 @@ export default function (isExplicitRun = false) {
 
     firefox = new Firefox({ window })
     node = new Node({ window })
+    pointSDK = new PointSDK({ window })
 
     window.on('close', async ev => {
       ev.preventDefault()
@@ -267,6 +270,7 @@ export default function (isExplicitRun = false) {
           // TODO: Check for SDK, dashboard, and installer updates too
           await node?.checkForUpdates()
           await firefox?.checkForUpdates()
+          await pointSDK?.checkForUpdates()
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }

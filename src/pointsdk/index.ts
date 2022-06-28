@@ -143,6 +143,7 @@ class PointSDK {
             log: 'Update available. Proceeding to download the update',
           } as UpdateLog),
         })
+        this.downloadAndInstall()
       } else {
         this.logger.info('Already upto date')
         this.logger.sendToChannel({

@@ -32,6 +32,7 @@ const App = () => {
   const [isUpdating, setIsUpdating] = useState<IsUpdatingState>({
     firefox: true,
     node: true,
+    pointsdk: true,
   })
   // Running state variables
   const [loader, setIsLaunching] = useState<{
