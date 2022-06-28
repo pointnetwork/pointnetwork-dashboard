@@ -8,6 +8,7 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 // Components
 import CreateDirLogs from './components/CreateDirLogs'
+import DisclaimerDialog from './components/DisclaimerDialog'
 import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
 import DownloadExtractLogs from './components/DownloadExtractLogs'
 import TopBar from './components/TopBar'
@@ -25,6 +26,7 @@ import {
 
 export default function App() {
   const loggerRef = useRef<HTMLElement>()
+  const [disclaimerOpen, setDisclaimerOpen] = useState<boolean>(false)
   const [attempts, setAttempts] = useState<number>(0)
   const [installing, setInstalling] = useState<boolean>(false)
   const [version, setVersion] = useState<string>('')
@@ -55,6 +57,7 @@ export default function App() {
     <UIThemeProvider>
       <TopBar isLoading={false} />
       <DisplayIdentifier identifier={identifier} />
+      <DisclaimerDialog open={disclaimerOpen} setOpen={setDisclaimerOpen} />
 
       <Box
         display={'flex'}
@@ -73,11 +76,7 @@ export default function App() {
             The following components will be installed on your system to run
             Point Network
           </Typography>
-          <Box
-            sx={{ px: '1rem', mt: '1rem', mb: '2rem' }}
-            bgcolor="primary.light"
-            borderRadius={2}
-          >
+          <Box px={2} mt={2} mb={3} bgcolor="primary.light" borderRadius={2}>
             <List>
               <ListItemText>Point Node</ListItemText>
               <ListItemText>Point LiveProfile</ListItemText>
@@ -89,6 +88,19 @@ export default function App() {
           <Button variant="contained" onClick={sendStartInstallation}>
             Start Installation
           </Button>
+          <Box mt={8}>
+            <Typography variant="caption">
+              By installing, you agree to our{' '}
+              <Typography
+                variant="caption"
+                color="primary"
+                sx={{ textDecoration: 'underline', cursor: 'pointer' }}
+                onClick={() => setDisclaimerOpen(true)}
+              >
+                terms and conditions
+              </Typography>
+            </Typography>
+          </Box>
         </Box>
         {attempts ? (
           <Alert severity="error">
