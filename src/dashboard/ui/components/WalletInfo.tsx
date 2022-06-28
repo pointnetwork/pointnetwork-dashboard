@@ -7,7 +7,10 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 // Types
 import { IdentityLog } from '../../../@types/generic'
-import { NodeChannelsEnum } from '../../../@types/ipc_channels'
+import {
+  DashboardChannelsEnum,
+  NodeChannelsEnum,
+} from '../../../@types/ipc_channels'
 
 const balanceStyle = {
   fontWeight: 'bold',
@@ -30,18 +33,27 @@ const WalletInfo = ({ isNodeRunning }: { isNodeRunning: boolean }) => {
     address: '',
     log: '',
   })
-  const [balance, setBalance] = useState<number>(1)
+  const [balance, setBalance] = useState<number | string>(0)
 
   useEffect(() => {
     window.Dashboard.on(NodeChannelsEnum.get_identity, (_: string) => {
       const parsed: IdentityLog = JSON.parse(_)
       setIdentityInfo(parsed)
     })
+
+    window.Dashboard.on(
+      DashboardChannelsEnum.check_balance_and_airdrop,
+      (_: string) => {
+        setBalance(_)
+      }
+    )
   }, [])
 
   useEffect(() => {
     if (isNodeRunning) {
       window.Dashboard.getIdentityInfo()
+      window.Dashboard.sendGeneratedEventToBounty()
+      window.Dashboard.checkBalanceAndAirdrop()
     }
   }, [isNodeRunning])
 
@@ -108,7 +120,7 @@ const WalletInfo = ({ isNodeRunning }: { isNodeRunning: boolean }) => {
             <Button
               variant="contained"
               disabled={Number(balance) > 0}
-              // onClick={requestYPoints}
+              onClick={window.Dashboard.checkBalanceAndAirdrop}
             >
               Request yPOINTs
             </Button>

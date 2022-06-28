@@ -1,4 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
+import axios from 'axios'
+import Bounty from '../bounty'
 import Firefox from '../firefox/index_new'
 import Node from '../node/index_new'
 import Logger from '../../shared/logger'
@@ -7,6 +9,7 @@ import { getIdentifier } from '../../shared/getIdentifier'
 import baseWindowConfig from '../../shared/windowConfig'
 // Types
 import {
+  BountyChannelsEnum,
   DashboardChannelsEnum,
   FirefoxChannelsEnum,
   GenericChannelsEnum,
@@ -66,6 +69,17 @@ export default function (isExplicitRun = false) {
   }
 
   const events: EventListener[] = [
+    // Bounty channels
+    {
+      channel: BountyChannelsEnum.send_generated,
+      listener() {
+        try {
+          new Bounty({ window: window! }).sendGenerated()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
     // Dashboard channels
     {
       channel: DashboardChannelsEnum.get_version,
@@ -74,6 +88,78 @@ export default function (isExplicitRun = false) {
           window?.webContents.send(
             DashboardChannelsEnum.get_version,
             helpers.getInstalledDashboardVersion()
+          )
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: DashboardChannelsEnum.check_balance_and_airdrop,
+      async listener() {
+        // TODO: move this func somewhere to utils
+        const delay = (ms: number) =>
+          new Promise(resolve => {
+            setTimeout(resolve, ms)
+          })
+        const start = new Date().getTime()
+        try {
+          let balance = 0
+          logger.info('Getting wallet address')
+          const addressRes = await axios.get(
+            'http://localhost:2468/v1/api/wallet/address'
+          )
+          const address = addressRes.data.data.address
+
+          const requestAirdrop = async () => {
+            const faucetURL = helpers.getFaucetURL()
+            logger.info('Airdropping wallet address with POINTS')
+            try {
+              await axios.get(`${faucetURL}/airdrop?address=${address}`)
+            } catch (error) {
+              logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+            }
+          }
+
+          const checkBalance = async () => {
+            const faucetURL = helpers.getFaucetURL()
+            logger.info(`Getting wallet balance for address: ${address}`)
+            try {
+              const res = await axios.get(
+                `${faucetURL}/balance?address=${address}`
+              )
+              if (res.data?.balance && !isNaN(res.data.balance)) {
+                logger.info(`Balance: ${res.data.balance}`)
+                balance = res.data.balance
+              } else {
+                logger.error(`Unexpected balance response: ${res.data}`)
+              }
+            } catch (error) {
+              logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+            }
+          }
+
+          await checkBalance()
+
+          window?.webContents.send(
+            DashboardChannelsEnum.check_balance_and_airdrop,
+            balance
+          )
+          // eslint-disable-next-line no-unmodified-loop-condition
+          while (balance <= 0) {
+            if (new Date().getTime() - start > 120000) {
+              throw new Error(
+                'Could not get positive wallet balance in 2 minutes'
+              )
+            }
+            await requestAirdrop()
+            await delay(10000)
+            await checkBalance()
+          }
+
+          window?.webContents.send(
+            DashboardChannelsEnum.check_balance_and_airdrop,
+            balance
           )
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)

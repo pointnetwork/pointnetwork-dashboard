@@ -1,4 +1,7 @@
-import { DashboardChannelsEnum } from './../@types/ipc_channels'
+import {
+  BountyChannelsEnum,
+  DashboardChannelsEnum,
+} from './../@types/ipc_channels'
 import { contextBridge, ipcRenderer } from 'electron'
 // Types
 import {
@@ -15,7 +18,12 @@ declare global {
 }
 
 export const api = {
+  // Bounty
+  sendGeneratedEventToBounty: () =>
+    ipcRenderer.send(BountyChannelsEnum.send_generated),
   // Dashboard
+  checkBalanceAndAirdrop: () =>
+    ipcRenderer.send(DashboardChannelsEnum.check_balance_and_airdrop),
   getDashboardVersion: () =>
     ipcRenderer.send(DashboardChannelsEnum.get_version),
   // Node
@@ -44,12 +52,6 @@ contextBridge.exposeInMainWorld('Dashboard', api)
 // },
 // logOut: () => {
 //   ipcRenderer.send(DashboardChannelsEnum.log_out)
-// },
-// checkBalanceAndAirdrop: () => {
-//   ipcRenderer.send('node:check_balance_and_airdrop')
-// },
-// sendBountyRequest: () => {
-//   ipcRenderer.send('dashboard:bounty_request')
 // },
 // openFeedbackLink: () => {
 //   ipcRenderer.send('dashboard:open_feedback_link')

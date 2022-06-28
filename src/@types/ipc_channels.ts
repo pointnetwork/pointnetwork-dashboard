@@ -24,6 +24,7 @@ export enum GenericChannelsEnum {
 }
 
 export enum DashboardChannelsEnum {
+  check_balance_and_airdrop = 'dashboard:check_balance_and_airdrop',
   closing = 'dashboard:closing',
   get_version = 'dashboard:get_version',
   log_out = 'dashboard:log_out',
@@ -61,4 +62,8 @@ export enum UninstallerChannelsEnum {
 export enum PointSDKChannelsEnum {
   download = 'pointsdk:download',
   check_for_updates = 'pointsdk:check_for_updates',
+}
+
+export enum BountyChannelsEnum {
+  send_generated = 'bounty:send_generated',
 }
