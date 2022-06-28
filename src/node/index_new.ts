@@ -3,7 +3,7 @@ import axios from 'axios'
 import fs, { PathLike } from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
-import { spawn } from 'node:child_process'
+import { exec } from 'node:child_process'
 import { https } from 'follow-redirects'
 import moment from 'moment'
 import rimraf from 'rimraf'
@@ -182,15 +182,14 @@ class Node {
       if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
 
       this.logger.info('Launching')
-      const nodeProcess = spawn(cmd)
-      nodeProcess.stdout.on('data', data => {
-        this.logger.info('Ran: STDOUT', data)
-      })
-      nodeProcess.stderr.on('data', data => {
-        this.logger.error(ErrorsEnum.LAUNCH_ERROR, data)
-      })
-      nodeProcess.on('close', code => {
-        this.logger.error('Ran', code)
+      return exec(cmd, (error, stdout, stderr) => {
+        if (stdout) this.logger.info('Ran successfully')
+        if (error) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+        }
+        if (stderr) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, stderr)
+        }
       })
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
@@ -324,7 +323,7 @@ class Node {
   /**
    * Returns the identity currently active on Point Node
    */
-  async getIdentity() {
+  async getIdentityInfo() {
     this.logger.info('Getting identity')
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.get_identity,
