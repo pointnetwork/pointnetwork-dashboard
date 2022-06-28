@@ -17,10 +17,10 @@ import {
   GenericProgressLog,
   LaunchProcessLog,
   UpdateLog,
+  Process,
 } from '../@types/generic'
 import { GithubRelease } from '../@types/github-release'
 import { FirefoxChannelsEnum } from '../@types/ipc_channels'
-import { Process } from '../@types/process'
 import { ErrorsEnum } from './../@types/errors'
 
 const dmg = require('dmg')
@@ -171,7 +171,16 @@ class Firefox {
   async launch() {
     try {
       if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
-      if ((await this._getRunningProcess()).length) return
+      if ((await this._getRunningProcess()).length) {
+        this.logger.sendToChannel({
+          channel: FirefoxChannelsEnum.running_status,
+          log: JSON.stringify({
+            isRunning: true,
+            log: 'Point Browser is running',
+          } as LaunchProcessLog),
+        })
+        return
+      }
 
       const binFile = this._getBinFile()
       const profilePath = path.join(
