@@ -112,7 +112,7 @@ const App = () => {
 
   return (
     <UIThemeProvider>
-      <TopBar isLoading={false} />
+      <TopBar isBrowserRunning={isBrowserRunning} />
       <DisplayIdentifier identifier={identifier} />
 
       <CheckForUpdatesDailog
