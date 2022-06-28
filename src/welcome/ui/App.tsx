@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 // MAterial UI
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import UIThemeProvider from '../../../shared/UIThemeProvider'
+import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 // Components
 import SeedGenerator from './components/SeedGenerator'
 import SeedConfirmation from './components/SeedConfirmation'
 import Login from './components/Login'
 import MenuUninstaller from './components/MenuUninstall'
 import TopBar from './components/TopBar'
+// Types
 import { DashboardChannelsEnum } from '../../@types/ipc_channels'
 
 export default function App() {

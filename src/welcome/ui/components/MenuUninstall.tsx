@@ -1,8 +1,8 @@
 // Material UI
 import Box from '@mui/material/Box'
-
 // Theme provider
-import UIThemeProvider from '../../../../shared/UIThemeProvider'
+import UIThemeProvider from '../../../../shared/react-components/UIThemeProvider'
+// Icons
 import SettingsIcon from '@mui/icons-material/Settings'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
