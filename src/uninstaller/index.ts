@@ -6,8 +6,8 @@ import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 import utils from '../../shared/utils'
 // Types
-import { ErrorsEnum } from './../@types/errors'
-import { UninstallerChannelsEnum } from './../@types/ipc_channels'
+import { ErrorsEnum } from '../@types/errors'
+import { UninstallerChannelsEnum } from '../@types/ipc_channels'
 import { GenericProgressLog } from '../@types/generic'
 
 const decompress = require('decompress')

@@ -11,7 +11,7 @@ import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 // Types
-import { NodeChannelsEnum } from './../@types/ipc_channels'
+import { NodeChannelsEnum } from '../@types/ipc_channels'
 import {
   Process,
   GenericProgressLog,
@@ -19,7 +19,7 @@ import {
   LaunchProcessLog,
   UpdateLog,
 } from '../@types/generic'
-import { ErrorsEnum } from './../@types/errors'
+import { ErrorsEnum } from '../@types/errors'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')

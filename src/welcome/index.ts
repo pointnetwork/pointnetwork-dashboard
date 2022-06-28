@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import WelcomeService from './services'
-import dashboard from '../dashboard/index_new'
+import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'

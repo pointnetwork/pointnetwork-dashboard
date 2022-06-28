@@ -1,5 +1,5 @@
 import installer, { Installer } from '../installer'
-import dashboard from '../dashboard/index_new'
+import dashboard from '../dashboard'
 import welcome from '../welcome'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'

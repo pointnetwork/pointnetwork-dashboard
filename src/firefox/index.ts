@@ -21,7 +21,7 @@ import {
 } from '../@types/generic'
 import { GithubRelease } from '../@types/github-release'
 import { FirefoxChannelsEnum } from '../@types/ipc_channels'
-import { ErrorsEnum } from './../@types/errors'
+import { ErrorsEnum } from '../@types/errors'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
