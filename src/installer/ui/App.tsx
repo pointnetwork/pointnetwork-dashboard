@@ -8,6 +8,7 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 // Components
 import CreateDirLogs from './components/CreateDirLogs'
+import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
 import DownloadExtractLogs from './components/DownloadExtractLogs'
 import TopBar from './components/TopBar'
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
@@ -52,17 +53,9 @@ export default function App() {
 
   return (
     <UIThemeProvider>
-      <Box position="fixed" right={8} bottom={2}>
-        <Typography
-          variant="caption"
-          ml={1}
-          sx={{ opacity: 0.7 }}
-          fontFamily="monospace"
-        >
-          {identifier}
-        </Typography>
-      </Box>
       <TopBar isLoading={false} />
+      <DisplayIdentifier identifier={identifier} />
+
       <Box
         display={'flex'}
         flexDirection="column"
