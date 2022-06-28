@@ -97,7 +97,7 @@ const DashboardTitle = () => {
               open={isHelpMenuOpen}
               onClose={closeHelpMenu}
             >
-              <MenuItem>
+              <MenuItem onClick={window.Dashboard.openFeedbackLink}>
                 <HelpIcon sx={{ mr: 0.8, opacity: 0.7 }} />
                 Help & Feedback
               </MenuItem>

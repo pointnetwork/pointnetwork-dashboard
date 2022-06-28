@@ -27,6 +27,8 @@ export const api = {
   getDashboardVersion: () =>
     ipcRenderer.send(DashboardChannelsEnum.get_version),
   logOut: () => ipcRenderer.send(DashboardChannelsEnum.log_out),
+  openFeedbackLink: () =>
+    ipcRenderer.send(DashboardChannelsEnum.open_feedback_link),
   // Node
   getIdentityInfo: () => ipcRenderer.send(NodeChannelsEnum.get_identity),
   pingNode: () => ipcRenderer.send(NodeChannelsEnum.running_status),
@@ -50,8 +52,4 @@ contextBridge.exposeInMainWorld('Dashboard', api)
 
 // launchUninstaller: () => {
 //   ipcRenderer.send(UninstallerChannelsEnum.launch)
-// },
-
-// openFeedbackLink: () => {
-//   ipcRenderer.send('dashboard:open_feedback_link')
 // },

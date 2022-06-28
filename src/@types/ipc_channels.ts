@@ -29,6 +29,7 @@ export enum DashboardChannelsEnum {
   get_version = 'dashboard:get_version',
   log_out = 'dashboard:log_out',
   open_download_link = 'dashboard:open_download_link',
+  open_feedback_link = 'dashboard:open_feedback_link',
 }
 
 export enum FirefoxChannelsEnum {

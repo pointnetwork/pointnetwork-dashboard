@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import axios from 'axios'
 import Bounty from '../bounty'
 import Firefox from '../firefox/index_new'
@@ -82,6 +82,16 @@ export default function (isExplicitRun = false) {
       },
     },
     // Dashboard channels
+    {
+      channel: DashboardChannelsEnum.open_feedback_link,
+      listener() {
+        try {
+          shell.openExternal('https://pointnetwork.io/support')
+        } catch (error) {
+          logger.error(error)
+        }
+      },
+    },
     {
       channel: DashboardChannelsEnum.log_out,
       async listener() {
