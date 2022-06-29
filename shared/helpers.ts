@@ -5,7 +5,8 @@ import os from 'os'
 import { platform, arch } from 'process'
 // import welcome from '../src/welcome'
 import axios from 'axios'
-import type { GithubRelease } from '../src/@types/github-release'
+import type { GithubRelease } from '../src/@types/generic'
+
 const rimraf = require('rimraf')
 
 const getOSAndArch = () => {

@@ -18,8 +18,8 @@ import {
   LaunchProcessLog,
   UpdateLog,
   Process,
+  GithubRelease,
 } from '../@types/generic'
-import { GithubRelease } from '../@types/github-release'
 import { FirefoxChannelsEnum } from '../@types/ipc_channels'
 import { ErrorsEnum } from '../@types/errors'
 
