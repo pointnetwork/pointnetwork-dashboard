@@ -30,6 +30,22 @@ declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 
 const logger = new Logger({ module: 'dashboard_window' })
 
+/**
+ * Useful where we want to do some cleanup before closing the window
+ */
+const shutdownResources = async () => {
+  logger.info('Removing all event listeners')
+  ipcMain.removeAllListeners()
+  logger.info('Removed all event listeners')
+
+  try {
+    await node?.stop()
+    await firefox?.stop()
+  } catch (error) {
+    logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+  }
+}
+
 export default function (isExplicitRun = false) {
   async function createWindow() {
     window = new BrowserWindow({
@@ -50,18 +66,7 @@ export default function (isExplicitRun = false) {
 
     window.on('close', async ev => {
       ev.preventDefault()
-
-      logger.info('Removing all event listeners')
-      ipcMain.removeAllListeners()
-      logger.info('Removed all event listeners')
-
-      try {
-        await node?.stop()
-        await firefox?.stop()
-      } catch (error) {
-        logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
-      }
-
+      await shutdownResources()
       window?.destroy()
     })
 
@@ -99,9 +104,11 @@ export default function (isExplicitRun = false) {
       channel: DashboardChannelsEnum.log_out,
       async listener() {
         try {
-          window?.close()
+          window?.webContents.send(DashboardChannelsEnum.log_out)
+          await shutdownResources()
           helpers.logout()
           welcome(true)
+          window?.destroy()
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }

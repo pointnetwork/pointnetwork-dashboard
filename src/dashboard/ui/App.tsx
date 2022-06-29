@@ -96,6 +96,13 @@ const App = () => {
       })
     })
 
+    window.Dashboard.on(DashboardChannelsEnum.log_out, () => {
+      setIsLaunching({
+        isLoading: true,
+        message: 'Logging Out',
+      })
+    })
+
     window.Dashboard.on(
       GenericChannelsEnum.get_identifier,
       (identifier: string) => {
