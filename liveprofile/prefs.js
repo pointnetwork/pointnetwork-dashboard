@@ -178,3 +178,4 @@ user_pref('app.shield.optoutstudies.enabled', false);
 user_pref('security.enterprise_roots.enabled', true);
 user_pref('network.captive-portal-service.enabled', false);
 user_pref('browser.tabs.drawInTitlebar', true);
+user_pref('security.pki.sha1_enforcement_level', 4);
