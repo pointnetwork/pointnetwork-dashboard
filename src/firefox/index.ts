@@ -597,6 +597,7 @@ pref("browser.aboutwelcome.enabled", false)
 pref("browser.sessionstore.resume_session_once", false)
 pref("browser.sessionstore.resume_from_crash", false)
 pref("browser.startup.upgradeDialog.enabled", false)
+pref('security.pki.sha1_enforcement_level', 4)
 `
     const policiesCfgContent = `{
   "policies": {
