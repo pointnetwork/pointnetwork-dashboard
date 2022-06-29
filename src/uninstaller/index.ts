@@ -1,5 +1,6 @@
 import { BrowserWindow } from 'electron'
-import fs from 'fs-extra'
+import fs, { PathLike } from 'fs-extra'
+import { exec } from 'node:child_process'
 import path from 'node:path'
 import rimraf from 'rimraf'
 import Logger from '../../shared/logger'
@@ -8,7 +9,7 @@ import utils from '../../shared/utils'
 // Types
 import { ErrorsEnum } from '../@types/errors'
 import { UninstallerChannelsEnum } from '../@types/ipc_channels'
-import { GenericProgressLog } from '../@types/generic'
+import { GenericProgressLog, LaunchProcessLog } from '../@types/generic'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -157,6 +158,58 @@ class Uninstaller {
         reject(error)
       }
     })
+  }
+
+  /**
+   * Checks
+   * 1. If Point Node exists or not, if it doesn't then downloads it
+   * 2. Launches the Point Uninstaller
+   */
+  async launch() {
+    const binFile = this._getBinFile()
+    if (binFile && !fs.existsSync(binFile!)) await this.downloadAndInstall()
+
+    let cmd
+    if (global.platform.win32) cmd = `start ${binFile}`
+    if (global.platform.darwin) cmd = `open ${binFile}`
+
+    if (cmd) {
+      this.logger.sendToChannel({
+        channel: UninstallerChannelsEnum.running_status,
+        log: JSON.stringify({
+          isRunning: true,
+          log: 'Point Uninstaller is running',
+        } as LaunchProcessLog),
+      })
+      this.logger.info('Launching')
+      return exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+        }
+        if (stderr) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, stderr)
+        }
+        if (stdout) this.logger.info('Ran successfully')
+        this.logger.sendToChannel({
+          channel: UninstallerChannelsEnum.running_status,
+          log: JSON.stringify({
+            isRunning: false,
+            log: 'Point Uninstaller closed',
+          } as LaunchProcessLog),
+        })
+      })
+    }
+  }
+
+  /**
+   * Returns the path where the downloaded Point Uninstaller executable exists
+   */
+  _getBinFile(): PathLike | undefined {
+    const binPath = helpers.getPointPathTemp()
+    const file = path.join(binPath, 'pointnetwork-uninstaller')
+
+    if (global.platform.win32) return `${file}.exe`
+    if (global.platform.darwin) return `${file}.app`
   }
 }
 

@@ -4,6 +4,7 @@ import Bounty from '../bounty'
 import Firefox from '../firefox'
 import Node from '../node'
 import PointSDK from '../pointsdk'
+import Uninstaller from '../uninstaller'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 import welcome from '../welcome'
@@ -16,6 +17,7 @@ import {
   FirefoxChannelsEnum,
   GenericChannelsEnum,
   NodeChannelsEnum,
+  UninstallerChannelsEnum,
 } from '../@types/ipc_channels'
 import { EventListener } from '../@types/generic'
 import { ErrorsEnum } from '../@types/errors'
@@ -24,6 +26,7 @@ let window: BrowserWindow | null
 let node: Node | null
 let firefox: Firefox | null
 let pointSDK: PointSDK | null
+let uninstaller: Uninstaller | null
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
@@ -63,6 +66,7 @@ export default function (isExplicitRun = false) {
     firefox = new Firefox({ window })
     node = new Node({ window })
     pointSDK = new PointSDK({ window })
+    uninstaller = new Uninstaller({ window })
 
     window.on('close', async ev => {
       ev.preventDefault()
@@ -194,6 +198,17 @@ export default function (isExplicitRun = false) {
             DashboardChannelsEnum.check_balance_and_airdrop,
             balance
           )
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    // Uninstaller channels
+    {
+      channel: UninstallerChannelsEnum.launch,
+      async listener() {
+        try {
+          await uninstaller?.launch()
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }

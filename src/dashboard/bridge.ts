@@ -1,6 +1,7 @@
 import {
   BountyChannelsEnum,
   DashboardChannelsEnum,
+  UninstallerChannelsEnum,
 } from './../@types/ipc_channels'
 import { contextBridge, ipcRenderer } from 'electron'
 // Types
@@ -34,6 +35,8 @@ export const api = {
   pingNode: () => ipcRenderer.send(NodeChannelsEnum.running_status),
   launchNodeAndPing: () => ipcRenderer.send(NodeChannelsEnum.launch),
   getNodeVersion: () => ipcRenderer.send(NodeChannelsEnum.get_version),
+  // Uninstaller
+  launchUninstaller: () => ipcRenderer.send(UninstallerChannelsEnum.launch),
   // Firefox
   getFirefoxVersion: () => ipcRenderer.send(FirefoxChannelsEnum.get_version),
   launchBrowser: () => ipcRenderer.send(FirefoxChannelsEnum.launch),
@@ -49,7 +52,3 @@ export const api = {
 }
 
 contextBridge.exposeInMainWorld('Dashboard', api)
-
-// launchUninstaller: () => {
-//   ipcRenderer.send(UninstallerChannelsEnum.launch)
-// },

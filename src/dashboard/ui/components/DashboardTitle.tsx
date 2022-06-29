@@ -87,7 +87,7 @@ const DashboardTitle = () => {
               open={isSettingsMenuOpen}
               onClose={closeSettingsMenu}
             >
-              <MenuItem>
+              <MenuItem onClick={window.Dashboard.launchUninstaller}>
                 <CancelPresentationIcon sx={{ mr: 0.8, opacity: 0.7 }} />
                 Uninstall
               </MenuItem>

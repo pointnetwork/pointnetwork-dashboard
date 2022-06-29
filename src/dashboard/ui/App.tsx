@@ -17,6 +17,7 @@ import {
   FirefoxChannelsEnum,
   GenericChannelsEnum,
   NodeChannelsEnum,
+  UninstallerChannelsEnum,
 } from '../../@types/ipc_channels'
 import { LaunchProcessLog, IsUpdatingState } from '../../@types/generic'
 // Icons
@@ -87,6 +88,11 @@ const App = () => {
     window.Dashboard.on(FirefoxChannelsEnum.running_status, (_: string) => {
       const parsed: LaunchProcessLog = JSON.parse(_)
       setIsBrowserRunning(parsed.isRunning)
+    })
+
+    window.Dashboard.on(UninstallerChannelsEnum.running_status, (_: string) => {
+      const parsed: LaunchProcessLog = JSON.parse(_)
+      setIsLaunching({ isLoading: parsed.isRunning, message: parsed.log })
     })
 
     window.Dashboard.on(DashboardChannelsEnum.closing, () => {
