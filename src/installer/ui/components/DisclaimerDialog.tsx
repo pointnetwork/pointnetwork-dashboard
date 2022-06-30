@@ -21,10 +21,18 @@ const DisclaimerDialog = ({
         <Typography mt={1} variant="body2">
           1. Point Network is an uncensorable decentralized network. We just
           provide the software to you to access it, and it's up to you how to
-          use it, however you shall all the time comply with our Terms of Use
-          [LINK]. Whatever you upload and share is under your legal
-          responsibility. Conversely, be aware that people might upload all
-          kinds of content (including NSFW), so if you're less than 18, ask your
+          use it, however you shall all the time comply with our{' '}
+          <Typography
+            variant="caption"
+            color="primary"
+            sx={{ textDecoration: 'underline', cursor: 'pointer' }}
+            onClick={window.Installer.openTermsAndConditions}
+          >
+            Terms of Use
+          </Typography>
+          . Whatever you upload and share is under your legal responsibility.
+          Conversely, be aware that people might upload all kinds of content
+          (including NSFW), so if you're less than 18, ask your
           parents/guardians for their consent. This means that they should
           clearly understand what is Point Network before allowing you to use
           it.
