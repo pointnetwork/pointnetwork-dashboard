@@ -97,7 +97,7 @@ export default function App() {
                 sx={{ textDecoration: 'underline', cursor: 'pointer' }}
                 onClick={() => setDisclaimerOpen(true)}
               >
-                terms and conditions
+                terms of software use
               </Typography>
             </Typography>
           </Box>

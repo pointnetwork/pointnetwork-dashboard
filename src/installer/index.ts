@@ -1,5 +1,5 @@
 import { InstallerChannelsEnum } from './../@types/ipc_channels'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import welcome from '../welcome'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
@@ -58,6 +58,16 @@ export default function () {
           await installer!.install()
           await installer!.close()
           welcome(true)
+        } catch (error) {
+          logger.error(error)
+        }
+      },
+    },
+    {
+      channel: InstallerChannelsEnum.open_terms_link,
+      async listener() {
+        try {
+          shell.openExternal('https://pointnetwork.io/page/terms')
         } catch (error) {
           logger.error(error)
         }

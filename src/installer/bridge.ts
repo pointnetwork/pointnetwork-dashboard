@@ -28,6 +28,8 @@ export const api = {
   closeWindow: () => {
     ipcRenderer.send(GenericChannelsEnum.close_window)
   },
+  openTermsAndConditions: () =>
+    ipcRenderer.send(InstallerChannelsEnum.open_terms_link),
 
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
