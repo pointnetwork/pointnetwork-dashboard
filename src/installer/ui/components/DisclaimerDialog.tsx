@@ -65,6 +65,19 @@ const DisclaimerDialog = ({
             Cancel
           </Button>
         </Box>
+        <Box mt={3}>
+          <Typography variant="caption">
+            By installing, you agree to our{' '}
+            <Typography
+              variant="caption"
+              color="primary"
+              sx={{ textDecoration: 'underline', cursor: 'pointer' }}
+              onClick={window.Installer.openTermsAndConditions}
+            >
+              terms and conditions
+            </Typography>
+          </Typography>
+        </Box>
       </Box>
     </Dialog>
   )
