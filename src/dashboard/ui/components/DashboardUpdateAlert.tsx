@@ -1,51 +1,36 @@
-import { useState, useEffect, ReactEventHandler } from 'react'
+import { useState, useEffect } from 'react'
+// MUI
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
+// Types
+import { DashboardChannelsEnum } from '../../../@types/ipc_channels'
+import { UpdateLog } from '../../../@types/generic'
 
 const DashboardUpdateAlert = () => {
   const [showAlert, setShowAlert] = useState<boolean>(false)
-  const [status, setStatus] = useState<{
-    isUpdateAvailable: boolean
-    latestVersion: string
-  }>({
-    isUpdateAvailable: false,
-    latestVersion: '',
-  })
 
   useEffect(() => {
     window.Dashboard.on(
-      'dashboard:isNewDashboardReleaseAvailable',
-      (message: { isUpdateAvailable: boolean; latestVersion: string }) => {
-        setStatus(message)
-        if (message.isUpdateAvailable) setShowAlert(true)
+      DashboardChannelsEnum.check_for_updates,
+      (_: string) => {
+        const parsed = JSON.parse(_) as UpdateLog
+        if (parsed.isAvailable) setShowAlert(true)
       }
     )
-    window.Dashboard.isNewDashboardReleaseAvailable()
   }, [])
-
-  const openDonwloadLink: ReactEventHandler = () => {
-    window.Dashboard.openDashboardDownloadLink(
-      `https://pointnetwork.io/download`
-    )
-  }
-
-  const handleCloseAlert: ReactEventHandler = () => {
-    setShowAlert(false)
-    // Alerts the user once again after 2 mins if they close the alert without updating
-    setTimeout(window.Dashboard.isNewDashboardReleaseAvailable, 120000)
-  }
-
-  if (!status.isUpdateAvailable) return null
 
   return showAlert ? (
     <Alert
       sx={{ position: 'absolute', right: 12, top: 36, zIndex: 999999 }}
       severity="info"
-      onClose={handleCloseAlert}
+      onClose={() => setShowAlert(false)}
     >
       <AlertTitle>New Update Available</AlertTitle>
       Click{' '}
-      <strong style={{ cursor: 'pointer' }} onClick={openDonwloadLink}>
+      <strong
+        style={{ cursor: 'pointer' }}
+        onClick={window.Dashboard.openDashboardDownloadLink}
+      >
         here
       </strong>{' '}
       to download the latest version

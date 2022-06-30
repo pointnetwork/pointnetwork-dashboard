@@ -27,6 +27,49 @@ class Bounty {
   }
 
   /**
+   * Sends the saved referral code to bounty server with `event=generated`
+   */
+  async sendGenerated() {
+    try {
+      const fileContents = JSON.parse(
+        fs
+          .readFileSync(path.join(helpers.getPointPath(), 'infoReferral.json'))
+          .toString()
+      )
+      const referralCode = fileContents.referralCode
+
+      const addressRes = await axios.get(
+        'http://localhost:2468/v1/api/wallet/address'
+      )
+      const address = addressRes.data.data.address
+
+      if (!fileContents.isGeneratedEventSent && address) {
+        this.logger.info('Sending "event=generated" to bounty server')
+        await axios.get(
+          `https://bounty.pointnetwork.io/ref_success?event=generated&ref=${referralCode}&addr=${address}`
+        )
+        this.logger.info(
+          'Sent event=generated to https://bounty.pointnetwork.io'
+        )
+        fs.writeFileSync(
+          path.join(helpers.getPointPath(), 'infoReferral.json'),
+          JSON.stringify({
+            ...fileContents,
+            isGeneratedEventSent: true,
+          })
+        )
+        this.logger.info('Saved "isGeneratedEvent" in "infoReferral.json"')
+      }
+    } catch (error) {
+      this.logger.error(
+        ErrorsEnum.BOUNTY_ERROR,
+        'Failed to send "event=generated" to bounty server',
+        error
+      )
+    }
+  }
+
+  /**
    * Sends the referral code to bounty server with `event=install`
    */
   async sendInstalled(): Promise<void> {

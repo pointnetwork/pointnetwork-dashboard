@@ -1,11 +1,16 @@
-import { Fragment, ReactEventHandler } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 // MUI Components
-import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Grid from '@mui/material/Grid'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+// Types
+import { IdentityLog } from '../../../@types/generic'
+import {
+  DashboardChannelsEnum,
+  NodeChannelsEnum,
+} from '../../../@types/ipc_channels'
 
 const balanceStyle = {
   fontWeight: 'bold',
@@ -21,30 +26,36 @@ const monospace = {
   lineHeight: '26.4px',
 }
 
-const WalletInfo = ({
-  isLoading,
-  isLoadingWalletInfo,
-  walletInfo,
-  identity,
-  requestYPoints,
-  isNodeUpdating,
-  isFirefoxUpdating,
-  isSdkUpdating,
-}: {
-  isLoading: boolean
-  isLoadingWalletInfo: boolean
-  walletInfo: {
-    address: string
-    balance: string
-  }
-  identity: string | null
-  requestYPoints: ReactEventHandler
-  isNodeUpdating: boolean
-  isFirefoxUpdating: boolean
-  isSdkUpdating: boolean
-}) => {
-  if (isLoading || isNodeUpdating || isFirefoxUpdating || isSdkUpdating)
-    return null
+const WalletInfo = ({ isNodeRunning }: { isNodeRunning: boolean }) => {
+  const [identityInfo, setIdentityInfo] = useState<IdentityLog>({
+    identity: '',
+    isFetching: true,
+    address: '',
+    log: '',
+  })
+  const [balance, setBalance] = useState<number | string>(0)
+
+  useEffect(() => {
+    window.Dashboard.on(NodeChannelsEnum.get_identity, (_: string) => {
+      const parsed: IdentityLog = JSON.parse(_)
+      setIdentityInfo(parsed)
+    })
+
+    window.Dashboard.on(
+      DashboardChannelsEnum.check_balance_and_airdrop,
+      (_: string) => {
+        setBalance(_)
+      }
+    )
+  }, [])
+
+  useEffect(() => {
+    if (isNodeRunning) {
+      window.Dashboard.getIdentityInfo()
+      window.Dashboard.sendGeneratedEventToBounty()
+      window.Dashboard.checkBalanceAndAirdrop()
+    }
+  }, [isNodeRunning])
 
   return (
     <Grid
@@ -56,32 +67,25 @@ const WalletInfo = ({
       border={'2px dashed'}
       borderColor="primary.light"
     >
-      <Grid item xs={12} marginBottom={1}>
-        {!isLoadingWalletInfo && Number(walletInfo.balance) <= 0 && (
-          <Alert severity="info">
-            You need POINT token to interact with the network. Click “Request
-            yPOINTs” to get some testnet tokens.
-          </Alert>
-        )}
-      </Grid>
-      <Grid item xs={11}>
-        {identity ? (
-          <Typography variant="h6" component="h2" marginBottom={'2px'}>
-            You are logged in as <span style={balanceStyle}>@{identity}</span>
-          </Typography>
-        ) : (
-          <Typography variant="h6" component="h2" marginBottom={'2px'}>
-            No identity yet, register one when the browser opens
-          </Typography>
-        )}
-      </Grid>
-      {isLoadingWalletInfo ? (
+      {identityInfo.isFetching ? (
         <Grid item xs={12} display="flex" marginY={2}>
           <CircularProgress size={20} />
           <Typography ml=".6rem">Getting Wallet Info...</Typography>
         </Grid>
       ) : (
         <Fragment>
+          <Grid item xs={12}>
+            {identityInfo.identity ? (
+              <Typography variant="h6" component="h2" marginBottom={'2px'}>
+                You are logged in as{' '}
+                <span style={balanceStyle}>@{identityInfo.identity}</span>
+              </Typography>
+            ) : (
+              <Typography variant="h6" component="h2" marginBottom={'2px'}>
+                No identity yet, register one when the browser opens
+              </Typography>
+            )}
+          </Grid>
           <Grid item xs={3}>
             <Typography variant="subtitle2" color="text.secondary">
               Wallet Address
@@ -89,8 +93,8 @@ const WalletInfo = ({
           </Grid>
           <Grid item xs={8}>
             <Typography variant="subtitle2">
-              {walletInfo.address ? (
-                <span style={monospace}>{walletInfo.address}</span>
+              {identityInfo.address ? (
+                <span style={monospace}>{identityInfo.address}</span>
               ) : (
                 'N/A'
               )}
@@ -103,9 +107,9 @@ const WalletInfo = ({
           </Grid>
           <Grid item xs={8} marginBottom={2}>
             <Typography variant="subtitle2">
-              {walletInfo.balance ? (
+              {balance ? (
                 <>
-                  <span style={balanceStyle}>{walletInfo.balance}</span> yPOINT
+                  <span style={balanceStyle}>{balance}</span> yPOINT
                 </>
               ) : (
                 'N/A'
@@ -115,8 +119,8 @@ const WalletInfo = ({
           <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
-              disabled={Number(walletInfo.balance) > 0}
-              onClick={requestYPoints}
+              disabled={Number(balance) > 0}
+              onClick={window.Dashboard.checkBalanceAndAirdrop}
             >
               Request yPOINTs
             </Button>

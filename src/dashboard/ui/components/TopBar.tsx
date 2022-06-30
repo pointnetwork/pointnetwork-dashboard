@@ -1,20 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+// MUI
 import Box from '@mui/material/Box'
+import Dialog from '@mui/material/Dialog'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
 // Icons
 import CloseIcon from '@mui/icons-material/Close'
 import RemoveIcon from '@mui/icons-material/Remove'
 
-const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
-  const [isTimedOut, setIsTimedOut] = useState<boolean>(false)
+const TopBar = ({ isBrowserRunning = true }: { isBrowserRunning: boolean }) => {
+  const [closeDialogOpen, setCloseDialogOpen] = useState<boolean>(false)
 
-  useEffect(() => {
-    setTimeout(() => {
-      setIsTimedOut(true)
-    }, 10000)
-  }, [])
+  const handleCloseRequest = () => {
+    if (isBrowserRunning) setCloseDialogOpen(true)
+    else handleClose()
+  }
 
-  const handeClose = () => {
-    if (!isLoading || isTimedOut) window.Dashboard.closeWindow()
+  const handleClose = () => {
+    window.Dashboard.closeWindow()
+    setCloseDialogOpen(false)
   }
 
   return (
@@ -61,11 +65,36 @@ const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
           justifyContent="center"
           alignItems="center"
           sx={{ cursor: 'pointer' }}
-          onClick={handeClose}
+          onClick={handleCloseRequest}
         >
           <CloseIcon fontSize="small" sx={{ color: 'white' }} />
         </Box>
       </Box>
+
+      <Dialog open={closeDialogOpen}>
+        <Box p={3}>
+          <Typography>Quit Point Network and Point Browser?</Typography>
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button
+              color="inherit"
+              variant="outlined"
+              size="small"
+              onClick={() => setCloseDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              size="small"
+              sx={{ ml: 1 }}
+              onClick={handleClose}
+            >
+              Quit
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   )
 }

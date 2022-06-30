@@ -3,9 +3,8 @@ import path from 'path'
 import fs from 'fs-extra'
 import os from 'os'
 import { platform, arch } from 'process'
-import welcome from '../src/welcome'
 import axios from 'axios'
-import type { GithubRelease } from '../src/@types/github-release'
+
 const rimraf = require('rimraf')
 
 const getOSAndArch = () => {
@@ -61,7 +60,7 @@ const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => {
       file = 'infoNode'
       break
     case 'sdk':
-      file = 'infoSDK.json'
+      file = 'infoSDK'
   }
   const pointPath = getPointPath()
   try {
@@ -94,113 +93,6 @@ const getLatestReleaseFromGithub: (
     // TODO: Add a logger to log the error
     // TODO: Create a standardised GitHub error
     console.error(error)
-  }
-}
-
-// Deprecate
-const getlatestNodeReleaseVersion = async () => {
-  try {
-    const githubAPIURL = getGithubAPIURL()
-    const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork/releases/latest`
-    const headers = { 'user-agent': 'node.js' }
-    const res = await axios.get(url, {
-      headers: headers,
-    })
-
-    console.log('Latest Node version', res.data.tag_name)
-    return res.data.tag_name
-  } catch (error) {
-    console.error(error)
-  }
-}
-// Deprecate
-const getlatestUninstallerReleaseVersion = async () => {
-  try {
-    const githubAPIURL = getGithubAPIURL()
-    const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
-    const headers = { 'user-agent': 'node.js' }
-    const res = await axios.get(url, {
-      headers: headers,
-    })
-
-    console.log('Latest Node version', res.data.tag_name)
-    return res.data.tag_name
-  } catch (error) {
-    console.error(error)
-  }
-}
-// Deprecate
-const getlatestUnistallerReleaseVersion = async () => {
-  try {
-    const githubAPIURL = getGithubAPIURL()
-    const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-uninstaller/releases/latest`
-    const headers = { 'user-agent': 'node.js' }
-    const res = await axios.get(url, {
-      headers: headers,
-    })
-
-    console.log('Latest Node version', res.data)
-    return res.data
-  } catch (error) {
-    console.error(error)
-  }
-}
-// Deprecate
-const getlatestSdkVersion = async () => {
-  try {
-    const githubAPIURL = getGithubAPIURL()
-    const url = `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
-    const headers = { 'user-agent': 'node.js' }
-    const res = await axios.get(url, {
-      headers: headers,
-    })
-
-    console.log('Latest Sdk version', res.data.tag_name)
-    return res.data.tag_name
-  } catch (error) {
-    console.error(error)
-  }
-}
-// Deprecate
-const getlatestSDKReleaseVersion = async () => {
-  try {
-    const githubAPIURL = getGithubAPIURL()
-    const url = `${githubAPIURL}/repos/pointnetwork/pointsdk/releases/latest`
-    const headers = { 'user-agent': 'node.js' }
-    const res = await axios.get(url, {
-      headers: headers,
-    })
-
-    console.log('Latest SDK version', res.data.tag_name)
-    return res.data.tag_name
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-// Deprecate
-const getPortableDashboardDownloadURL = async () => {
-  const owner = 'pointnetwork'
-  const repo = 'phyrox-esr-portable'
-  const githubAPIURL = getGithubAPIURL()
-  const githubURL = getGithubURL()
-  const url = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`
-  const fallback = `${githubURL}/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`
-  const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/
-
-  try {
-    const { data } = await axios.get<GithubRelease>(url)
-    const browserAsset = data.assets.find(a => re.test(a.name))
-
-    if (!browserAsset) {
-      console.log(`No release found in "${url}"`)
-      return fallback
-    }
-
-    return browserAsset.browser_download_url
-  } catch (err) {
-    console.log(`Error getting latest release from "${url}"`, err)
-    return fallback
   }
 }
 
@@ -268,30 +160,7 @@ const getArweaveKeyFileName = () => {
 const isLoggedIn = () => {
   return fs.existsSync(getKeyFileName())
 }
-// Deprecate
-const getInstalledNodeVersion = () => {
-  const pointPath = getPointPath()
-  try {
-    const versionData = fs.readFileSync(path.join(pointPath, 'infoNode.json'))
-    return JSON.parse(versionData.toString())
-  } catch (error) {
-    return {
-      installedReleaseVersion: 'old',
-    }
-  }
-}
-// Deprecate
-const getInstalledSDKVersion = () => {
-  const pointPath = getPointPath()
-  try {
-    const versionData = fs.readFileSync(path.join(pointPath, 'infoSDK.json'))
-    return JSON.parse(versionData.toString())
-  } catch (error) {
-    return {
-      installedReleaseVersion: 'old',
-    }
-  }
-}
+
 // Retrieves from `infoFirefox.json` if Firefox has been initialized.
 const getIsFirefoxInit = () => {
   const pointPath = getPointPath()
@@ -325,20 +194,6 @@ const setIsFirefoxInit = (value: boolean) => {
     console.log(error)
   }
 }
-// Deprecate
-const getInstalledFirefoxVersion = () => {
-  const pointPath = getPointPath()
-  try {
-    const versionData = fs.readFileSync(
-      path.join(pointPath, 'infoFirefox.json')
-    )
-    const version = versionData.toString()
-    const installedVersion = JSON.parse(version)
-    return installedVersion
-  } catch (error) {
-    return defaultFirefoxInfo
-  }
-}
 
 const logout = () => {
   const pointPath = getPointPath()
@@ -347,8 +202,6 @@ const logout = () => {
     rimraf.sync(path.join(pointPath, 'contracts'))
   fs.unlinkSync(getKeyFileName())
   fs.unlinkSync(getArweaveKeyFileName())
-  // Relaunching the dashboard to ask for key or generate a new one.
-  welcome(true)
 }
 
 const getPointPath = () => {
@@ -502,22 +355,13 @@ export default Object.freeze({
   copyFileSync,
   copyFolderRecursiveSync,
   getPointPath,
-  getInstalledFirefoxVersion,
-  getlatestNodeReleaseVersion,
-  getlatestUnistallerReleaseVersion,
-  getInstalledNodeVersion,
   getLiveDirectoryPathResources,
   countFilesinDir,
-  getPortableDashboardDownloadURL,
   getInstalledDashboardVersion,
   isNewDashboardReleaseAvailable,
-  getlatestSDKReleaseVersion,
   getSDKFileName,
   getSDKManifestFileName,
   getLiveExtensionsDirectoryPathResources,
-  getlatestSdkVersion,
-  getInstalledSDKVersion,
-  getlatestUninstallerReleaseVersion,
   getPointPathTemp,
   getIsFirefoxInit,
   setIsFirefoxInit,

@@ -176,7 +176,7 @@ const extractZip: ExtractZipFunction = ({ src, dest, onProgress }) =>
 const kill: KillFunction = async ({ processId, onMessage }) => {
   onMessage(`Killing process with PID: ${processId}`)
   const cmd = global.platform.win32
-    ? `taskkill /PID "${processId}"`
+    ? `taskkill /F /PID "${processId}"`
     : `kill "${processId}"`
   const output = await exec(cmd)
   onMessage(`Killed PID: ${processId} with Output: ${output}`)

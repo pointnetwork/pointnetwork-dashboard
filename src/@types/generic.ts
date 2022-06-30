@@ -1,3 +1,16 @@
+import { IpcMainEvent } from 'electron'
+
+export interface IsUpdatingState {
+  firefox: boolean
+  node: boolean
+  pointsdk: boolean
+}
+
+export interface EventListener {
+  channel: string
+  listener: (_: IpcMainEvent, args: any[]) => void
+}
+
 export interface Process {
   pid: number
   ppid?: number
@@ -32,4 +45,16 @@ export interface GenericProgressLog {
   progress?: number
   log: string
   error?: boolean
+}
+
+export type GithubRelease = {
+  id: number
+  url: string
+  tag_name: string // eslint-disable-line camelcase
+  name: string
+  assets: Array<{
+    id: number
+    name: string
+    browser_download_url: string // eslint-disable-line camelcase
+  }>
 }

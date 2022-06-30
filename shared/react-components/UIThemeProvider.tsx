@@ -1,8 +1,8 @@
+import { ReactElement } from 'react'
 import ThemeProvider from '@mui/material/styles/ThemeProvider'
 import createTheme from '@mui/material/styles/createTheme'
 import deepPurple from '@mui/material/colors/deepPurple'
 import blueGrey from '@mui/material/colors/blueGrey'
-import { ReactElement } from 'react'
 
 const theme = createTheme({
   typography: {

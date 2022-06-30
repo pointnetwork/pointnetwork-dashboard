@@ -1,210 +1,216 @@
 import { BrowserWindow } from 'electron'
+import fs, { PathLike } from 'fs-extra'
+import { exec } from 'node:child_process'
+import path from 'node:path'
+import rimraf from 'rimraf'
 import Logger from '../../shared/logger'
-import fs from 'fs-extra'
 import helpers from '../../shared/helpers'
-import path from 'path'
-import util from 'util'
-import { InstallationStepsEnum } from '../@types/installation'
 import utils from '../../shared/utils'
-
-const rimraf = require('rimraf')
-const DecompressZip = require('decompress-zip')
+// Types
+import { ErrorsEnum } from '../@types/errors'
+import { UninstallerChannelsEnum } from '../@types/ipc_channels'
+import { GenericProgressLog, LaunchProcessLog } from '../@types/generic'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
-const logger = new Logger()
-const exec = util.promisify(require('child_process').exec)
-const uninstallerName = 'uninstallerPoint.sh'
 
-export default class Uninstaller {
-  private installationLogger
-  private window
+// TODO: Add JSDoc comments
+/**
+ * WHAT THIS MODULE DOES
+ * 1. Downloads the Point Uninstaller
+ * 2. Checks for updates whether new Point Uninstaller release is available
+ * 3. Launches the Point Uninstaller
+ */
+class Uninstaller {
+  logger: Logger
+  window: BrowserWindow
+  pointDir: string = helpers.getPointPath()
 
-  constructor(window: BrowserWindow) {
+  constructor({ window }: { window: BrowserWindow }) {
     this.window = window
-    this.installationLogger = new Logger({ window, channel: 'installer' })
+    this.logger = new Logger({ window, module: 'uninstaller' })
   }
 
-  // Done
-  getURL(filename: string, version: string) {
-    const githubURL = helpers.getGithubURL()
-    return `${githubURL}/pointnetwork/pointnetwork-uninstaller/releases/download/${version}/${filename}`
+  /**
+   * Returns the latest available version for Point Node
+   */
+  async getLatestVersion(): Promise<string> {
+    return await helpers.getLatestReleaseFromGithub('pointnetwork-uninstaller')
   }
 
-  // Done
-  getUninstallerFileName(version: string) {
-    if (global.platform.win32)
-      return `point-uninstaller-${version}-Windows-installer.zip`
-
-    if (global.platform.darwin)
-      return `point-uninstaller-${version}-MacOS-portable.tar.gz`
-
-    return `point-uninstaller-${version}-Linux-Debian-Ubuntu.tar.gz`
+  /**
+   * Returns the download URL for the version provided and the file name provided
+   */
+  getDownloadURL(filename: string, version: string): string {
+    return `${helpers.getGithubURL()}/pointnetwork/pointnetwork-uninstaller/releases/download/${version}/${filename}`
   }
 
-  async getBinPath() {
-    const binPath = await helpers.getBinPath()
-    if (global.platform.win32) {
-      return path.join(binPath, 'win', 'pointUninstaller.exe')
-    }
-    if (global.platform.darwin) {
-      return `${path.join(binPath, 'macos', 'pointUninstaller')}`
-    }
-    // linux
-    return path.join(binPath, 'linux', 'pointUninstaller')
-  }
-
-  async isInstalled(): Promise<boolean> {
-    this.installationLogger.info('Checking PointNode exists or node')
-
-    const binPath = await this.getBinPath()
-    if (fs.existsSync(binPath)) {
-      this.installationLogger.info('PointNode already downloaded')
-      return true
-    }
-
-    this.installationLogger.info('PointNode does not exist')
-    return false
-  }
-
-  checkUninstallerExist = async () => {
-    const temp = helpers.getPointPathTemp()
-    if (!fs.existsSync(temp)) {
-      this.window.webContents.send('uninstaller:check', true)
-      await this.download()
-      this.window.webContents.send('uninstaller:check', false)
-    }
-  }
-
-  // Done
-  download = () =>
+  /**
+   * Downloads the Point Uninstaller binary from GitHub, extracts it to the .temp directory, deletes the downloaded file
+   */
+  downloadAndInstall(): Promise<void> {
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
-      const version = await helpers.getlatestUninstallerReleaseVersion()
-      const pointPath = helpers.getPointPath()
-      const filename = this.getUninstallerFileName(version)
+    return new Promise(async (resolve, reject) => {
+      try {
+        // 1. Set the parameters for download
+        const latestVersion = await this.getLatestVersion()
+        let filename = `point-uninstaller-${latestVersion}-Linux-Debian-Ubuntu.tar.gz`
+        if (global.platform.win32)
+          filename = `point-uninstaller-${latestVersion}-Windows-installer.zip`
+        if (global.platform.darwin)
+          filename = `point-uninstaller-${latestVersion}-MacOS-portable.tar.gz`
 
-      const downloadPath = path.join(pointPath, filename)
-      if (!downloadPath) {
-        fs.mkdirpSync(downloadPath)
-      }
-      const downloadStream = fs.createWriteStream(downloadPath)
-      const downloadUrl = this.getURL(filename, version)
+        const downloadUrl = this.getDownloadURL(filename, latestVersion)
+        const downloadDest = path.join(this.pointDir, filename)
+        this.logger.info('Downloading from', downloadUrl)
 
-      this.installationLogger.info(
-        InstallationStepsEnum.POINT_UNINSTALLER,
-        'Downloading Uninstaller...'
-      )
-      await utils.download({
-        downloadUrl,
-        downloadStream,
-        onProgress: progress => {
-          this.installationLogger.info(
-            `${InstallationStepsEnum.POINT_UNINSTALLER}:${progress}`,
-            'Downloading Uninstaller'
-          )
-        },
-      })
-      this.installationLogger.info(
-        `${InstallationStepsEnum.POINT_UNINSTALLER}:100`,
-        'Downloaded Uninstaller'
-      )
+        const downloadStream = fs.createWriteStream(downloadDest)
 
-      downloadStream.on('close', async () => {
-        const temp = helpers.getPointPathTemp()
-        if (fs.existsSync(temp)) rimraf.sync(temp)
-        fs.mkdirpSync(temp)
-        console.log('downloadPath', downloadPath)
+        // 2. Start downloading and send logs to window
+        await utils.download({
+          channel: UninstallerChannelsEnum.download,
+          logger: this.logger,
+          downloadUrl,
+          downloadStream,
+        })
 
-        if (global.platform.win32) {
-          const unzipper = new DecompressZip(downloadPath)
-          await unzipper.extract({
-            path: temp,
-          })
-          resolve(
-            this.installationLogger.info(
-              InstallationStepsEnum.POINT_UNINSTALLER,
-              'Files decompressed'
-            )
-          )
-        }
-        if (global.platform.darwin) {
-          decompress(downloadPath, temp, {
-            plugins: [decompressTargz()],
-          }).then(() => {
-            fs.unlinkSync(downloadPath)
-            resolve(
-              this.installationLogger.info(
-                InstallationStepsEnum.POINT_UNINSTALLER,
-                'Files decompressed'
-              )
-            )
-          })
-        }
-        if (global.platform.linux) {
-          await this.writeLinuxScript()
-          resolve(
-            this.installationLogger.info(
-              InstallationStepsEnum.POINT_UNINSTALLER,
-              'script resolved'
-            )
-          )
-        }
-      })
-    })
+        // 3. Unpack the downloaded file and send logs to window
+        downloadStream.on('close', async () => {
+          try {
+            const temp = helpers.getPointPathTemp()
+            if (fs.existsSync(temp)) rimraf.sync(temp)
+            fs.mkdirpSync(temp)
 
-  async writeLinuxScript() {
-    const temp = helpers.getPointPathTemp()
-    // stringify JSON Object
-    fs.writeFile(
-      path.join(temp, uninstallerName),
-      `#!/bin/bash
-       rm -rf $HOME/.point`,
-      'utf8',
-      function (err: any) {
-        if (err) {
-          logger.info('An error occured while writing JSON Object to File.')
-          return logger.info(err)
-        }
-        const temp = helpers.getPointPathTemp()
+            try {
+              this.logger.info('Unpacking')
+              this.logger.sendToChannel({
+                channel: UninstallerChannelsEnum.unpack,
+                log: JSON.stringify({
+                  started: true,
+                  log: 'Unpacking Point Uninstaller',
+                  done: false,
+                  progress: 0,
+                  error: false,
+                } as GenericProgressLog),
+              })
+              if (global.platform.win32) {
+                await utils.extractZip({
+                  src: downloadDest,
+                  dest: temp,
+                  onProgress: (progress: number) => {
+                    this.logger.sendToChannel({
+                      channel: UninstallerChannelsEnum.unpack,
+                      log: JSON.stringify({
+                        started: true,
+                        log: 'Unpacking Point Uninstaller',
+                        done: false,
+                        progress,
+                      } as GenericProgressLog),
+                    })
+                  },
+                })
+              }
 
-        const cmd = `chmod +x ${path.join(temp, uninstallerName)}`
-        logger.info('Scriot linux created.')
-        exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
-          logger.info('Launched uninstaller')
-          if (error) {
-            logger.info(`uninstaller launch exec error: ${error.message}`)
-          }
-          if (stderr) {
-            logger.info(`uninstaller launch exec stderr: ${stderr}`)
+              if (global.platform.darwin) {
+                await decompress(downloadDest, this.pointDir, {
+                  plugins: [decompressTargz()],
+                })
+              }
+
+              if (global.platform.linux) {
+                // TODO: Add code for linux
+              }
+
+              this.logger.info('Unpacked')
+              this.logger.sendToChannel({
+                channel: UninstallerChannelsEnum.unpack,
+                log: JSON.stringify({
+                  started: false,
+                  log: 'Unpacked Point Uninstaller',
+                  done: true,
+                  progress: 100,
+                } as GenericProgressLog),
+              })
+            } catch (error) {
+              this.logger.sendToChannel({
+                channel: UninstallerChannelsEnum.unpack,
+                log: JSON.stringify({
+                  error: true,
+                  log: 'Error unpacking Point Uninstaller',
+                } as GenericProgressLog),
+              })
+              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+            }
+
+            // 4. Delete the downloaded file
+            this.logger.info('Removing downloaded file')
+            fs.unlinkSync(downloadDest)
+            this.logger.info('Removed downloaded file')
+
+            resolve()
+          } catch (error) {
+            this.logger.error(ErrorsEnum.UNINSTALLER_ERROR, error)
+            reject(error)
           }
         })
-      }
-    )
-  }
-
-  async launch() {
-    logger.info('Launching Uninstaller')
-    const pointPath = helpers.getPointPathTemp()
-
-    const file = path.join(pointPath, 'pointnetwork-uninstaller')
-    let cmd = `${file}`
-    if (global.platform.win32) cmd = `start ${file}.exe`
-    if (global.platform.darwin) cmd = `open ${file}.app`
-
-    if (global.platform.linux) {
-      const temp = helpers.getPointPathTemp()
-      cmd = `${path.join(temp, uninstallerName)}`
-    }
-
-    exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
-      logger.info('Launched uninstaller')
-      if (error) {
-        logger.info(`uninstaller launch exec error: ${error.message}`)
-      }
-      if (stderr) {
-        logger.info(`uninstaller launch exec stderr: ${stderr}`)
+      } catch (error) {
+        this.logger.error(ErrorsEnum.UNINSTALLER_ERROR, error)
+        reject(error)
       }
     })
   }
+
+  /**
+   * Checks
+   * 1. If Point Node exists or not, if it doesn't then downloads it
+   * 2. Launches the Point Uninstaller
+   */
+  async launch() {
+    const binFile = this._getBinFile()
+    if (binFile && !fs.existsSync(binFile!)) await this.downloadAndInstall()
+
+    let cmd
+    if (global.platform.win32) cmd = `start ${binFile}`
+    if (global.platform.darwin) cmd = `open ${binFile}`
+
+    if (cmd) {
+      this.logger.sendToChannel({
+        channel: UninstallerChannelsEnum.running_status,
+        log: JSON.stringify({
+          isRunning: true,
+          log: 'Point Uninstaller is running',
+        } as LaunchProcessLog),
+      })
+      this.logger.info('Launching')
+      return exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+        }
+        if (stderr) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, stderr)
+        }
+        if (stdout) this.logger.info('Ran successfully')
+        this.logger.sendToChannel({
+          channel: UninstallerChannelsEnum.running_status,
+          log: JSON.stringify({
+            isRunning: false,
+            log: 'Point Uninstaller closed',
+          } as LaunchProcessLog),
+        })
+      })
+    }
+  }
+
+  /**
+   * Returns the path where the downloaded Point Uninstaller executable exists
+   */
+  _getBinFile(): PathLike | undefined {
+    const binPath = helpers.getPointPathTemp()
+    const file = path.join(binPath, 'pointnetwork-uninstaller')
+
+    if (global.platform.win32) return `${file}.exe`
+    if (global.platform.darwin) return `${file}.app`
+  }
 }
+
+export default Uninstaller

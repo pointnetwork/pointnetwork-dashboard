@@ -1,303 +1,382 @@
 import { BrowserWindow } from 'electron'
-import { https } from 'follow-redirects'
-import Logger from '../../shared/logger'
-import fs from 'fs-extra'
-import helpers from '../../shared/helpers'
-import path from 'path'
-import util from 'util'
 import axios from 'axios'
-import { InstallationStepsEnum } from '../@types/installation'
+import fs, { PathLike } from 'fs-extra'
+import path from 'node:path'
+import find from 'find-process'
+import { exec } from 'node:child_process'
+import { https } from 'follow-redirects'
 import moment from 'moment'
-import { spawn } from 'node:child_process'
+import rimraf from 'rimraf'
 import utils from '../../shared/utils'
+import Logger from '../../shared/logger'
+import helpers from '../../shared/helpers'
+// Types
+import { NodeChannelsEnum } from '../@types/ipc_channels'
+import {
+  Process,
+  GenericProgressLog,
+  IdentityLog,
+  LaunchProcessLog,
+  UpdateLog,
+} from '../@types/generic'
+import { ErrorsEnum } from '../@types/errors'
 
-const rimraf = require('rimraf')
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
-const find = require('find-process')
-const logger = new Logger()
-const exec = util.promisify(require('child_process').exec)
-export default class Node {
-  private installationLogger
-  private window
 
-  constructor(window: BrowserWindow) {
+// TODO: Add JSDoc comments
+/**
+ * WHAT THIS MODULE DOES
+ * 1. Downloads the Point Node
+ * 2. Checks for updates whether new Point Node release is available
+ * 3. Launches the Point Node
+ * 4. Kills the Point Node
+ * 5. Returns the running identity
+ * 6. Returns the status if Point Node is running or not
+ * 7. Returns the status if Point Node exists or not
+ */
+class Node {
+  logger: Logger
+  window: BrowserWindow
+  pointDir: string = helpers.getPointPath()
+
+  constructor({ window }: { window: BrowserWindow }) {
     this.window = window
-    this.installationLogger = new Logger({ window, channel: 'installer' })
-    this.launch()
+    this.logger = new Logger({ window, module: 'point_node' })
   }
 
-  // Done
-  getURL(filename: string, version: string) {
-    const githubURL = helpers.getGithubURL()
-    return `${githubURL}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
+  /**
+   * Returns the latest available version for Point Node
+   */
+  async getLatestVersion(): Promise<string> {
+    this.logger.info('Getting latest version')
+    return await helpers.getLatestReleaseFromGithub('pointnetwork')
   }
 
-  // Done
-  getNodeFileName(version: string) {
-    if (global.platform.win32) return `point-win-${version}.tar.gz`
-
-    if (global.platform.darwin) return `point-macos-${version}.tar.gz`
-
-    return `point-linux-${version}.tar.gz`
+  /**
+   * Returns the download URL for the version provided and the file name provided
+   */
+  getDownloadURL(filename: string, version: string): string {
+    return `${helpers.getGithubURL()}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`
   }
 
-  // Done
-  async getBinPath() {
-    const binPath = await helpers.getBinPath()
-    if (global.platform.win32) {
-      return path.join(binPath, 'win', 'point.exe')
-    }
-    if (global.platform.darwin) {
-      return `${path.join(binPath, 'macos', 'point')}`
-    }
-    // linux
-    return path.join(binPath, 'linux', 'point')
-  }
-
-  // Done
-  async isInstalled(): Promise<boolean> {
-    this.installationLogger.info('Checking PointNode exists or node')
-
-    const binPath = await this.getBinPath()
-    if (fs.existsSync(binPath)) {
-      this.installationLogger.info('PointNode already downloaded')
-      return true
-    }
-
-    this.installationLogger.info('PointNode does not exist')
-    return false
-  }
-
-  // Done
-  download = () =>
+  /**
+   * Downloads the Point Node binary from GitHub, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoNode.json file
+   */
+  downloadAndInstall(): Promise<void> {
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
-      const version = await helpers.getlatestNodeReleaseVersion()
-      const pointPath = helpers.getPointPath()
-      const filename = this.getNodeFileName(version)
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Delete any residual files and stop any residual processes
+        this.logger.info('Removing previous installations')
 
-      const downloadPath = path.join(pointPath, filename)
-      if (!downloadPath) {
-        fs.mkdirpSync(downloadPath)
-      }
-      const downloadStream = fs.createWriteStream(downloadPath)
-      const downloadUrl = this.getURL(filename, version)
+        if (fs.existsSync(path.join(this.pointDir, 'contracts')))
+          rimraf.sync(path.join(this.pointDir, 'contracts'))
+        if (fs.existsSync(path.join(this.pointDir, 'bin')))
+          rimraf.sync(path.join(this.pointDir, 'bin'))
 
-      this.installationLogger.info(
-        InstallationStepsEnum.POINT_NODE,
-        'Downloading Point Node...'
-      )
-      await utils.download({
-        downloadUrl,
-        downloadStream,
-        onProgress: progress => {
-          this.installationLogger.info(
-            `${InstallationStepsEnum.POINT_NODE}:${progress}`,
-            'Downloading'
-          )
-        },
-      })
-      this.installationLogger.info(
-        `${InstallationStepsEnum.POINT_NODE}:100`,
-        'Downloaded Node'
-      )
+        // 1. Set the parameters for download
+        const latestVersion = await this.getLatestVersion()
+        let fileName = `point-linux-${latestVersion}.tar.gz`
+        if (global.platform.win32)
+          fileName = `point-win-${latestVersion}.tar.gz`
+        if (global.platform.darwin)
+          fileName = `point-macos-${latestVersion}.tar.gz`
 
-      downloadStream.on('close', async () => {
-        decompress(downloadPath, helpers.getPointPath(), {
-          plugins: [decompressTargz()],
-        }).then(() => {
-          fs.unlinkSync(downloadPath)
-          this.window.webContents.send('pointNode:finishDownload', true)
-          resolve(
-            this.installationLogger.info(
-              InstallationStepsEnum.POINT_NODE,
-              'Files decompressed'
-            )
-          )
+        const downloadUrl = this.getDownloadURL(fileName, latestVersion)
+        const downloadDest = path.join(this.pointDir, fileName)
+        this.logger.info('Downloading from', downloadUrl)
 
-          // stringify JSON Object
-          fs.writeFile(
-            path.join(pointPath, 'infoNode.json'),
-            JSON.stringify({
-              installedReleaseVersion: version,
-              lastCheck: moment().unix(),
-            }),
-            'utf8',
-            function (err: any) {
-              if (err) {
-                logger.info(
-                  'An error occured while writing JSON Object to File.'
-                )
-                return logger.info(err)
-              }
+        const downloadStream = fs.createWriteStream(downloadDest)
 
-              logger.info('JSON file has been saved.')
-            }
-          )
+        // 2. Start downloading and send logs to window
+        await utils.download({
+          channel: NodeChannelsEnum.download,
+          logger: this.logger,
+          downloadUrl,
+          downloadStream,
         })
-      })
-    })
 
-  // Done
-  async launch() {
-    logger.info('Launching Node')
-    if (await this.pointNodeCheck()) {
-      return logger.info('Node is running')
-    }
-    if (!(await this.isInstalled())) {
-      return logger.info('Node is not downloaded')
-    }
-    const pointPath = helpers.getPointPath()
+        downloadStream.on('close', async () => {
+          try {
+            this.logger.info('Unpacking')
+            // 3. Unpack the downloaded file and send logs to window
+            this.logger.sendToChannel({
+              channel: NodeChannelsEnum.unpack,
+              log: JSON.stringify({
+                started: true,
+                log: 'Unpacking Point Node',
+                done: false,
+                progress: 0,
+                error: false,
+              } as GenericProgressLog),
+            })
+            try {
+              await decompress(downloadDest, this.pointDir, {
+                plugins: [decompressTargz()],
+              })
+            } catch (error) {
+              this.logger.sendToChannel({
+                channel: NodeChannelsEnum.unpack,
+                log: JSON.stringify({
+                  log: 'Error unpacking the Point Node',
+                  error: true,
+                } as GenericProgressLog),
+              })
+              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+              throw error
+            }
+            this.logger.sendToChannel({
+              channel: NodeChannelsEnum.unpack,
+              log: JSON.stringify({
+                started: false,
+                log: 'Unpacked Point Node',
+                done: true,
+                progress: 100,
+              } as GenericProgressLog),
+            })
+            this.logger.info('Unpacked')
+            // 4. Delete the downloaded file
+            this.logger.info('Removing downloaded file')
+            fs.unlinkSync(downloadDest)
+            this.logger.info('Removed downloaded file')
 
-    let file = path.join(pointPath, 'bin', 'linux', 'point')
-    if (global.platform.win32)
-      file = path.join(pointPath, 'bin', 'win', 'point')
-    if (global.platform.darwin)
-      file = path.join(pointPath, 'bin', 'macos', 'point')
+            // 5. Save infoNode.json file
+            this.logger.info('Saving "infoNode.json"')
+            fs.writeFile(
+              path.join(this.pointDir, 'infoNode.json'),
+              JSON.stringify({
+                installedReleaseVersion: latestVersion,
+                lastCheck: moment().unix(),
+              }),
+              'utf8'
+            )
+            this.logger.info('Saved "infoNode.json"')
 
-    let cmd = `NODE_ENV=production "${file}"`
-    if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
-
-    const nodeProcess = spawn(cmd)
-
-    nodeProcess.stdout.on('data', data => {
-      logger.info(`Launched Node: ${data}`)
-    })
-
-    nodeProcess.stderr.on('data', data => {
-      logger.info(`pointnode launch exec error: ${data}`)
-    })
-
-    nodeProcess.on('close', code => {
-      logger.info(`pointnode closed. code ${code}`)
-    })
-
-    exec(cmd, (error: { message: any }, _stdout: any, stderr: any) => {
-      logger.info('Launched Node')
-      if (error) {
-        logger.info(`pointnode launch exec error: ${error.message}`)
-      }
-      if (stderr) {
-        logger.info(`pointnode launch exec stderr: ${stderr}`)
+            resolve()
+          } catch (error) {
+            this.logger.error(ErrorsEnum.NODE_ERROR, error)
+            reject(error)
+          }
+        })
+      } catch (error) {
+        this.logger.error(ErrorsEnum.NODE_ERROR, error)
+        reject(error)
       }
     })
   }
 
-  // Done
-  async pointNodeCheck(): Promise<boolean> {
+  /**
+   * Checks
+   * 1. If Point Node exists or not, if it doesn't then downloads it
+   * 2. Checks if there are any running instances of Point Node, if yes then returns early
+   * 3. Launches the Point Node
+   */
+  async launch() {
     try {
-      const httpsAgent = new https.Agent({
-        rejectUnauthorized: false,
+      if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
+      if ((await this._getRunningProcess()).length) return
+
+      const file = this._getBinFile()
+      let cmd = `NODE_ENV=production "${file}"`
+      if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
+
+      this.logger.info('Launching')
+      return exec(cmd, (error, stdout, stderr) => {
+        if (stdout) this.logger.info('Ran successfully')
+        if (error) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+        }
+        if (stderr) {
+          this.logger.error(ErrorsEnum.LAUNCH_ERROR, stderr)
+        }
       })
-      const res = await axios.get('https://point/v1/api/status/meta', {
+    } catch (error) {
+      this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+      throw error
+    }
+  }
+
+  /**
+   * Pings the Point Node and checks if it is ready to receive requests
+   */
+  async ping() {
+    try {
+      this.logger.info('Pinging')
+      await axios.get('https://point/v1/api/status/meta', {
         timeout: 3000,
         proxy: {
           host: 'localhost',
           port: 8666,
           protocol: 'https',
         },
-        httpsAgent,
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false,
+        }),
       })
-      this.window.webContents.send('pointNode:checked', {
-        version: res.data.data.pointNodeVersion,
-        isRunning: true,
+      this.logger.sendToChannel({
+        channel: NodeChannelsEnum.running_status,
+        log: JSON.stringify({
+          isRunning: true,
+          log: 'Point Node is running',
+        } as LaunchProcessLog),
       })
-      return true
-    } catch (e: any) {
-      if (e.message.match('ECONNREFUSED')) {
-        logger.info('Point is not running yet, retrying')
-      } else {
-        logger.error('Node check failed: ', e.message)
-      }
-      this.window.webContents.send('pointNode:checked', {
-        version: null,
-        isRunning: false,
+      this.logger.info('Pinged')
+    } catch (error) {
+      this.logger.sendToChannel({
+        channel: NodeChannelsEnum.running_status,
+        log: JSON.stringify({
+          isRunning: false,
+          log: 'Point Node is not running',
+        } as LaunchProcessLog),
       })
-      return false
+      this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to Ping')
     }
   }
 
-  // Done
-  static getKillCmd(pid: number) {
-    return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
-  }
-
-  // Done
-  static async stopNode() {
-    const process = await find('name', 'point', true)
+  /**
+   * Stops the running instances of Point Node
+   */
+  async stop() {
+    this.logger.sendToChannel({
+      channel: NodeChannelsEnum.stop,
+      log: JSON.stringify({
+        started: true,
+        log: 'Finding running processes for Point Node',
+        done: false,
+      } as GenericProgressLog),
+    })
+    const process = await this._getRunningProcess()
     if (process.length > 0) {
+      this.logger.info('Stopping')
       for (const p of process) {
-        if (!p.bin.match(/bin.+?point(.exe)?$/)) continue
-        logger.info(`[node:index.ts] Killing PID ${p.pid}...`)
         try {
-          const cmdOutput = await exec(this.getKillCmd(p.pid))
-          logger.info(`[node:index.ts] Output of "kill ${p.pid}":`, cmdOutput)
+          await utils.kill({ processId: p.pid, onMessage: this.logger.info })
         } catch (err) {
-          logger.error(`[node:index.ts] Output of "kill ${p.pid}":`, err)
+          this.logger.error(ErrorsEnum.STOP_ERROR, err)
+          throw err
         }
       }
     }
+    this.logger.sendToChannel({
+      channel: NodeChannelsEnum.stop,
+      log: JSON.stringify({
+        started: true,
+        log: 'Killed running processes for Point Node',
+        done: false,
+      } as GenericProgressLog),
+    })
+    this.logger.info('Stopped')
   }
 
-  // Done
-  async checkNodeVersion() {
-    const pointPath = helpers.getPointPath()
-    const installedVersion = helpers.getInstalledNodeVersion()
-    const lastCheck = moment.unix(installedVersion.lastCheck)
-
-    const binPath = await this.getBinPath()
-    const isBinMissing = !fs.existsSync(binPath)
-
-    if (
-      moment().diff(lastCheck, 'hours') >= 1 ||
-      installedVersion.lastCheck === undefined ||
-      isBinMissing
-    ) {
-      const latestReleaseVersion = await helpers.getlatestNodeReleaseVersion()
-
-      logger.info('installed', installedVersion.installedReleaseVersion)
-      logger.info('last', latestReleaseVersion)
-      if (
-        installedVersion.installedReleaseVersion !== latestReleaseVersion ||
-        isBinMissing
-      ) {
-        logger.info('Node Update need it')
-        this.window.webContents.send('node:update', true)
-        setTimeout(() => {
-          Node.stopNode().then(() => {
-            if (fs.existsSync(path.join(pointPath, 'contracts')))
-              rimraf.sync(path.join(pointPath, 'contracts'))
-            if (fs.existsSync(path.join(pointPath, 'bin')))
-              rimraf.sync(path.join(pointPath, 'bin'))
-          })
-        }, 500)
-      } else {
-        this.window.webContents.send('node:update', false)
-      }
-    } else {
-      this.window.webContents.send('node:update', false)
-    }
-  }
-
-  // Done
-  async getIdentity() {
-    logger.info('Get Identity')
-    const addressRes = await axios.get(
-      'http://localhost:2468/v1/api/wallet/address'
-    )
-    const address = addressRes.data.data.address
-    logger.info('Get Identity adress', address)
+  /**
+   * Checks for Point Node updates
+   */
+  async checkForUpdates() {
     try {
-      console.log(
-        `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
-      )
-      const identity = await axios.get(
-        `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
-      )
-      this.window.webContents.send('node:identity', identity.data.data.identity)
-    } catch (e) {
-      logger.error(e)
+      this.logger.info('Checking for updates')
+      this.logger.sendToChannel({
+        channel: NodeChannelsEnum.check_for_updates,
+        log: JSON.stringify({
+          isChecking: true,
+          isAvailable: false,
+          log: 'Checking for updates',
+        } as UpdateLog),
+      })
+      const installInfo = helpers.getInstalledVersionInfo('node')
+      const isBinMissing = !fs.existsSync(this._getBinFile())
+      const latestVersion = await this.getLatestVersion()
+
+      if (
+        isBinMissing ||
+        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
+          installInfo.installedReleaseVersion !== latestVersion)
+      ) {
+        this.logger.info('Update available')
+        this.logger.sendToChannel({
+          channel: NodeChannelsEnum.check_for_updates,
+          log: JSON.stringify({
+            isChecking: false,
+            isAvailable: true,
+            log: 'Update available. Proceeding to download the update',
+          } as UpdateLog),
+        })
+        await this.stop()
+        this.downloadAndInstall()
+      } else {
+        this.logger.info('Already upto date')
+        this.logger.sendToChannel({
+          channel: NodeChannelsEnum.check_for_updates,
+          log: JSON.stringify({
+            isChecking: false,
+            isAvailable: false,
+            log: 'Already upto date',
+          } as UpdateLog),
+        })
+      }
+    } catch (error) {
+      this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      throw error
     }
+  }
+
+  /**
+   * Returns the identity currently active on Point Node
+   */
+  async getIdentityInfo() {
+    this.logger.info('Getting identity')
+    this.logger.sendToChannel({
+      channel: NodeChannelsEnum.get_identity,
+      log: JSON.stringify({
+        isFetching: true,
+        address: '',
+        identity: '',
+        log: 'Getting identity',
+      } as IdentityLog),
+    })
+    try {
+      let res = await axios.get('http://localhost:2468/v1/api/wallet/address')
+      const address = res.data.data.address
+
+      res = await axios.get(
+        `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
+      )
+      this.logger.info('Fetched identity')
+      this.logger.sendToChannel({
+        channel: NodeChannelsEnum.get_identity,
+        log: JSON.stringify({
+          isFetching: false,
+          address,
+          identity: res.data.data.identity,
+          log: 'Identity fetched',
+        } as IdentityLog),
+      })
+    } catch (e) {
+      this.logger.error(ErrorsEnum.NODE_ERROR, e)
+      throw e
+    }
+  }
+
+  /**
+   * Returns the running instances of Point Node
+   */
+  async _getRunningProcess(): Promise<Process[]> {
+    return await (
+      await find('name', 'point', true)
+    )
+      // @ts-ignore
+      .filter(p => p.bin.match(/bin.+?point(.exe)?$/))
+  }
+
+  /**
+   * Returns the path where the downloaded Point Node executable exists
+   */
+  _getBinFile(): PathLike {
+    const binPath = helpers.getBinPath()
+    if (global.platform.win32) return path.join(binPath, 'win', 'point.exe')
+    if (global.platform.darwin) return path.join(binPath, 'macos', 'point')
+    return path.join(binPath, 'linux', 'point')
   }
 }
+
+export default Node

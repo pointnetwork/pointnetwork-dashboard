@@ -18,15 +18,19 @@ export enum WelcomeChannelsEnum {
 
 export enum GenericChannelsEnum {
   close_window = 'generic:close_window',
+  check_for_updates = 'generic:check_for_updates',
   get_identifier = 'generic:get_identifier',
   minimize_window = 'generic:minimize_window',
 }
 
 export enum DashboardChannelsEnum {
+  check_balance_and_airdrop = 'dashboard:check_balance_and_airdrop',
   closing = 'dashboard:closing',
   get_version = 'dashboard:get_version',
+  check_for_updates = 'dashboard:check_for_updates',
   log_out = 'dashboard:log_out',
   open_download_link = 'dashboard:open_download_link',
+  open_feedback_link = 'dashboard:open_feedback_link',
 }
 
 export enum FirefoxChannelsEnum {
@@ -60,4 +64,8 @@ export enum UninstallerChannelsEnum {
 export enum PointSDKChannelsEnum {
   download = 'pointsdk:download',
   check_for_updates = 'pointsdk:check_for_updates',
+}
+
+export enum BountyChannelsEnum {
+  send_generated = 'bounty:send_generated',
 }

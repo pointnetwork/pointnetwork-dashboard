@@ -1,109 +1,58 @@
-import {
-  app,
-  BrowserWindow,
-  ipcMain,
-  dialog,
-  IpcMainEvent,
-  shell,
-} from 'electron'
+import { UpdateLog } from './../@types/generic'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import axios from 'axios'
+import Bounty from '../bounty'
 import Firefox from '../firefox'
 import Node from '../node'
+import PointSDK from '../pointsdk'
+import Uninstaller from '../uninstaller'
+import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import welcome from '../welcome'
 import { getIdentifier } from '../../shared/getIdentifier'
 import baseWindowConfig from '../../shared/windowConfig'
-import axios from 'axios'
-import Logger from '../../shared/logger'
-import Uninstaller from '../uninstaller'
-import { readFileSync, writeFileSync } from 'fs-extra'
-import process from 'node:process'
 // Types
 import {
+  BountyChannelsEnum,
   DashboardChannelsEnum,
   FirefoxChannelsEnum,
   GenericChannelsEnum,
   NodeChannelsEnum,
   UninstallerChannelsEnum,
 } from '../@types/ipc_channels'
+import { EventListener } from '../@types/generic'
+import { ErrorsEnum } from '../@types/errors'
 
-const path = require('path')
-
-const logger = new Logger()
-
-let mainWindow: BrowserWindow | null
+let window: BrowserWindow | null
 let node: Node | null
-let uninstaller: Uninstaller | null
 let firefox: Firefox | null
-
-let isFirefoxRunning = false
-let isLoggingOut = false
+let pointSDK: PointSDK | null
+let uninstaller: Uninstaller | null
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 
-const MESSAGES = {
-  closeConfirmation: {
-    title: 'Are you sure you want to close?',
-    message: 'Quit Point Network and Point Browser?',
-    buttons: {
-      confirm: 'Yes',
-      cancel: 'No',
-    },
-  },
-  logoutConfirmation: {
-    title: 'Are you sure you want to log out?',
-    message:
-      'Do you want to close the browser and remove the secret phrase from this computer?',
-    buttons: {
-      confirm: 'Yes',
-      cancel: 'No',
-    },
-  },
-  uninstallConfirmation: {
-    title: 'Uninstall Point Network',
-    message: 'Are you sure you want to uninstall Point Network?',
-    buttons: {
-      confirm: 'Yes',
-      cancel: 'No',
-    },
-  },
-  NoInternet: {
-    title: 'Connection Error',
-    message: 'Please check your internet connection',
-  },
-  TimeOut: {
-    title: 'TimeOut Error',
-    message: 'Please check your internet connection or restart Point',
-  },
+const logger = new Logger({ module: 'dashboard_window' })
+
+/**
+ * Useful where we want to do some cleanup before closing the window
+ */
+const shutdownResources = async () => {
+  logger.info('Removing all event listeners')
+  ipcMain.removeAllListeners()
+  logger.info('Removed all event listeners')
+
+  try {
+    await node?.stop()
+    await firefox?.stop()
+  } catch (error) {
+    logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+  }
 }
-
-// const assetsPath =
-//   process.env.NODE_ENV === 'production'
-//     ? process.resourcesPath
-//     : app.getAppPath()
-
-process.on('uncaughtException', (err, origin) => {
-  if (err.toString().includes('send ENOBUFS')) {
-    dialog.showMessageBoxSync({
-      type: 'warning',
-      title: MESSAGES.NoInternet.title,
-      message: MESSAGES.NoInternet.message,
-    })
-  }
-
-  if (err.toString().includes('ETIMEDOUT')) {
-    dialog.showMessageBoxSync({
-      type: 'warning',
-      title: MESSAGES.TimeOut.title,
-      message: MESSAGES.TimeOut.message,
-    })
-  }
-
-  logger.info(`Caught exception: ${err}\n Exception origin: ${origin}`)
-})
 
 export default function (isExplicitRun = false) {
   async function createWindow() {
-    mainWindow = new BrowserWindow({
+    window = new BrowserWindow({
       ...baseWindowConfig,
       width: 860,
       height: 560,
@@ -113,195 +62,41 @@ export default function (isExplicitRun = false) {
       },
     })
 
-    isLoggingOut = false
+    window.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
 
-    node = new Node(mainWindow!)
-    uninstaller = new Uninstaller(mainWindow!)
-    await node.checkNodeVersion()
-    firefox = new Firefox(mainWindow!)
-    // debug
-    // mainWindow.webContents.openDevTools()
+    firefox = new Firefox({ window })
+    node = new Node({ window })
+    pointSDK = new PointSDK({ window })
+    uninstaller = new Uninstaller({ window })
 
-    mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
-
-    mainWindow.on('close', async ev => {
-      // We prevent default to programatically close the window,
-      // thus ensuring we await for all necessary actions to complete.
+    window.on('close', async ev => {
       ev.preventDefault()
-
-      let quit = true
-
-      if (!isLoggingOut && isFirefoxRunning) {
-        const confirmationAnswer = dialog.showMessageBoxSync({
-          type: 'question',
-          title: MESSAGES.closeConfirmation.title,
-          message: MESSAGES.closeConfirmation.message,
-          buttons: [
-            MESSAGES.closeConfirmation.buttons.confirm,
-            MESSAGES.closeConfirmation.buttons.cancel,
-          ],
-        })
-
-        if (confirmationAnswer === 1) {
-          // User clicked 'No' (button at index 1)
-          quit = false
-        }
-      }
-
-      if (quit) {
-        mainWindow?.webContents.send(DashboardChannelsEnum.closing)
-        logger.info('Closed Dashboard Window')
-        events.forEach(event => {
-          ipcMain.removeListener(event.channel, event.listener)
-          logger.info('[dashboard:index.ts] Removed event', event.channel)
-        })
-
-        try {
-          await Promise.all([firefox?.close(), Node.stopNode()])
-        } catch (err) {
-          logger.error('[dashboard:index.ts] Error in `close` handler', err)
-        } finally {
-          mainWindow?.destroy()
-        }
-      }
+      await shutdownResources()
+      window?.destroy()
     })
 
-    mainWindow.on('closed', () => {
+    window.on('closed', () => {
       node = null
       firefox = null
-      mainWindow = null
+      window = null
     })
   }
 
-  const events = [
+  const events: EventListener[] = [
+    // Bounty channels
     {
-      channel: FirefoxChannelsEnum.launch,
+      channel: BountyChannelsEnum.send_generated,
       listener() {
-        firefox!.launch()
-        if (!helpers.getIsFirefoxInit()) {
-          // firefox!.setDisableScopes(true)
-          helpers.setIsFirefoxInit(true)
-        }
-      },
-    },
-    {
-      channel: FirefoxChannelsEnum.running_status,
-      listener(_ev: IpcMainEvent, isRunning: boolean) {
-        isFirefoxRunning = isRunning
-      },
-    },
-    {
-      channel: NodeChannelsEnum.launch,
-      listener() {
-        node!.launch()
-      },
-    },
-    {
-      channel: UninstallerChannelsEnum.launch,
-      async listener() {
-        const confirmationAnswer = dialog.showMessageBoxSync({
-          type: 'question',
-          title: MESSAGES.uninstallConfirmation.title,
-          message: MESSAGES.uninstallConfirmation.message,
-          buttons: [
-            MESSAGES.uninstallConfirmation.buttons.confirm,
-            MESSAGES.uninstallConfirmation.buttons.cancel,
-          ],
-        })
-
-        if (confirmationAnswer === 0) {
-          try {
-            if (global.platform.linux) {
-              mainWindow?.webContents.send(DashboardChannelsEnum.closing)
-              logger.info('Closed Dashboard Window')
-              events.forEach(event => {
-                ipcMain.removeListener(event.channel, event.listener)
-                logger.info('[dashboard:index.ts] Removed event', event.channel)
-              })
-              await Promise.all([firefox?.close(), Node.stopNode()])
-              await uninstaller!.launch()
-              mainWindow?.destroy()
-            } else {
-              mainWindow?.webContents.send(
-                UninstallerChannelsEnum.launching,
-                true
-              )
-              logger.info('Launching Uninstaller')
-              await uninstaller!.launch()
-              setTimeout(() => {
-                mainWindow?.webContents.send(
-                  UninstallerChannelsEnum.launching,
-                  false
-                )
-              }, 5000)
-            }
-          } catch (err) {
-            logger.error('[dashboard:index.ts] Error in `close` handler', err)
-          }
-        }
-      },
-    },
-    {
-      channel: 'uninstaller:checkUnistaller',
-      listener() {
-        uninstaller!.checkUninstallerExist()
-      },
-    },
-    {
-      channel: 'node:check',
-      listener() {
-        node!.pointNodeCheck()
-      },
-    },
-    {
-      channel: 'sdk:checkUpdate',
-      listener() {
-        firefox?.checkSDKVersion()
-      },
-    },
-    {
-      channel: NodeChannelsEnum.download,
-      listener() {
-        node!.download()
-      },
-    },
-    {
-      channel: NodeChannelsEnum.check_for_updates,
-      listener() {
-        node!.checkNodeVersion()
-      },
-    },
-    {
-      channel: FirefoxChannelsEnum.check_for_updates,
-      listener() {
-        firefox!.checkFirefoxVersion()
-      },
-    },
-    {
-      channel: FirefoxChannelsEnum.download,
-      listener() {
-        console.log('listener firefox!.download() called')
-        firefox!.download()
-      },
-    },
-    {
-      channel: NodeChannelsEnum.get_identity,
-      listener() {
-        node!.getIdentity()
-      },
-    },
-    {
-      channel: DashboardChannelsEnum.open_download_link,
-      listener(event: IpcMainEvent, url: string) {
         try {
-          shell.openExternal(url)
+          new Bounty({ window: window! }).sendGenerated()
         } catch (error) {
-          logger.error(error)
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
       },
     },
+    // Dashboard channels
     {
-      channel: 'dashboard:open_feedback_link',
+      channel: DashboardChannelsEnum.open_feedback_link,
       listener() {
         try {
           shell.openExternal('https://pointnetwork.io/support')
@@ -311,68 +106,44 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'dashboard:isNewDashboardReleaseAvailable',
-      async listener() {
-        mainWindow!.webContents.send(
-          'dashboard:isNewDashboardReleaseAvailable',
-          await helpers.isNewDashboardReleaseAvailable()
-        )
-      },
-    },
-    {
-      channel: DashboardChannelsEnum.get_version,
+      channel: DashboardChannelsEnum.open_download_link,
       listener() {
-        mainWindow!.webContents.send(
-          DashboardChannelsEnum.get_version,
-          helpers.getInstalledDashboardVersion()
-        )
-      },
-    },
-    {
-      channel: GenericChannelsEnum.get_identifier,
-      listener() {
-        mainWindow!.webContents.send(
-          GenericChannelsEnum.get_identifier,
-          getIdentifier()[0]
-        )
+        try {
+          shell.openExternal('https://pointnetwork.io/download')
+        } catch (error) {
+          logger.error(error)
+        }
       },
     },
     {
       channel: DashboardChannelsEnum.log_out,
       async listener() {
-        const confirmationAnswer = dialog.showMessageBoxSync({
-          type: 'question',
-          title: MESSAGES.logoutConfirmation.title,
-          message: MESSAGES.logoutConfirmation.message,
-          buttons: [
-            MESSAGES.logoutConfirmation.buttons.confirm,
-            MESSAGES.logoutConfirmation.buttons.cancel,
-          ],
-        })
-
-        if (confirmationAnswer === 0) {
-          // User clicked 'Yes' (button at index 0)
-          isLoggingOut = true
-          await Node.stopNode()
+        try {
+          window?.webContents.send(DashboardChannelsEnum.log_out)
+          await shutdownResources()
           helpers.logout()
-          mainWindow!.close()
+          welcome(true)
+          window?.destroy()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
       },
     },
     {
-      channel: NodeChannelsEnum.stop,
+      channel: DashboardChannelsEnum.get_version,
       async listener() {
-        await Node.stopNode()
+        try {
+          window?.webContents.send(
+            DashboardChannelsEnum.get_version,
+            helpers.getInstalledDashboardVersion()
+          )
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
       },
     },
     {
-      channel: NodeChannelsEnum.get_version,
-      async listener(event: IpcMainEvent) {
-        event.returnValue = await helpers.getInstalledNodeVersion()
-      },
-    },
-    {
-      channel: 'node:check_balance_and_airdrop',
+      channel: DashboardChannelsEnum.check_balance_and_airdrop,
       async listener() {
         // TODO: move this func somewhere to utils
         const delay = (ms: number) =>
@@ -382,7 +153,7 @@ export default function (isExplicitRun = false) {
         const start = new Date().getTime()
         try {
           let balance = 0
-          logger.info('[node:check_balance_and_airdrop] Getting wallet address')
+          logger.info('Getting wallet address')
           const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
           )
@@ -390,43 +161,37 @@ export default function (isExplicitRun = false) {
 
           const requestAirdrop = async () => {
             const faucetURL = helpers.getFaucetURL()
-            logger.info(
-              '[node:check_balance_and_airdrop] Airdropping wallet address with POINTS'
-            )
+            logger.info('Airdropping wallet address with POINTS')
             try {
               await axios.get(`${faucetURL}/airdrop?address=${address}`)
-            } catch (e) {
-              logger.error(e)
+            } catch (error) {
+              logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
             }
           }
 
           const checkBalance = async () => {
             const faucetURL = helpers.getFaucetURL()
-            logger.info(
-              `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
-            )
+            logger.info(`Getting wallet balance for address: ${address}`)
             try {
               const res = await axios.get(
                 `${faucetURL}/balance?address=${address}`
               )
               if (res.data?.balance && !isNaN(res.data.balance)) {
-                logger.info(
-                  `[node:check_balance_and_airdrop] Balance: ${res.data.balance}`
-                )
+                logger.info(`Balance: ${res.data.balance}`)
                 balance = res.data.balance
               } else {
                 logger.error(`Unexpected balance response: ${res.data}`)
               }
-            } catch (e) {
-              logger.error(e)
+            } catch (error) {
+              logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
             }
           }
 
           await checkBalance()
 
-          mainWindow!.webContents.send(
-            'node:wallet_info',
-            JSON.stringify({ balance, address })
+          window?.webContents.send(
+            DashboardChannelsEnum.check_balance_and_airdrop,
+            balance
           )
           // eslint-disable-next-line no-unmodified-loop-condition
           while (balance <= 0) {
@@ -440,59 +205,136 @@ export default function (isExplicitRun = false) {
             await checkBalance()
           }
 
-          mainWindow!.webContents.send(
-            'node:wallet_info',
-            JSON.stringify({ balance, address })
+          window?.webContents.send(
+            DashboardChannelsEnum.check_balance_and_airdrop,
+            balance
           )
         } catch (error) {
-          logger.error(error)
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    // Uninstaller channels
+    {
+      channel: UninstallerChannelsEnum.launch,
+      async listener() {
+        try {
+          await uninstaller?.launch()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    // Firefox channels
+    {
+      channel: FirefoxChannelsEnum.launch,
+      async listener() {
+        try {
+          await firefox?.launch()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
       },
     },
     {
-      channel: 'dashboard:bounty_request',
+      channel: FirefoxChannelsEnum.get_version,
+      listener() {
+        window?.webContents.send(
+          FirefoxChannelsEnum.get_version,
+          helpers.getInstalledVersionInfo('firefox').installedReleaseVersion
+        )
+      },
+    },
+    // Node channels
+    {
+      channel: NodeChannelsEnum.launch,
       async listener() {
-        const fileContents = JSON.parse(
-          readFileSync(
-            path.join(helpers.getPointPath(), 'infoReferral.json')
-          ).toString()
-        )
-        const referralCode = fileContents.referralCode
-
-        const addressRes = await axios.get(
-          'http://localhost:2468/v1/api/wallet/address'
-        )
-        const address = addressRes.data.data.address
-
-        if (!fileContents.isGeneratedEventSent && address) {
-          await axios
-            .get(
-              `https://bounty.pointnetwork.io/ref_success?event=generated&ref=${referralCode}&addr=${address}`
-            )
-            .then(res => {
-              logger.info(res.data)
-              writeFileSync(
-                path.join(helpers.getPointPath(), 'infoReferral.json'),
-                JSON.stringify({
-                  ...fileContents,
-                  isGeneratedEventSent: true,
-                })
-              )
-            })
-            .catch(logger.error)
+        try {
+          await node?.launch()
+          setTimeout(() => node?.ping(), 3000)
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
+      },
+    },
+    {
+      channel: NodeChannelsEnum.get_identity,
+      async listener() {
+        try {
+          await node?.getIdentityInfo()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: NodeChannelsEnum.running_status,
+      async listener() {
+        try {
+          await node?.ping()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: NodeChannelsEnum.get_version,
+      listener() {
+        window?.webContents.send(
+          NodeChannelsEnum.get_version,
+          helpers.getInstalledVersionInfo('node').installedReleaseVersion
+        )
+      },
+    },
+    // Generic channels
+    {
+      channel: GenericChannelsEnum.get_identifier,
+      listener() {
+        window?.webContents.send(
+          GenericChannelsEnum.get_identifier,
+          getIdentifier()[0]
+        )
+      },
+    },
+    {
+      channel: GenericChannelsEnum.check_for_updates,
+      async listener() {
+        try {
+          // TODO: Check for SDK, dashboard, and installer updates too
+          await node?.checkForUpdates()
+          await firefox?.checkForUpdates()
+          await pointSDK?.checkForUpdates()
+
+          const latestDashboardV = await helpers.getLatestReleaseFromGithub(
+            'pointnetwork-dashboard'
+          )
+          const installedDashboardV =
+            await helpers.getInstalledDashboardVersion()
+
+          if (latestDashboardV !== installedDashboardV)
+            window?.webContents.send(
+              DashboardChannelsEnum.check_for_updates,
+              JSON.stringify({
+                isAvailable: true,
+                isChecking: false,
+              } as UpdateLog)
+            )
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
+      channel: GenericChannelsEnum.close_window,
+      async listener() {
+        window?.webContents.send(DashboardChannelsEnum.closing)
+        window?.close()
       },
     },
     {
       channel: GenericChannelsEnum.minimize_window,
       listener() {
-        mainWindow!.minimize()
-      },
-    },
-    {
-      channel: GenericChannelsEnum.close_window,
-      listener() {
-        mainWindow!.close()
+        window?.minimize()
       },
     },
   ]
@@ -500,7 +342,7 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
-      logger.info('[dashboard:index.ts] Registered event', event.channel)
+      logger.info('Registered event', event.channel)
     })
   }
 
