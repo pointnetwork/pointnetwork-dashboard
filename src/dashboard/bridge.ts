@@ -30,6 +30,8 @@ export const api = {
   logOut: () => ipcRenderer.send(DashboardChannelsEnum.log_out),
   openFeedbackLink: () =>
     ipcRenderer.send(DashboardChannelsEnum.open_feedback_link),
+  openDashboardDownloadLink: () =>
+    ipcRenderer.send(DashboardChannelsEnum.open_download_link),
   // Node
   getIdentityInfo: () => ipcRenderer.send(NodeChannelsEnum.get_identity),
   pingNode: () => ipcRenderer.send(NodeChannelsEnum.running_status),

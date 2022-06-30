@@ -27,6 +27,7 @@ export enum DashboardChannelsEnum {
   check_balance_and_airdrop = 'dashboard:check_balance_and_airdrop',
   closing = 'dashboard:closing',
   get_version = 'dashboard:get_version',
+  check_for_updates = 'dashboard:check_for_updates',
   log_out = 'dashboard:log_out',
   open_download_link = 'dashboard:open_download_link',
   open_feedback_link = 'dashboard:open_feedback_link',

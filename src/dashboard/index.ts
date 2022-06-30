@@ -1,3 +1,4 @@
+import { UpdateLog } from './../@types/generic'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import axios from 'axios'
 import Bounty from '../bounty'
@@ -99,6 +100,16 @@ export default function (isExplicitRun = false) {
       listener() {
         try {
           shell.openExternal('https://pointnetwork.io/support')
+        } catch (error) {
+          logger.error(error)
+        }
+      },
+    },
+    {
+      channel: DashboardChannelsEnum.open_download_link,
+      listener() {
+        try {
+          shell.openExternal('https://pointnetwork.io/download')
         } catch (error) {
           logger.error(error)
         }
@@ -293,6 +304,21 @@ export default function (isExplicitRun = false) {
           await node?.checkForUpdates()
           await firefox?.checkForUpdates()
           await pointSDK?.checkForUpdates()
+
+          const latestDashboardV = await helpers.getLatestReleaseFromGithub(
+            'pointnetwork-dashboard'
+          )
+          const installedDashboardV =
+            await helpers.getInstalledDashboardVersion()
+
+          if (latestDashboardV !== installedDashboardV)
+            window?.webContents.send(
+              DashboardChannelsEnum.check_for_updates,
+              JSON.stringify({
+                isAvailable: true,
+                isChecking: false,
+              } as UpdateLog)
+            )
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }

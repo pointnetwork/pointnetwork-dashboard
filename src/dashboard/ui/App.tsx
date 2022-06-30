@@ -23,6 +23,7 @@ import { LaunchProcessLog, IsUpdatingState } from '../../@types/generic'
 // Icons
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
+import DashboardUpdateAlert from './components/DashboardUpdateAlert'
 
 const App = () => {
   const [identifier, setIdentifier] = useState<string>('')
@@ -128,6 +129,7 @@ const App = () => {
     <UIThemeProvider>
       <TopBar isBrowserRunning={isBrowserRunning} />
       <DisplayIdentifier identifier={identifier} />
+      <DashboardUpdateAlert />
 
       <CheckForUpdatesDailog
         dialogOpen={updateDialogOpen}
