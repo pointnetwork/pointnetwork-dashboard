@@ -182,6 +182,9 @@ class Firefox {
         return
       }
 
+      // MATBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
+      this._createConfigFiles()
+
       const binFile = this._getBinFile()
       const profilePath = path.join(
         helpers.getHomePath(),
@@ -496,6 +499,7 @@ pref("browser.aboutwelcome.enabled", false)
 pref("browser.sessionstore.resume_session_once", false)
 pref("browser.sessionstore.resume_from_crash", false)
 pref("browser.startup.upgradeDialog.enabled", false)
+pref('security.pki.sha1_enforcement_level', 4)
 `
       const policiesCfgContent = `{
   "policies": {
