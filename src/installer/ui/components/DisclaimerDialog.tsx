@@ -15,31 +15,54 @@ const DisclaimerDialog = ({
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <Box p={2}>
-        <Typography variant="h5">Use this as heading</Typography>
-        <Typography>
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Aliquid,
-          debitis aut et eaque quia accusantium cupiditate possimus sunt
-          similique. Perferendis voluptate labore impedit unde velit
-          necessitatibus quasi, quibusdam minus nemo! Lorem ipsum, dolor sit
-          amet consectetur adipisicing elit. Aliquid, debitis aut et eaque quia
-          accusantium cupiditate possimus sunt similique. Perferendis voluptate
-          labore impedit unde velit necessitatibus quasi, quibusdam minus nemo!
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Aliquid,
-          debitis aut et eaque quia accusantium cupiditate possimus sunt
-          similique. Perferendis voluptate labore impedit unde velit
-          necessitatibus quasi, quibusdam minus nemo! Lorem ipsum, dolor sit
-          amet consectetur adipisicing elit. Aliquid, debitis aut et eaque quia
-          accusantium cupiditate possimus sunt similique. Perferendis voluptate
-          labore impedit unde velit necessitatibus quasi, quibusdam minus nemo!
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Aliquid,
-          debitis aut et eaque quia accusantium cupiditate possimus sunt amet
-          consectetur adipisicing elit. Aliquid, debitis aut et eaque quia
-          accusantium cupiditate possimus sunt similique. Perferendis voluptate
-          labore impedit unde velit necessitatibus quasi, quibusdam minus nemo!
+        <Typography variant="h6" textAlign="center">
+          *** Before you Start ***
         </Typography>
-        <Box display="flex" justifyContent="center" mt={2}>
+        <Typography mt={1} variant="body2">
+          1. Point Network is an uncensorable decentralized network. We just
+          provide the software to you to access it, and it's up to you how to
+          use it, however you shall all the time comply with our Terms of Use
+          [LINK]. Whatever you upload and share is under your legal
+          responsibility. Conversely, be aware that people might upload all
+          kinds of content (including NSFW), so if you're less than 18, ask your
+          parents/guardians for their consent. This means that they should
+          clearly understand what is Point Network before allowing you to use
+          it.
+        </Typography>
+        <Typography mt={1} variant="body2">
+          2. Everything you upload and share on Point Network goes to
+          decentralized storage called Arweave, and stays there forever. Do not
+          upload anything that you might regret staying online later. Also do
+          not upload your personal data that you are not willing to share with
+          public.
+        </Typography>
+        <Typography mt={1} variant="body2">
+          3. The software is in the alpha stage. It is an experimental software,
+          anything can happen. Do not try to upload your most private and
+          sensitive information yet, until the security audits.
+        </Typography>
+        <Typography mt={1} variant="body2">
+          4. In alpha, we use installation and usage logs to support our alpha
+          testers (the ID in the bottom right corner is the support ID you would
+          give us to assist you). In beta, it will be opt-in. In full release,
+          there will be no logs.
+        </Typography>
+        <Typography mt={1} variant="body2">
+          5. Do not share your secret phrase with anyone, even if you think it's
+          someone from the Point team. It's not. We do not need your secret
+          phrase. It's your key to the web3 world, so take good care of it.
+        </Typography>
+        <Typography mt={2}>Happy journey!</Typography>
+        <Box display="flex" flexDirection="column" alignItems="center" mt={3}>
           <Button variant="contained" onClick={() => setOpen(false)}>
-            Close
+            I undestand and agree to continue
+          </Button>
+          <Button
+            color="inherit"
+            onClick={window.Installer.closeWindow}
+            sx={{ mt: 1 }}
+          >
+            Cancel
           </Button>
         </Box>
       </Box>

@@ -88,7 +88,7 @@ export default function App() {
           <Button variant="contained" onClick={sendStartInstallation}>
             Start Installation
           </Button>
-          {/* <Box mt={8}>
+          <Box mt={8}>
             <Typography variant="caption">
               By installing, you agree to our{' '}
               <Typography
@@ -97,10 +97,10 @@ export default function App() {
                 sx={{ textDecoration: 'underline', cursor: 'pointer' }}
                 onClick={() => setDisclaimerOpen(true)}
               >
-                terms and conditions
+                terms of software use
               </Typography>
             </Typography>
-          </Box> */}
+          </Box>
         </Box>
         {attempts ? (
           <Alert severity="error">
