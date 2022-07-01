@@ -29,7 +29,9 @@ const DashboardUpdateAlert = () => {
       Click{' '}
       <strong
         style={{ cursor: 'pointer' }}
-        onClick={window.Dashboard.openDashboardDownloadLink}
+        onClick={() =>
+          window.Dashboard.openExternalLink('https://pointnetwork.io/download')
+        }
       >
         here
       </strong>{' '}

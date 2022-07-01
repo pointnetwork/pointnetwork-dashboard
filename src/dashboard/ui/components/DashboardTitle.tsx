@@ -97,7 +97,13 @@ const DashboardTitle = () => {
               open={isHelpMenuOpen}
               onClose={closeHelpMenu}
             >
-              <MenuItem onClick={window.Dashboard.openFeedbackLink}>
+              <MenuItem
+                onClick={() =>
+                  window.Dashboard.openExternalLink(
+                    'https://pointnetwork.io/support'
+                  )
+                }
+              >
                 <HelpIcon sx={{ mr: 0.8, opacity: 0.7 }} />
                 Help & Feedback
               </MenuItem>

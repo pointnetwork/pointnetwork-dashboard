@@ -22,6 +22,7 @@ export enum GenericChannelsEnum {
   check_for_updates = 'generic:check_for_updates',
   get_identifier = 'generic:get_identifier',
   minimize_window = 'generic:minimize_window',
+  open_external_link = 'generic:open_external_link',
 }
 
 export enum DashboardChannelsEnum {
@@ -30,8 +31,6 @@ export enum DashboardChannelsEnum {
   get_version = 'dashboard:get_version',
   check_for_updates = 'dashboard:check_for_updates',
   log_out = 'dashboard:log_out',
-  open_download_link = 'dashboard:open_download_link',
-  open_feedback_link = 'dashboard:open_feedback_link',
 }
 
 export enum FirefoxChannelsEnum {
