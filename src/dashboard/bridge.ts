@@ -1,15 +1,13 @@
+import { contextBridge, ipcRenderer } from 'electron'
+// Types
 import {
   BountyChannelsEnum,
   DashboardChannelsEnum,
   UninstallerChannelsEnum,
-} from './../@types/ipc_channels'
-import { contextBridge, ipcRenderer } from 'electron'
-// Types
-import {
   FirefoxChannelsEnum,
   GenericChannelsEnum,
   NodeChannelsEnum,
-} from '../@types/ipc_channels'
+} from './../@types/ipc_channels'
 
 declare global {
   // eslint-disable-next-line
@@ -28,10 +26,6 @@ export const api = {
   getDashboardVersion: () =>
     ipcRenderer.send(DashboardChannelsEnum.get_version),
   logOut: () => ipcRenderer.send(DashboardChannelsEnum.log_out),
-  openFeedbackLink: () =>
-    ipcRenderer.send(DashboardChannelsEnum.open_feedback_link),
-  openDashboardDownloadLink: () =>
-    ipcRenderer.send(DashboardChannelsEnum.open_download_link),
   // Node
   getIdentityInfo: () => ipcRenderer.send(NodeChannelsEnum.get_identity),
   pingNode: () => ipcRenderer.send(NodeChannelsEnum.running_status),
@@ -43,6 +37,8 @@ export const api = {
   getFirefoxVersion: () => ipcRenderer.send(FirefoxChannelsEnum.get_version),
   launchBrowser: () => ipcRenderer.send(FirefoxChannelsEnum.launch),
   // Generic
+  openExternalLink: (link: string) =>
+    ipcRenderer.send(GenericChannelsEnum.open_external_link, link),
   getIndentifier: () => ipcRenderer.send(GenericChannelsEnum.get_identifier),
   checkForUpdates: () =>
     ipcRenderer.send(GenericChannelsEnum.check_for_updates),

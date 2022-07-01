@@ -11,6 +11,7 @@ import ResourceItemCard from './components/ResourceItemCard'
 import TopBar from './components/TopBar'
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 import WalletInfo from './components/WalletInfo'
+import DashboardUpdateAlert from './components/DashboardUpdateAlert'
 // Types
 import {
   DashboardChannelsEnum,
@@ -19,11 +20,15 @@ import {
   NodeChannelsEnum,
   UninstallerChannelsEnum,
 } from '../../@types/ipc_channels'
-import { LaunchProcessLog, IsUpdatingState } from '../../@types/generic'
+import {
+  LaunchProcessLog,
+  IsUpdatingState,
+  StartTimeoutState,
+} from '../../@types/generic'
 // Icons
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
-import DashboardUpdateAlert from './components/DashboardUpdateAlert'
+import TimeoutAlert from './components/TimeoutAlert'
 
 const App = () => {
   const [identifier, setIdentifier] = useState<string>('')
@@ -37,6 +42,10 @@ const App = () => {
     pointsdk: true,
   })
   // Running state variables
+  const [startTimeout, setStartTimeout] = useState<StartTimeoutState>({
+    isTimedOut: false,
+    isSet: false,
+  })
   const [loader, setIsLaunching] = useState<{
     isLoading: boolean
     message: string
@@ -64,11 +73,12 @@ const App = () => {
 
   // 4. Once browser is running, we finish the launch procedure
   useEffect(() => {
-    if (isBrowserRunning)
+    if (isBrowserRunning) {
       setIsLaunching({
         isLoading: false,
         message: 'Launched',
       })
+    }
   }, [isBrowserRunning])
 
   // Register these events once to prevent leaks
@@ -83,6 +93,17 @@ const App = () => {
 
       if (!parsed.isRunning) {
         setTimeout(window.Dashboard.launchNodeAndPing, 2000)
+        if (!startTimeout.isSet) {
+          setStartTimeout(prev => ({ ...prev, isSet: true }))
+          setTimeout(() => {
+            if (isNodeRunning)
+              setStartTimeout({ isSet: false, isTimedOut: false })
+            else {
+              setIsLaunching({ isLoading: false, message: '' })
+              setStartTimeout({ isSet: false, isTimedOut: true })
+            }
+          }, 30000)
+        }
       }
     })
 
@@ -130,6 +151,7 @@ const App = () => {
       <TopBar isBrowserRunning={isBrowserRunning} />
       <DisplayIdentifier identifier={identifier} />
       <DashboardUpdateAlert />
+      <TimeoutAlert startTimeout={startTimeout} />
 
       <CheckForUpdatesDailog
         dialogOpen={updateDialogOpen}

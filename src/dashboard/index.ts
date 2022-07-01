@@ -96,26 +96,6 @@ export default function (isExplicitRun = false) {
     },
     // Dashboard channels
     {
-      channel: DashboardChannelsEnum.open_feedback_link,
-      listener() {
-        try {
-          shell.openExternal('https://pointnetwork.io/support')
-        } catch (error) {
-          logger.error(error)
-        }
-      },
-    },
-    {
-      channel: DashboardChannelsEnum.open_download_link,
-      listener() {
-        try {
-          shell.openExternal('https://pointnetwork.io/download')
-        } catch (error) {
-          logger.error(error)
-        }
-      },
-    },
-    {
       channel: DashboardChannelsEnum.log_out,
       async listener() {
         try {
@@ -294,6 +274,17 @@ export default function (isExplicitRun = false) {
           GenericChannelsEnum.get_identifier,
           getIdentifier()[0]
         )
+      },
+    },
+    {
+      channel: GenericChannelsEnum.open_external_link,
+      // @ts-ignore
+      listener(_, link: string) {
+        try {
+          shell.openExternal(link)
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
       },
     },
     {

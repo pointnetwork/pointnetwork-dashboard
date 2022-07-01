@@ -58,3 +58,8 @@ export type GithubRelease = {
     browser_download_url: string // eslint-disable-line camelcase
   }>
 }
+
+export interface StartTimeoutState {
+  isTimedOut: boolean
+  isSet: boolean
+}
