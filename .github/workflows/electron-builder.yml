@@ -204,21 +204,30 @@ jobs:
         asset_path: ./out/win_executables/pointnetwork-windows_installer.zip
         asset_name: point-${{ needs.create_release.outputs.release_name }}-Windows-installer.zip
         asset_content_type: application/gzip
-    - name: Upload win nupkg
+    # - name: Upload win nupkg
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ github.token }}
+    #   with:
+    #     upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+    #     asset_path: ./out/win_executables/pkg/point.nupkg
+    #     asset_name: point-${{ needs.create_release.outputs.release_name }}-full.nupkg
+    #     asset_content_type: application/gzip
+    # - name: Upload RELEASES file
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ github.token }}
+    #   with:
+    #     upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+    #     asset_path: ./out/win_executables/pkg/RELEASES
+    #     asset_name: RELEASES
+    #     asset_content_type: application/gzip
+    - name: Upload EXE file
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/win_executables/pkg/point.nupkg
-        asset_name: point-${{ needs.create_release.outputs.release_name }}-full.nupkg
-        asset_content_type: application/gzip
-    - name: Upload RELEASES file
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./out/win_executables/pkg/RELEASES
-        asset_name: RELEASES
-        asset_content_type: application/gzip
+        asset_path: ./out/pointDashboard_windows_installer/point.exe
+        asset_name: point-${{ needs.create_release.outputs.release_name }}.exe
+        asset_content_type: application/octet-stream
