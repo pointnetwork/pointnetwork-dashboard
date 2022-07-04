@@ -52,6 +52,7 @@
     "rimraf": "^3.0.2",
     "tar-fs": "^2.1.1",
     "unbzip2-stream": "^1.4.3",
+    "update-electron-app": "^2.0.1",
     "web-ext": "^6.7.0",
     "which": "^2.0.2"
   },
