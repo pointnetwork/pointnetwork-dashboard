@@ -47,17 +47,17 @@ export default class Logger {
   }
 
   info = (...log: string[]) => {
-    // TODO: Add back SYSTEM_INFO or find a better way to log it only once
     logger.info(`[${this.module}]`, ...log)
   }
 
   error = (...err: any[]) => {
-    // TODO: Add back SYSTEM_INFO or find a better way to log it only once
     logger.error(`[${this.module}]`, ...err)
   }
 
   sendToChannel = ({ channel, log }: { channel: string; log: string }) => {
-    this.window?.webContents.send(channel, log)
+    try {
+      this.window?.webContents.send(channel, log)
+    } catch (error) {}
   }
 
   sendMetric = (payload: Record<string, string | number | boolean>) => {
