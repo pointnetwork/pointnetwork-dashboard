@@ -131,8 +131,9 @@ class PointSDK {
       const latestVersion = await this.getLatestVersion()
 
       if (
-        moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
-        installInfo.installedReleaseVersion !== latestVersion
+        !installInfo.lastCheck ||
+        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
+          installInfo.installedReleaseVersion !== latestVersion)
       ) {
         this.logger.info('Update available')
         this.logger.sendToChannel({

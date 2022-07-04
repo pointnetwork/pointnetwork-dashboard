@@ -275,6 +275,7 @@ class Firefox {
 
       if (
         isBinMissing ||
+        !installInfo.lastCheck ||
         (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
           installInfo.installedReleaseVersion !== latestVersion)
       ) {
