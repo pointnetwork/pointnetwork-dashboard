@@ -1,5 +1,5 @@
 import { UpdateLog } from './../@types/generic'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, Notification } from 'electron'
 import axios from 'axios'
 import Bounty from '../bounty'
 import Firefox from '../firefox'
@@ -11,6 +11,7 @@ import helpers from '../../shared/helpers'
 import welcome from '../welcome'
 import { getIdentifier } from '../../shared/getIdentifier'
 import baseWindowConfig from '../../shared/windowConfig'
+import WebSocket from 'ws'
 // Types
 import {
   BountyChannelsEnum,
@@ -28,6 +29,7 @@ let node: Node | null
 let firefox: Firefox | null
 let pointSDK: PointSDK | null
 let uninstaller: Uninstaller | null
+let ws: WebSocket | null
 
 declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
@@ -252,6 +254,8 @@ export default function (isExplicitRun = false) {
       async listener() {
         try {
           await node?.ping()
+          // We connect to WS server once the node is finally running
+          if (!ws) connectToWsServer()
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
@@ -334,6 +338,19 @@ export default function (isExplicitRun = false) {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('Registered event', event.channel)
+    })
+  }
+
+  async function connectToWsServer() {
+    const { address } = await node?.getIdentityInfo()!
+    ws = new WebSocket(`ws://localhost:8080/ws?address=${address}`)
+    logger.info('Connected to Point Notifications websocket server')
+    ws.on('message', (message: string) => {
+      const { title, body } = JSON.parse(message)
+      new Notification({
+        title,
+        body,
+      }).show()
     })
   }
 
