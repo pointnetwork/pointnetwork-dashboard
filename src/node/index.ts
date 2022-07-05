@@ -27,13 +27,13 @@ const decompressTargz = require('decompress-targz')
 // TODO: Add JSDoc comments
 /**
  * WHAT THIS MODULE DOES
- * 1. Downloads the Point Node
- * 2. Checks for updates whether new Point Node release is available
- * 3. Launches the Point Node
- * 4. Kills the Point Node
+ * 1. Downloads the Point Engine
+ * 2. Checks for updates whether new Point Engine release is available
+ * 3. Launches the Point Engine
+ * 4. Kills the Point Engine
  * 5. Returns the running identity
- * 6. Returns the status if Point Node is running or not
- * 7. Returns the status if Point Node exists or not
+ * 6. Returns the status if Point Engine is running or not
+ * 7. Returns the status if Point Engine exists or not
  */
 class Node {
   logger: Logger
@@ -46,7 +46,7 @@ class Node {
   }
 
   /**
-   * Returns the latest available version for Point Node
+   * Returns the latest available version for Point Engine
    */
   async getLatestVersion(): Promise<string> {
     this.logger.info('Getting latest version')
@@ -61,7 +61,7 @@ class Node {
   }
 
   /**
-   * Downloads the Point Node binary from GitHub, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoNode.json file
+   * Downloads the Point Engine binary from GitHub, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoNode.json file
    */
   downloadAndInstall(): Promise<void> {
     // eslint-disable-next-line no-async-promise-executor
@@ -105,7 +105,7 @@ class Node {
               channel: NodeChannelsEnum.unpack,
               log: JSON.stringify({
                 started: true,
-                log: 'Unpacking Point Node',
+                log: 'Unpacking Point Engine',
                 done: false,
                 progress: 0,
                 error: false,
@@ -119,7 +119,7 @@ class Node {
               this.logger.sendToChannel({
                 channel: NodeChannelsEnum.unpack,
                 log: JSON.stringify({
-                  log: 'Error unpacking the Point Node',
+                  log: 'Error unpacking the Point Engine',
                   error: true,
                 } as GenericProgressLog),
               })
@@ -130,7 +130,7 @@ class Node {
               channel: NodeChannelsEnum.unpack,
               log: JSON.stringify({
                 started: false,
-                log: 'Unpacked Point Node',
+                log: 'Unpacked Point Engine',
                 done: true,
                 progress: 100,
               } as GenericProgressLog),
@@ -168,9 +168,9 @@ class Node {
 
   /**
    * Checks
-   * 1. If Point Node exists or not, if it doesn't then downloads it
-   * 2. Checks if there are any running instances of Point Node, if yes then returns early
-   * 3. Launches the Point Node
+   * 1. If Point Engine exists or not, if it doesn't then downloads it
+   * 2. Checks if there are any running instances of Point Engine, if yes then returns early
+   * 3. Launches the Point Engine
    */
   async launch() {
     try {
@@ -198,7 +198,7 @@ class Node {
   }
 
   /**
-   * Pings the Point Node and checks if it is ready to receive requests
+   * Pings the Point Engine and checks if it is ready to receive requests
    */
   async ping() {
     try {
@@ -218,7 +218,7 @@ class Node {
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: true,
-          log: 'Point Node is running',
+          log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
       this.logger.info('Pinged')
@@ -227,7 +227,7 @@ class Node {
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: false,
-          log: 'Point Node is not running',
+          log: 'Point Engine is not running',
         } as LaunchProcessLog),
       })
       this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to Ping')
@@ -235,14 +235,14 @@ class Node {
   }
 
   /**
-   * Stops the running instances of Point Node
+   * Stops the running instances of Point Engine
    */
   async stop() {
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.stop,
       log: JSON.stringify({
         started: true,
-        log: 'Finding running processes for Point Node',
+        log: 'Finding running processes for Point Engine',
         done: false,
       } as GenericProgressLog),
     })
@@ -262,7 +262,7 @@ class Node {
       channel: NodeChannelsEnum.stop,
       log: JSON.stringify({
         started: true,
-        log: 'Killed running processes for Point Node',
+        log: 'Killed running processes for Point Engine',
         done: false,
       } as GenericProgressLog),
     })
@@ -270,7 +270,7 @@ class Node {
   }
 
   /**
-   * Checks for Point Node updates
+   * Checks for Point Engine updates
    */
   async checkForUpdates() {
     try {
@@ -305,13 +305,13 @@ class Node {
         await this.stop()
         this.downloadAndInstall()
       } else {
-        this.logger.info('Already upto date')
+        this.logger.info('Already up to date')
         this.logger.sendToChannel({
           channel: NodeChannelsEnum.check_for_updates,
           log: JSON.stringify({
             isChecking: false,
             isAvailable: false,
-            log: 'Already upto date',
+            log: 'Already up to date',
           } as UpdateLog),
         })
       }
@@ -322,7 +322,7 @@ class Node {
   }
 
   /**
-   * Returns the identity currently active on Point Node
+   * Returns the identity currently active on Point Engine
    */
   async getIdentityInfo() {
     this.logger.info('Getting identity')
@@ -359,7 +359,7 @@ class Node {
   }
 
   /**
-   * Returns the running instances of Point Node
+   * Returns the running instances of Point Engine
    */
   async _getRunningProcess(): Promise<Process[]> {
     return await (
@@ -370,7 +370,7 @@ class Node {
   }
 
   /**
-   * Returns the path where the downloaded Point Node executable exists
+   * Returns the path where the downloaded Point Engine executable exists
    */
   _getBinFile(): PathLike {
     const binPath = helpers.getBinPath()

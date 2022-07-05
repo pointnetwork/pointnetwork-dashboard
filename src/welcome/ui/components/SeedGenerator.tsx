@@ -49,7 +49,7 @@ export default function SeedGenerator(props: {
       </Typography>
 
       <Typography gutterBottom>
-        Click below to generate a new seed phrase to enter the network.
+        Click below to generate a new secret phrase to enter the network.
       </Typography>
       <Card
         variant="outlined"
@@ -93,11 +93,11 @@ export default function SeedGenerator(props: {
 
       <Box>
         <Typography gutterBottom>
-          Already have a secret phrase? Click below to enter your seed
+          Already have a secret phrase? Click below to enter your secret
           phrase and log back in.
         </Typography>
         <Button variant="outlined" onClick={props.login}>
-          Login
+          Log In
         </Button>
       </Box>
     </>
