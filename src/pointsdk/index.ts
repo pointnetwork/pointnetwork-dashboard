@@ -146,13 +146,13 @@ class PointSDK {
         })
         this.downloadAndInstall()
       } else {
-        this.logger.info('Already upto date')
+        this.logger.info('Already up to date')
         this.logger.sendToChannel({
           channel: PointSDKChannelsEnum.check_for_updates,
           log: JSON.stringify({
             isChecking: false,
             isAvailable: false,
-            log: 'Already upto date',
+            log: 'Already up to date',
           } as UpdateLog),
         })
       }

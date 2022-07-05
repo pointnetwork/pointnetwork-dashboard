@@ -49,7 +49,7 @@ const App = () => {
   const [loader, setIsLaunching] = useState<{
     isLoading: boolean
     message: string
-  }>({ isLoading: true, message: 'Starting Point' })
+  }>({ isLoading: true, message: 'Starting Point Network' })
   const [isBrowserRunning, setIsBrowserRunning] = useState<boolean>(false)
   const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
 
@@ -58,7 +58,7 @@ const App = () => {
     window.Dashboard.checkForUpdates()
   }, [])
 
-  // 2. If everything is upto date, we wait for update dailog to close, then we launch the node first and ping it
+  // 2. If everything is up to date, we wait for update dailog to close, then we launch the node first and ping it
   useEffect(() => {
     if (!updateDialogOpen) {
       window.Dashboard.launchNodeAndPing()
@@ -182,11 +182,11 @@ const App = () => {
           </Grid>
           <Grid item xs={6}>
             <ResourceItemCard
-              title="Point Node"
+              title="Point Engine"
               status={isNodeRunning}
               onClick={() => {}}
               icon={<PointLogo />}
-              buttonLabel="Launch Node"
+              buttonLabel="Launch Engine"
               isLoading={isNodeRunning}
               version={nodeVersion}
             />
