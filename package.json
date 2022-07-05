@@ -4,6 +4,10 @@
   "version": "0.2.41",
   "description": "PointNetwork",
   "main": "./.webpack/main",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pointnetwork/pointnetwork-dashboard"
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
