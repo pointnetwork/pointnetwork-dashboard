@@ -1,37 +1,23 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-import WelcomeService from './services'
+import { app, BrowserWindow, ipcMain } from 'electron'
+import WelcomeService from './service'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+// Types
 import {
   DashboardChannelsEnum,
   GenericChannelsEnum,
+  WelcomeChannelsEnum,
 } from '../@types/ipc_channels'
 
-const logger = new Logger()
+const logger = new Logger({ module: 'welcome_window' })
 
 let mainWindow: BrowserWindow | null
 let welcomeService: WelcomeService | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
-
-const MESSAGES = {
-  uninstallConfirmation: {
-    title: 'Uninstall Point Network',
-    message:
-      'Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard.',
-    buttons: {
-      confirm: 'Yes',
-      cancel: 'No',
-    },
-  },
-}
-// const assetsPath =
-//   process.env.NODE_ENV === 'production'
-//     ? process.resourcesPath
-//     : app.getAppPath()
 
 export default function (isExplicitRun = false) {
   function createWindow() {
@@ -55,7 +41,7 @@ export default function (isExplicitRun = false) {
       logger.info('Closed Welcome Window')
       events.forEach(event => {
         ipcMain.removeListener(event.channel, event.listener)
-        logger.info('[welcome:index.ts] Removed event', event.channel)
+        logger.info('Removed event', event.channel)
       })
     })
     mainWindow.on('closed', () => {
@@ -65,32 +51,33 @@ export default function (isExplicitRun = false) {
   }
 
   const events = [
+    // Welcome channels
     {
-      channel: 'welcome:generate_mnemonic',
+      channel: WelcomeChannelsEnum.generate_mnemonic,
       listener() {
         welcomeService!.generate()
       },
     },
     {
-      channel: 'welcome:validate_mnemonic',
+      channel: WelcomeChannelsEnum.validate_mnemonic,
       listener(_: any, message: string) {
         welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''))
       },
     },
     {
-      channel: 'welcome:copy_mnemonic',
+      channel: WelcomeChannelsEnum.copy_mnemonic,
       listener(_: any, message: string) {
         welcomeService!.copy(message)
       },
     },
     {
-      channel: 'welcome:paste_mnemonic',
+      channel: WelcomeChannelsEnum.paste_mnemonic,
       listener(_: any) {
         welcomeService!.paste()
       },
     },
     {
-      channel: 'welcome:login',
+      channel: WelcomeChannelsEnum.login,
       async listener(_: any, message: string) {
         const result = await welcomeService!.login(message)
         if (result) {
@@ -100,29 +87,12 @@ export default function (isExplicitRun = false) {
       },
     },
     {
-      channel: 'welcome:get_dictionary',
+      channel: WelcomeChannelsEnum.get_dictionary,
       listener() {
         welcomeService!.getDictionary()
       },
     },
-    {
-      channel: 'welcome:launchUninstaller',
-      async listener() {
-        const confirmationAnswer = dialog.showMessageBoxSync({
-          type: 'question',
-          title: MESSAGES.uninstallConfirmation.title,
-          message: MESSAGES.uninstallConfirmation.message,
-          buttons: [
-            MESSAGES.uninstallConfirmation.buttons.confirm,
-            MESSAGES.uninstallConfirmation.buttons.cancel,
-          ],
-        })
-
-        if (confirmationAnswer === 0) {
-          mainWindow?.destroy()
-        }
-      },
-    },
+    // Dashboard channels
     {
       channel: DashboardChannelsEnum.get_version,
       listener() {
@@ -132,6 +102,7 @@ export default function (isExplicitRun = false) {
         )
       },
     },
+    // Generic channels
     {
       channel: GenericChannelsEnum.minimize_window,
       listener() {
@@ -149,7 +120,7 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
-      logger.info('[welcome:index.ts] Registered event', event.channel)
+      logger.info('Registered event', event.channel)
     })
   }
 

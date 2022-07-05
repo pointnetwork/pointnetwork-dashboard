@@ -6,10 +6,10 @@ import { generatePhrase, validatePhrase, getDictionary } from './helpers'
 const { getKeyFromMnemonic } = require('arweave-mnemonic-keys')
 
 class WelcomeService {
-  private win
+  private window
 
-  constructor(win: BrowserWindow) {
-    this.win = win
+  constructor(window: BrowserWindow) {
+    this.window = window
   }
 
   async login(phrase: any, firstTime = false) {
@@ -36,11 +36,11 @@ class WelcomeService {
   }
 
   async generate() {
-    this.win.webContents.send('welcome:mnemonic_generated', generatePhrase())
+    this.window.webContents.send('welcome:mnemonic_generated', generatePhrase())
   }
 
   async validate(message: string) {
-    this.win.webContents.send(
+    this.window.webContents.send(
       'welcome:mnemonic_validated',
       validatePhrase(message)
     )
@@ -48,24 +48,24 @@ class WelcomeService {
 
   async copy(message: string) {
     clipboard.writeText(message)
-    this.win.webContents.send('welcome:mnemonic_copied')
+    this.window.webContents.send('welcome:mnemonic_copied')
   }
 
   async paste() {
     const message = clipboard.readText('clipboard').toLowerCase()
-    this.win.webContents.send('welcome:mnemonic_pasted', message)
+    this.window.webContents.send('welcome:mnemonic_pasted', message)
   }
 
   async getDictionary() {
-    this.win.webContents.send('welcome:set_dictionary', getDictionary())
+    this.window.webContents.send('welcome:set_dictionary', getDictionary())
   }
 
   close() {
-    this.win.close()
+    this.window.close()
   }
 
   tryToShowError(e: any) {
-    this.win.webContents.send('error', { e })
+    this.window.webContents.send('error', { e })
   }
 }
 
