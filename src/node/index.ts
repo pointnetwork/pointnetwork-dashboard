@@ -27,10 +27,10 @@ const decompressTargz = require('decompress-targz')
 // TODO: Add JSDoc comments
 /**
  * WHAT THIS MODULE DOES
- * 1. Downloads the Point Engine
- * 2. Checks for updates whether new Point Engine release is available
- * 3. Launches the Point Engine
- * 4. Kills the Point Engine
+ * 1. Downloads Point Engine
+ * 2. Checks if a new Point Engine release is available
+ * 3. Launches Point Engine
+ * 4. Kills Point Engine
  * 5. Returns the running identity
  * 6. Returns the status if Point Engine is running or not
  * 7. Returns the status if Point Engine exists or not
@@ -61,7 +61,7 @@ class Node {
   }
 
   /**
-   * Downloads the Point Engine binary from GitHub, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoNode.json file
+   * Downloads Point Engine binary from GitHub, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoNode.json file
    */
   downloadAndInstall(): Promise<void> {
     // eslint-disable-next-line no-async-promise-executor
@@ -119,7 +119,7 @@ class Node {
               this.logger.sendToChannel({
                 channel: NodeChannelsEnum.unpack,
                 log: JSON.stringify({
-                  log: 'Error unpacking the Point Engine',
+                  log: 'Error unpacking Point Engine',
                   error: true,
                 } as GenericProgressLog),
               })
@@ -170,7 +170,7 @@ class Node {
    * Checks
    * 1. If Point Engine exists or not, if it doesn't then downloads it
    * 2. Checks if there are any running instances of Point Engine, if yes then returns early
-   * 3. Launches the Point Engine
+   * 3. Launches Point Engine
    */
   async launch() {
     try {
@@ -198,7 +198,7 @@ class Node {
   }
 
   /**
-   * Pings the Point Engine and checks if it is ready to receive requests
+   * Pings Point Engine and checks if it is ready to receive requests
    */
   async ping() {
     try {
