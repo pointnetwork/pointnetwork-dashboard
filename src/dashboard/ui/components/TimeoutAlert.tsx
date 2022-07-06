@@ -17,8 +17,8 @@ const TimeoutAlert = ({
     <Dialog open={startTimeout.isTimedOut}>
       <Box p={3}>
         <Typography>
-          Failed to start Point. Please, close and reopen the dashboard. If the
-          problem persists, contact the support team on{' '}
+          Failed to start Point Network. Please, close and reopen Point
+          Dashboard. If the problem persists, contact the support team on{' '}
           <ExternalLink
             onClick={() =>
               window.Dashboard.openExternalLink(
@@ -45,7 +45,7 @@ const TimeoutAlert = ({
             sx={{ ml: 1 }}
             onClick={window.Dashboard.closeWindow}
           >
-            Close Point
+            Close
           </Button>
         </Box>
       </Box>

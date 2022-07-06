@@ -112,7 +112,7 @@ const DashboardTitle = () => {
         </Box>
       </Box>
       <Typography color="text.secondary">
-        Manage and control Point Network components from here
+        Manage and control Point Network components in here
       </Typography>
 
       <Dialog open={closeDialogOpen}>
@@ -134,7 +134,7 @@ const DashboardTitle = () => {
               sx={{ ml: 1 }}
               onClick={handleLogout}
             >
-              Logout
+              Log Out
             </Button>
           </Box>
         </Box>

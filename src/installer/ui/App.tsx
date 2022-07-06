@@ -78,9 +78,9 @@ export default function App() {
           </Typography>
           <Box px={2} mt={2} mb={3} bgcolor="primary.light" borderRadius={2}>
             <List>
-              <ListItemText>Point Node</ListItemText>
+              <ListItemText>Point Engine</ListItemText>
               <ListItemText>Point LiveProfile</ListItemText>
-              <ListItemText>Point SDK</ListItemText>
+              <ListItemText>PointSDK</ListItemText>
               <ListItemText>Point Browser (Firefox)</ListItemText>
               <ListItemText>Point Uninstaller</ListItemText>
             </List>

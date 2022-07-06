@@ -39,11 +39,14 @@ export default function () {
 
     mainWindow.loadURL(INSTALLER_WINDOW_WEBPACK_ENTRY)
 
-    mainWindow.on('closed', () => {
+    mainWindow.on('close', () => {
+      logger.info('Closing Installer Window')
       logger.info('Removing all event listeners')
       ipcMain.removeAllListeners()
       logger.info('Removed all event listeners')
+    })
 
+    mainWindow.on('closed', () => {
       mainWindow = null
       installer = null
 
@@ -58,7 +61,7 @@ export default function () {
       async listener() {
         try {
           await installer!.install()
-          await installer!.close()
+          installer!.close()
           welcome(true)
         } catch (error) {
           logger.error(error)

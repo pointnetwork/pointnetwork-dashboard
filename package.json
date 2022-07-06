@@ -1,9 +1,13 @@
 {
   "name": "point",
   "author": "Point Labs",
-  "version": "0.2.40",
+  "version": "0.2.43",
   "description": "PointNetwork",
   "main": "./.webpack/main",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pointnetwork/pointnetwork-dashboard"
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -53,6 +57,7 @@
     "rimraf": "^3.0.2",
     "tar-fs": "^2.1.1",
     "unbzip2-stream": "^1.4.3",
+    "update-electron-app": "^2.0.1",
     "web-ext": "^6.7.0",
     "which": "^2.0.2"
   },

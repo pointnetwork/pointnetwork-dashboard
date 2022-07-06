@@ -82,7 +82,7 @@ const WalletInfo = ({ isNodeRunning }: { isNodeRunning: boolean }) => {
               </Typography>
             ) : (
               <Typography variant="h6" component="h2" marginBottom={'2px'}>
-                No identity yet, register one when the browser opens
+                No identity yet. Register one when the browser opens.
               </Typography>
             )}
           </Grid>
@@ -122,7 +122,7 @@ const WalletInfo = ({ isNodeRunning }: { isNodeRunning: boolean }) => {
               disabled={Number(balance) > 0}
               onClick={window.Dashboard.checkBalanceAndAirdrop}
             >
-              Request yPOINTs
+              Request yPOINT
             </Button>
           </Stack>
         </Fragment>
