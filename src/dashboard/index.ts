@@ -1,5 +1,5 @@
 import { UpdateLog } from './../@types/generic'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, clipboard } from 'electron'
 import axios from 'axios'
 import Bounty from '../bounty'
 import Firefox from '../firefox'
@@ -274,6 +274,14 @@ export default function (isExplicitRun = false) {
           GenericChannelsEnum.get_identifier,
           getIdentifier()[0]
         )
+      },
+    },
+    {
+      channel: GenericChannelsEnum.copy_to_clipboard,
+      // @ts-ignore
+      listener(_, message: string) {
+        clipboard.writeText(message)
+        window?.webContents.send(GenericChannelsEnum.copy_to_clipboard)
       },
     },
     {

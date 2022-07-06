@@ -37,6 +37,8 @@ export const api = {
   getFirefoxVersion: () => ipcRenderer.send(FirefoxChannelsEnum.get_version),
   launchBrowser: () => ipcRenderer.send(FirefoxChannelsEnum.launch),
   // Generic
+  copyToClipboard: (message: string) =>
+    ipcRenderer.send(GenericChannelsEnum.copy_to_clipboard, message),
   openExternalLink: (link: string) =>
     ipcRenderer.send(GenericChannelsEnum.open_external_link, link),
   getIndentifier: () => ipcRenderer.send(GenericChannelsEnum.get_identifier),

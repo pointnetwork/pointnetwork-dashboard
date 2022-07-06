@@ -23,6 +23,7 @@ export enum WelcomeChannelsEnum {
 export enum GenericChannelsEnum {
   close_window = 'generic:close_window',
   check_for_updates = 'generic:check_for_updates',
+  copy_to_clipboard = 'generic:copy_to_clipboard',
   get_identifier = 'generic:get_identifier',
   minimize_window = 'generic:minimize_window',
   open_external_link = 'generic:open_external_link',
