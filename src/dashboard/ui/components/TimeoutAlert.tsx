@@ -18,23 +18,15 @@ const TimeoutAlert = ({
       <Box p={3}>
         <Typography>
           Failed to start Point Network. Please, close and reopen Point
-          Dashboard. If the problem persists, contact the support team on{' '}
+          Dashboard. If the problem persists, contact the support team{' '}
           <ExternalLink
             onClick={() =>
               window.Dashboard.openExternalLink(
-                'https://discord.com/invite/DkH6zxCXWz'
+                'https://pointnetwork.io/support'
               )
             }
           >
-            Discord
-          </ExternalLink>{' '}
-          or{' '}
-          <ExternalLink
-            onClick={() =>
-              window.Dashboard.openExternalLink('https://t.me/pointnetworkchat')
-            }
-          >
-            Telegram
+            here
           </ExternalLink>
         </Typography>
         <Box display="flex" justifyContent="flex-end" mt={2}>
