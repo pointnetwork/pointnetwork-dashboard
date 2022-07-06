@@ -12,6 +12,7 @@ import TopBar from './components/TopBar'
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 import WalletInfo from './components/WalletInfo'
 import DashboardUpdateAlert from './components/DashboardUpdateAlert'
+import TimeoutAlert from './components/TimeoutAlert'
 // Types
 import {
   DashboardChannelsEnum,
@@ -28,7 +29,6 @@ import {
 // Icons
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
-import TimeoutAlert from './components/TimeoutAlert'
 
 const App = () => {
   const [identifier, setIdentifier] = useState<string>('')
