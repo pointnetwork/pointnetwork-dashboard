@@ -104,6 +104,8 @@ const App = () => {
             }
           }, 70000)
         }
+      } else {
+        setStartTimeout({ isSet: false, isTimedOut: false })
       }
     })
 
@@ -151,7 +153,7 @@ const App = () => {
       <TopBar isBrowserRunning={isBrowserRunning} />
       <DisplayIdentifier identifier={identifier} />
       <DashboardUpdateAlert />
-      <TimeoutAlert startTimeout={startTimeout} />
+      <TimeoutAlert identifier={identifier} startTimeout={startTimeout} />
 
       <CheckForUpdatesDailog
         dialogOpen={updateDialogOpen}
