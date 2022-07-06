@@ -16,6 +16,7 @@ declare global {
 
 export const api = {
   // Welcome channels
+  getMnemonic: () => ipcRenderer.send(WelcomeChannelsEnum.get_mnemonic),
   generateMnemonic: () =>
     ipcRenderer.send(WelcomeChannelsEnum.generate_mnemonic),
   validateMnemonic: (value: any) =>

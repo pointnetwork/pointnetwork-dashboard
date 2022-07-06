@@ -11,6 +11,7 @@ export enum InstallerChannelsEnum {
 export enum WelcomeChannelsEnum {
   copy_mnemonic = 'welcome:copy_mnemonic',
   generate_mnemonic = 'welcome:generate_mnemonic',
+  get_mnemonic = 'welcome:get_mnemonic',
   get_dictionary = 'welcome:get_dictionary',
   login = 'welcome:login',
   paste_mnemonic = 'welcome:paste_mnemonic',

@@ -59,6 +59,12 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: WelcomeChannelsEnum.get_mnemonic,
+      listener() {
+        welcomeService!.getGeneratedMnemonic()
+      },
+    },
+    {
       channel: WelcomeChannelsEnum.validate_mnemonic,
       listener(_: any, message: string) {
         welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''))

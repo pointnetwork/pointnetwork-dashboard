@@ -21,6 +21,17 @@ class WelcomeService {
   /**
    * Useful where we want to do some cleanup before closing the window
    */
+  getGeneratedMnemonic() {
+    this.window.webContents.send(
+      WelcomeChannelsEnum.get_mnemonic,
+      this.mnemonic
+    )
+    return this.mnemonic
+  }
+
+  /**
+   * Useful where we want to do some cleanup before closing the window
+   */
   login() {
     if (helpers.isLoggedIn())
       throw Error(

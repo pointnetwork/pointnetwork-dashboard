@@ -23,6 +23,12 @@ const GenerateNew = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
+    window.Welcome.getMnemonic()
+
+    window.Welcome.on(WelcomeChannelsEnum.get_mnemonic, (phrase: string) => {
+      phrase && setSecretPhrase(phrase.split(' '))
+    })
+
     window.Welcome.on(
       WelcomeChannelsEnum.generate_mnemonic,
       (phrase: string) => {
