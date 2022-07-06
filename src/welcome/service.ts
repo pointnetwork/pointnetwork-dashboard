@@ -12,6 +12,7 @@ class WelcomeService {
   private window: BrowserWindow
   private logger: Logger
   private mnemonic: string = ''
+  private picks: { word: string; idx: number }[] = []
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -103,6 +104,40 @@ class WelcomeService {
       Mnemonic.Words.ENGLISH
     )
     return Mnemonic.Words.ENGLISH
+  }
+
+  /**
+   * Pick words randomly and send for verification
+   */
+  pickRandomWords(): { word: string; idx: number }[] {
+    const availableOptions = this.mnemonic.split(' ')
+
+    this.picks = []
+    for (let i = 0; i < 3; i++) {
+      const idx = Math.floor(Math.random() * availableOptions.length)
+      const word = availableOptions[idx]
+      this.picks.push({ word, idx })
+    }
+
+    this.window.webContents.send(WelcomeChannelsEnum.pick_words, this.picks)
+    return this.picks
+  }
+
+  /**
+   * Verify the words entered
+   */
+  verifyWords(words: string[]) {
+    const given = words.join('')
+    const actual = this.picks.map(v => v.word).join('')
+
+    if (given === actual) {
+      this.window.webContents.send(WelcomeChannelsEnum.validate_words, true)
+    } else {
+      this.window.webContents.send(
+        WelcomeChannelsEnum.validate_words,
+        'The given words do not match'
+      )
+    }
   }
 
   /**

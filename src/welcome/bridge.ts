@@ -26,6 +26,9 @@ export const api = {
     ipcRenderer.send(WelcomeChannelsEnum.copy_mnemonic, value),
   pasteMnemonic: () => ipcRenderer.send(WelcomeChannelsEnum.paste_mnemonic),
   getDictionary: () => ipcRenderer.send(WelcomeChannelsEnum.get_dictionary),
+  pickWords: () => ipcRenderer.send(WelcomeChannelsEnum.pick_words),
+  validateWords: (words: string[]) =>
+    ipcRenderer.send(WelcomeChannelsEnum.validate_words, words),
   // Uninstaller channels
   launchUninstaller: () => ipcRenderer.send(UninstallerChannelsEnum.launch),
   // Dashboard channels

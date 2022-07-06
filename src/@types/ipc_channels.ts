@@ -15,7 +15,9 @@ export enum WelcomeChannelsEnum {
   get_dictionary = 'welcome:get_dictionary',
   login = 'welcome:login',
   paste_mnemonic = 'welcome:paste_mnemonic',
+  pick_words = 'welcome:pick_words',
   validate_mnemonic = 'welcome:validate_mnemonic',
+  validate_words = 'welcome:validate_words',
 }
 
 export enum GenericChannelsEnum {

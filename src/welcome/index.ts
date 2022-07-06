@@ -65,6 +65,18 @@ export default function (isExplicitRun = false) {
       },
     },
     {
+      channel: WelcomeChannelsEnum.pick_words,
+      listener() {
+        welcomeService!.pickRandomWords()
+      },
+    },
+    {
+      channel: WelcomeChannelsEnum.validate_words,
+      listener(_: any, words: string[]) {
+        welcomeService!.verifyWords(words)
+      },
+    },
+    {
       channel: WelcomeChannelsEnum.validate_mnemonic,
       listener(_: any, message: string) {
         welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''))
