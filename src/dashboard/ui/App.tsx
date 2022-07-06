@@ -102,7 +102,7 @@ const App = () => {
               setIsLaunching({ isLoading: false, message: '' })
               setStartTimeout({ isSet: false, isTimedOut: true })
             }
-          }, 30000)
+          }, 70000)
         }
       }
     })
