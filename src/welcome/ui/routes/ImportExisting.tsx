@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 // Material UI
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
@@ -8,69 +10,96 @@ import Typography from '@mui/material/Typography'
 import MainLayout from '../components/MainLayout'
 // Icons
 import SendIcon from '@mui/icons-material/Send'
+// Types
+import { WelcomeChannelsEnum } from '../../../@types/ipc_channels'
 
 const ImportExisting = () => {
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [secretPhrase, setSecretPhrase] = useState<string[]>(Array(12).fill(''))
+
+  useEffect(() => {
+    window.Welcome.on(WelcomeChannelsEnum.paste_mnemonic, (phrase: string) => {
+      const words = phrase.split(' ')
+      if (words.length !== 12) return setError('Invalid seed length')
+      setError('')
+      setSecretPhrase(words)
+    })
+  }, [])
+
+  const handleChange = (e: any) => {
+    setSecretPhrase(prev => {
+      prev[Number(e.target.name)] = e.target.value.trim()
+      return [...prev]
+    })
+  }
+
+  const handleConfirmAndLogin = () => {
+    setLoading(true)
+    const words = secretPhrase.map(w => w.trim())
+    const seed = words.join(' ')
+    window.Welcome.validateMnemonic(seed)
+
+    window.Welcome.on(
+      WelcomeChannelsEnum.validate_mnemonic,
+      (result: string | boolean) => {
+        if (result === true) {
+          window.Welcome.login({ phrase: seed })
+        } else {
+          setError(result.toString())
+        }
+      }
+    )
+
+    window.Welcome.on(WelcomeChannelsEnum.login, () => setLoading(false))
+  }
+
   return (
     <MainLayout>
-      <Grid container mt={3.5} mb={1.5}>
-        <Grid item xs={10}>
+      <Grid container mb={1.5}>
+        {error && (
+          <Grid item xs={12} mb={-1} mt={-1}>
+            <Alert severity="error">{error}</Alert>
+          </Grid>
+        )}
+        <Grid item xs={10} mt={3}>
           <Typography variant="h4" mb={3}>
             Import Existing Key
           </Typography>
           <Typography>Please enter your secret phrase</Typography>
         </Grid>
-        <Grid item xs={2}>
-          <Button variant="outlined" sx={{ ml: 5 }}>
+        <Grid item xs={2} mt={3}>
+          <Button
+            variant="outlined"
+            onClick={window.Welcome.pasteMnemonic}
+            sx={{ ml: 5 }}
+          >
             Paste
           </Button>
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        <Grid item xs={3}>
-          <TextField label="1" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="2" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="3" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="4" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="5" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="6" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="7" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="8" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="9" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="10" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="11" />
-        </Grid>
-        <Grid item xs={3}>
-          <TextField label="12" />
-        </Grid>
+        {secretPhrase.map((word, index) => (
+          <Grid item xs={3} key={index}>
+            <TextField
+              name={index.toString()}
+              label={index + 1}
+              value={word}
+              onChange={handleChange}
+              disabled={index ? !secretPhrase[index - 1] : false}
+            />
+          </Grid>
+        ))}
       </Grid>
       <Box mt={4}>
         <Button
           variant="contained"
           size="large"
-          disabled
+          disabled={secretPhrase.some(e => !e) || loading}
           endIcon={<SendIcon />}
+          onClick={handleConfirmAndLogin}
         >
-          Confirm & Login
+          {loading ? 'Logging In...' : 'Confirm & Login'}
         </Button>
       </Box>
     </MainLayout>

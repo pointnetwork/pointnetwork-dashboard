@@ -31,6 +31,7 @@ export const api = {
   getDashboardVersion: () =>
     ipcRenderer.send(DashboardChannelsEnum.get_version),
   // Generic channels
+  getIdentifier: () => ipcRenderer.send(GenericChannelsEnum.get_identifier),
   minimizeWindow: () => ipcRenderer.send(GenericChannelsEnum.minimize_window),
   closeWindow: () => ipcRenderer.send(GenericChannelsEnum.close_window),
 
