@@ -82,8 +82,8 @@ export default function (isExplicitRun = false) {
     },
     {
       channel: WelcomeChannelsEnum.login,
-      async listener(_: any, message: string) {
-        const result = await welcomeService!.login(message)
+      listener() {
+        const result = welcomeService!.login()
         if (result) {
           window?.close()
           dashboard(true)

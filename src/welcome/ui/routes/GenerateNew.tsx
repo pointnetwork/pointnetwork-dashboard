@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import WelcomeRoutes from './routes'
 // Material UI
@@ -6,17 +7,42 @@ import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
+import Snackbar from '@mui/material/Snackbar'
 import Typography from '@mui/material/Typography'
 // Components
 import MainLayout from '../components/MainLayout'
 // Icons
 import SendIcon from '@mui/icons-material/Send'
+// Types
+import { WelcomeChannelsEnum } from '../../../@types/ipc_channels'
 
 const GenerateNew = () => {
+  const [alert, setAlert] = useState<string>('')
+  const [secretPhrase, setSecretPhrase] = useState<string[]>(Array(12).fill(''))
+
   const navigate = useNavigate()
+
+  useEffect(() => {
+    window.Welcome.on(
+      WelcomeChannelsEnum.generate_mnemonic,
+      (phrase: string) => {
+        setSecretPhrase(phrase.split(' '))
+      }
+    )
+
+    window.Welcome.on(WelcomeChannelsEnum.copy_mnemonic, () => {
+      setAlert('Copied')
+      setTimeout(() => setAlert(''), 3000)
+    })
+  }, [])
 
   return (
     <MainLayout>
+      <Snackbar
+        open={!!alert}
+        message={alert}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
       <Typography variant="h4" mt={3} mb={2}>
         Generate Secret Phrase
       </Typography>
@@ -24,42 +50,13 @@ const GenerateNew = () => {
         <Grid item xs={7}>
           <Box border="2px dashed #ccc" borderRadius={3} px={2.5} py={1.5}>
             <Grid container>
-              <Grid item xs={6} py={1.5}>
-                <Typography>1.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>2.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>3.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>4.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>5.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>6.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>7.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>8.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>9.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>10.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>11.</Typography>
-              </Grid>
-              <Grid item xs={6} py={1.5}>
-                <Typography>12.</Typography>
-              </Grid>
+              {secretPhrase.map((word, idx) => (
+                <Grid item xs={6} py={1.5} key={idx}>
+                  <Typography>
+                    {idx + 1}. {word}
+                  </Typography>
+                </Grid>
+              ))}
             </Grid>
           </Box>
         </Grid>
@@ -77,10 +74,22 @@ const GenerateNew = () => {
             <Typography mb={1.5}>
               Click "Generate" to generate a new secret phrase
             </Typography>
-            <Button variant="contained" sx={{ mr: 1.5 }}>
+            <Button
+              variant={secretPhrase.some(el => !el) ? 'contained' : 'outlined'}
+              sx={{ mr: 1.5 }}
+              onClick={window.Welcome.generateMnemonic}
+            >
               Generate
             </Button>
-            <Button variant="outlined">Copy</Button>
+            <Button
+              variant="outlined"
+              onClick={() =>
+                window.Welcome.copyMnemonic(secretPhrase.join(' '))
+              }
+              disabled={secretPhrase.some(el => !el)}
+            >
+              Copy
+            </Button>
           </Box>
           <Button
             variant="contained"
@@ -88,7 +97,7 @@ const GenerateNew = () => {
             endIcon={<SendIcon />}
             fullWidth
             onClick={() => navigate(WelcomeRoutes.verify)}
-            // disabled
+            disabled={secretPhrase.some(el => !el)}
           >
             Continue
           </Button>

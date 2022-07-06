@@ -44,7 +44,7 @@ const ImportExisting = () => {
       WelcomeChannelsEnum.validate_mnemonic,
       (result: string | boolean) => {
         if (result === true) {
-          window.Welcome.login({ phrase: seed })
+          window.Welcome.login()
         } else {
           setError(result.toString())
         }

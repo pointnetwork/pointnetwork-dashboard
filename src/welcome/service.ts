@@ -11,6 +11,7 @@ const { getKeyFromMnemonic } = require('arweave-mnemonic-keys')
 class WelcomeService {
   private window: BrowserWindow
   private logger: Logger
+  private mnemonic: string = ''
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -20,7 +21,7 @@ class WelcomeService {
   /**
    * Useful where we want to do some cleanup before closing the window
    */
-  login(phrase: any) {
+  login() {
     if (helpers.isLoggedIn())
       throw Error(
         'Already logged in (~/.point/keystore/key.json already exists). You need to log out first.'
@@ -30,10 +31,10 @@ class WelcomeService {
       fs.mkdirSync(helpers.getLiveDirectoryPath())
     }
 
-    const contents = JSON.stringify(phrase)
+    const contents = JSON.stringify({ phrase: this.mnemonic })
     fs.writeFileSync(helpers.getKeyFileName(), contents)
 
-    const arKey = getKeyFromMnemonic(phrase.phrase)
+    const arKey = getKeyFromMnemonic(this.mnemonic)
     fs.writeFileSync(helpers.getArweaveKeyFileName(), JSON.stringify(arKey))
 
     this.window.webContents.send(WelcomeChannelsEnum.login)
@@ -44,9 +45,11 @@ class WelcomeService {
    * Returns a phrase created from the dictionary provided
    */
   async generate() {
+    this.mnemonic = new Mnemonic(this.getDictionary()).toString()
+
     this.window.webContents.send(
       WelcomeChannelsEnum.generate_mnemonic,
-      new Mnemonic(this.getDictionary()).toString()
+      this.mnemonic
     )
   }
 
@@ -69,6 +72,7 @@ class WelcomeService {
       }
 
       if (Mnemonic.isValid(words.join(' '))) {
+        this.mnemonic = phrase
         this.window.webContents.send(
           WelcomeChannelsEnum.validate_mnemonic,
           true

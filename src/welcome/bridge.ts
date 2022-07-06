@@ -20,7 +20,7 @@ export const api = {
     ipcRenderer.send(WelcomeChannelsEnum.generate_mnemonic),
   validateMnemonic: (value: any) =>
     ipcRenderer.send(WelcomeChannelsEnum.validate_mnemonic, value),
-  login: (object: any) => ipcRenderer.send(WelcomeChannelsEnum.login, object),
+  login: () => ipcRenderer.send(WelcomeChannelsEnum.login),
   copyMnemonic: (value: any) =>
     ipcRenderer.send(WelcomeChannelsEnum.copy_mnemonic, value),
   pasteMnemonic: () => ipcRenderer.send(WelcomeChannelsEnum.paste_mnemonic),
