@@ -24,6 +24,8 @@ import { ErrorsEnum } from '../@types/errors'
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 
+const INITIAL_PING_ERROR_THRESHOLD = 15;
+
 // TODO: Add JSDoc comments
 /**
  * WHAT THIS MODULE DOES
@@ -39,6 +41,8 @@ class Node {
   logger: Logger
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
+  pingErrorCount = 0
+  pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD;
 
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
@@ -202,7 +206,6 @@ class Node {
    */
   async ping() {
     try {
-      this.logger.info('Pinging')
       await axios.get('https://point/v1/api/status/meta', {
         timeout: 3000,
         proxy: {
@@ -221,8 +224,15 @@ class Node {
           log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
-      this.logger.info('Pinged')
+      this.pingErrorCount = 0;
+      this.pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD
     } catch (error) {
+      this.pingErrorCount += 1
+      if (this.pingErrorCount > this.pingErrorThreshold) {
+        this.logger.error(ErrorsEnum.NODE_ERROR, `Unable to Ping after ${this.pingErrorThreshold} attempts`)
+        this.pingErrorThreshold *= 2;
+        this.pingErrorCount = 0;
+      }
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
@@ -230,7 +240,6 @@ class Node {
           log: 'Point Engine is not running',
         } as LaunchProcessLog),
       })
-      this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to Ping')
     }
   }
 
