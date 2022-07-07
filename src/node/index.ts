@@ -10,6 +10,7 @@ import rimraf from 'rimraf'
 import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import md5File from 'md5-file'
 // Types
 import { NodeChannelsEnum } from '../@types/ipc_channels'
 import {
@@ -175,13 +176,13 @@ class Node {
   async launch() {
     try {
       if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
-      if ((await this._getRunningProcess()).length) return
-
+      if ((await this._getRunningProcess()).length) {
+        this.logger.info('Point node is currently running. Skipping starting it');
+        return;
+      }
       const file = this._getBinFile()
-      let cmd = `NODE_ENV=production "${file}"`
-      if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
-
-      this.logger.info('Launching')
+      const cmd = global.platform.win32 ? `set NODE_ENV=production&&"${file}"` : `NODE_ENV=production "${file}"`
+      this.logger.info(`Launching point node md5: ${await md5File(file.toString())}`);
       return exec(cmd, (error, stdout, stderr) => {
         if (stdout) this.logger.info('Ran successfully')
         if (error) {
