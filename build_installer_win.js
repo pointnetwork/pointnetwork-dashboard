@@ -29,7 +29,8 @@ const msiCreator = new MSICreator({
     manufacturer: 'PointNetwork',
     version: '1.0.0',
     appIconPath: ICON_DIR,
-
+    certificateFile: process.env.WINDOWS_PFX_FILE,
+    certificatePassword: process.env.WINDOWS_PFX_PASSWORD,
     // Configure installer User Interface
     ui: {
         chooseDirectory: true,
@@ -44,11 +45,11 @@ const msiCreator = new MSICreator({
 })
 
 msiCreator.create().then(function(binaries) {
-    //binaries.supportBinaries.forEach((filepath) => {
+    // binaries.supportBinaries.forEach((filepath) => {
     //    if (filepath.match(/point.exe$/)) {
     //        // sign the binary
     //    }
-    //})
+    // })
     fs.copyFileSync(path.join(APP_DIR, 'point.exe'), path.join(OUT_DIR, 'point.exe'))
     msiCreator.compile().then(()=>{
         console.log('Compiled succesfully')
