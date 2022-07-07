@@ -12,15 +12,14 @@ import ExternalLink from '../../../../shared/react-components/ExternalLink'
 import CheckIcon from '@mui/icons-material/Check'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 // Types
-import { StartTimeoutState } from '../../../@types/generic'
 import { GenericChannelsEnum } from '../../../@types/ipc_channels'
 
 const TimeoutAlert = ({
   identifier,
-  startTimeout,
+  launchAttempts,
 }: {
   identifier: string
-  startTimeout: StartTimeoutState
+  launchAttempts: number
 }) => {
   const [copied, setCopied] = useState<boolean>(false)
 
@@ -32,11 +31,13 @@ const TimeoutAlert = ({
   }, [])
 
   return (
-    <Dialog open={startTimeout.isTimedOut}>
+    <Dialog open={launchAttempts >= 10}>
       <Box p={3}>
         <Typography>
           Failed to start Point Network. Please, close and reopen Point
-          Dashboard. If the problem persists, contact the support team{' '}
+          Dashboard. If the problem persists, please try to uninstall and
+          reinstall the dashboard by click the "Uninstall" button or contact the
+          support team{' '}
           <ExternalLink
             onClick={() =>
               window.Dashboard.openExternalLink(
@@ -69,6 +70,14 @@ const TimeoutAlert = ({
           )}
         </Box>
         <Box display="flex" justifyContent="flex-end" mt={2}>
+          <Button
+            color="error"
+            variant="outlined"
+            size="small"
+            onClick={window.Dashboard.launchUninstaller}
+          >
+            Uninstall
+          </Button>
           <Button
             color="error"
             variant="contained"
