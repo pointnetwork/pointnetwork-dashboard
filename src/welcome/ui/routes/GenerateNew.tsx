@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import WelcomeRoutes from './routes'
 // Material UI
 import Alert from '@mui/material/Alert'
@@ -16,11 +15,17 @@ import SendIcon from '@mui/icons-material/Send'
 // Types
 import { WelcomeChannelsEnum } from '../../../@types/ipc_channels'
 
-const GenerateNew = () => {
+const GenerateNew = ({
+  route,
+  setRoute,
+}: {
+  route: string
+  setRoute: Dispatch<SetStateAction<string>>
+}) => {
+  if (route !== WelcomeRoutes.new) return null
+
   const [alert, setAlert] = useState<string>('')
   const [secretPhrase, setSecretPhrase] = useState<string[]>(Array(12).fill(''))
-
-  const navigate = useNavigate()
 
   useEffect(() => {
     window.Welcome.getMnemonic()
@@ -43,7 +48,7 @@ const GenerateNew = () => {
   }, [])
 
   return (
-    <MainLayout>
+    <MainLayout navigate={() => setRoute(WelcomeRoutes.home)}>
       <Snackbar
         open={!!alert}
         message={alert}
@@ -102,7 +107,7 @@ const GenerateNew = () => {
             size="large"
             endIcon={<SendIcon />}
             fullWidth
-            onClick={() => navigate(WelcomeRoutes.verify)}
+            onClick={() => setRoute(WelcomeRoutes.verify)}
             disabled={secretPhrase.some(el => !el)}
           >
             Continue

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import WelcomeRoutes from './routes'
 // Material UI
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -13,7 +14,15 @@ import SendIcon from '@mui/icons-material/Send'
 // Types
 import { WelcomeChannelsEnum } from '../../../@types/ipc_channels'
 
-const ImportExisting = () => {
+const ImportExisting = ({
+  route,
+  setRoute,
+}: {
+  route: string
+  setRoute: Dispatch<SetStateAction<string>>
+}) => {
+  if (route !== WelcomeRoutes.existing) return null
+
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [secretPhrase, setSecretPhrase] = useState<string[]>(Array(12).fill(''))
@@ -55,7 +64,7 @@ const ImportExisting = () => {
   }
 
   return (
-    <MainLayout>
+    <MainLayout navigate={() => setRoute(WelcomeRoutes.home)}>
       <Grid container mb={1.5}>
         {error && (
           <Grid item xs={12} mb={-1} mt={-1}>

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import WelcomeRoutes from './routes'
 // Material UI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -14,7 +15,15 @@ import SendIcon from '@mui/icons-material/Send'
 // Types
 import { WelcomeChannelsEnum } from '../../../@types/ipc_channels'
 
-const VerifyPhrase = () => {
+const VerifyPhrase = ({
+  route,
+  setRoute,
+}: {
+  route: string
+  setRoute: Dispatch<SetStateAction<string>>
+}) => {
+  if (route !== WelcomeRoutes.verify) return null
+
   const [isMatch, setIsMatch] = useState<boolean>(false)
   const [inputs, setInputs] = useState<string[]>([])
   const [words, setWords] = useState<{ word: string; idx: number }[]>([])
@@ -58,7 +67,7 @@ const VerifyPhrase = () => {
   }
 
   return (
-    <MainLayout>
+    <MainLayout navigate={() => setRoute(WelcomeRoutes.new)}>
       <Typography variant="h4" mt={12} mb={2}>
         Verify Secret Phrase
       </Typography>
