@@ -1,99 +1,44 @@
 import { useEffect, useState } from 'react'
-// MAterial UI
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 // Components
-import SeedGenerator from './components/SeedGenerator'
-import SeedConfirmation from './components/SeedConfirmation'
-import Login from './components/Login'
-import MenuUninstaller from './components/MenuUninstall'
 import TopBar from './components/TopBar'
+import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
+import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
+// Pages
+import Home from './routes/Home'
+import GenerateNew from './routes/GenerateNew'
+import ImportExisting from './routes/ImportExisting'
+import VerifyPhrase from './routes/VerifyPhrase'
+import WelcomeRoutes from './routes/routes'
 // Types
-import { DashboardChannelsEnum } from '../../@types/ipc_channels'
+import { GenericChannelsEnum } from '../../@types/ipc_channels'
 
 export default function App() {
-  const [seed, setSeed] = useState<string>('')
-  const [seedConfirm, setSeedConfirm] = useState<boolean>(false)
-  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false)
-  const [version, setVersion] = useState<string>('')
+  const [identifier, setIdentifier] = useState<string>('')
 
   useEffect(() => {
-    window.Welcome.getDashboardVersion()
-    window.Welcome.on(DashboardChannelsEnum.get_version, (version: string) =>
-      setVersion(version)
+    window.Welcome.getIdentifier()
+
+    window.Welcome.on(
+      GenericChannelsEnum.get_identifier,
+      (identifier: string) => {
+        setIdentifier(identifier)
+      }
     )
   }, [])
-
-  const login = () => {
-    setSeed('')
-    setIsLoggingIn(true)
-    setSeedConfirm(true)
-  }
-
-  const goBack = () => {
-    setIsLoggingIn(false)
-    setSeedConfirm(false)
-  }
-
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-  const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-
-  const open = Boolean(anchorEl)
-
-  const uninstall = () => {
-    console.log(window.Welcome)
-    window.Welcome.launchUninstaller()
-    handleClose()
-  }
-
-  const renderScreen = () => {
-    if (!seedConfirm) {
-      return (
-        <SeedGenerator
-          seed={seed}
-          setSeed={setSeed}
-          confirm={() => setSeedConfirm(true)}
-          login={login}
-        />
-      )
-    }
-
-    if (isLoggingIn) {
-      return <Login goBack={goBack} />
-    }
-
-    return <SeedConfirmation seed={seed} goBack={goBack} />
-  }
 
   return (
     <UIThemeProvider>
       <TopBar isLoading={false} />
-      <Box display="flex" alignItems="baseline">
-        <Box sx={{ p: '3.5%' }}>
-          <Box display="flex" alignItems="baseline">
-            <Typography variant="h4" gutterBottom component="h1">
-              Welcome to Point Network
-            </Typography>
-            <Typography ml={1}>v{version}</Typography>
-          </Box>
-          {renderScreen()}
-        </Box>
-        <MenuUninstaller
-          anchorEl={anchorEl}
-          handleClick={handleClick}
-          open={open}
-          handleClose={handleClose}
-          uninstall={uninstall}
-        />
-      </Box>
+      <DisplayIdentifier identifier={identifier} />
+      <BrowserRouter>
+        <Routes>
+          <Route path={WelcomeRoutes.home} element={<Home />} />
+          <Route path={WelcomeRoutes.new} element={<GenerateNew />} />
+          <Route path={WelcomeRoutes.existing} element={<ImportExisting />} />
+          <Route path={WelcomeRoutes.verify} element={<VerifyPhrase />} />
+        </Routes>
+      </BrowserRouter>
     </UIThemeProvider>
   )
 }

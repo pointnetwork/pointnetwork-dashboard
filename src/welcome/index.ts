@@ -1,41 +1,28 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-import WelcomeService from './services'
+import { app, BrowserWindow, ipcMain, clipboard } from 'electron'
+import WelcomeService from './service'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import { getIdentifier } from '../../shared/getIdentifier'
+// Types
 import {
   DashboardChannelsEnum,
   GenericChannelsEnum,
+  WelcomeChannelsEnum,
 } from '../@types/ipc_channels'
 
-const logger = new Logger()
+const logger = new Logger({ module: 'welcome_window' })
 
-let mainWindow: BrowserWindow | null
+let window: BrowserWindow | null
 let welcomeService: WelcomeService | null
 
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
 
-const MESSAGES = {
-  uninstallConfirmation: {
-    title: 'Uninstall Point Network',
-    message:
-      'Are you sure you want to uninstall Point Network? Clicking Yes will also close the Point Dashboard.',
-    buttons: {
-      confirm: 'Yes',
-      cancel: 'No',
-    },
-  },
-}
-// const assetsPath =
-//   process.env.NODE_ENV === 'production'
-//     ? process.resourcesPath
-//     : app.getAppPath()
-
 export default function (isExplicitRun = false) {
   function createWindow() {
-    mainWindow = new BrowserWindow({
+    window = new BrowserWindow({
       ...baseWindowConfig,
       width: 960,
       height: 560,
@@ -45,103 +32,118 @@ export default function (isExplicitRun = false) {
       },
     })
 
-    // debug
-    // mainWindow.webContents.openDevTools()
-    welcomeService = new WelcomeService(mainWindow!)
+    welcomeService = new WelcomeService(window!)
 
-    mainWindow.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
+    window.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
 
-    mainWindow.on('close', () => {
-      logger.info('Closed Welcome Window')
-      events.forEach(event => {
-        ipcMain.removeListener(event.channel, event.listener)
-        logger.info('[welcome:index.ts] Removed event', event.channel)
-      })
+    window.on('close', () => {
+      logger.info('Closing Welcome Window')
+      logger.info('Removing all event listeners')
+      ipcMain.removeAllListeners()
+      logger.info('Removed all event listeners')
     })
-    mainWindow.on('closed', () => {
-      mainWindow = null
+
+    window.on('closed', () => {
+      logger.info('Closed Welcome Window')
+      window = null
       welcomeService = null
     })
   }
 
   const events = [
+    // Welcome channels
     {
-      channel: 'welcome:generate_mnemonic',
+      channel: WelcomeChannelsEnum.generate_mnemonic,
       listener() {
         welcomeService!.generate()
       },
     },
     {
-      channel: 'welcome:validate_mnemonic',
+      channel: WelcomeChannelsEnum.get_mnemonic,
+      listener() {
+        welcomeService!.getGeneratedMnemonic()
+      },
+    },
+    {
+      channel: WelcomeChannelsEnum.pick_words,
+      listener() {
+        welcomeService!.pickRandomWords()
+      },
+    },
+    {
+      channel: WelcomeChannelsEnum.validate_words,
+      listener(_: any, words: string[]) {
+        welcomeService!.verifyWords(words)
+      },
+    },
+    {
+      channel: WelcomeChannelsEnum.validate_mnemonic,
       listener(_: any, message: string) {
         welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''))
       },
     },
     {
-      channel: 'welcome:copy_mnemonic',
+      channel: WelcomeChannelsEnum.copy_mnemonic,
       listener(_: any, message: string) {
-        welcomeService!.copy(message)
+        clipboard.writeText(message)
+        window?.webContents.send(WelcomeChannelsEnum.copy_mnemonic)
       },
     },
     {
-      channel: 'welcome:paste_mnemonic',
-      listener(_: any) {
-        welcomeService!.paste()
+      channel: WelcomeChannelsEnum.paste_mnemonic,
+      listener() {
+        window?.webContents.send(
+          WelcomeChannelsEnum.paste_mnemonic,
+          clipboard.readText('clipboard').toLowerCase()
+        )
       },
     },
     {
-      channel: 'welcome:login',
-      async listener(_: any, message: string) {
-        const result = await welcomeService!.login(message)
+      channel: WelcomeChannelsEnum.login,
+      listener() {
+        const result = welcomeService!.login()
         if (result) {
+          window?.close()
           dashboard(true)
-          welcomeService!.close()
         }
       },
     },
     {
-      channel: 'welcome:get_dictionary',
+      channel: WelcomeChannelsEnum.get_dictionary,
       listener() {
         welcomeService!.getDictionary()
       },
     },
-    {
-      channel: 'welcome:launchUninstaller',
-      async listener() {
-        const confirmationAnswer = dialog.showMessageBoxSync({
-          type: 'question',
-          title: MESSAGES.uninstallConfirmation.title,
-          message: MESSAGES.uninstallConfirmation.message,
-          buttons: [
-            MESSAGES.uninstallConfirmation.buttons.confirm,
-            MESSAGES.uninstallConfirmation.buttons.cancel,
-          ],
-        })
-
-        if (confirmationAnswer === 0) {
-          mainWindow?.destroy()
-        }
-      },
-    },
+    // Dashboard channels
     {
       channel: DashboardChannelsEnum.get_version,
       listener() {
-        mainWindow!.webContents.send(
+        window!.webContents.send(
           DashboardChannelsEnum.get_version,
           helpers.getInstalledDashboardVersion()
+        )
+      },
+    },
+    // Generic channels
+    {
+      channel: GenericChannelsEnum.get_identifier,
+      listener() {
+        window?.webContents.send(
+          GenericChannelsEnum.get_identifier,
+          getIdentifier()[0]
         )
       },
     },
     {
       channel: GenericChannelsEnum.minimize_window,
       listener() {
-        mainWindow!.minimize()
+        window!.minimize()
       },
     },
     {
       channel: GenericChannelsEnum.close_window,
       listener() {
-        mainWindow!.close()
+        window!.close()
       },
     },
   ]
@@ -149,7 +151,7 @@ export default function (isExplicitRun = false) {
   async function registerListeners() {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
-      logger.info('[welcome:index.ts] Registered event', event.channel)
+      logger.info('Registered event', event.channel)
     })
   }
 

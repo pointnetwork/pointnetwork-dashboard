@@ -145,7 +145,7 @@ export default function App() {
             unpackChannel={FirefoxChannelsEnum.unpack}
           />
           <DownloadExtractLogs
-            title="PointSDK Extenstion"
+            title="SDK Extenstion"
             downloadChannel={PointSDKChannelsEnum.download}
           />
           <DownloadExtractLogs

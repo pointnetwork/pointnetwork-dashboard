@@ -324,7 +324,7 @@ class Node {
   /**
    * Returns the identity currently active on Point Engine
    */
-  async getIdentityInfo() {
+  async getIdentityInfo(): Promise<{ address: string; identity: string }> {
     this.logger.info('Getting identity')
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.get_identity,
@@ -342,16 +342,18 @@ class Node {
       res = await axios.get(
         `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
       )
+      const identity = res.data.data.identity
       this.logger.info('Fetched identity')
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.get_identity,
         log: JSON.stringify({
           isFetching: false,
           address,
-          identity: res.data.data.identity,
+          identity,
           log: 'Identity fetched',
         } as IdentityLog),
       })
+      return { address, identity }
     } catch (e) {
       this.logger.error(ErrorsEnum.NODE_ERROR, e)
       throw e

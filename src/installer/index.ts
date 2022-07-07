@@ -13,7 +13,7 @@ import {
 } from '../@types/ipc_channels'
 export { Installer }
 
-const logger = new Logger({ module: 'installer:index' })
+const logger = new Logger({ module: 'installer_window' })
 
 app.disableHardwareAcceleration()
 
@@ -39,24 +39,29 @@ export default function () {
 
     mainWindow.loadURL(INSTALLER_WINDOW_WEBPACK_ENTRY)
 
+    mainWindow.on('close', () => {
+      logger.info('Closing Installer Window')
+      logger.info('Removing all event listeners')
+      ipcMain.removeAllListeners()
+      logger.info('Removed all event listeners')
+    })
+
     mainWindow.on('closed', () => {
-      logger.info('Closed Installer Window')
-      events.forEach(event => {
-        ipcMain.removeListener(event.channel, event.listener)
-        logger.info('Removed event', event.channel)
-      })
       mainWindow = null
       installer = null
+
+      logger.info('Closed Installer Window')
     })
   }
 
   const events = [
+    // Installer channels
     {
       channel: InstallerChannelsEnum.start,
       async listener() {
         try {
           await installer!.install()
-          await installer!.close()
+          installer!.close()
           welcome(true)
         } catch (error) {
           logger.error(error)
@@ -73,6 +78,7 @@ export default function () {
         }
       },
     },
+    // Dashboard channels
     {
       channel: DashboardChannelsEnum.get_version,
       listener() {
@@ -82,6 +88,7 @@ export default function () {
         )
       },
     },
+    // Generic channels
     {
       channel: GenericChannelsEnum.get_identifier,
       listener() {

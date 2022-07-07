@@ -9,17 +9,21 @@ export enum InstallerChannelsEnum {
 }
 
 export enum WelcomeChannelsEnum {
-  copy_mnemonic = 'welcome:generate_mnemonic',
+  copy_mnemonic = 'welcome:copy_mnemonic',
   generate_mnemonic = 'welcome:generate_mnemonic',
+  get_mnemonic = 'welcome:get_mnemonic',
   get_dictionary = 'welcome:get_dictionary',
   login = 'welcome:login',
   paste_mnemonic = 'welcome:paste_mnemonic',
+  pick_words = 'welcome:pick_words',
   validate_mnemonic = 'welcome:validate_mnemonic',
+  validate_words = 'welcome:validate_words',
 }
 
 export enum GenericChannelsEnum {
   close_window = 'generic:close_window',
   check_for_updates = 'generic:check_for_updates',
+  copy_to_clipboard = 'generic:copy_to_clipboard',
   get_identifier = 'generic:get_identifier',
   minimize_window = 'generic:minimize_window',
   open_external_link = 'generic:open_external_link',
