@@ -29,7 +29,8 @@ const msiCreator = new MSICreator({
     manufacturer: 'PointNetwork',
     version: '1.0.0',
     appIconPath: ICON_DIR,
-
+    certificateFile: './win-certificate.pfx',
+    certificatePassword: process.env.NEW_CERTIFICATE_WINDOWS_PFX,
     // Configure installer User Interface
     ui: {
         chooseDirectory: true,

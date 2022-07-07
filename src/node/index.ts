@@ -181,7 +181,7 @@ class Node {
       let cmd = `NODE_ENV=production "${file}"`
       if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
 
-      this.logger.info('Launching')
+      this.logger.info('Launching PointNode executable')
       return exec(cmd, (error, stdout, stderr) => {
         if (stdout) this.logger.info('Ran successfully')
         if (error) {
