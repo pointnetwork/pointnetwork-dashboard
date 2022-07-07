@@ -3,6 +3,12 @@ import dashboard from '../dashboard'
 import welcome from '../welcome'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
+import { dialog } from 'electron'
+
+// Disable error dialogs by overriding
+dialog.showErrorBox = function(title, content) {
+  logger.info(`${title}\n${content}`)
+};
 
 const logger = new Logger()
 
