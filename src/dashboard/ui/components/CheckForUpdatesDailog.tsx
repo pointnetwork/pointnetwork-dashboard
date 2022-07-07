@@ -139,14 +139,16 @@ const ResourceUpdateCard = ({
 const CheckForUpdatesDailog = ({
   dialogOpen,
   setDialogOpen,
-  isUpdating,
-  setIsUpdating,
 }: {
   dialogOpen: boolean
   setDialogOpen: Dispatch<SetStateAction<boolean>>
-  isUpdating: IsUpdatingState
-  setIsUpdating: Dispatch<SetStateAction<IsUpdatingState>>
 }) => {
+  const [isUpdating, setIsUpdating] = useState<IsUpdatingState>({
+    firefox: false,
+    node: false,
+    pointsdk: false
+  })
+
   useEffect(() => {
     if (Object.values(isUpdating).every(el => !el)) {
       setTimeout(() => setDialogOpen(false), 2000)
