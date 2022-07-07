@@ -1,5 +1,4 @@
-import { ReactElement } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { ReactElement, ReactEventHandler } from 'react'
 // MUI
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
@@ -9,15 +8,15 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
 const MainLayout = ({
   children,
+  navigate,
 }: {
+  navigate: ReactEventHandler
   children: ReactElement | ReactElement[]
 }) => {
-  const navigate = useNavigate()
-
   return (
     <Box>
       <Box pl={2}>
-        <IconButton onClick={() => navigate(-1)}>
+        <IconButton onClick={navigate}>
           <ArrowBackIcon />
         </IconButton>
       </Box>

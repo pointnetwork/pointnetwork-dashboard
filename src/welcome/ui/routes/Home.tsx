@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Dispatch, ReactEventHandler, SetStateAction } from 'react'
 import WelcomeRoutes from './routes'
 // Material UI
 import Box from '@mui/material/Box'
@@ -10,7 +10,15 @@ import deepPurple from '@mui/material/colors/deepPurple'
 import DownloadIcon from '@mui/icons-material/Download'
 import KeyIcon from '@mui/icons-material/Key'
 
-const Home = () => {
+const Home = ({
+  route,
+  setRoute,
+}: {
+  route: string
+  setRoute: Dispatch<SetStateAction<string>>
+}) => {
+  if (route !== WelcomeRoutes.home) return null
+
   return (
     <Container maxWidth="sm">
       <Typography variant="h4" mt={16}>
@@ -19,13 +27,13 @@ const Home = () => {
       <Box width="560px">
         <Grid container pt={2.5}>
           <ClickableCard
-            route={WelcomeRoutes.new}
+            setRoute={() => setRoute(WelcomeRoutes.new)}
             icon={<KeyIcon sx={{ height: 64, width: 64 }} />}
           >
             Generate New Secret Phrase
           </ClickableCard>
           <ClickableCard
-            route={WelcomeRoutes.existing}
+            setRoute={() => setRoute(WelcomeRoutes.existing)}
             icon={<DownloadIcon sx={{ height: 64, width: 64 }} />}
           >
             Import an Existing Secret Phrase
@@ -41,14 +49,12 @@ export default Home
 const ClickableCard = ({
   icon,
   children,
-  route,
+  setRoute,
 }: {
   icon: any
   children: string
-  route: string
+  setRoute: ReactEventHandler
 }) => {
-  const navigate = useNavigate()
-
   return (
     <Grid item xs={6} p={1}>
       <Box
@@ -73,7 +79,7 @@ const ClickableCard = ({
             background: deepPurple.A700,
           },
         }}
-        onClick={() => navigate(route)}
+        onClick={setRoute}
       >
         {icon}
         <Typography variant="h6" textAlign="center" mt={1} lineHeight={1.5}>

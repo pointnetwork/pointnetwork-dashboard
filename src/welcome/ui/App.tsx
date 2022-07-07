@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
 // Components
 import TopBar from './components/TopBar'
 import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
@@ -14,6 +13,8 @@ import WelcomeRoutes from './routes/routes'
 import { GenericChannelsEnum } from '../../@types/ipc_channels'
 
 export default function App() {
+  const [route, setRoute] = useState<string>(WelcomeRoutes.home)
+
   const [identifier, setIdentifier] = useState<string>('')
 
   useEffect(() => {
@@ -31,14 +32,10 @@ export default function App() {
     <UIThemeProvider>
       <TopBar isLoading={false} />
       <DisplayIdentifier identifier={identifier} />
-      <BrowserRouter>
-        <Routes>
-          <Route path={WelcomeRoutes.home} element={<Home />} />
-          <Route path={WelcomeRoutes.new} element={<GenerateNew />} />
-          <Route path={WelcomeRoutes.existing} element={<ImportExisting />} />
-          <Route path={WelcomeRoutes.verify} element={<VerifyPhrase />} />
-        </Routes>
-      </BrowserRouter>
+      <Home route={route} setRoute={setRoute} />
+      <GenerateNew route={route} setRoute={setRoute} />
+      <ImportExisting route={route} setRoute={setRoute} />
+      <VerifyPhrase route={route} setRoute={setRoute} />
     </UIThemeProvider>
   )
 }
