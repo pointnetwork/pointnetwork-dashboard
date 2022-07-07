@@ -21,11 +21,7 @@ import {
   NodeChannelsEnum,
   UninstallerChannelsEnum,
 } from '../../@types/ipc_channels'
-import {
-  LaunchProcessLog,
-  IsUpdatingState,
-  StartTimeoutState,
-} from '../../@types/generic'
+import { LaunchProcessLog } from '../../@types/generic'
 // Icons
 import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
 import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
@@ -35,17 +31,9 @@ const App = () => {
   const [browserVersion, setBrowserVersion] = useState<string>('')
   const [nodeVersion, setNodeVersion] = useState<string>('')
   // Update related state variables
-  const [updateDialogOpen, setUpdateDialogOpen] = useState<boolean>(true)
-  const [isUpdating, setIsUpdating] = useState<IsUpdatingState>({
-    firefox: true,
-    node: true,
-    pointsdk: true,
-  })
+  const [updateDialogOpen, setUpdateDialogOpen] = useState<boolean>(false)
   // Running state variables
-  const [startTimeout, setStartTimeout] = useState<StartTimeoutState>({
-    isTimedOut: false,
-    isSet: false,
-  })
+  const [launchAttempts, setLaunchAttempts] = useState<number>(0)
   const [loader, setIsLaunching] = useState<{
     isLoading: boolean
     message: string
@@ -92,20 +80,18 @@ const App = () => {
       setIsNodeRunning(parsed.isRunning)
 
       if (!parsed.isRunning) {
+        console.log('Entered !parsed.isRunning')
         setTimeout(window.Dashboard.launchNodeAndPing, 2000)
-        if (!startTimeout.isSet) {
-          setStartTimeout(prev => ({ ...prev, isSet: true }))
-          setTimeout(() => {
-            if (isNodeRunning)
-              setStartTimeout({ isSet: false, isTimedOut: false })
-            else {
-              setIsLaunching({ isLoading: false, message: '' })
-              setStartTimeout({ isSet: false, isTimedOut: true })
-            }
-          }, 70000)
-        }
+        setLaunchAttempts(prev => {
+          if (prev >= 5)
+            setIsLaunching(prev => ({
+              ...prev,
+              message: `Starting Point Network (please wait)`,
+            }))
+          return prev + 1
+        })
       } else {
-        setStartTimeout({ isSet: false, isTimedOut: false })
+        setLaunchAttempts(0)
       }
     })
 
@@ -153,13 +139,11 @@ const App = () => {
       <TopBar isBrowserRunning={isBrowserRunning} />
       <DisplayIdentifier identifier={identifier} />
       <DashboardUpdateAlert />
-      <TimeoutAlert identifier={identifier} startTimeout={startTimeout} />
+      <TimeoutAlert identifier={identifier} launchAttempts={launchAttempts} />
 
       <CheckForUpdatesDailog
         dialogOpen={updateDialogOpen}
         setDialogOpen={setUpdateDialogOpen}
-        isUpdating={isUpdating}
-        setIsUpdating={setIsUpdating}
       />
 
       <DefaultLoader
