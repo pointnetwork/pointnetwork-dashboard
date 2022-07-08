@@ -102,68 +102,66 @@ class Node {
           downloadStream,
         })
 
-        downloadStream.on('close', async () => {
+        try {
+          this.logger.info('Unpacking')
+          // 3. Unpack the downloaded file and send logs to window
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.unpack,
+            log: JSON.stringify({
+              started: true,
+              log: 'Unpacking Point Engine',
+              done: false,
+              progress: 0,
+              error: false,
+            } as GenericProgressLog),
+          })
           try {
-            this.logger.info('Unpacking')
-            // 3. Unpack the downloaded file and send logs to window
-            this.logger.sendToChannel({
-              channel: NodeChannelsEnum.unpack,
-              log: JSON.stringify({
-                started: true,
-                log: 'Unpacking Point Engine',
-                done: false,
-                progress: 0,
-                error: false,
-              } as GenericProgressLog),
+            await decompress(downloadDest, this.pointDir, {
+              plugins: [decompressTargz()],
             })
-            try {
-              await decompress(downloadDest, this.pointDir, {
-                plugins: [decompressTargz()],
-              })
-            } catch (error) {
-              this.logger.sendToChannel({
-                channel: NodeChannelsEnum.unpack,
-                log: JSON.stringify({
-                  log: 'Error unpacking Point Engine',
-                  error: true,
-                } as GenericProgressLog),
-              })
-              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
-              throw error
-            }
-            this.logger.sendToChannel({
-              channel: NodeChannelsEnum.unpack,
-              log: JSON.stringify({
-                started: false,
-                log: 'Unpacked Point Engine',
-                done: true,
-                progress: 100,
-              } as GenericProgressLog),
-            })
-            this.logger.info('Unpacked')
-            // 4. Delete the downloaded file
-            this.logger.info('Removing downloaded file')
-            fs.unlinkSync(downloadDest)
-            this.logger.info('Removed downloaded file')
-
-            // 5. Save infoNode.json file
-            this.logger.info('Saving "infoNode.json"')
-            fs.writeFile(
-              path.join(this.pointDir, 'infoNode.json'),
-              JSON.stringify({
-                installedReleaseVersion: latestVersion,
-                lastCheck: moment().unix(),
-              }),
-              'utf8'
-            )
-            this.logger.info('Saved "infoNode.json"')
-
-            resolve()
           } catch (error) {
-            this.logger.error(ErrorsEnum.NODE_ERROR, error)
-            reject(error)
+            this.logger.sendToChannel({
+              channel: NodeChannelsEnum.unpack,
+              log: JSON.stringify({
+                log: 'Error unpacking Point Engine',
+                error: true,
+              } as GenericProgressLog),
+            })
+            this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+            throw error
           }
-        })
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.unpack,
+            log: JSON.stringify({
+              started: false,
+              log: 'Unpacked Point Engine',
+              done: true,
+              progress: 100,
+            } as GenericProgressLog),
+          })
+          this.logger.info('Unpacked')
+          // 4. Delete the downloaded file
+          this.logger.info('Removing downloaded file')
+          fs.unlinkSync(downloadDest)
+          this.logger.info('Removed downloaded file')
+
+          // 5. Save infoNode.json file
+          this.logger.info('Saving "infoNode.json"')
+          fs.writeFileSync(
+            path.join(this.pointDir, 'infoNode.json'),
+            JSON.stringify({
+              installedReleaseVersion: latestVersion,
+              lastCheck: moment().unix(),
+            }),
+            'utf8'
+          )
+          this.logger.info('Saved "infoNode.json"')
+
+          resolve()
+        } catch (error) {
+          this.logger.error(ErrorsEnum.NODE_ERROR, error)
+          reject(error)
+        }
       } catch (error) {
         this.logger.error(ErrorsEnum.NODE_ERROR, error)
         reject(error)
@@ -179,7 +177,7 @@ class Node {
    */
   async launch() {
     try {
-      if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
+      if (!fs.existsSync(this._getBinFile())) return
       if ((await this._getRunningProcess()).length) {
         this.logger.info('Point node is currently running. Skipping starting it');
         return;
@@ -313,7 +311,7 @@ class Node {
           } as UpdateLog),
         })
         await this.stop()
-        this.downloadAndInstall()
+        await this.downloadAndInstall()
       } else {
         this.logger.info('Already up to date')
         this.logger.sendToChannel({
