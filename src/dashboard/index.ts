@@ -310,7 +310,7 @@ export default function (isExplicitRun = false) {
           const installedDashboardV =
             await helpers.getInstalledDashboardVersion()
 
-          if (latestDashboardV !== `v${installedDashboardV}`)
+          if (latestDashboardV > `v${installedDashboardV}`)
             window?.webContents.send(
               DashboardChannelsEnum.check_for_updates,
               JSON.stringify({
