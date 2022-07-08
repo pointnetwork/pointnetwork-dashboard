@@ -90,7 +90,7 @@ const download: DownloadFunction = ({
           }
         })
 
-        response.on('close', () => {
+        response.on('end', () => {
           logger?.info(`Downloaded Point ${asset}`)
           channel &&
             logger?.sendToChannel({

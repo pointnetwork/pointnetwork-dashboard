@@ -10,6 +10,7 @@ import rimraf from 'rimraf'
 import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import md5File from 'md5-file'
 // Types
 import { NodeChannelsEnum } from '../@types/ipc_channels'
 import {
@@ -23,6 +24,8 @@ import { ErrorsEnum } from '../@types/errors'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
+
+const INITIAL_PING_ERROR_THRESHOLD = 15;
 
 // TODO: Add JSDoc comments
 /**
@@ -39,6 +42,8 @@ class Node {
   logger: Logger
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
+  pingErrorCount = 0
+  pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD;
 
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
@@ -97,68 +102,66 @@ class Node {
           downloadStream,
         })
 
-        downloadStream.on('close', async () => {
+        try {
+          this.logger.info('Unpacking')
+          // 3. Unpack the downloaded file and send logs to window
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.unpack,
+            log: JSON.stringify({
+              started: true,
+              log: 'Unpacking Point Engine',
+              done: false,
+              progress: 0,
+              error: false,
+            } as GenericProgressLog),
+          })
           try {
-            this.logger.info('Unpacking')
-            // 3. Unpack the downloaded file and send logs to window
-            this.logger.sendToChannel({
-              channel: NodeChannelsEnum.unpack,
-              log: JSON.stringify({
-                started: true,
-                log: 'Unpacking Point Engine',
-                done: false,
-                progress: 0,
-                error: false,
-              } as GenericProgressLog),
+            await decompress(downloadDest, this.pointDir, {
+              plugins: [decompressTargz()],
             })
-            try {
-              await decompress(downloadDest, this.pointDir, {
-                plugins: [decompressTargz()],
-              })
-            } catch (error) {
-              this.logger.sendToChannel({
-                channel: NodeChannelsEnum.unpack,
-                log: JSON.stringify({
-                  log: 'Error unpacking Point Engine',
-                  error: true,
-                } as GenericProgressLog),
-              })
-              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
-              throw error
-            }
-            this.logger.sendToChannel({
-              channel: NodeChannelsEnum.unpack,
-              log: JSON.stringify({
-                started: false,
-                log: 'Unpacked Point Engine',
-                done: true,
-                progress: 100,
-              } as GenericProgressLog),
-            })
-            this.logger.info('Unpacked')
-            // 4. Delete the downloaded file
-            this.logger.info('Removing downloaded file')
-            fs.unlinkSync(downloadDest)
-            this.logger.info('Removed downloaded file')
-
-            // 5. Save infoNode.json file
-            this.logger.info('Saving "infoNode.json"')
-            fs.writeFile(
-              path.join(this.pointDir, 'infoNode.json'),
-              JSON.stringify({
-                installedReleaseVersion: latestVersion,
-                lastCheck: moment().unix(),
-              }),
-              'utf8'
-            )
-            this.logger.info('Saved "infoNode.json"')
-
-            resolve()
           } catch (error) {
-            this.logger.error(ErrorsEnum.NODE_ERROR, error)
-            reject(error)
+            this.logger.sendToChannel({
+              channel: NodeChannelsEnum.unpack,
+              log: JSON.stringify({
+                log: 'Error unpacking Point Engine',
+                error: true,
+              } as GenericProgressLog),
+            })
+            this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+            throw error
           }
-        })
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.unpack,
+            log: JSON.stringify({
+              started: false,
+              log: 'Unpacked Point Engine',
+              done: true,
+              progress: 100,
+            } as GenericProgressLog),
+          })
+          this.logger.info('Unpacked')
+          // 4. Delete the downloaded file
+          this.logger.info('Removing downloaded file')
+          fs.unlinkSync(downloadDest)
+          this.logger.info('Removed downloaded file')
+
+          // 5. Save infoNode.json file
+          this.logger.info('Saving "infoNode.json"')
+          fs.writeFileSync(
+            path.join(this.pointDir, 'infoNode.json'),
+            JSON.stringify({
+              installedReleaseVersion: latestVersion,
+              lastCheck: moment().unix(),
+            }),
+            'utf8'
+          )
+          this.logger.info('Saved "infoNode.json"')
+
+          resolve()
+        } catch (error) {
+          this.logger.error(ErrorsEnum.NODE_ERROR, error)
+          reject(error)
+        }
       } catch (error) {
         this.logger.error(ErrorsEnum.NODE_ERROR, error)
         reject(error)
@@ -174,14 +177,14 @@ class Node {
    */
   async launch() {
     try {
-      if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
-      if ((await this._getRunningProcess()).length) return
-
+      if (!fs.existsSync(this._getBinFile())) return
+      if ((await this._getRunningProcess()).length) {
+        this.logger.info('Point node is currently running. Skipping starting it');
+        return;
+      }
       const file = this._getBinFile()
-      let cmd = `NODE_ENV=production "${file}"`
-      if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
-
-      this.logger.info('Launching')
+      const cmd = global.platform.win32 ? `set NODE_ENV=production&&"${file}"` : `NODE_ENV=production "${file}"`
+      this.logger.info(`Launching point node md5: ${await md5File(file.toString())}`);
       return exec(cmd, (error, stdout, stderr) => {
         if (stdout) this.logger.info('Ran successfully')
         if (error) {
@@ -202,7 +205,6 @@ class Node {
    */
   async ping() {
     try {
-      this.logger.info('Pinging')
       await axios.get('https://point/v1/api/status/meta', {
         timeout: 3000,
         proxy: {
@@ -221,8 +223,15 @@ class Node {
           log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
-      this.logger.info('Pinged')
+      this.pingErrorCount = 0;
+      this.pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD
     } catch (error) {
+      this.pingErrorCount += 1
+      if (this.pingErrorCount > this.pingErrorThreshold) {
+        this.logger.error(ErrorsEnum.NODE_ERROR, `Unable to Ping after ${this.pingErrorThreshold} attempts`)
+        this.pingErrorThreshold *= 2;
+        this.pingErrorCount = 0;
+      }
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
@@ -230,7 +239,6 @@ class Node {
           log: 'Point Engine is not running',
         } as LaunchProcessLog),
       })
-      this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to Ping')
     }
   }
 
@@ -303,7 +311,7 @@ class Node {
           } as UpdateLog),
         })
         await this.stop()
-        this.downloadAndInstall()
+        await this.downloadAndInstall()
       } else {
         this.logger.info('Already up to date')
         this.logger.sendToChannel({
