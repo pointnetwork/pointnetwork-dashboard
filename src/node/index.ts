@@ -25,7 +25,7 @@ import { ErrorsEnum } from '../@types/errors'
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 
-const INITIAL_PING_ERROR_THRESHOLD = 15;
+const INITIAL_PING_ERROR_THRESHOLD = 15
 
 // TODO: Add JSDoc comments
 /**
@@ -43,7 +43,7 @@ class Node {
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
   pingErrorCount = 0
-  pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD;
+  pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD
 
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
@@ -102,66 +102,61 @@ class Node {
           downloadStream,
         })
 
+        this.logger.info('Unpacking')
+        // 3. Unpack the downloaded file and send logs to window
+        this.logger.sendToChannel({
+          channel: NodeChannelsEnum.unpack,
+          log: JSON.stringify({
+            started: true,
+            log: 'Unpacking Point Engine',
+            done: false,
+            progress: 0,
+            error: false,
+          } as GenericProgressLog),
+        })
         try {
-          this.logger.info('Unpacking')
-          // 3. Unpack the downloaded file and send logs to window
-          this.logger.sendToChannel({
-            channel: NodeChannelsEnum.unpack,
-            log: JSON.stringify({
-              started: true,
-              log: 'Unpacking Point Engine',
-              done: false,
-              progress: 0,
-              error: false,
-            } as GenericProgressLog),
+          await decompress(downloadDest, this.pointDir, {
+            plugins: [decompressTargz()],
           })
-          try {
-            await decompress(downloadDest, this.pointDir, {
-              plugins: [decompressTargz()],
-            })
-          } catch (error) {
-            this.logger.sendToChannel({
-              channel: NodeChannelsEnum.unpack,
-              log: JSON.stringify({
-                log: 'Error unpacking Point Engine',
-                error: true,
-              } as GenericProgressLog),
-            })
-            this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
-            throw error
-          }
-          this.logger.sendToChannel({
-            channel: NodeChannelsEnum.unpack,
-            log: JSON.stringify({
-              started: false,
-              log: 'Unpacked Point Engine',
-              done: true,
-              progress: 100,
-            } as GenericProgressLog),
-          })
-          this.logger.info('Unpacked')
-          // 4. Delete the downloaded file
-          this.logger.info('Removing downloaded file')
-          fs.unlinkSync(downloadDest)
-          this.logger.info('Removed downloaded file')
-
-          // 5. Save infoNode.json file
-          this.logger.info('Saving "infoNode.json"')
-          fs.writeFileSync(
-            path.join(this.pointDir, 'infoNode.json'),
-            JSON.stringify({
-              installedReleaseVersion: latestVersion,
-              lastCheck: moment().unix(),
-            }),
-            'utf8'
-          )
-          this.logger.info('Saved "infoNode.json"')
-
-          resolve()
         } catch (error) {
-          this.logger.error(ErrorsEnum.NODE_ERROR, error)
-          reject(error)
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.unpack,
+            log: JSON.stringify({
+              log: 'Error unpacking Point Engine',
+              error: true,
+            } as GenericProgressLog),
+          })
+          this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+          throw error
         }
+        this.logger.sendToChannel({
+          channel: NodeChannelsEnum.unpack,
+          log: JSON.stringify({
+            started: false,
+            log: 'Unpacked Point Engine',
+            done: true,
+            progress: 100,
+          } as GenericProgressLog),
+        })
+        this.logger.info('Unpacked')
+        // 4. Delete the downloaded file
+        this.logger.info('Removing downloaded file')
+        fs.unlinkSync(downloadDest)
+        this.logger.info('Removed downloaded file')
+
+        // 5. Save infoNode.json file
+        this.logger.info('Saving "infoNode.json"')
+        fs.writeFileSync(
+          path.join(this.pointDir, 'infoNode.json'),
+          JSON.stringify({
+            installedReleaseVersion: latestVersion,
+            lastCheck: moment().unix(),
+          }),
+          'utf8'
+        )
+        this.logger.info('Saved "infoNode.json"')
+
+        resolve()
       } catch (error) {
         this.logger.error(ErrorsEnum.NODE_ERROR, error)
         reject(error)
@@ -179,12 +174,18 @@ class Node {
     try {
       if (!fs.existsSync(this._getBinFile())) return
       if ((await this._getRunningProcess()).length) {
-        this.logger.info('Point node is currently running. Skipping starting it');
-        return;
+        this.logger.info(
+          'Point node is currently running. Skipping starting it'
+        )
+        return
       }
       const file = this._getBinFile()
-      const cmd = global.platform.win32 ? `set NODE_ENV=production&&"${file}"` : `NODE_ENV=production "${file}"`
-      this.logger.info(`Launching point node md5: ${await md5File(file.toString())}`);
+      const cmd = global.platform.win32
+        ? `set NODE_ENV=production&&"${file}"`
+        : `NODE_ENV=production "${file}"`
+      this.logger.info(
+        `Launching point node md5: ${await md5File(file.toString())}`
+      )
       return exec(cmd, (error, stdout, stderr) => {
         if (stdout) this.logger.info('Ran successfully')
         if (error) {
@@ -223,14 +224,17 @@ class Node {
           log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
-      this.pingErrorCount = 0;
+      this.pingErrorCount = 0
       this.pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD
     } catch (error) {
       this.pingErrorCount += 1
       if (this.pingErrorCount > this.pingErrorThreshold) {
-        this.logger.error(ErrorsEnum.NODE_ERROR, `Unable to Ping after ${this.pingErrorThreshold} attempts`)
-        this.pingErrorThreshold *= 2;
-        this.pingErrorCount = 0;
+        this.logger.error(
+          ErrorsEnum.NODE_ERROR,
+          `Unable to Ping after ${this.pingErrorThreshold} attempts`
+        )
+        this.pingErrorThreshold *= 2
+        this.pingErrorCount = 0
       }
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
@@ -289,6 +293,7 @@ class Node {
           isChecking: true,
           isAvailable: false,
           log: 'Checking for updates',
+          error: false,
         } as UpdateLog),
       })
       const installInfo = helpers.getInstalledVersionInfo('node')
@@ -308,6 +313,7 @@ class Node {
             isChecking: false,
             isAvailable: true,
             log: 'Update available. Proceeding to download the update',
+            error: false,
           } as UpdateLog),
         })
         await this.stop()
@@ -320,12 +326,21 @@ class Node {
             isChecking: false,
             isAvailable: false,
             log: 'Already up to date',
+            error: false,
           } as UpdateLog),
         })
       }
     } catch (error) {
+      this.logger.sendToChannel({
+        channel: NodeChannelsEnum.check_for_updates,
+        log: JSON.stringify({
+          isChecking: false,
+          isAvailable: true,
+          log: 'Failed to update',
+          error: true,
+        } as UpdateLog),
+      })
       this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
-      throw error
     }
   }
 

@@ -75,84 +75,77 @@ class Uninstaller {
         })
 
         // 3. Unpack the downloaded file and send logs to window
-        downloadStream.on('close', async () => {
-          try {
-            const temp = helpers.getPointPathTemp()
-            if (fs.existsSync(temp)) rimraf.sync(temp)
-            fs.mkdirpSync(temp)
+        const temp = helpers.getPointPathTemp()
+        if (fs.existsSync(temp)) rimraf.sync(temp)
+        fs.mkdirpSync(temp)
 
-            try {
-              this.logger.info('Unpacking')
-              this.logger.sendToChannel({
-                channel: UninstallerChannelsEnum.unpack,
-                log: JSON.stringify({
-                  started: true,
-                  log: 'Unpacking Point Uninstaller',
-                  done: false,
-                  progress: 0,
-                  error: false,
-                } as GenericProgressLog),
-              })
-              if (global.platform.win32) {
-                await utils.extractZip({
-                  src: downloadDest,
-                  dest: temp,
-                  onProgress: (progress: number) => {
-                    this.logger.sendToChannel({
-                      channel: UninstallerChannelsEnum.unpack,
-                      log: JSON.stringify({
-                        started: true,
-                        log: 'Unpacking Point Uninstaller',
-                        done: false,
-                        progress,
-                      } as GenericProgressLog),
-                    })
-                  },
+        try {
+          this.logger.info('Unpacking')
+          this.logger.sendToChannel({
+            channel: UninstallerChannelsEnum.unpack,
+            log: JSON.stringify({
+              started: true,
+              log: 'Unpacking Point Uninstaller',
+              done: false,
+              progress: 0,
+              error: false,
+            } as GenericProgressLog),
+          })
+          if (global.platform.win32) {
+            await utils.extractZip({
+              src: downloadDest,
+              dest: temp,
+              onProgress: (progress: number) => {
+                this.logger.sendToChannel({
+                  channel: UninstallerChannelsEnum.unpack,
+                  log: JSON.stringify({
+                    started: true,
+                    log: 'Unpacking Point Uninstaller',
+                    done: false,
+                    progress,
+                  } as GenericProgressLog),
                 })
-              }
-
-              if (global.platform.darwin) {
-                await decompress(downloadDest, this.pointDir, {
-                  plugins: [decompressTargz()],
-                })
-              }
-
-              if (global.platform.linux) {
-                // TODO: Add code for linux
-              }
-
-              this.logger.info('Unpacked')
-              this.logger.sendToChannel({
-                channel: UninstallerChannelsEnum.unpack,
-                log: JSON.stringify({
-                  started: false,
-                  log: 'Unpacked Point Uninstaller',
-                  done: true,
-                  progress: 100,
-                } as GenericProgressLog),
-              })
-            } catch (error) {
-              this.logger.sendToChannel({
-                channel: UninstallerChannelsEnum.unpack,
-                log: JSON.stringify({
-                  error: true,
-                  log: 'Error unpacking Point Uninstaller',
-                } as GenericProgressLog),
-              })
-              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
-            }
-
-            // 4. Delete the downloaded file
-            this.logger.info('Removing downloaded file')
-            fs.unlinkSync(downloadDest)
-            this.logger.info('Removed downloaded file')
-
-            resolve()
-          } catch (error) {
-            this.logger.error(ErrorsEnum.UNINSTALLER_ERROR, error)
-            reject(error)
+              },
+            })
           }
-        })
+
+          if (global.platform.darwin) {
+            await decompress(downloadDest, this.pointDir, {
+              plugins: [decompressTargz()],
+            })
+          }
+
+          if (global.platform.linux) {
+            // TODO: Add code for linux
+          }
+
+          this.logger.info('Unpacked')
+          this.logger.sendToChannel({
+            channel: UninstallerChannelsEnum.unpack,
+            log: JSON.stringify({
+              started: false,
+              log: 'Unpacked Point Uninstaller',
+              done: true,
+              progress: 100,
+            } as GenericProgressLog),
+          })
+        } catch (error) {
+          this.logger.sendToChannel({
+            channel: UninstallerChannelsEnum.unpack,
+            log: JSON.stringify({
+              error: true,
+              log: 'Error unpacking Point Uninstaller',
+            } as GenericProgressLog),
+          })
+          this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+        }
+
+        // 4. Delete the downloaded file
+        this.logger.info('Removing downloaded file')
+        fs.unlinkSync(downloadDest)
+        this.logger.info('Removed downloaded file')
+
+        resolve()
       } catch (error) {
         this.logger.error(ErrorsEnum.UNINSTALLER_ERROR, error)
         reject(error)

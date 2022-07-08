@@ -129,35 +129,28 @@ class Firefox {
           downloadStream,
         })
 
-        downloadStream.on('close', async () => {
-          try {
-            // Unack
-            await this._unpack({ src: downloadDest, dest: browserDir })
-            // Create configuration files
-            this._createConfigFiles()
-            // Delete downloaded file
-            this.logger.info('Removing downloaded file')
-            fs.unlinkSync(downloadDest)
-            this.logger.info('Removed downloaded file')
-            // Write JSON file
-            this.logger.info('Saving "infoFirefox.json"')
-            fs.writeFileSync(
-              path.join(this.pointDir, 'infoFirefox.json'),
-              JSON.stringify({
-                installedReleaseVersion: version,
-                lastCheck: moment().unix(),
-                isInitialized: false,
-              }),
-              'utf8'
-            )
-            this.logger.info('Saved "infoFirefox.json"')
+        // Unack
+        await this._unpack({ src: downloadDest, dest: browserDir })
+        // Create configuration files
+        this._createConfigFiles()
+        // Delete downloaded file
+        this.logger.info('Removing downloaded file')
+        fs.unlinkSync(downloadDest)
+        this.logger.info('Removed downloaded file')
+        // Write JSON file
+        this.logger.info('Saving "infoFirefox.json"')
+        fs.writeFileSync(
+          path.join(this.pointDir, 'infoFirefox.json'),
+          JSON.stringify({
+            installedReleaseVersion: version,
+            lastCheck: moment().unix(),
+            isInitialized: false,
+          }),
+          'utf8'
+        )
+        this.logger.info('Saved "infoFirefox.json"')
 
-            resolve()
-          } catch (error) {
-            this.logger.error(ErrorsEnum.FIREFOX_ERROR, error)
-            reject(error)
-          }
-        })
+        resolve()
       } catch (error) {
         this.logger.error(ErrorsEnum.FIREFOX_ERROR, error)
         reject(error)
@@ -267,6 +260,7 @@ class Firefox {
           isChecking: true,
           isAvailable: false,
           log: 'Checking for updates',
+          error: false,
         } as UpdateLog),
       })
       const installInfo = helpers.getInstalledVersionInfo('firefox')
@@ -286,6 +280,7 @@ class Firefox {
             isChecking: false,
             isAvailable: true,
             log: 'Update available. Proceeding to download the update',
+            error: false,
           } as UpdateLog),
         })
         await this.stop()
@@ -298,12 +293,21 @@ class Firefox {
             isChecking: false,
             isAvailable: false,
             log: 'Already up to date',
+            error: false,
           } as UpdateLog),
         })
       }
     } catch (error) {
+      this.logger.sendToChannel({
+        channel: FirefoxChannelsEnum.check_for_updates,
+        log: JSON.stringify({
+          isChecking: false,
+          isAvailable: true,
+          log: 'Failed to update',
+          error: true,
+        } as UpdateLog),
+      })
       this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
-      throw error
     }
   }
 

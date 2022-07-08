@@ -65,47 +65,42 @@ class PointSDK {
         })
 
         // Download the extension
-        manifestDownloadStream.on('close', async () => {
-          const filename = `point_network-${latestVersion.replace(
-            'v',
-            ''
-          )}-an+fx.xpi`
-          const manifest = fs.readFileSync(manifestDownloadDest, 'utf8')
-          const extensionId =
-            JSON.parse(manifest).browser_specific_settings.gecko.id
-          const extensionsPath =
-            helpers.getLiveExtensionsDirectoryPathResources()
+        const filename = `point_network-${latestVersion.replace(
+          'v',
+          ''
+        )}-an+fx.xpi`
+        const manifest = fs.readFileSync(manifestDownloadDest, 'utf8')
+        const extensionId =
+          JSON.parse(manifest).browser_specific_settings.gecko.id
+        const extensionsPath = helpers.getLiveExtensionsDirectoryPathResources()
 
-          const downloadUrl = this.getDownloadURL(filename, latestVersion)
-          const downloadPath = path.join(extensionsPath, `${extensionId}.xpi`)
-          this.logger.info('Downloading SDK from', downloadUrl)
+        const downloadUrl = this.getDownloadURL(filename, latestVersion)
+        const downloadPath = path.join(extensionsPath, `${extensionId}.xpi`)
+        this.logger.info('Downloading SDK from', downloadUrl)
 
-          const downloadStream = fs.createWriteStream(downloadPath)
+        const downloadStream = fs.createWriteStream(downloadPath)
 
-          helpers.setIsFirefoxInit(false)
+        helpers.setIsFirefoxInit(false)
 
-          await utils.download({
-            channel: PointSDKChannelsEnum.download,
-            logger: this.logger,
-            downloadUrl,
-            downloadStream,
-          })
-
-          downloadStream.on('close', () => {
-            this.logger.info('Saving "infoSDK.json"')
-            fs.writeFileSync(
-              path.join(this.pointDir, 'infoSDK.json'),
-              JSON.stringify({
-                installedReleaseVersion: latestVersion,
-                lastCheck: moment().unix(),
-              }),
-              'utf8'
-            )
-            this.logger.info('Saved "infoSDK.json"')
-
-            resolve()
-          })
+        await utils.download({
+          channel: PointSDKChannelsEnum.download,
+          logger: this.logger,
+          downloadUrl,
+          downloadStream,
         })
+
+        this.logger.info('Saving "infoSDK.json"')
+        fs.writeFileSync(
+          path.join(this.pointDir, 'infoSDK.json'),
+          JSON.stringify({
+            installedReleaseVersion: latestVersion,
+            lastCheck: moment().unix(),
+          }),
+          'utf8'
+        )
+        this.logger.info('Saved "infoSDK.json"')
+
+        resolve()
       } catch (error) {
         this.logger.error(ErrorsEnum.POINTSDK_ERROR, reject)
         reject(error)
@@ -125,6 +120,7 @@ class PointSDK {
           isChecking: true,
           isAvailable: false,
           log: 'Checking for updates',
+          error: false,
         } as UpdateLog),
       })
       const installInfo = helpers.getInstalledVersionInfo('sdk')
@@ -142,6 +138,7 @@ class PointSDK {
             isChecking: false,
             isAvailable: true,
             log: 'Update available. Proceeding to download the update',
+            error: false,
           } as UpdateLog),
         })
         this.downloadAndInstall()
@@ -153,12 +150,21 @@ class PointSDK {
             isChecking: false,
             isAvailable: false,
             log: 'Already up to date',
+            error: false,
           } as UpdateLog),
         })
       }
     } catch (error) {
+      this.logger.sendToChannel({
+        channel: PointSDKChannelsEnum.check_for_updates,
+        log: JSON.stringify({
+          isChecking: false,
+          isAvailable: true,
+          log: 'Failed to update',
+          error: true,
+        } as UpdateLog),
+      })
       this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
-      throw error
     }
   }
 }
