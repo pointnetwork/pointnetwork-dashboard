@@ -49,7 +49,7 @@ const ResourceUpdateCard = ({
       break
   }
 
-  const [log, setLog] = useState<string>('')
+  const [log, setLog] = useState<string>('Waiting...')
   const [downloadLogs, setDownloadLogs] = useState<GenericProgressLog>({
     started: false,
     progress: 0,
@@ -144,9 +144,9 @@ const CheckForUpdatesDailog = ({
   setDialogOpen: Dispatch<SetStateAction<boolean>>
 }) => {
   const [isUpdating, setIsUpdating] = useState<IsUpdatingState>({
-    firefox: false,
-    node: false,
-    pointsdk: false
+    firefox: true,
+    node: true,
+    pointsdk: true,
   })
 
   useEffect(() => {
