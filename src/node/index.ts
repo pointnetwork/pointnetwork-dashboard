@@ -10,6 +10,7 @@ import rimraf from 'rimraf'
 import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import md5File from 'md5-file'
 // Types
 import { NodeChannelsEnum } from '../@types/ipc_channels'
 import {
@@ -23,6 +24,8 @@ import { ErrorsEnum } from '../@types/errors'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
+
+const INITIAL_PING_ERROR_THRESHOLD = 15;
 
 // TODO: Add JSDoc comments
 /**
@@ -39,6 +42,8 @@ class Node {
   logger: Logger
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
+  pingErrorCount = 0
+  pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD;
 
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
@@ -173,13 +178,13 @@ class Node {
   async launch() {
     try {
       if (!fs.existsSync(this._getBinFile())) return
-      if ((await this._getRunningProcess()).length) return
-
+      if ((await this._getRunningProcess()).length) {
+        this.logger.info('Point node is currently running. Skipping starting it');
+        return;
+      }
       const file = this._getBinFile()
-      let cmd = `NODE_ENV=production "${file}"`
-      if (global.platform.win32) cmd = `set NODE_ENV=production&&"${file}"`
-
-      this.logger.info('Launching')
+      const cmd = global.platform.win32 ? `set NODE_ENV=production&&"${file}"` : `NODE_ENV=production "${file}"`
+      this.logger.info(`Launching point node md5: ${await md5File(file.toString())}`);
       return exec(cmd, (error, stdout, stderr) => {
         if (stdout) this.logger.info('Ran successfully')
         if (error) {
@@ -200,7 +205,6 @@ class Node {
    */
   async ping() {
     try {
-      this.logger.info('Pinging')
       await axios.get('https://point/v1/api/status/meta', {
         timeout: 3000,
         proxy: {
@@ -219,8 +223,15 @@ class Node {
           log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
-      this.logger.info('Pinged')
+      this.pingErrorCount = 0;
+      this.pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD
     } catch (error) {
+      this.pingErrorCount += 1
+      if (this.pingErrorCount > this.pingErrorThreshold) {
+        this.logger.error(ErrorsEnum.NODE_ERROR, `Unable to Ping after ${this.pingErrorThreshold} attempts`)
+        this.pingErrorThreshold *= 2;
+        this.pingErrorCount = 0;
+      }
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
@@ -228,7 +239,6 @@ class Node {
           log: 'Point Engine is not running',
         } as LaunchProcessLog),
       })
-      this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to Ping')
     }
   }
 
