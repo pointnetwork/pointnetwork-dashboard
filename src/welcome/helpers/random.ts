@@ -14,17 +14,19 @@ function removeFromArray<T>(arr: T[], target: T): T[] {
   return arr.filter(i => i !== target)
 }
 
+export type Word = { word: string; idx: number }
+
 /**
  * Randomly picks a given quantity of elements from an array,
  * without duplicating picks.
  */
-export function pickMultipleRandomly<T>(arr: T[], quantity: number): T[] {
+export function pickMultipleRandomly(arr: string[], quantity: number): Word[] {
   let availableOptions = [...arr]
-  const picks = []
+  const picks: Word[]  = []
 
   for (let i = 0; i < quantity; i++) {
     const pick = pickRandomly(availableOptions)
-    picks.push(pick)
+    picks.push({ word: pick, idx: arr.indexOf(pick) })
     availableOptions = removeFromArray(availableOptions, pick)
   }
 

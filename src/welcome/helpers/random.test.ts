@@ -12,10 +12,24 @@ describe('pickMultipleRandomly', () => {
   })
 
   it('picks words contained in the input array', () => {
-    output.forEach(n => expect(input).toContain(n))
+    output.forEach(i => expect(input).toContain(i.word))
+  })
+
+  it('returns the correct index for the picked words', () => {
+    output.forEach(({word, idx}) => expect(word).toBe(input[idx]))
   })
 
   it('does not pick any duplicates', () => {
-    expect(Array.from(new Set(output))).toHaveLength(4)
+    // Run it 100 times.
+    for (let i = 0; i < 100; i++) {
+      const picks = pickMultipleRandomly(input, 3)
+
+      const seen: Record<string, number> = {}
+      picks.forEach(i => {
+        seen[i.word] = (seen[i.word] || 0) + 1
+      })
+
+      Object.keys(seen).forEach(k => expect(seen[k]).toBe(1))
+    }
   })
 })
