@@ -62,8 +62,6 @@ export default function (isExplicitRun = false) {
       },
     })
 
-    window.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
-
     firefox = new Firefox({ window })
     node = new Node({ window })
     pointSDK = new PointSDK({ window })
@@ -80,6 +78,8 @@ export default function (isExplicitRun = false) {
       firefox = null
       window = null
     })
+
+    await window.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
   }
 
   const events: EventListener[] = [
@@ -299,10 +299,27 @@ export default function (isExplicitRun = false) {
       channel: GenericChannelsEnum.check_for_updates,
       async listener() {
         try {
-          // TODO: Check for SDK, dashboard, and installer updates too
-          await node?.checkForUpdates()
-          await firefox?.checkForUpdates()
-          await pointSDK?.checkForUpdates()
+          // TODO: Check for dashboard updates too
+          await Promise.all([
+            (async () => {
+              const nodeUpdateAvailable = await node!.checkForUpdates()
+              if (nodeUpdateAvailable) {
+                await node?.downloadAndInstall()
+              }
+            })(),
+            (async () => {
+              const firefoxUpdateAvailable = await firefox!.checkForUpdates()
+              if (firefoxUpdateAvailable) {
+                await firefox?.downloadAndInstall()
+              }
+            })(),
+            (async () => {
+              const sdkUpdateAvailable = await pointSDK!.checkForUpdates()
+              if (sdkUpdateAvailable) {
+                await pointSDK?.downloadAndInstall()
+              }
+            })()
+          ])
 
           if (!global.platform.darwin) {
             const latestDashboardV = await helpers.getLatestReleaseFromGithub(
@@ -320,8 +337,21 @@ export default function (isExplicitRun = false) {
                 } as UpdateLog)
               )
           }
+
+          window?.webContents.send(
+            GenericChannelsEnum.check_for_updates,
+            JSON.stringify({
+              success: true,
+            })
+          )
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          window?.webContents.send(
+            GenericChannelsEnum.check_for_updates,
+            JSON.stringify({
+              success: false,
+            })
+          )
         }
       },
     },

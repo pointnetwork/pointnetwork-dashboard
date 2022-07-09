@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import {FunctionComponent, useContext} from 'react'
 // MUI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -18,34 +18,23 @@ import {
   NodeChannelsEnum,
   PointSDKChannelsEnum,
 } from '../../../@types/ipc_channels'
-import {
-  GenericProgressLog,
-  UpdateLog,
-  IsUpdatingState,
-} from '../../../@types/generic'
-
-const initState = {
-  firefox: true,
-  node: true,
-  pointsdk: true,
-  firefoxError: false,
-  nodeError: false,
-  pointsdkError: false,
-}
+// Context
+import {UpdateStatusContext} from "../../context/UpdateStatusContext";
+import {GenericProgressLog, UpdateLog} from "../../../@types/generic";
 
 /**
  * Helper component to render the update information for a resource
  */
-const ResourceUpdateCard = ({
-  channel,
-  setIsUpdating,
-}: {
+const ResourceUpdateCard: FunctionComponent<{
   channel:
     | typeof FirefoxChannelsEnum
     | typeof NodeChannelsEnum
     | typeof PointSDKChannelsEnum
-  setIsUpdating: Dispatch<SetStateAction<IsUpdatingState>>
-}) => {
+  log: string
+  updateLogs: UpdateLog
+  downloadLogs: GenericProgressLog
+  unpackLogs?: GenericProgressLog
+}> = ({channel, log, updateLogs, downloadLogs, unpackLogs}) => {
   let title = ''
   switch (channel) {
     case FirefoxChannelsEnum:
@@ -59,103 +48,9 @@ const ResourceUpdateCard = ({
       break
   }
 
-  const [log, setLog] = useState<string>('Waiting...')
-  const [downloadLogs, setDownloadLogs] = useState<GenericProgressLog>({
-    started: false,
-    progress: 0,
-    log: '',
-    error: false,
-    done: false,
-  })
-  const [unpackLogs, setUnpackLogs] = useState<GenericProgressLog>({
-    started: false,
-    progress: 0,
-    log: '',
-    error: false,
-    done: false,
-  })
-  const [updateLogs, setUpdateLogs] = useState<UpdateLog>({
-    isAvailable: false,
-    isChecking: true,
-    log: '',
-    error: false,
-  })
-
-  useEffect(() => {
-    window.Dashboard.on(channel.check_for_updates, (logs: string) => {
-      const parsed = JSON.parse(logs) as UpdateLog
-      setUpdateLogs(parsed)
-      setLog(parsed.log)
-
-      if (channel === NodeChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          node: parsed.isAvailable,
-          nodeError: parsed.error,
-        }))
-      if (channel === FirefoxChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          firefox: parsed.isAvailable,
-          firefoxError: parsed.error,
-        }))
-      if (channel === PointSDKChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          pointsdk: parsed.isAvailable,
-          pointsdkError: parsed.error,
-        }))
-    })
-
-    window.Dashboard.on(channel.download, (logs: string) => {
-      const parsed = JSON.parse(logs) as GenericProgressLog
-      setDownloadLogs(parsed)
-      setLog(parsed.log)
-
-      if (channel === NodeChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          nodeError: parsed.error,
-        }))
-      if (channel === FirefoxChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          firefoxError: parsed.error,
-        }))
-      if (channel === PointSDKChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          pointsdk: !parsed.done!,
-          pointsdkError: parsed.error,
-        }))
-    })
-
-    // @ts-ignore
-    window.Dashboard.on(channel.unpack, (logs: string) => {
-      const parsed = JSON.parse(logs) as GenericProgressLog
-      setUnpackLogs(parsed)
-      setLog(parsed.log)
-
-      if (channel === NodeChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          node: !parsed.done!,
-          nodeError: parsed.error,
-        }))
-      if (channel === FirefoxChannelsEnum)
-        setIsUpdating(prev => ({
-          ...prev,
-          firefox: !parsed.done!,
-          firefoxError: parsed.error,
-        }))
-    })
-  }, [])
-
   const handleRetry = () => {
-    setIsUpdating({ ...initState })
     window.Dashboard.checkForUpdates()
   }
-
   return (
     <Grid item xs={6}>
       <Box border="1px dashed #ccc" m={1} p={2} borderRadius={1}>
@@ -166,11 +61,11 @@ const ResourceUpdateCard = ({
               <CircularProgress size={16} />
             ) : !updateLogs.isAvailable ? (
               <CheckCircleIcon fontSize="small" color="success" />
-            ) : downloadLogs.error || unpackLogs.error || updateLogs.error ? (
+            ) : downloadLogs.error || unpackLogs?.error || updateLogs.error ? (
               <ErrorIcon color="error" fontSize="small" />
             ) : !downloadLogs.done ? (
               <DownloadProgress downloadLogs={downloadLogs} />
-            ) : !unpackLogs.done ? (
+            ) : unpackLogs && !unpackLogs.done ? (
               <UnpackProgress unpackLogs={unpackLogs} />
             ) : (
               <CheckCircleIcon fontSize="small" color="success" />
@@ -179,7 +74,7 @@ const ResourceUpdateCard = ({
               {log}
             </Typography>
           </Box>
-          {downloadLogs.error || unpackLogs.error || updateLogs.error ? (
+          {downloadLogs.error || unpackLogs?.error || updateLogs.error ? (
             <Button
               variant="outlined"
               color="error"
@@ -198,30 +93,29 @@ const ResourceUpdateCard = ({
 /**
  * Main dialog component to render the updates cards
  */
-const CheckForUpdatesDailog = ({
-  dialogOpen,
-  setDialogOpen,
-}: {
-  dialogOpen: boolean
-  setDialogOpen: Dispatch<SetStateAction<boolean>>
-}) => {
-  const [isUpdating, setIsUpdating] = useState<IsUpdatingState>({
-    ...initState,
-  })
-
-  useEffect(() => {
-    if (Object.values(isUpdating).every(el => !el)) {
-      setTimeout(() => setDialogOpen(false), 2000)
-    }
-  }, [isUpdating])
+const CheckForUpdatesDialog: FunctionComponent = () => {
+  const {
+    updateDialogOpen,
+    isUpdating,
+    nodeLog,
+    nodeDownloadLogs,
+    nodeUpdateLogs,
+    nodeUnpackLogs,
+    firefoxLog,
+    firefoxDownloadLogs,
+    firefoxUpdateLogs,
+    firefoxUnpackLogs,
+    sdkLog,
+    sdkDownloadLogs,
+    sdkUpdateLogs
+  } = useContext(UpdateStatusContext)
 
   const handleClose = () => {
-    setDialogOpen(false)
     window.Dashboard.closeWindow()
   }
 
   return (
-    <Dialog open={dialogOpen} fullWidth>
+    <Dialog open={updateDialogOpen} fullWidth>
       <Box p={2}>
         <Box display="flex" alignItems="center" ml={1}>
           {isUpdating.firefoxError ||
@@ -246,15 +140,23 @@ const CheckForUpdatesDailog = ({
         <Grid container>
           <ResourceUpdateCard
             channel={NodeChannelsEnum}
-            setIsUpdating={setIsUpdating}
+            log={nodeLog}
+            downloadLogs={nodeDownloadLogs}
+            updateLogs={nodeUpdateLogs}
+            unpackLogs={nodeUnpackLogs}
           />
           <ResourceUpdateCard
             channel={FirefoxChannelsEnum}
-            setIsUpdating={setIsUpdating}
+            log={firefoxLog}
+            downloadLogs={firefoxDownloadLogs}
+            updateLogs={firefoxUpdateLogs}
+            unpackLogs={firefoxUnpackLogs}
           />
           <ResourceUpdateCard
             channel={PointSDKChannelsEnum}
-            setIsUpdating={setIsUpdating}
+            log={sdkLog}
+            downloadLogs={sdkDownloadLogs}
+            updateLogs={sdkUpdateLogs}
           />
         </Grid>
         {isUpdating.firefoxError ||
@@ -271,4 +173,4 @@ const CheckForUpdatesDailog = ({
   )
 }
 
-export default CheckForUpdatesDailog
+export default CheckForUpdatesDialog

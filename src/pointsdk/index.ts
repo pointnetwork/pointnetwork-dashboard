@@ -141,7 +141,7 @@ class PointSDK {
             error: false,
           } as UpdateLog),
         })
-        this.downloadAndInstall()
+        return true
       } else {
         this.logger.info('Already up to date')
         this.logger.sendToChannel({
@@ -153,6 +153,7 @@ class PointSDK {
             error: false,
           } as UpdateLog),
         })
+        return false
       }
     } catch (error) {
       this.logger.sendToChannel({

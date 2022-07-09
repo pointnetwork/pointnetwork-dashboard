@@ -4,3 +4,5 @@ dist
 webpack/*.js
 .webpack
 out
+liveprofile
+resources
