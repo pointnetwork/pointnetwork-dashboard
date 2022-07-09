@@ -166,13 +166,15 @@ class Node {
 
   /**
    * Checks
-   * 1. If Point Engine exists or not, if it doesn't then downloads it
+   * 1. If Point Engine exists or not, if not then returns early
    * 2. Checks if there are any running instances of Point Engine, if yes then returns early
    * 3. Launches Point Engine
    */
   async launch() {
     try {
-      if (!fs.existsSync(this._getBinFile())) return
+      if (!fs.existsSync(this._getBinFile())) {
+        this.logger.error('Trying to launch point node, but bin file does not exist')
+      }
       if ((await this._getRunningProcess()).length) {
         this.logger.info(
           'Point node is currently running. Skipping starting it'
@@ -316,8 +318,7 @@ class Node {
             error: false,
           } as UpdateLog),
         })
-        await this.stop()
-        await this.downloadAndInstall()
+        return true
       } else {
         this.logger.info('Already up to date')
         this.logger.sendToChannel({
@@ -329,6 +330,7 @@ class Node {
             error: false,
           } as UpdateLog),
         })
+        return false
       }
     } catch (error) {
       this.logger.sendToChannel({

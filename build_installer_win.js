@@ -44,11 +44,11 @@ const msiCreator = new MSICreator({
 })
 
 msiCreator.create().then(function(binaries) {
-    //binaries.supportBinaries.forEach((filepath) => {
+    // binaries.supportBinaries.forEach((filepath) => {
     //    if (filepath.match(/point.exe$/)) {
     //        // sign the binary
     //    }
-    //})
+    // })
     fs.copyFileSync(path.join(APP_DIR, 'point.exe'), path.join(OUT_DIR, 'point.exe'))
     msiCreator.compile().then(()=>{
         console.log('Compiled succesfully')

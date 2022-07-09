@@ -283,8 +283,7 @@ class Firefox {
             error: false,
           } as UpdateLog),
         })
-        await this.stop()
-        this.downloadAndInstall()
+        return true
       } else {
         this.logger.info('Already up to date')
         this.logger.sendToChannel({
@@ -296,6 +295,7 @@ class Firefox {
             error: false,
           } as UpdateLog),
         })
+        return false
       }
     } catch (error) {
       this.logger.sendToChannel({
