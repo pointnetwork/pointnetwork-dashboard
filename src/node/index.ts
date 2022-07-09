@@ -174,6 +174,7 @@ class Node {
     try {
       if (!fs.existsSync(this._getBinFile())) {
         this.logger.error('Trying to launch point node, but bin file does not exist')
+        return
       }
       if ((await this._getRunningProcess()).length) {
         this.logger.info(
