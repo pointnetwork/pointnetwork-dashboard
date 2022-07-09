@@ -31,7 +31,7 @@ const App = () => {
   const [browserVersion, setBrowserVersion] = useState<string>('')
   const [nodeVersion, setNodeVersion] = useState<string>('')
   // Update related state variables
-  const [updateDialogOpen, setUpdateDialogOpen] = useState<boolean>(false)
+  const [updateDialogOpen, setUpdateDialogOpen] = useState<boolean>(true)
   // Running state variables
   const [launchAttempts, setLaunchAttempts] = useState<number>(0)
   const [loader, setIsLaunching] = useState<{

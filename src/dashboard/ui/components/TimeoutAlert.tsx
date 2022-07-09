@@ -36,8 +36,8 @@ const TimeoutAlert = ({
         <Typography>
           Failed to start Point Network. Please, close and reopen Point
           Dashboard. If the problem persists, please try to uninstall and
-          reinstall the dashboard by click the "Uninstall" button or contact the
-          support team{' '}
+          reinstall the dashboard by clicking the "Uninstall" button or contact
+          the support team{' '}
           <ExternalLink
             onClick={() =>
               window.Dashboard.openExternalLink(

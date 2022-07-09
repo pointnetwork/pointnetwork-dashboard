@@ -304,20 +304,22 @@ export default function (isExplicitRun = false) {
           await firefox?.checkForUpdates()
           await pointSDK?.checkForUpdates()
 
-          const latestDashboardV = await helpers.getLatestReleaseFromGithub(
-            'pointnetwork-dashboard'
-          )
-          const installedDashboardV =
-            await helpers.getInstalledDashboardVersion()
-
-          if (latestDashboardV !== `v${installedDashboardV}`)
-            window?.webContents.send(
-              DashboardChannelsEnum.check_for_updates,
-              JSON.stringify({
-                isAvailable: true,
-                isChecking: false,
-              } as UpdateLog)
+          if (!global.platform.darwin) {
+            const latestDashboardV = await helpers.getLatestReleaseFromGithub(
+              'pointnetwork-dashboard'
             )
+            const installedDashboardV =
+              await helpers.getInstalledDashboardVersion()
+
+            if (latestDashboardV > `v${installedDashboardV}`)
+              window?.webContents.send(
+                DashboardChannelsEnum.check_for_updates,
+                JSON.stringify({
+                  isAvailable: true,
+                  isChecking: false,
+                } as UpdateLog)
+              )
+          }
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }

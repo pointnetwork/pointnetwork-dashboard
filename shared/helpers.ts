@@ -1,3 +1,4 @@
+import { ErrorsEnum } from './../src/@types/errors'
 import { http, https } from 'follow-redirects'
 import path from 'path'
 import fs from 'fs-extra'
@@ -90,9 +91,7 @@ const getLatestReleaseFromGithub: (
     )
     return res.data.tag_name
   } catch (error) {
-    // TODO: Add a logger to log the error
-    // TODO: Create a standardised GitHub error
-    console.error(error)
+    throw new Error(ErrorsEnum.GITHUB_ERROR)
   }
 }
 

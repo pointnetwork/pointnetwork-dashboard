@@ -4,6 +4,9 @@ export interface IsUpdatingState {
   firefox: boolean
   node: boolean
   pointsdk: boolean
+  firefoxError: boolean
+  nodeError: boolean
+  pointsdkError: boolean
 }
 
 export interface EventListener {
@@ -37,14 +40,15 @@ export interface UpdateLog {
   isChecking: boolean
   isAvailable: boolean
   log: string
+  error: boolean
 }
 
 export interface GenericProgressLog {
-  started?: boolean
-  done?: boolean
-  progress?: number
+  started: boolean
+  done: boolean
+  progress: number
   log: string
-  error?: boolean
+  error: boolean
 }
 
 export type GithubRelease = {
