@@ -21,7 +21,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         # tag_name: ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
-        tag_name: fix/msi
+        tag_name: tags/fix/msi
         release_name: Release ${{ steps.get_source_tag.outputs.SOURCE_TAG }}
         draft: false
         prerelease: true
