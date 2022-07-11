@@ -14,7 +14,7 @@ jobs:
     steps:
     - name: Get the Source Tag
       id: get_source_tag
-      run: echo ::set-output name=SOURCE_TAG::test-tag-md5-2
+      run: echo ::set-output name=SOURCE_TAG::test-tag-md5-5
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -43,7 +43,7 @@ jobs:
   #     run: ./scripts/package_linux_executables.sh
 
   #   - name: Upload linux deb artefact
-  #     uses: brianunlam/upload-release-asset@v1.0.3
+  #     uses: brianunlam/upload-release-asset@v1.0.5
   #     env:
   #       GITHUB_TOKEN: ${{ github.token }}
   #     with:
@@ -52,7 +52,7 @@ jobs:
   #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
   #       asset_content_type: application/gzip
   #   - name: Upload linux rpm artefact
-  #     uses: brianunlam/upload-release-asset@v1.0.3
+  #     uses: brianunlam/upload-release-asset@v1.0.5
   #     env:
   #       GITHUB_TOKEN: ${{ github.token }}
   #     with:
@@ -117,7 +117,7 @@ jobs:
   #   - name: Compress and package executables
   #     run: ./scripts/package_macos_executables.sh
   #   # - name: Upload macos executable
-  #   #   uses: brianunlam/upload-release-asset@v1.0.3
+  #   #   uses: brianunlam/upload-release-asset@v1.0.5
   #   #   env:
   #   #     GITHUB_TOKEN: ${{ github.token }}
   #   #   with:
@@ -131,7 +131,7 @@ jobs:
   #   - name: Compress and package Installer
   #     run: ./scripts/package_macos_installer.sh
   #   - name: Upload macos installer
-  #     uses: brianunlam/upload-release-asset@v1.0.3
+  #     uses: brianunlam/upload-release-asset@v1.0.5
   #     env:
   #       GITHUB_TOKEN: ${{ github.token }}
   #     with:
@@ -140,7 +140,7 @@ jobs:
   #       asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-installer.tar.gz
   #       asset_content_type: application/gzip
   #   - name: Upload macos zipped app
-  #     uses: brianunlam/upload-release-asset@v1.0.3
+  #     uses: brianunlam/upload-release-asset@v1.0.5
   #     env:
   #       GITHUB_TOKEN: ${{ github.token }}
   #     with:
@@ -152,6 +152,11 @@ jobs:
   build_on_win:
     runs-on: windows-latest
     needs: create_release
+    outputs:
+      win_installer_filename: ${{ steps.upload_win_installer.outputs.asset_name }}
+      win_installer_md5: ${{ steps.upload_win_installer.outputs.asset_md5 }}
+      win_exe_filename: ${{ steps.upload_win_exe.outputs.asset_name }}
+      win_exe_md5: ${{ steps.upload_win_exe.outputs.asset_md5 }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
@@ -186,7 +191,7 @@ jobs:
       run: bash ./scripts/package_win_installer.sh
     - name: Upload win installer
       id: upload_win_installer
-      uses: brianunlam/upload-release-asset@v1.0.3
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -197,7 +202,7 @@ jobs:
 
     - name: Upload EXE file
       id: upload_win_exe
-      uses: brianunlam/upload-release-asset@v1.0.3
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -207,6 +212,28 @@ jobs:
         asset_content_type: application/octet-stream
 
     - name: Print md5 for exe
-      run: echo ${{ steps.upload_win_installer.outputs.file_md5 }}
+      run: echo ${{ steps.upload_win_installer.outputs.asset_md5 }}
     - name: Print md5 for installer
-      run: echo ${{ steps.upload_win_exe.outputs.file_md5 }}
+      run: echo ${{ steps.upload_win_exe.outputs.asset_md5 }}
+
+  generate_md5_file:
+    runs-on: ubuntu-latest
+    needs: [create_release, build_on_win]
+    steps:
+    - name: Generate file
+      uses: DamianReeves/write-file-action@master
+      with:
+        path: ./md5
+        contents: |
+          ${{ needs.build_on_win.outputs.win_installer_filename }}: ${{ needs.build_on_win.outputs.win_installer_md5 }}
+          ${{ needs.build_on_win.outputs.win_exe_filename }}: ${{ needs.build_on_win.outputs.win_exe_md5 }}
+        write-mode: append
+    - name: Upload m5d file
+      uses: brianunlam/upload-release-asset@v1.0.5
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./md5
+        asset_name: md5.txt
+        asset_content_type: text/plain
