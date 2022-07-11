@@ -3,6 +3,7 @@ import fs from 'fs-extra'
 import Mnemonic from 'bitcore-mnemonic'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
+import { pickMultipleRandomly, Word } from './helpers'
 // Types
 import { WelcomeChannelsEnum } from '../@types/ipc_channels'
 
@@ -12,7 +13,7 @@ class WelcomeService {
   private window: BrowserWindow
   private logger: Logger
   private mnemonic: string = ''
-  private picks: { word: string; idx: number }[] = []
+  private picks: Word[] = []
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -109,11 +110,9 @@ class WelcomeService {
   /**
    * Pick words randomly and send for verification
    */
-  pickRandomWords(): { word: string; idx: number }[] {
-    const availableOptions = this.mnemonic.split(' ').map((word, idx) => ({word, idx}))
-    const shuffled = [...availableOptions].sort(() => 0.5 - Math.random())
-    this.picks = shuffled.slice(0, 3)
-
+  pickRandomWords(): Word[] {
+    const availableOptions = this.mnemonic.split(' ')
+    this.picks = pickMultipleRandomly(availableOptions, 3).sort((a, b) => a.idx - b.idx)
     this.window.webContents.send(WelcomeChannelsEnum.pick_words, this.picks)
     return this.picks
   }

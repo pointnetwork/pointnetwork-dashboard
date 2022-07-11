@@ -12,7 +12,7 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "release": "ele ctron-forge publish",
+    "release": "electron-forge publish",
     "lint": "eslint . --ext js,ts",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -61,7 +61,6 @@
     "which": "^2.0.2"
   },
   "devDependencies": {
-    "@babel/core": "7.17.2",
     "@babel/plugin-transform-runtime": "7.14.5",
     "@babel/preset-env": "7.14.5",
     "@babel/preset-react": "7.14.5",
