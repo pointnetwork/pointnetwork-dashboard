@@ -3,7 +3,7 @@ import dashboard from '../dashboard'
 import welcome from '../welcome'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
-import { dialog } from 'electron'
+import { app, dialog } from 'electron'
 
 // Disable error dialogs by overriding
 dialog.showErrorBox = function(title, content) {
@@ -13,6 +13,8 @@ dialog.showErrorBox = function(title, content) {
 const logger = new Logger()
 
 export default async function main() {
+  if (require('electron-squirrel-startup')) return app.quit()
+
   logger.info('Checking for updates')
   require('update-electron-app')()
   logger.info('Launching Dashboard')

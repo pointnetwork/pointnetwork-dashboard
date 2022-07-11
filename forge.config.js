@@ -63,7 +63,8 @@ module.exports = {
       config: {
         name: "point",
         certificateFile: process.env.WINDOWS_PFX_FILE,
-        certificatePassword: process.env.WINDOWS_PFX_PASSWORD || ''
+        certificatePassword: process.env.WINDOWS_PFX_PASSWORD || '',
+        noMsi: true
       }
     },
     {
