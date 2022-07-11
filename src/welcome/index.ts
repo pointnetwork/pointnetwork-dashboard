@@ -143,7 +143,6 @@ export default async function () {
     {
       channel: GenericChannelsEnum.close_window,
       listener() {
-        console.log('closing', 2)
         window!.close()
       },
     },
