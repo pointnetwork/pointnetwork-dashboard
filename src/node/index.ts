@@ -6,7 +6,7 @@ import find from 'find-process'
 import { exec } from 'node:child_process'
 import { https } from 'follow-redirects'
 import moment from 'moment'
-import rimraf from 'rimraf'
+import rmfr from 'rmfr'
 import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
@@ -75,10 +75,12 @@ class Node {
         // Delete any residual files and stop any residual processes
         this.logger.info('Removing previous installations')
 
-        if (fs.existsSync(path.join(this.pointDir, 'contracts')))
-          rimraf.sync(path.join(this.pointDir, 'contracts'))
-        if (fs.existsSync(path.join(this.pointDir, 'bin')))
-          rimraf.sync(path.join(this.pointDir, 'bin'))
+        if (fs.existsSync(path.join(this.pointDir, 'contracts'))) {
+          await rmfr(path.join(this.pointDir, 'contracts'))
+        }
+        if (fs.existsSync(path.join(this.pointDir, 'bin'))) {
+          await rmfr(path.join(this.pointDir, 'bin'))
+        }
 
         // 1. Set the parameters for download
         const latestVersion = await this.getLatestVersion()
@@ -141,12 +143,12 @@ class Node {
         this.logger.info('Unpacked')
         // 4. Delete the downloaded file
         this.logger.info('Removing downloaded file')
-        fs.unlinkSync(downloadDest)
+        await fs.unlink(downloadDest)
         this.logger.info('Removed downloaded file')
 
         // 5. Save infoNode.json file
         this.logger.info('Saving "infoNode.json"')
-        fs.writeFileSync(
+        await fs.writeFile(
           path.join(this.pointDir, 'infoNode.json'),
           JSON.stringify({
             installedReleaseVersion: latestVersion,
@@ -299,7 +301,7 @@ class Node {
           error: false,
         } as UpdateLog),
       })
-      const installInfo = helpers.getInstalledVersionInfo('node')
+      const installInfo = await helpers.getInstalledVersionInfo('node')
       const isBinMissing = !fs.existsSync(this._getBinFile())
       const latestVersion = await this.getLatestVersion()
 
@@ -390,11 +392,9 @@ class Node {
    * Returns the running instances of Point Engine
    */
   async _getRunningProcess(): Promise<Process[]> {
-    return await (
+    return (
       await find('name', 'point', true)
-    )
-      // @ts-ignore
-      .filter(p => p.bin.match(/bin.+?point(.exe)?$/))
+    ).filter(p => (p as any).bin.match(/bin.+?point(.exe)?$/))
   }
 
   /**

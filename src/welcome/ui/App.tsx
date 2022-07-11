@@ -9,28 +9,23 @@ import GenerateNew from './routes/GenerateNew'
 import ImportExisting from './routes/ImportExisting'
 import VerifyPhrase from './routes/VerifyPhrase'
 import WelcomeRoutes from './routes/routes'
-// Types
-import { GenericChannelsEnum } from '../../@types/ipc_channels'
 
 export default function App() {
   const [route, setRoute] = useState<string>(WelcomeRoutes.home)
 
   const [identifier, setIdentifier] = useState<string>('')
 
+  const getIdentifier = async () => {
+    const id = await window.Welcome.getIdentifier()
+    setIdentifier(id)
+  }
   useEffect(() => {
-    window.Welcome.getIdentifier()
-
-    window.Welcome.on(
-      GenericChannelsEnum.get_identifier,
-      (identifier: string) => {
-        setIdentifier(identifier)
-      }
-    )
+    getIdentifier()
   }, [])
 
   return (
     <UIThemeProvider>
-      <TopBar isLoading={false} />
+      <TopBar />
       <DisplayIdentifier identifier={identifier} />
       <Home route={route} setRoute={setRoute} />
       <GenerateNew route={route} setRoute={setRoute} />

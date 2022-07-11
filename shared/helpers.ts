@@ -5,8 +5,7 @@ import fs from 'fs-extra'
 import os from 'os'
 import { platform, arch } from 'process'
 import axios from 'axios'
-
-const rimraf = require('rimraf')
+import rmfr from 'rmfr'
 
 const getOSAndArch = () => {
   // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
@@ -48,10 +47,10 @@ const getPlatform = () => {
   }
 }
 
-const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => {
+const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => Promise<{
   installedReleaseVersion: string
   lastCheck: number
-} = resource => {
+}> = async resource => {
   let file
   switch (resource) {
     case 'firefox':
@@ -66,7 +65,7 @@ const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => {
   const pointPath = getPointPath()
   try {
     return JSON.parse(
-      fs.readFileSync(path.join(pointPath, `${file}.json`)).toString()
+      (await fs.readFile(path.join(pointPath, `${file}.json`))).toString()
     )
   } catch (error) {
     return {
@@ -122,10 +121,10 @@ const getHomePath = () => {
   return os.homedir()
 }
 
-const getBrowserFolderPath = () => {
+const getBrowserFolderPath = async () => {
   const browserDir = path.join(getHomePath(), '.point', 'src', 'point-browser')
   if (!fs.existsSync(browserDir)) {
-    fs.mkdirpSync(browserDir)
+    await fs.mkdirp(browserDir)
   }
   return browserDir
 }
@@ -156,16 +155,15 @@ const getArweaveKeyFileName = () => {
   return path.join(getLiveDirectoryPath(), 'arweave.json')
 }
 
-const isLoggedIn = () => {
-  return fs.existsSync(getKeyFileName())
-}
+const isLoggedIn = () => fs.existsSync(getKeyFileName())
 
 // Retrieves from `infoFirefox.json` if Firefox has been initialized.
-const getIsFirefoxInit = () => {
+// TODO: not used
+const getIsFirefoxInit = async () => {
   const pointPath = getPointPath()
   try {
     const info = JSON.parse(
-      fs.readFileSync(path.join(pointPath, 'infoFirefox.json')).toString()
+      (await fs.readFile(path.join(pointPath, 'infoFirefox.json'))).toString()
     )
     return info.isInitialized
   } catch (error) {
@@ -173,34 +171,46 @@ const getIsFirefoxInit = () => {
   }
 }
 
-const setIsFirefoxInit = (value: boolean) => {
+const setIsFirefoxInit = async (value: boolean) => {
   const infoFilename = 'infoFirefox.json'
   const pointPath = getPointPath()
   try {
     const info = JSON.parse(
-      fs.readFileSync(path.join(pointPath, infoFilename)).toString()
+      (await fs.readFile(path.join(pointPath, infoFilename))).toString()
     )
     info.isInitialized = value
-    fs.writeFile(
+    await fs.writeFile(
       path.join(pointPath, infoFilename),
       JSON.stringify(info),
-      'utf8',
-      err => {
-        if (err) console.log(err)
-      }
+      'utf8'
     )
   } catch (error) {
     console.log(error)
   }
 }
 
-const logout = () => {
+const logout = async () => {
   const pointPath = getPointPath()
   // Removing key files.
-  if (fs.existsSync(path.join(pointPath, 'contracts')))
-    rimraf.sync(path.join(pointPath, 'contracts'))
-  fs.unlinkSync(getKeyFileName())
-  fs.unlinkSync(getArweaveKeyFileName())
+  if (fs.existsSync(path.join(pointPath, 'contracts'))) {
+    await rmfr(path.join(pointPath, 'contracts'))
+  }
+  await Promise.all([
+    (async () => {
+      try {
+        await fs.unlink(getKeyFileName())
+      } catch (e) {
+        console.error('Failed to remove key file', e)
+      }
+    })(),
+    (async () => {
+      try {
+        await fs.unlink(getArweaveKeyFileName())
+      } catch (e) {
+        console.error('Failed to remove arweave key file', e)
+      }
+    })()
+  ])
 }
 
 const getPointPath = () => {
@@ -217,41 +227,6 @@ const getPointSrcPath = () => {
 
 const getPointSoftwarePath = () => {
   return path.join(getPointPath(), 'software')
-}
-
-const copyFileSync = (source: string, target: string) => {
-  let targetFile = target
-
-  if (fs.existsSync(target)) {
-    if (fs.lstatSync(target).isDirectory()) {
-      targetFile = path.join(target, path.basename(source))
-    }
-  }
-
-  fs.writeFileSync(targetFile, fs.readFileSync(source))
-}
-
-const copyFolderRecursiveSync = (source: string, target: string) => {
-  let files = []
-
-  // Check if folder needs to be created or integrated
-  const targetFolder = path.join(target, path.basename(source))
-  if (!fs.existsSync(targetFolder)) {
-    fs.mkdirSync(targetFolder)
-  }
-
-  // Copy
-  if (fs.lstatSync(source).isDirectory()) {
-    files = fs.readdirSync(source)
-    files.forEach(function (file) {
-      const curSource = path.join(source, file)
-      if (fs.lstatSync(curSource).isDirectory()) {
-        copyFolderRecursiveSync(curSource, targetFolder)
-      } else {
-        copyFileSync(curSource, targetFolder)
-      }
-    })
-  }
 }
 
 const getBinPath = () => {
@@ -351,8 +326,6 @@ export default Object.freeze({
   getPointSrcPath,
   getPointSoftwarePath,
   getBinPath,
-  copyFileSync,
-  copyFolderRecursiveSync,
   getPointPath,
   getLiveDirectoryPathResources,
   countFilesinDir,

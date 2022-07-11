@@ -11,8 +11,6 @@ import MenuItem from '@mui/material/MenuItem'
 // Icons
 import CancelPresentationIcon from '@mui/icons-material/CancelPresentation'
 import HelpIcon from '@mui/icons-material/Help'
-// Types
-import { DashboardChannelsEnum } from '../../../@types/ipc_channels'
 
 const DashboardTitle = () => {
   const [closeDialogOpen, setCloseDialogOpen] = useState<boolean>(false)
@@ -42,15 +40,12 @@ const DashboardTitle = () => {
     setAnchorElHelp(null)
   }
 
+  const getDashboardVersion = async () => {
+    const version = await window.Dashboard.getDashboardVersion()
+    setDashboardVersion(version)
+  }
   useEffect(() => {
-    window.Dashboard.getDashboardVersion()
-
-    window.Dashboard.on(
-      DashboardChannelsEnum.get_version,
-      (dversion: string) => {
-        setDashboardVersion(dversion)
-      }
-    )
+    getDashboardVersion()
   }, [])
 
   const handleLogout = () => {

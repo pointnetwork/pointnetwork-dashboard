@@ -21,7 +21,7 @@ export default async function main() {
   if (!(await Installer.isInstalled())) {
     installer()
   } else {
-    if (!(await helpers.isLoggedIn())) {
+    if (!(helpers.isLoggedIn())) {
       welcome()
     } else {
       dashboard()
