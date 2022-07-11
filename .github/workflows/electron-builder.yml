@@ -14,7 +14,7 @@ jobs:
     steps:
     - name: Get the Source Tag
       id: get_source_tag
-      run: echo ::set-output name=SOURCE_TAG::test-tag-md5-2
+      run: echo ::set-output name=SOURCE_TAG::test-tag-md5-6
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -26,132 +26,151 @@ jobs:
         draft: false
         prerelease: true
 
-  # build_on_linux:
-  #   runs-on: ubuntu-latest
-  #   needs: create_release
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - uses: actions/setup-node@master
-  #     with:
-  #       node-version: 14
-  #   - name: Install dependencies
-  #     run: npm cache --force clean && npm install --force
-  #   - name: Build executables
-  #     run: npm run make
+  build_on_linux:
+    runs-on: ubuntu-latest
+    needs: create_release
+    outputs:
+      rpm_filename: ${{ steps.upload_rpm.outputs.asset_name }}
+      rpm_md5: ${{ steps.upload_rpm.outputs.asset_md5 }}
+      deb_filename: ${{ steps.upload_deb.outputs.asset_name }}
+      deb_md5: ${{ steps.upload_deb.outputs.asset_md5 }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@master
+      with:
+        node-version: 14
+    - name: Install dependencies
+      run: npm cache --force clean && npm install --force
+    - name: Build executables
+      run: npm run make
 
-  #   - name: Compress and package executables
-  #     run: ./scripts/package_linux_executables.sh
+    - name: Compress and package executables
+      run: ./scripts/package_linux_executables.sh
 
-  #   - name: Upload linux deb artefact
-  #     uses: brianunlam/upload-release-asset@v1.0.3
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     with:
-  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-  #       asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
-  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
-  #       asset_content_type: application/gzip
-  #   - name: Upload linux rpm artefact
-  #     uses: brianunlam/upload-release-asset@v1.0.3
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     with:
-  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-  #       asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
-  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
-  #       asset_content_type: application/gzip
+    - name: Upload linux deb artefact
+      id: upload_deb
+      uses: brianunlam/upload-release-asset@v1.0.5
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/linux_executables/point-dashboard-deb.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload linux rpm artefact
+      id: upload_rpm
+      uses: brianunlam/upload-release-asset@v1.0.5
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/linux_executables/point-dashboard-rpm.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-RPM-Centos-Fedora.tar.gz
+        asset_content_type: application/gzip
 
-  # build_on_mac:
-  #   runs-on: macos-latest
-  #   needs: create_release
-  #   steps:
-  #   - name: Install the Apple certificate and provisioning profile
-  #     env:
-  #       BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEV_ID_APPLICATION_CERTIFICATE_P12_BASE64 }}
-  #       P12_PASSWORD: ${{ secrets.APPLE_DEV_ID_DECRYPTION_PASSWORD }}
-  #       BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.APPLE_DEV_ID_PROFILE }}
-  #       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-  #     run: |
-  #       # create variables
-  #       CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-  #       PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-  #       KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+  build_on_mac:
+    runs-on: macos-latest
+    needs: create_release
+    outputs:
+      macos_installer_filename: ${{ steps.upload_installer.outputs.asset_name }}
+      macos_installer_md5: ${{ steps.upload_installer.outputs.asset_md5 }}
+      macos_exec_filename: ${{ steps.upload_exec.outputs.asset_name }}
+      macos_exec_md5: ${{ steps.upload_exec.outputs.asset_md5 }}
+    steps:
+    - name: Install the Apple certificate and provisioning profile
+      env:
+        BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEV_ID_APPLICATION_CERTIFICATE_P12_BASE64 }}
+        P12_PASSWORD: ${{ secrets.APPLE_DEV_ID_DECRYPTION_PASSWORD }}
+        BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.APPLE_DEV_ID_PROFILE }}
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      run: |
+        # create variables
+        CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+        PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-  #       # import certificate and provisioning profile from secrets
-  #       echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
-  #       echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
+        # import certificate and provisioning profile from secrets
+        echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+        echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode --output $PP_PATH
 
-  #       # create temporary keychain
-  #       security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-  #       security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-  #       security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        # create temporary keychain
+        security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-  #       # import certificate to keychain
-  #       security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-  #       security list-keychain -d user -s $KEYCHAIN_PATH
+        # import certificate to keychain
+        security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        security list-keychain -d user -s $KEYCHAIN_PATH
 
-  #       # apply provisioning profile
-  #       mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-  #       cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+        # apply provisioning profile
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
-  #   - name: list identities
-  #     run: echo $(security find-identity)
-  #   - uses: actions/checkout@v2
-  #   - uses: actions/setup-node@master
-  #     with:
-  #       node-version: 14
-  #   - name: Install dependencies
-  #     run: npm install
-  #   - name: Build Installer dist
-  #     run: npm run make
-  #     env:
-  #       APPLE_IDENTITY: ${{secrets.APPLE_DEV_IDENTITY}}
-  #       APPLE_ID: ${{secrets.APPLE_DEV_ID}}
-  #       APPLE_DEV_ID_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_DEV_ID_APP_SPECIFIC_PASSWORD}}
-  #       DEBUG: electron
-  #   - name: Check sign app
-  #     run: echo $(codesign -dvvv ./out/point-darwin-x64/point.app)
+    - name: list identities
+      run: echo $(security find-identity)
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@master
+      with:
+        node-version: 14
+    - name: Install dependencies
+      run: npm install
+    - name: Build Installer dist
+      run: npm run make
+      env:
+        APPLE_IDENTITY: ${{secrets.APPLE_DEV_IDENTITY}}
+        APPLE_ID: ${{secrets.APPLE_DEV_ID}}
+        APPLE_DEV_ID_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_DEV_ID_APP_SPECIFIC_PASSWORD}}
+        DEBUG: electron
+    - name: Check sign app
+      run: echo $(codesign -dvvv ./out/point-darwin-x64/point.app)
 
-  #   - name: Build Installer
-  #     run: npm run create-installer-mac
-  #   - name: Compress and package executables
-  #     run: ./scripts/package_macos_executables.sh
-  #   # - name: Upload macos executable
-  #   #   uses: brianunlam/upload-release-asset@v1.0.3
-  #   #   env:
-  #   #     GITHUB_TOKEN: ${{ github.token }}
-  #   #   with:
-  #   #     upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-  #   #     asset_path: ./out/mac_executables/point-dashboard.tar.gz
-  #   #     asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-portable.tar.gz
-  #   #     asset_content_type: application/gzip
-  #   - name: Check sign dmg
-  #     run: echo $(codesign -dvvv ./out/point.dmg)
+    - name: Build Installer
+      run: npm run create-installer-mac
+    - name: Compress and package executables
+      run: ./scripts/package_macos_executables.sh
+    # - name: Upload macos executable
+    #   uses: brianunlam/upload-release-asset@v1.0.5
+    #   env:
+    #     GITHUB_TOKEN: ${{ github.token }}
+    #   with:
+    #     upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+    #     asset_path: ./out/mac_executables/point-dashboard.tar.gz
+    #     asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-portable.tar.gz
+    #     asset_content_type: application/gzip
+    - name: Check sign dmg
+      run: echo $(codesign -dvvv ./out/point.dmg)
 
-  #   - name: Compress and package Installer
-  #     run: ./scripts/package_macos_installer.sh
-  #   - name: Upload macos installer
-  #     uses: brianunlam/upload-release-asset@v1.0.3
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     with:
-  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-  #       asset_path: ./out/mac_executables/point-dashboard-dmg.tar.gz
-  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-installer.tar.gz
-  #       asset_content_type: application/gzip
-  #   - name: Upload macos zipped app
-  #     uses: brianunlam/upload-release-asset@v1.0.3
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     with:
-  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-  #       asset_path: ./out/mac_executables/zip/point.zip
-  #       asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-app.zip
-  #       asset_content_type: application/zip
+    - name: Compress and package Installer
+      run: ./scripts/package_macos_installer.sh
+    - name: Upload macos installer
+      id: upload_installer
+      uses: brianunlam/upload-release-asset@v1.0.5
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/mac_executables/point-dashboard-dmg.tar.gz
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-installer.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload macos zipped app
+      id: upload_exec
+      uses: brianunlam/upload-release-asset@v1.0.5
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./out/mac_executables/zip/point.zip
+        asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-app.zip
+        asset_content_type: application/zip
 
   build_on_win:
     runs-on: windows-latest
     needs: create_release
+    outputs:
+      win_installer_filename: ${{ steps.upload_win_installer.outputs.asset_name }}
+      win_installer_md5: ${{ steps.upload_win_installer.outputs.asset_md5 }}
+      win_exe_filename: ${{ steps.upload_win_exe.outputs.asset_name }}
+      win_exe_md5: ${{ steps.upload_win_exe.outputs.asset_md5 }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
@@ -186,7 +205,7 @@ jobs:
       run: bash ./scripts/package_win_installer.sh
     - name: Upload win installer
       id: upload_win_installer
-      uses: brianunlam/upload-release-asset@v1.0.3
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -197,7 +216,7 @@ jobs:
 
     - name: Upload EXE file
       id: upload_win_exe
-      uses: brianunlam/upload-release-asset@v1.0.3
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -207,6 +226,32 @@ jobs:
         asset_content_type: application/octet-stream
 
     - name: Print md5 for exe
-      run: echo ${{ steps.upload_win_installer.outputs.file_md5 }}
+      run: echo ${{ steps.upload_win_installer.outputs.asset_md5 }}
     - name: Print md5 for installer
-      run: echo ${{ steps.upload_win_exe.outputs.file_md5 }}
+      run: echo ${{ steps.upload_win_exe.outputs.asset_md5 }}
+
+  generate_md5_file:
+    runs-on: ubuntu-latest
+    needs: [create_release, build_on_win, build_on_linux, build_on_mac]
+    steps:
+    - name: Generate file
+      uses: DamianReeves/write-file-action@master
+      with:
+        path: ./md5
+        contents: |
+          ${{ needs.build_on_win.outputs.win_installer_filename }}: ${{ needs.build_on_win.outputs.win_installer_md5 }}
+          ${{ needs.build_on_win.outputs.win_exe_filename }}: ${{ needs.build_on_win.outputs.win_exe_md5 }}
+          ${{ needs.build_on_linux.outputs.rpm_filename }}: ${{ needs.build_on_linux.outputs.rpm_md5 }}
+          ${{ needs.build_on_linux.outputs.deb_filename }}: ${{ needs.build_on_linux.outputs.deb_md5 }}
+          ${{ needs.build_on_mac.outputs.macos_installer_filename }}: ${{ needs.build_on_mac.outputs.macos_installer_md5 }}
+          ${{ needs.build_on_mac.outputs.macos_exec_filename }}: ${{ needs.build_on_mac.outputs.macos_exec_md5 }}
+        write-mode: append
+    - name: Upload m5d file
+      uses: brianunlam/upload-release-asset@v1.0.5
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+        asset_path: ./md5
+        asset_name: md5.txt
+        asset_content_type: text/plain
