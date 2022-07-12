@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 import { getProgressFromGithubMsg } from './helpers'
-import rimraf from 'rimraf'
+import rmfr from 'rmfr'
 import Bounty from '../bounty'
 import Node from '../node'
 import Firefox from '../firefox'
@@ -13,10 +13,10 @@ import { GenericProgressLog } from './../@types/generic'
 import { InstallerChannelsEnum } from '../@types/ipc_channels'
 import { ErrorsEnum } from './../@types/errors'
 
-const path = require('path')
-const git = require('isomorphic-git')
-const http = require('isomorphic-git/http/node')
-const fs = require('fs')
+import path from 'path'
+import git from 'isomorphic-git'
+import http from 'isomorphic-git/http/node'
+import fs from 'fs-extra'
 
 const POINT_SRC_DIR = helpers.getPointSrcPath()
 const POINT_LIVE_DIR = helpers.getLiveDirectoryPath()
@@ -46,10 +46,10 @@ class Installer {
   /**
    * Returns the installation status
    */
-  static isInstalled = () => {
+  static isInstalled = async () => {
     try {
       return JSON.parse(
-        fs.readFileSync(this.installationJsonFilePath, {
+        await fs.readFile(this.installationJsonFilePath, {
           encoding: 'utf8',
           flag: 'r',
         })
@@ -69,15 +69,16 @@ class Installer {
       this.logger.info('Starting installation')
 
       const bounty = new Bounty({ window: this.window })
+      await bounty.init()
 
-      fs.writeFileSync(
+      await fs.writeFile(
         Installer.installationJsonFilePath,
         JSON.stringify({ isInstalled: false })
       )
 
       await bounty.sendInstallStarted()
       if (this._stepsCompleted === 0) {
-        this._createDirs()
+        await this._createDirs()
         this._stepsCompleted++
       }
       if (this._stepsCompleted === 1) {
@@ -101,7 +102,7 @@ class Installer {
 
       await bounty.sendInstalled()
 
-      fs.writeFileSync(
+      await fs.writeFile(
         Installer.installationJsonFilePath,
         JSON.stringify({ isInstalled: true })
       )
@@ -126,7 +127,7 @@ class Installer {
   /**
    * Created the required directories
    */
-  _createDirs(): void {
+  async _createDirs() {
     try {
       this.logger.info('Creating directories')
       this.logger.sendToChannel({
@@ -137,11 +138,11 @@ class Installer {
         } as GenericProgressLog),
       })
 
-      DIRECTORIES.forEach(dir => {
+      await Promise.all(DIRECTORIES.map(async dir => {
         const total = DIRECTORIES.length
         let created = 0
 
-        fs.mkdirSync(dir, { recursive: true })
+        await fs.mkdir(dir, { recursive: true })
 
         created++
         const progress = Math.round((created / total) * 100)
@@ -153,7 +154,7 @@ class Installer {
             log: `Created ${dir}`,
           } as GenericProgressLog),
         })
-      })
+      }))
 
       this.logger.info('Created directories')
       this.logger.sendToChannel({
@@ -194,7 +195,9 @@ class Installer {
       await Promise.all(
         REPOSITORIES.map(async repo => {
           const dir = path.join(POINT_SRC_DIR, repo)
-          if (fs.existsSync(dir)) rimraf.sync(dir)
+          if (fs.existsSync(dir)) {
+            await rmfr(dir)
+          }
           const githubURL = helpers.getGithubURL()
           const url = `${githubURL}/pointnetwork/${repo}`
 
@@ -229,7 +232,7 @@ class Installer {
               log: 'Copying live profile',
             } as GenericProgressLog),
           })
-          helpers.copyFolderRecursiveSync(dir, POINT_LIVE_DIR)
+          await fs.copy(dir, path.join(POINT_LIVE_DIR, repo))
           this.logger.info('Copied liveprofile')
         })
       )

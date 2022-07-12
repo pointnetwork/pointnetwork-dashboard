@@ -20,8 +20,8 @@ let welcomeService: WelcomeService | null
 declare const WELCOME_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 declare const WELCOME_WINDOW_WEBPACK_ENTRY: string
 
-export default function (isExplicitRun = false) {
-  function createWindow() {
+export default async function () {
+  async function createWindow() {
     window = new BrowserWindow({
       ...baseWindowConfig,
       width: 960,
@@ -34,12 +34,10 @@ export default function (isExplicitRun = false) {
 
     welcomeService = new WelcomeService(window!)
 
-    window.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
-
     window.on('close', () => {
       logger.info('Closing Welcome Window')
       logger.info('Removing all event listeners')
-      ipcMain.removeAllListeners()
+      removeListeners()
       logger.info('Removed all event listeners')
     })
 
@@ -48,6 +46,8 @@ export default function (isExplicitRun = false) {
       window = null
       welcomeService = null
     })
+
+    await window.loadURL(WELCOME_WINDOW_WEBPACK_ENTRY)
   }
 
   const events = [
@@ -100,11 +100,11 @@ export default function (isExplicitRun = false) {
     },
     {
       channel: WelcomeChannelsEnum.login,
-      listener() {
-        const result = welcomeService!.login()
+      async listener() {
+        const result = await welcomeService!.login()
         if (result) {
+          await dashboard()
           window?.close()
-          dashboard(true)
         }
       },
     },
@@ -148,33 +148,30 @@ export default function (isExplicitRun = false) {
     },
   ]
 
-  async function registerListeners() {
+  const registerListeners = () => {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('Registered event', event.channel)
     })
   }
 
-  if (isExplicitRun) {
-    createWindow()
-    registerListeners()
+  const removeListeners = () => {
+    events.forEach(event => {
+      ipcMain.off(event.channel, event.listener)
+      logger.info('Removed event listener', event.channel)
+    })
   }
 
-  if (!isExplicitRun) {
-    app
-      .on('ready', createWindow)
-      .whenReady()
-      .then(registerListeners)
-      .catch(e => logger.error(e))
+  const start = async () => {
+    registerListeners()
+    await createWindow()
+  }
 
-    app.on('window-all-closed', () => {
-      app.quit()
-    })
-
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow()
-      }
-    })
+  try {
+    await app.whenReady()
+    await start()
+  } catch (e) {
+    logger.error('Failed to start Welcome window', e)
+    app.quit()
   }
 }

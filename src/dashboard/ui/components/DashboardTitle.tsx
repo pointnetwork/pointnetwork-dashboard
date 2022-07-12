@@ -2,21 +2,16 @@ import { Fragment, useEffect, useState } from 'react'
 // Material UI
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-// Types
-import { DashboardChannelsEnum } from '../../../@types/ipc_channels'
 
 const DashboardTitle = () => {
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
 
+  const getDashboardVersion = async () => {
+    const version = await window.Dashboard.getDashboardVersion()
+    setDashboardVersion(version)
+  }
   useEffect(() => {
-    window.Dashboard.getDashboardVersion()
-
-    window.Dashboard.on(
-      DashboardChannelsEnum.get_version,
-      (dversion: string) => {
-        setDashboardVersion(dversion)
-      }
-    )
+    getDashboardVersion()
   }, [])
 
   return (

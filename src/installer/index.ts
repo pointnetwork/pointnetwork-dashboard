@@ -23,7 +23,7 @@ let installer: Installer | null
 declare const INSTALLER_WINDOW_WEBPACK_ENTRY: string
 declare const INSTALLER_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 
-export default function () {
+export default async function () {
   async function createWindow() {
     mainWindow = new BrowserWindow({
       ...baseWindowConfig,
@@ -39,10 +39,10 @@ export default function () {
 
     mainWindow.loadURL(INSTALLER_WINDOW_WEBPACK_ENTRY)
 
-    mainWindow.on('close', () => {
+    mainWindow.on('close', async () => {
       logger.info('Closing Installer Window')
       logger.info('Removing all event listeners')
-      ipcMain.removeAllListeners()
+      await removeListeners()
       logger.info('Removed all event listeners')
     })
 
@@ -61,8 +61,8 @@ export default function () {
       async listener() {
         try {
           await installer!.install()
+          await welcome()
           installer!.close()
-          welcome(true)
         } catch (error) {
           logger.error(error)
         }
@@ -119,19 +119,23 @@ export default function () {
     })
   }
 
-  app
-    .on('ready', createWindow)
-    .whenReady()
-    .then(registerListeners)
-    .catch(e => logger.error(e))
+  const removeListeners = async () => {
+    events.forEach(event => {
+      ipcMain.off(event.channel, event.listener)
+      logger.info('Removed event listener', event.channel)
+    })
+  }
 
-  app.on('window-all-closed', () => {
+  const start = async () => {
+    await registerListeners()
+    await createWindow()
+  }
+
+  try {
+    await app.whenReady()
+    await start()
+  } catch (e) {
+    logger.error('Failed to start Installer window', e)
     app.quit()
-  })
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
+  }
 }

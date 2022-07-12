@@ -7,7 +7,7 @@ import tarfs from 'tar-fs'
 import url from 'url'
 import progress from 'progress-stream'
 import find from 'find-process'
-import rimraf from 'rimraf'
+import rmfr from 'rmfr'
 import { exec } from 'child_process'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
@@ -105,7 +105,7 @@ class Firefox {
         // 0. Delete previous installation
         this.logger.info('Removing previous installations')
         const browserDir = path.join(this.pointDir, 'src', 'point-browser')
-        rimraf.sync(browserDir)
+        await rmfr(browserDir)
 
         // 1. Set the parameters for download
         const version = await this.getLatestVersion()
@@ -132,14 +132,14 @@ class Firefox {
         // Unack
         await this._unpack({ src: downloadDest, dest: browserDir })
         // Create configuration files
-        this._createConfigFiles()
+        await this._createConfigFiles()
         // Delete downloaded file
         this.logger.info('Removing downloaded file')
-        fs.unlinkSync(downloadDest)
+        await fs.unlink(downloadDest)
         this.logger.info('Removed downloaded file')
         // Write JSON file
         this.logger.info('Saving "infoFirefox.json"')
-        fs.writeFileSync(
+        await fs.writeFile(
           path.join(this.pointDir, 'infoFirefox.json'),
           JSON.stringify({
             installedReleaseVersion: version,
@@ -163,7 +163,9 @@ class Firefox {
    */
   async launch() {
     try {
-      if (!fs.existsSync(this._getBinFile())) await this.downloadAndInstall()
+      if (!fs.existsSync(await this._getBinFile())) {
+        await this.downloadAndInstall()
+      }
       if ((await this._getRunningProcess()).length) {
         this.logger.sendToChannel({
           channel: FirefoxChannelsEnum.running_status,
@@ -175,10 +177,10 @@ class Firefox {
         return
       }
 
-      // MATBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
-      this._createConfigFiles()
+      // MAYBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
+      await this._createConfigFiles()
 
-      const binFile = this._getBinFile()
+      const binFile = await this._getBinFile()
       const profilePath = path.join(
         helpers.getHomePath(),
         '.point/keystore/liveprofile'
@@ -263,8 +265,8 @@ class Firefox {
           error: false,
         } as UpdateLog),
       })
-      const installInfo = helpers.getInstalledVersionInfo('firefox')
-      const isBinMissing = !fs.existsSync(this._getBinFile())
+      const installInfo = await helpers.getInstalledVersionInfo('firefox')
+      const isBinMissing = !fs.existsSync(await this._getBinFile())
       const latestVersion = await this.getLatestVersion()
 
       if (
@@ -409,7 +411,7 @@ class Firefox {
         }
 
         if (global.platform.linux) {
-          const stats = fs.statSync(src)
+          const stats = await fs.stat(src)
           const progressStream = progress({ length: stats.size, time: 250 })
           progressStream.on('progress', p => {
             this.logger.sendToChannel({
@@ -448,7 +450,7 @@ class Firefox {
   /**
    * Create configuration files for Firefox
    */
-  _createConfigFiles(): void {
+  async _createConfigFiles() {
     try {
       this.logger.info('Creating configuration files')
 
@@ -512,18 +514,18 @@ pref('security.pki.sha1_enforcement_level', 4)
     }
 }`
       // Write the autoconfig file
-      fs.writeFileSync(
-        path.join(this._getPrefPath(), 'autoconfig.js'),
+      await fs.writeFile(
+        path.join(await this._getPrefPath(), 'autoconfig.js'),
         autoconfigContent
       )
       // Write the firefox config file
-      fs.writeFileSync(
-        path.join(this._getAppPath(), configFilename),
+      await fs.writeFile(
+        path.join(await this._getAppPath(), configFilename),
         firefoxCfgContent
       )
       // Write the policies file
-      fs.writeFileSync(
-        path.join(this._getPoliciesPath(), 'policies.json'),
+      await fs.writeFile(
+        path.join(await this._getPoliciesPath(), 'policies.json'),
         policiesCfgContent
       )
 
@@ -537,18 +539,18 @@ pref('security.pki.sha1_enforcement_level', 4)
   /**
    * Returns the path where Firefox installation resides
    */
-  _getRootPath(): string {
+  async _getRootPath(): Promise<string> {
     if (global.platform.win32 || global.platform.darwin) {
-      return path.join(helpers.getBrowserFolderPath())
+      return path.join(await helpers.getBrowserFolderPath())
     }
-    return path.join(helpers.getBrowserFolderPath(), 'firefox')
+    return path.join(await helpers.getBrowserFolderPath(), 'firefox')
   }
 
   /**
    * Returns the app path for the Firefox installation
    */
-  _getAppPath(): string {
-    const rootPath = this._getRootPath()
+  async _getAppPath(): Promise<string> {
+    const rootPath = await this._getRootPath()
 
     let appPath = rootPath
     if (global.platform.win32) appPath = path.join(rootPath, 'app')
@@ -556,7 +558,7 @@ pref('security.pki.sha1_enforcement_level', 4)
       appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
 
     if (!fs.existsSync(appPath)) {
-      fs.mkdirSync(appPath)
+      await fs.mkdir(appPath)
     }
 
     return appPath
@@ -565,19 +567,19 @@ pref('security.pki.sha1_enforcement_level', 4)
   /**
    * Returns the pref path for the Firefox installation
    */
-  _getPrefPath(): string {
-    const rootPath = this._getRootPath()
+  async _getPrefPath(): Promise<string> {
+    const rootPath = await this._getRootPath()
 
     if (global.platform.linux) return path.join(rootPath, 'defaults', 'pref')
 
-    const defaultsPath = path.join(this._getAppPath(), 'defaults')
+    const defaultsPath = path.join(await this._getAppPath(), 'defaults')
     const prefPath = path.join(defaultsPath, 'pref')
 
     if (!fs.existsSync(defaultsPath)) {
-      fs.mkdirSync(defaultsPath)
+      await fs.mkdir(defaultsPath)
     }
     if (!fs.existsSync(prefPath)) {
-      fs.mkdirSync(prefPath)
+      await fs.mkdir(prefPath)
     }
     return prefPath
   }
@@ -585,14 +587,14 @@ pref('security.pki.sha1_enforcement_level', 4)
   /**
    * Returns the policies path for the Firefox installation
    */
-  _getPoliciesPath(): string {
-    const rootPath = this._getRootPath()
-    let distributionPath = path.join(this._getAppPath(), 'distribution')
+  async _getPoliciesPath(): Promise<string> {
+    const rootPath = await this._getRootPath()
+    let distributionPath = path.join(await this._getAppPath(), 'distribution')
     if (global.platform.linux)
       distributionPath = path.join(rootPath, 'distribution')
 
     if (!fs.existsSync(distributionPath)) {
-      fs.mkdirSync(distributionPath)
+      await fs.mkdir(distributionPath)
     }
     return distributionPath
   }
@@ -600,8 +602,8 @@ pref('security.pki.sha1_enforcement_level', 4)
   /**
    * Returns the executable bin path for the Firefox installation
    */
-  _getBinFile() {
-    const rootPath = this._getRootPath()
+  async _getBinFile(): Promise<string> {
+    const rootPath = await this._getRootPath()
     if (global.platform.win32) {
       // return path.join(rootPath, 'point-browser-portable.exe')
       return path.join(rootPath, 'app', 'firefox.exe')
@@ -619,7 +621,7 @@ pref('security.pki.sha1_enforcement_level', 4)
   async _getRunningProcess(): Promise<Process[]> {
     this.logger.info('Getting running processes')
 
-    return await (
+    return (
       await find('name', /firefox/i)
     ).filter(p => p.cmd.includes('point-browser') && !p.cmd.includes('tab'))
   }

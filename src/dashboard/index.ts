@@ -34,23 +34,7 @@ declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
 
 const logger = new Logger({ module: 'dashboard_window' })
 
-/**
- * Useful where we want to do some cleanup before closing the window
- */
-const shutdownResources = async () => {
-  logger.info('Removing all event listeners')
-  ipcMain.removeAllListeners()
-  logger.info('Removed all event listeners')
-
-  try {
-    await node?.stop()
-    await firefox?.stop()
-  } catch (error) {
-    logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
-  }
-}
-
-export default function (isExplicitRun = false) {
+export default async function () {
   async function createWindow() {
     window = new BrowserWindow({
       ...baseWindowConfig,
@@ -82,6 +66,22 @@ export default function (isExplicitRun = false) {
     await window.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
   }
 
+  /**
+   * Useful where we want to do some cleanup before closing the window
+   */
+  const shutdownResources = async () => {
+    logger.info('Removing all event listeners')
+    await removeListeners()
+    logger.info('Removed all event listeners')
+
+    try {
+      await node?.stop()
+      await firefox?.stop()
+    } catch (error) {
+      logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+    }
+  }
+
   const events: EventListener[] = [
     // Bounty channels
     {
@@ -101,9 +101,9 @@ export default function (isExplicitRun = false) {
         try {
           window?.webContents.send(DashboardChannelsEnum.log_out)
           await shutdownResources()
-          helpers.logout()
-          welcome(true)
-          window?.destroy()
+          await helpers.logout()
+          await welcome()
+          window!.close()
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
@@ -218,10 +218,11 @@ export default function (isExplicitRun = false) {
     },
     {
       channel: FirefoxChannelsEnum.get_version,
-      listener() {
+      async listener() {
+        const version = (await helpers.getInstalledVersionInfo('firefox')).installedReleaseVersion
         window?.webContents.send(
           FirefoxChannelsEnum.get_version,
-          helpers.getInstalledVersionInfo('firefox').installedReleaseVersion
+          version
         )
       },
     },
@@ -259,10 +260,11 @@ export default function (isExplicitRun = false) {
     },
     {
       channel: NodeChannelsEnum.get_version,
-      listener() {
+      async listener() {
+        const version = (await helpers.getInstalledVersionInfo('node')).installedReleaseVersion
         window?.webContents.send(
           NodeChannelsEnum.get_version,
-          helpers.getInstalledVersionInfo('node').installedReleaseVersion
+          version
         )
       },
     },
@@ -370,16 +372,18 @@ export default function (isExplicitRun = false) {
     },
   ]
 
-  async function registerListeners() {
+  const registerListeners = () => {
     events.forEach(event => {
       ipcMain.on(event.channel, event.listener)
       logger.info('Registered event', event.channel)
     })
   }
 
-  if (isExplicitRun) {
-    createWindow()
-    registerListeners()
+  const removeListeners = () => {
+    events.forEach(event => {
+      ipcMain.off(event.channel, event.listener)
+      logger.info('Removed event listener', event.channel)
+    })
   }
 
   app.on('will-quit', async function () {
@@ -388,21 +392,16 @@ export default function (isExplicitRun = false) {
     logger.info('Dashboard Window "will-quit" event')
   })
 
-  if (!isExplicitRun) {
-    app
-      .on('ready', createWindow)
-      .whenReady()
-      .then(registerListeners)
-      .catch(e => logger.error(e))
+  const start = async () => {
+    registerListeners()
+    await createWindow()
+  }
 
-    app.on('window-all-closed', () => {
-      app.quit()
-    })
-
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow()
-      }
-    })
+  try {
+    await app.whenReady()
+    await start()
+  } catch (e) {
+    logger.error('Failed to start Dashboard window', e)
+    app.quit()
   }
 }
