@@ -48,7 +48,7 @@ const VerifyPhrase = ({
 
   const handleChange = (e: any) => {
     setInputs(prev => {
-      prev[e.target.name] = e.target.value
+      prev[e.target.name] = e.target.value.trim()
       return [...prev]
     })
   }
