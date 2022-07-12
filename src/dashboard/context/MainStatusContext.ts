@@ -2,6 +2,7 @@ import {createContext, useEffect, useState} from "react";
 import {
   DashboardChannelsEnum,
   FirefoxChannelsEnum,
+  GenericChannelsEnum,
   NodeChannelsEnum,
   UninstallerChannelsEnum
 } from "../../@types/ipc_channels";
@@ -16,7 +17,7 @@ export const useMainStatus = () => {
   const [loader, setIsLaunching] = useState<{
     isLoading: boolean
     message: string
-  }>({ isLoading: true, message: 'Starting Point Network' })
+  }>({ isLoading: true, message: 'Checking for updates...' })
   const [isBrowserRunning, setIsBrowserRunning] = useState<boolean>(false)
   const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
 
@@ -25,21 +26,7 @@ export const useMainStatus = () => {
     window.Dashboard.on(NodeChannelsEnum.running_status, (_: string) => {
       const parsed: LaunchProcessLog = JSON.parse(_)
       setIsNodeRunning(parsed.isRunning)
-
-      if (!parsed.isRunning) {
-        setTimeout(window.Dashboard.launchNodeAndPing, 2000)
-        setLaunchAttempts(prev => {
-          if (prev >= 5) {
-            setIsLaunching(prev => ({
-              ...prev,
-              message: `Starting Point Network (please wait)`,
-            }))
-          }
-          return prev + 1
-        })
-      } else {
-        setLaunchAttempts(0)
-      }
+      setLaunchAttempts(parsed.pingErrorCount)
     })
 
     window.Dashboard.on(FirefoxChannelsEnum.running_status, (_: string) => {
@@ -65,6 +52,18 @@ export const useMainStatus = () => {
         message: 'Logging Out',
       })
     })
+
+    window.Dashboard.on(GenericChannelsEnum.check_for_updates, (_: string) => {
+      const parsed = JSON.parse(_)
+      if (parsed.success) {
+        setIsLaunching({
+          isLoading: true,
+          message: 'Starting Point Network'
+        })
+      } else {
+        setIsLaunching({isLoading: false, message: ''})
+      }
+    })
   }
 
   const getInfo = async () => {
@@ -78,12 +77,10 @@ export const useMainStatus = () => {
     setBrowserVersion(firefoxVersion)
   }
 
-  // 1. Set listeners, get info and start node
+  // 1. Set listeners and get info
   const init = async () => {
     setListeners()
     getInfo()
-    await window.Dashboard.checkForUpdates()
-    window.Dashboard.launchNodeAndPing()
   }
   useEffect(() => {
     init()

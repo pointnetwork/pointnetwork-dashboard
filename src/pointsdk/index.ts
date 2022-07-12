@@ -166,6 +166,7 @@ class PointSDK {
         } as UpdateLog),
       })
       this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      throw error
     }
   }
 }

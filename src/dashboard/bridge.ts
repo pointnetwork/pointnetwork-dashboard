@@ -32,8 +32,7 @@ export const api = {
   logOut: () => ipcRenderer.send(DashboardChannelsEnum.log_out),
   // Node
   getIdentityInfo: () => ipcRenderer.send(NodeChannelsEnum.get_identity),
-  pingNode: () => ipcRenderer.send(NodeChannelsEnum.running_status),
-  launchNodeAndPing: () => ipcRenderer.send(NodeChannelsEnum.launch),
+  launchNode: () => ipcRenderer.send(NodeChannelsEnum.launch),
   getNodeVersion: () => new Promise<string>((resolve) => {
     ipcRenderer.once(NodeChannelsEnum.get_version, (_, v: string) => {
       resolve(v)
@@ -61,16 +60,9 @@ export const api = {
     })
     ipcRenderer.send(GenericChannelsEnum.get_identifier)
   }),
-  checkForUpdates: () => new Promise<void>((resolve, reject) => {
-    ipcRenderer.once(GenericChannelsEnum.check_for_updates, (_, log: string) => {
-      if (JSON.parse(log).success) {
-        resolve()
-      } else {
-        reject(new Error('Updates check failed'))
-      }
-    })
+  checkForUpdates: () => {
     ipcRenderer.send(GenericChannelsEnum.check_for_updates)
-  }),
+  },
   minimizeWindow: () => ipcRenderer.send(GenericChannelsEnum.minimize_window),
   closeWindow: () => ipcRenderer.send(GenericChannelsEnum.close_window),
 

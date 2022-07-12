@@ -229,10 +229,10 @@ const getPointSoftwarePath = () => {
   return path.join(getPointPath(), 'software')
 }
 
-const getBinPath = () => {
+const getBinPath = async () => {
   const dir = path.join(getHomePath(), '.point', 'bin')
   if (!fs.existsSync(dir)) {
-    fs.mkdirpSync(dir)
+    await fs.mkdirp(dir)
   }
   return dir
 }

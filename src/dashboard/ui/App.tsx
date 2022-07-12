@@ -65,7 +65,7 @@ const App = () => {
             <ResourceItemCard
               title="Point Engine"
               status={isNodeRunning}
-              onClick={() => {}}
+              onClick={window.Dashboard.launchNode}
               icon={<PointLogo />}
               buttonLabel="Launch Engine"
               isLoading={isNodeRunning}

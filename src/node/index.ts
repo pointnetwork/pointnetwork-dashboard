@@ -3,14 +3,14 @@ import axios from 'axios'
 import fs, { PathLike } from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
-import { exec } from 'node:child_process'
+import { exec as _exec } from 'node:child_process'
+import {promisify} from 'util'
 import { https } from 'follow-redirects'
 import moment from 'moment'
 import rmfr from 'rmfr'
 import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
-import md5File from 'md5-file'
 // Types
 import { NodeChannelsEnum } from '../@types/ipc_channels'
 import {
@@ -25,7 +25,10 @@ import { ErrorsEnum } from '../@types/errors'
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 
-const INITIAL_PING_ERROR_THRESHOLD = 15
+const exec = promisify(_exec)
+
+const PING_ERROR_THRESHOLD = 10
+const PING_INTERVAL = 1000
 
 // TODO: Add JSDoc comments
 /**
@@ -43,7 +46,8 @@ class Node {
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
   pingErrorCount = 0
-  pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD
+  pingInterval: NodeJS.Timeout | null = null
+  nodeRunning = false
 
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
@@ -174,7 +178,8 @@ class Node {
    */
   async launch() {
     try {
-      if (!fs.existsSync(this._getBinFile())) {
+      this.logger.info('Launching point node')
+      if (!fs.existsSync(await this._getBinFile())) {
         this.logger.error('Trying to launch point node, but bin file does not exist')
         return
       }
@@ -184,22 +189,20 @@ class Node {
         )
         return
       }
-      const file = this._getBinFile()
+      const file = await this._getBinFile()
       const cmd = global.platform.win32
         ? `set NODE_ENV=production&&"${file}"`
         : `NODE_ENV=production "${file}"`
-      this.logger.info(
-        `Launching point node md5: ${await md5File(file.toString())}`
-      )
-      return exec(cmd, (error, stdout, stderr) => {
-        if (stdout) this.logger.info('Ran successfully')
-        if (error) {
-          this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
-        }
-        if (stderr) {
-          this.logger.error(ErrorsEnum.LAUNCH_ERROR, stderr)
-        }
-      })
+      exec(cmd)
+        .then(() => {
+          this.logger.info('Point node process exited')
+        })
+        .catch(e => {
+          this.logger.error('Point node process exited with error: ', e)
+        })
+      if (!this.pingInterval) {
+        this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
+      }
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
@@ -212,7 +215,7 @@ class Node {
   async ping() {
     try {
       await axios.get('https://point/v1/api/status/meta', {
-        timeout: 3000,
+        timeout: PING_INTERVAL,
         proxy: {
           host: 'localhost',
           port: 8666,
@@ -226,25 +229,30 @@ class Node {
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: true,
+          pingErrorCount: 0,
           log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
       this.pingErrorCount = 0
-      this.pingErrorThreshold = INITIAL_PING_ERROR_THRESHOLD
+      this.nodeRunning = true
     } catch (error) {
       this.pingErrorCount += 1
-      if (this.pingErrorCount > this.pingErrorThreshold) {
+      if (this.pingErrorCount > PING_ERROR_THRESHOLD || this.nodeRunning) {
         this.logger.error(
           ErrorsEnum.NODE_ERROR,
-          `Unable to Ping after ${this.pingErrorThreshold} attempts`
+          this.nodeRunning
+            ? 'Node process was stopped, relaunching'
+            : `Unable to Ping after ${PING_ERROR_THRESHOLD} attempts, re-attempting to launch node`
         )
-        this.pingErrorThreshold *= 2
         this.pingErrorCount = 0
+        this.launch()
       }
+      this.nodeRunning = false
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: false,
+          pingErrorCount: this.pingErrorCount,
           log: 'Point Engine is not running',
         } as LaunchProcessLog),
       })
@@ -263,6 +271,10 @@ class Node {
         done: false,
       } as GenericProgressLog),
     })
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval)
+      this.pingInterval = null
+    }
     const process = await this._getRunningProcess()
     if (process.length > 0) {
       this.logger.info('Stopping')
@@ -302,7 +314,7 @@ class Node {
         } as UpdateLog),
       })
       const installInfo = await helpers.getInstalledVersionInfo('node')
-      const isBinMissing = !fs.existsSync(this._getBinFile())
+      const isBinMissing = !fs.existsSync(await this._getBinFile())
       const latestVersion = await this.getLatestVersion()
 
       if (
@@ -346,6 +358,7 @@ class Node {
         } as UpdateLog),
       })
       this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      throw error
     }
   }
 
@@ -400,8 +413,8 @@ class Node {
   /**
    * Returns the path where the downloaded Point Engine executable exists
    */
-  _getBinFile(): PathLike {
-    const binPath = helpers.getBinPath()
+  async _getBinFile(): Promise<PathLike> {
+    const binPath = await helpers.getBinPath()
     if (global.platform.win32) return path.join(binPath, 'win', 'point.exe')
     if (global.platform.darwin) return path.join(binPath, 'macos', 'point')
     return path.join(binPath, 'linux', 'point')
