@@ -24,7 +24,7 @@ import {
 
 export default function App() {
   const loggerRef = useRef<HTMLElement>()
-  const [disclaimerOpen, setDisclaimerOpen] = useState<boolean>(false)
+  const [disclaimerOpen, setDisclaimerOpen] = useState<boolean>(true)
   const [attempts, setAttempts] = useState<number>(0)
   const [installing, setInstalling] = useState<boolean>(false)
   const [version, setVersion] = useState<string>('')
@@ -33,7 +33,7 @@ export default function App() {
   const getInfo = async () => {
     const [dashboardVersion, id] = await Promise.all([
       window.Installer.getDashboardVersion(),
-      window.Installer.getIdentifier()
+      window.Installer.getIdentifier(),
     ])
     setVersion(dashboardVersion)
     setIdentifier(id)
