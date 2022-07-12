@@ -13,7 +13,7 @@ const DisclaimerDialog = ({
   setOpen: Dispatch<SetStateAction<boolean>>
 }) => {
   return (
-    <Dialog open={open} onClose={() => setOpen(false)}>
+    <Dialog open={open}>
       <Box p={2}>
         <Typography variant="h6" textAlign="center">
           *** Before you Start ***
@@ -60,7 +60,9 @@ const DisclaimerDialog = ({
           someone from the Point team. It's not. We do not need your secret
           phrase. It's your key to the web3 world, so take good care of it.
         </Typography>
-        <Typography mt={2}>Happy journey!</Typography>
+        <Typography mt={2} variant="body2">
+          Happy journey!
+        </Typography>
         <Box display="flex" flexDirection="column" alignItems="center" mt={3}>
           <Button variant="contained" onClick={() => setOpen(false)}>
             I undestand and agree to continue
