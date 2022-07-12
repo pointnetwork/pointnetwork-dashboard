@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-unused-vars */
+
 export enum InstallerChannelsEnum {
   start = 'install:start',
   error = 'install:error',
@@ -74,3 +75,5 @@ export enum PointSDKChannelsEnum {
 export enum BountyChannelsEnum {
   send_generated = 'bounty:send_generated',
 }
+
+export type DownloadChannels = NodeChannelsEnum.download | FirefoxChannelsEnum.download | PointSDKChannelsEnum.download | UninstallerChannelsEnum.download | undefined;

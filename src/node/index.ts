@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 import axios from 'axios'
-import fs, { PathLike } from 'fs-extra'
+import fs, { PathLike, readFile } from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
 import { exec as _exec } from 'node:child_process'
@@ -21,6 +21,7 @@ import {
   UpdateLog,
 } from '../@types/generic'
 import { ErrorsEnum } from '../@types/errors'
+import { downloadAndVerifyFileIntegrity } from '../../shared/downloadAndVerifyFileIntegrity'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -94,19 +95,21 @@ class Node {
         if (global.platform.darwin)
           fileName = `point-macos-${latestVersion}.tar.gz`
 
+        const platform = fileName.split('-')[1];
         const downloadUrl = this.getDownloadURL(fileName, latestVersion)
         const downloadDest = path.join(this.pointDir, fileName)
+        const sha256FileName = `sha256-${latestVersion}.txt`;
+        const hashDownloadDest = path.join(this.pointDir, sha256FileName)
+        const hashDownloadUrl = this.getDownloadURL(sha256FileName, latestVersion)
+
         this.logger.info('Downloading from', downloadUrl)
 
-        const downloadStream = fs.createWriteStream(downloadDest)
+        try {
+          await downloadAndVerifyFileIntegrity(platform, downloadUrl, downloadDest, hashDownloadUrl, hashDownloadDest, this.logger, NodeChannelsEnum.download);
+        } catch (e) {
+          // it failed after 5 retries, what we do?
+        }
 
-        // 2. Start downloading and send logs to window
-        await utils.download({
-          channel: NodeChannelsEnum.download,
-          logger: this.logger,
-          downloadUrl,
-          downloadStream,
-        })
 
         this.logger.info('Unpacking')
         // 3. Unpack the downloaded file and send logs to window
@@ -193,6 +196,7 @@ class Node {
       const cmd = global.platform.win32
         ? `set NODE_ENV=production&&"${file}"`
         : `NODE_ENV=production "${file}"`
+
       exec(cmd)
         .then(() => {
           this.logger.info('Point node process exited')
@@ -203,6 +207,7 @@ class Node {
       if (!this.pingInterval) {
         this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
       }
+
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
