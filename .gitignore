@@ -3,3 +3,4 @@ dist
 packages
 .webpack
 out
+yarn-error.log

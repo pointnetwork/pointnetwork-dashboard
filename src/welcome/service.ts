@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron'
-import * as fs from 'fs'
+import fs from 'fs-extra'
 import Mnemonic from 'bitcore-mnemonic'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
@@ -34,21 +34,21 @@ class WelcomeService {
   /**
    * Useful where we want to do some cleanup before closing the window
    */
-  login() {
+  async login() {
     if (helpers.isLoggedIn())
       throw Error(
         'Already logged in (~/.point/keystore/key.json already exists). You need to log out first.'
       )
 
     if (!fs.existsSync(helpers.getLiveDirectoryPath())) {
-      fs.mkdirSync(helpers.getLiveDirectoryPath())
+      await fs.mkdir(helpers.getLiveDirectoryPath())
     }
 
     const contents = JSON.stringify({ phrase: this.mnemonic })
-    fs.writeFileSync(helpers.getKeyFileName(), contents)
+    await fs.writeFile(helpers.getKeyFileName(), contents)
 
     const arKey = getKeyFromMnemonic(this.mnemonic)
-    fs.writeFileSync(helpers.getArweaveKeyFileName(), JSON.stringify(arKey))
+    await fs.writeFile(helpers.getArweaveKeyFileName(), JSON.stringify(arKey))
 
     this.window.webContents.send(WelcomeChannelsEnum.login)
     return true
@@ -97,7 +97,7 @@ class WelcomeService {
   }
 
   /**
-   * Returns the dictionary of awailable words for seed phrase
+   * Returns the dictionary of available words for seed phrase
    */
   getDictionary() {
     this.window.webContents.send(
@@ -112,7 +112,7 @@ class WelcomeService {
    */
   pickRandomWords(): Word[] {
     const availableOptions = this.mnemonic.split(' ')
-    this.picks = pickMultipleRandomly(availableOptions, 3)
+    this.picks = pickMultipleRandomly(availableOptions, 3).sort((a, b) => a.idx - b.idx)
     this.window.webContents.send(WelcomeChannelsEnum.pick_words, this.picks)
     return this.picks
   }

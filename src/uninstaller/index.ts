@@ -2,7 +2,7 @@ import { BrowserWindow } from 'electron'
 import fs, { PathLike } from 'fs-extra'
 import { exec } from 'node:child_process'
 import path from 'node:path'
-import rimraf from 'rimraf'
+import rmfr from 'rmfr'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 import utils from '../../shared/utils'
@@ -76,8 +76,10 @@ class Uninstaller {
 
         // 3. Unpack the downloaded file and send logs to window
         const temp = helpers.getPointPathTemp()
-        if (fs.existsSync(temp)) rimraf.sync(temp)
-        fs.mkdirpSync(temp)
+        if (fs.existsSync(temp)) {
+          await rmfr(temp)
+        }
+        await fs.mkdirp(temp)
 
         try {
           this.logger.info('Unpacking')
@@ -142,7 +144,7 @@ class Uninstaller {
 
         // 4. Delete the downloaded file
         this.logger.info('Removing downloaded file')
-        fs.unlinkSync(downloadDest)
+        await fs.unlink(downloadDest)
         this.logger.info('Removed downloaded file')
 
         resolve()

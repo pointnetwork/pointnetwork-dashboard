@@ -69,7 +69,7 @@ class PointSDK {
           'v',
           ''
         )}-an+fx.xpi`
-        const manifest = fs.readFileSync(manifestDownloadDest, 'utf8')
+        const manifest = await fs.readFile(manifestDownloadDest, 'utf8')
         const extensionId =
           JSON.parse(manifest).browser_specific_settings.gecko.id
         const extensionsPath = helpers.getLiveExtensionsDirectoryPathResources()
@@ -80,7 +80,7 @@ class PointSDK {
 
         const downloadStream = fs.createWriteStream(downloadPath)
 
-        helpers.setIsFirefoxInit(false)
+        await helpers.setIsFirefoxInit(false)
 
         await utils.download({
           channel: PointSDKChannelsEnum.download,
@@ -90,7 +90,7 @@ class PointSDK {
         })
 
         this.logger.info('Saving "infoSDK.json"')
-        fs.writeFileSync(
+        await fs.writeFile(
           path.join(this.pointDir, 'infoSDK.json'),
           JSON.stringify({
             installedReleaseVersion: latestVersion,
@@ -123,7 +123,7 @@ class PointSDK {
           error: false,
         } as UpdateLog),
       })
-      const installInfo = helpers.getInstalledVersionInfo('sdk')
+      const installInfo = await helpers.getInstalledVersionInfo('sdk')
       const latestVersion = await this.getLatestVersion()
 
       if (

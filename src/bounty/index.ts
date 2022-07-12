@@ -23,7 +23,10 @@ class Bounty {
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
     this.logger = new Logger({ window, module: 'bounty' })
-    this._getReferralCode()
+  }
+
+  async init () {
+    await this._getReferralCode()
   }
 
   /**
@@ -32,9 +35,9 @@ class Bounty {
   async sendGenerated() {
     try {
       const fileContents = JSON.parse(
-        fs
-          .readFileSync(path.join(helpers.getPointPath(), 'infoReferral.json'))
-          .toString()
+        (
+          await fs.readFile(path.join(helpers.getPointPath(), 'infoReferral.json'))
+        ).toString()
       )
       const referralCode = fileContents.referralCode
 
@@ -51,7 +54,7 @@ class Bounty {
         this.logger.info(
           'Sent event=generated to https://bounty.pointnetwork.io'
         )
-        fs.writeFileSync(
+        await fs.writeFile(
           path.join(helpers.getPointPath(), 'infoReferral.json'),
           JSON.stringify({
             ...fileContents,
@@ -80,7 +83,7 @@ class Bounty {
       )
       this.isInstalledEventSent = true
       this.logger.info('Sent event=install to https://bounty.pointnetwork.io')
-      this._saveReferralInfo()
+      await this._saveReferralInfo()
     } catch (error) {
       this.logger.error(
         ErrorsEnum.BOUNTY_ERROR,
@@ -114,10 +117,10 @@ class Bounty {
   /**
    * Saves that referral code in ~/.point/infoReferral.json
    */
-  _saveReferralInfo() {
+  async _saveReferralInfo() {
     try {
       this.logger.info('Saving referralCode to "infoReferral.json"')
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(this.pointDir, 'infoReferral.json'),
         JSON.stringify({
           referralCode: this.referralCode,
@@ -137,7 +140,7 @@ class Bounty {
   /**
    * Reads various directories and sets the referralCode
    */
-  _getReferralCode(): void {
+  async _getReferralCode() {
     // Get referral code from the trash folder
     let trashDir
     let trashDirContent: string[] = []
@@ -147,7 +150,7 @@ class Bounty {
       try {
         this.logger.info('Reading ".Trash" directory')
         trashDir = path.join(helpers.getHomePath(), '.Trash')
-        trashDirContent = fs.readdirSync(trashDir)
+        trashDirContent = await fs.readdir(trashDir)
         this.logger.info('".Trash" directory read')
       } catch (e) {
         this.logger.error(
@@ -163,7 +166,7 @@ class Bounty {
     try {
       this.logger.info('Reading "Downloads" directory')
       downloadDir = path.join(helpers.getHomePath(), 'Downloads')
-      downloadDirContent = fs.readdirSync(downloadDir)
+      downloadDirContent = await fs.readdir(downloadDir)
       this.logger.info('"Downloads" directory read')
     } catch (e) {
       this.logger.error(
@@ -178,7 +181,7 @@ class Bounty {
     try {
       this.logger.info('Reading "Desktop" directory')
       desktopDir = path.join(helpers.getHomePath(), 'Desktop')
-      desktopDirContent = fs.readdirSync(desktopDir)
+      desktopDirContent = await fs.readdir(desktopDir)
       this.logger.info('"Desktop" directory read')
     } catch (e) {
       this.logger.error(

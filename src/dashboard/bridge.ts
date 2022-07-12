@@ -23,8 +23,12 @@ export const api = {
   // Dashboard
   checkBalanceAndAirdrop: () =>
     ipcRenderer.send(DashboardChannelsEnum.check_balance_and_airdrop),
-  getDashboardVersion: () =>
-    ipcRenderer.send(DashboardChannelsEnum.get_version),
+  getDashboardVersion: () => new Promise<string>((resolve) => {
+    ipcRenderer.once(DashboardChannelsEnum.get_version, (_, v: string) => {
+      resolve(v)
+    })
+    ipcRenderer.send(DashboardChannelsEnum.get_version)
+  }),
   logOut: () => ipcRenderer.send(DashboardChannelsEnum.log_out),
   // Node
   getIdentityInfo: () => ipcRenderer.send(NodeChannelsEnum.get_identity),

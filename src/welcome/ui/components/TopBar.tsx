@@ -3,9 +3,10 @@ import Box from '@mui/material/Box'
 import CloseIcon from '@mui/icons-material/Close'
 import RemoveIcon from '@mui/icons-material/Remove'
 
-const TopBar = ({ isLoading = true }: { isLoading: boolean }) => {
+const TopBar = () => {
   const handeClose = () => {
-    !isLoading && window.Welcome.closeWindow()
+    console.log('closing')
+    window.Welcome.closeWindow()
   }
 
   return (

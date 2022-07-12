@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-// MAterial UI
+// Material UI
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -16,8 +16,6 @@ import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 // Types
 import {
   NodeChannelsEnum,
-  DashboardChannelsEnum,
-  GenericChannelsEnum,
   FirefoxChannelsEnum,
   PointSDKChannelsEnum,
   UninstallerChannelsEnum,
@@ -32,19 +30,19 @@ export default function App() {
   const [version, setVersion] = useState<string>('')
   const [identifier, setIdentifier] = useState<string>('')
 
+  const getInfo = async () => {
+    const [dashboardVersion, id] = await Promise.all([
+      window.Installer.getDashboardVersion(),
+      window.Installer.getIdentifier()
+    ])
+    setVersion(dashboardVersion)
+    setIdentifier(id)
+  }
   useEffect(() => {
-    window.Installer.getDashboardVersion()
-    window.Installer.on(DashboardChannelsEnum.get_version, (version: string) =>
-      setVersion(version)
-    )
-    window.Installer.getIdentifier()
-    window.Installer.on(
-      GenericChannelsEnum.get_identifier,
-      (identifier: string) => setIdentifier(identifier)
-    )
     window.Installer.on(InstallerChannelsEnum.error, (_attempt: string) => {
       setAttempts(Number(_attempt))
     })
+    getInfo()
   }, [])
 
   function sendStartInstallation() {

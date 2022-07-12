@@ -16,12 +16,18 @@ export const api = {
   startInstallation: () => {
     ipcRenderer.send(InstallerChannelsEnum.start)
   },
-  getDashboardVersion: () => {
+  getDashboardVersion: () => new Promise<string>((resolve) => {
+    ipcRenderer.once(DashboardChannelsEnum.get_version, (_, v: string) => {
+      resolve(v)
+    })
     ipcRenderer.send(DashboardChannelsEnum.get_version)
-  },
-  getIdentifier: () => {
+  }),
+  getIdentifier: () => new Promise<string>((resolve) => {
+    ipcRenderer.once(GenericChannelsEnum.get_identifier, (_, id: string) => {
+      resolve(id)
+    })
     ipcRenderer.send(GenericChannelsEnum.get_identifier)
-  },
+  }),
   minimizeWindow: () => {
     ipcRenderer.send(GenericChannelsEnum.minimize_window)
   },
