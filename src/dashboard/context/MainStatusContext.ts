@@ -112,7 +112,7 @@ export const useMainStatus = () => {
     setInterval(() => {
       window.Dashboard.pingNode()
       window.Dashboard.getIdentityInfo()
-      window.Dashboard.checkBalanceAndAirdrop()
+      window.Dashboard.checkBalance()
     }, 10000)
   }
   useEffect(() => {
@@ -121,12 +121,11 @@ export const useMainStatus = () => {
 
   // 2. Once node is running, we launch the browser
   useEffect(() => {
-    console.log('Called')
     if (isNodeRunning) {
       window.Dashboard.launchBrowser()
       window.Dashboard.getIdentityInfo()
-      window.Dashboard.sendGeneratedEventToBounty()
       window.Dashboard.checkBalanceAndAirdrop()
+      window.Dashboard.sendGeneratedEventToBounty()
     }
   }, [isNodeRunning])
 

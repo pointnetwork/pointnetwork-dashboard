@@ -82,6 +82,27 @@ export default async function () {
     }
   }
 
+  const checkBalance = async () => {
+    let balance = 0
+    const addressRes = await axios.get(
+      'http://localhost:2468/v1/api/wallet/address'
+    )
+    const address = addressRes.data.data.address
+
+    const faucetURL = helpers.getFaucetURL()
+    const res = await axios.get(`${faucetURL}/balance?address=${address}`)
+    if (res.data?.balance && !isNaN(res.data.balance)) {
+      balance = res.data.balance
+    } else {
+      logger.error(`Unexpected balance response: ${res.data}`)
+    }
+    window?.webContents.send(
+      DashboardChannelsEnum.check_balance_and_airdrop,
+      balance
+    )
+    return balance
+  }
+
   const events: EventListener[] = [
     // Bounty channels
     {
@@ -123,6 +144,16 @@ export default async function () {
       },
     },
     {
+      channel: DashboardChannelsEnum.check_balance,
+      listener() {
+        try {
+          checkBalance()
+        } catch (error) {
+          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+        }
+      },
+    },
+    {
       channel: DashboardChannelsEnum.check_balance_and_airdrop,
       async listener() {
         // TODO: move this func somewhere to utils
@@ -132,7 +163,6 @@ export default async function () {
           })
         const start = new Date().getTime()
         try {
-          let balance = 0
           const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
           )
@@ -148,28 +178,8 @@ export default async function () {
             }
           }
 
-          const checkBalance = async () => {
-            const faucetURL = helpers.getFaucetURL()
-            try {
-              const res = await axios.get(
-                `${faucetURL}/balance?address=${address}`
-              )
-              if (res.data?.balance && !isNaN(res.data.balance)) {
-                balance = res.data.balance
-              } else {
-                logger.error(`Unexpected balance response: ${res.data}`)
-              }
-            } catch (error) {
-              logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
-            }
-          }
+          let balance = await checkBalance()
 
-          await checkBalance()
-
-          window?.webContents.send(
-            DashboardChannelsEnum.check_balance_and_airdrop,
-            balance
-          )
           // eslint-disable-next-line no-unmodified-loop-condition
           while (balance <= 0) {
             if (new Date().getTime() - start > 120000) {
@@ -179,13 +189,8 @@ export default async function () {
             }
             await requestAirdrop()
             await delay(10000)
-            await checkBalance()
+            balance = await checkBalance()
           }
-
-          window?.webContents.send(
-            DashboardChannelsEnum.check_balance_and_airdrop,
-            balance
-          )
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
