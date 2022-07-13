@@ -133,7 +133,6 @@ export default async function () {
         const start = new Date().getTime()
         try {
           let balance = 0
-          logger.info('Getting wallet address')
           const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
           )
@@ -151,13 +150,11 @@ export default async function () {
 
           const checkBalance = async () => {
             const faucetURL = helpers.getFaucetURL()
-            logger.info(`Getting wallet balance for address: ${address}`)
             try {
               const res = await axios.get(
                 `${faucetURL}/balance?address=${address}`
               )
               if (res.data?.balance && !isNaN(res.data.balance)) {
-                logger.info(`Balance: ${res.data.balance}`)
                 balance = res.data.balance
               } else {
                 logger.error(`Unexpected balance response: ${res.data}`)
@@ -219,11 +216,9 @@ export default async function () {
     {
       channel: FirefoxChannelsEnum.get_version,
       async listener() {
-        const version = (await helpers.getInstalledVersionInfo('firefox')).installedReleaseVersion
-        window?.webContents.send(
-          FirefoxChannelsEnum.get_version,
-          version
-        )
+        const version = (await helpers.getInstalledVersionInfo('firefox'))
+          .installedReleaseVersion
+        window?.webContents.send(FirefoxChannelsEnum.get_version, version)
       },
     },
     // Node channels
@@ -261,11 +256,9 @@ export default async function () {
     {
       channel: NodeChannelsEnum.get_version,
       async listener() {
-        const version = (await helpers.getInstalledVersionInfo('node')).installedReleaseVersion
-        window?.webContents.send(
-          NodeChannelsEnum.get_version,
-          version
-        )
+        const version = (await helpers.getInstalledVersionInfo('node'))
+          .installedReleaseVersion
+        window?.webContents.send(NodeChannelsEnum.get_version, version)
       },
     },
     // Generic channels
@@ -320,7 +313,7 @@ export default async function () {
               if (sdkUpdateAvailable) {
                 await pointSDK?.downloadAndInstall()
               }
-            })()
+            })(),
           ])
 
           if (!global.platform.darwin) {

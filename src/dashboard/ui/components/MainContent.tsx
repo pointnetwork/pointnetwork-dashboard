@@ -146,9 +146,7 @@ const MainContent = () => {
                 <AccountCircleIcon fontSize="large" />
                 <Box ml={1}>
                   <Typography variant="h6">
-                    {identityInfo.isFetching
-                      ? 'Not available'
-                      : identityInfo.identity || 'Not registered yet'}
+                    {identityInfo.identity || 'Not registered yet'}
                   </Typography>
                   <Tooltip title="Click to copy your address">
                     <Typography

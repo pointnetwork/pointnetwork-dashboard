@@ -175,7 +175,9 @@ class Node {
   async launch() {
     try {
       if (!fs.existsSync(this._getBinFile())) {
-        this.logger.error('Trying to launch point node, but bin file does not exist')
+        this.logger.error(
+          'Trying to launch point node, but bin file does not exist'
+        )
         return
       }
       if ((await this._getRunningProcess()).length) {
@@ -353,7 +355,6 @@ class Node {
    * Returns the identity currently active on Point Engine
    */
   async getIdentityInfo(): Promise<{ address: string; identity: string }> {
-    this.logger.info('Getting identity')
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.get_identity,
       log: JSON.stringify({
@@ -371,7 +372,6 @@ class Node {
         `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
       )
       const identity = res.data.data.identity
-      this.logger.info('Fetched identity')
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.get_identity,
         log: JSON.stringify({
@@ -383,7 +383,7 @@ class Node {
       })
       return { address, identity }
     } catch (e) {
-      this.logger.error(ErrorsEnum.NODE_ERROR, e)
+      this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to fetch identity info')
       throw e
     }
   }
@@ -392,9 +392,9 @@ class Node {
    * Returns the running instances of Point Engine
    */
   async _getRunningProcess(): Promise<Process[]> {
-    return (
-      await find('name', 'point', true)
-    ).filter(p => (p as any).bin.match(/bin.+?point(.exe)?$/))
+    return (await find('name', 'point', true)).filter(p =>
+      (p as any).bin.match(/bin.+?point(.exe)?$/)
+    )
   }
 
   /**
