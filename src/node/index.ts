@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 import axios from 'axios'
-import fs  from 'fs-extra'
+import fs from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
 import { spawn } from 'node:child_process'
@@ -92,14 +92,14 @@ class Node {
         if (global.platform.darwin)
           fileName = `point-macos-${latestVersion}.tar.gz`
 
-        const platform = fileName.split('-')[1];
-        const downloadUrl = this.getDownloadURL(fileName, latestVersion);
-        const downloadDest = path.join(this.pointDir, fileName);
-        const sha256FileName = `sha256-${latestVersion}.txt`;
-        const sumFileDest = path.join(this.pointDir, sha256FileName);
-        const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
+        const platform = fileName.split('-')[1]
+        const downloadUrl = this.getDownloadURL(fileName, latestVersion)
+        const downloadDest = path.join(this.pointDir, fileName)
+        const sha256FileName = `sha256-${latestVersion}.txt`
+        const sumFileDest = path.join(this.pointDir, sha256FileName)
+        const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion)
 
-        this.logger.info('Downloading from', downloadUrl);
+        this.logger.info('Downloading from', downloadUrl)
 
         try {
           await downloadAndVerifyFileIntegrity({
@@ -109,14 +109,14 @@ class Node {
             sumFileUrl,
             sumFileDest,
             logger: this.logger,
-            channel: NodeChannelsEnum.download
-          });
-
+            channel: NodeChannelsEnum.download,
+          })
         } catch (e) {
-          this.logger.error(`Could not download pointnode after many retries due to error: ${e}`)
+          this.logger.error(
+            `Could not download pointnode after many retries due to error: ${e}`
+          )
           throw e
         }
-
 
         this.logger.info('Unpacking')
         // 3. Unpack the downloaded file and send logs to window
@@ -190,7 +190,9 @@ class Node {
     try {
       this.logger.info('Launching point node')
       if (!fs.existsSync(await this._getBinFile())) {
-        this.logger.error('Trying to launch point node, but bin file does not exist')
+        this.logger.error(
+          'Trying to launch point node, but bin file does not exist'
+        )
         return
       }
       if ((await this._getRunningProcess()).length) {
@@ -203,9 +205,9 @@ class Node {
       const proc = spawn(file, {
         env: {
           ...process.env,
-          NODE_ENV: 'production'
+          NODE_ENV: 'production',
         },
-        stdio: ['ignore', 'ignore', 'pipe']
+        stdio: ['ignore', 'ignore', 'pipe'],
       })
 
       proc.stderr.on('data', data => {
@@ -223,7 +225,6 @@ class Node {
       if (!this.pingInterval) {
         this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
       }
-
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error

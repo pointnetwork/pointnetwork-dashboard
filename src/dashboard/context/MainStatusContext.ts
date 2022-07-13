@@ -20,6 +20,7 @@ export const useMainStatus = () => {
   // Node
   const [nodeVersion, setNodeVersion] = useState<string>('')
   const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
+  const [engineErrorCode, setEngineErrorCode] = useState<number>(0)
   // Browser
   const [browserVersion, setBrowserVersion] = useState<string>('')
   const [isBrowserRunning, setIsBrowserRunning] = useState<boolean>(false)
@@ -35,6 +36,13 @@ export const useMainStatus = () => {
 
   // Register these events once to prevent leaks
   const setListeners = () => {
+    window.Dashboard.on(NodeChannelsEnum.error, (log: string) => {
+      const parsed: LaunchProcessLog = JSON.parse(log)
+      setIsNodeRunning(parsed.isRunning)
+      setEngineErrorCode(+parsed.log)
+      setIsLaunching({ isLoading: false, message: '' })
+    })
+
     window.Dashboard.on(NodeChannelsEnum.running_status, (_: string) => {
       const parsed: LaunchProcessLog = JSON.parse(_)
       setIsNodeRunning(parsed.isRunning)
@@ -70,10 +78,10 @@ export const useMainStatus = () => {
       if (parsed.success) {
         setIsLaunching({
           isLoading: true,
-          message: 'Starting Point Network'
+          message: 'Starting Point Network',
         })
       } else {
-        setIsLaunching({isLoading: false, message: ''})
+        setIsLaunching({ isLoading: false, message: '' })
       }
     })
 
@@ -144,6 +152,7 @@ export const useMainStatus = () => {
     loader,
     identityInfo,
     balance,
+    engineErrorCode,
   }
 }
 
