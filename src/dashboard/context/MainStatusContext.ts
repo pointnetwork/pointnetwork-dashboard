@@ -106,10 +106,6 @@ export const useMainStatus = () => {
   const init = async () => {
     setListeners()
     getInfo()
-    setInterval(() => {
-      window.Dashboard.getIdentityInfo()
-      window.Dashboard.checkBalance()
-    }, 10000)
   }
   useEffect(() => {
     init()
@@ -121,6 +117,10 @@ export const useMainStatus = () => {
       window.Dashboard.launchBrowser()
       window.Dashboard.checkBalanceAndAirdrop()
       window.Dashboard.sendGeneratedEventToBounty()
+      setInterval(() => {
+        window.Dashboard.getIdentityInfo()
+        window.Dashboard.checkBalance()
+      }, 10000)
     }
   }, [isNodeRunning])
 
