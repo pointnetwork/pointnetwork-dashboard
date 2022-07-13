@@ -225,28 +225,28 @@ jobs:
         asset_name: point-${{ needs.create_release.outputs.release_name }}.exe
         asset_content_type: application/octet-stream
 
-  generate_hash_file:
-    runs-on: ubuntu-latest
-    needs: [create_release, build_on_win, build_on_linux, build_on_mac]
-    steps:
-    - name: Generate hash file
-      uses: DamianReeves/write-file-action@master
-      with:
-        path: ./hash
-        contents: |
-          ${{ needs.build_on_win.outputs.win_installer_filename }}: ${{ needs.build_on_win.outputs.win_installer_hash }}
-          ${{ needs.build_on_win.outputs.win_exe_filename }}: ${{ needs.build_on_win.outputs.win_exe_hash }}
-          ${{ needs.build_on_linux.outputs.rpm_filename }}: ${{ needs..outputs.rpm_hash }}
-          ${{ needs.build_on_linux.outputs.deb_filename }}: ${{ needs.build_on_linux.outputs.deb_hash }}
-          ${{ needs.build_on_mac.outputs.macos_installer_filename }}: ${{ needs.build_on_mac.outputs.macos_installer_hash }}
-          ${{ needs.build_on_mac.outputs.macos_exec_filename }}: ${{ needs.build_on_mac.outputs.macos_exec_hash }}
-        write-mode: append
-    - name: Upload sha256 file
-      uses: brianunlam/upload-release-asset@v1.0.5
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-        asset_path: ./hash
-        asset_name: sha256.txt
-        asset_content_type: text/plain
+  # generate_hash_file:
+  #   runs-on: ubuntu-latest
+  #   needs: [create_release, build_on_win, build_on_linux, build_on_mac]
+  #   steps:
+  #   - name: Generate hash file
+  #     uses: DamianReeves/write-file-action@master
+  #     with:
+  #       path: ./hash
+  #       contents: |
+  #         ${{ needs.build_on_win.outputs.win_installer_filename }}: ${{ needs.build_on_win.outputs.win_installer_hash }}
+  #         ${{ needs.build_on_win.outputs.win_exe_filename }}: ${{ needs.build_on_win.outputs.win_exe_hash }}
+  #         ${{ needs.build_on_linux.outputs.rpm_filename }}: ${{ needs..outputs.rpm_hash }}
+  #         ${{ needs.build_on_linux.outputs.deb_filename }}: ${{ needs.build_on_linux.outputs.deb_hash }}
+  #         ${{ needs.build_on_mac.outputs.macos_installer_filename }}: ${{ needs.build_on_mac.outputs.macos_installer_hash }}
+  #         ${{ needs.build_on_mac.outputs.macos_exec_filename }}: ${{ needs.build_on_mac.outputs.macos_exec_hash }}
+  #       write-mode: append
+  #   - name: Upload sha256 file
+  #     uses: brianunlam/upload-release-asset@v1.0.5
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./hash
+  #       asset_name: sha256.txt
+  #       asset_content_type: text/plain
