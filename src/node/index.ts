@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 import axios from 'axios'
-import fs, { PathLike, readFile } from 'fs-extra'
+import fs, { PathLike } from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
 import { exec as _exec } from 'node:child_process'
@@ -96,18 +96,28 @@ class Node {
           fileName = `point-macos-${latestVersion}.tar.gz`
 
         const platform = fileName.split('-')[1];
-        const downloadUrl = this.getDownloadURL(fileName, latestVersion)
-        const downloadDest = path.join(this.pointDir, fileName)
+        const downloadUrl = this.getDownloadURL(fileName, latestVersion);
+        const downloadDest = path.join(this.pointDir, fileName);
         const sha256FileName = `sha256-${latestVersion}.txt`;
-        const hashDownloadDest = path.join(this.pointDir, sha256FileName)
-        const hashDownloadUrl = this.getDownloadURL(sha256FileName, latestVersion)
+        const sumFileDest = path.join(this.pointDir, sha256FileName);
+        const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
 
-        this.logger.info('Downloading from', downloadUrl)
+        this.logger.info('Downloading from', downloadUrl);
 
         try {
-          await downloadAndVerifyFileIntegrity(platform, downloadUrl, downloadDest, hashDownloadUrl, hashDownloadDest, this.logger, NodeChannelsEnum.download);
+          await downloadAndVerifyFileIntegrity({
+            platform,
+            downloadUrl,
+            downloadDest,
+            sumFileUrl,
+            sumFileDest,
+            logger: this.logger,
+            channel: NodeChannelsEnum.download
+          });
+
         } catch (e) {
-          // it failed after 5 retries, what we do?
+          this.logger.error(`Could not download pointnode after many retries due to error: ${e}`)
+          throw e
         }
 
 

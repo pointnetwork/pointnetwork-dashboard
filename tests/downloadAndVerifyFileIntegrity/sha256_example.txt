@@ -1,3 +1,3 @@
 point-linux-refs/heads/use-pnversion-for-gh-action.tar.gz: 4f374b4aad0324930e63cb33f4241de3a4adb80ec83359e6414c81bc44c1399e
 point-macos-refs/heads/use-pnversion-for-gh-action.tar.gz: 6b9f7563f5993159bbf6a6770027883e7810efdcd0aebf82edce04efb9ea81b9
-point-win-refs/heads/use-pnversion-for-gh-action.tar.gz: 6fcdf978ef51553adfb5bbcd8621b72d2a8a186c86da50a753003747d0546366
+point-win-refs/heads/use-pnversion-for-gh-action.tar.gz: ce8192a608fe8c90b16c45e2e7d130fd136fb08b4ea82ab34ef3fc9bd5ec3f2e

@@ -1,18 +1,11 @@
-import { readFile, createWriteStream } from "fs-extra";
-import utils from './utils';
+import { readFile } from "fs-extra";
 import { createHash } from 'crypto';
 import retry from 'async-retry';
 import { DownloadChannels } from "../src/@types/ipc_channels";
+import { downlaodFileToDest } from "./downloadFileToDest";
+import Logger from "./logger";
 
-export async function downlaodFileToDest(downloadUrl: string, downloadDest: string, logger?: any, channel?: DownloadChannels) {
-  const downloadStream = createWriteStream(downloadDest);
-  return utils.download({
-    channel,
-    logger,
-    downloadUrl,
-    downloadStream,
-  });
-}
+const DEFAULT_RETRIES = 5;
 
   export async function getSumsHashFromFile(sumsFilePath: string) {
     const hashes = await readFile(sumsFilePath);
@@ -43,27 +36,41 @@ export async function downlaodFileToDest(downloadUrl: string, downloadDest: stri
     return hashSum.digest('hex');
   }
 
-export async function downloadAndVerifyFileIntegrity(platform: string, downloadUrl: string, downloadDest: string, sumFileUrl: string, sumFileDest: string, logger?: any, channel?: DownloadChannels) {
+interface DownloadAndVerifyFileIntegrityOpts {
+  retryOptions?: retry.Options,
+  platform: string,
+  downloadUrl: string,
+  downloadDest: string,
+  sumFileUrl: string,
+  sumFileDest: string,
+  logger?: Logger,
+  channel?: DownloadChannels
+}
+
+export async function downloadAndVerifyFileIntegrity(
+  { retryOptions, platform, downloadUrl, downloadDest, sumFileUrl, sumFileDest, logger, channel }: DownloadAndVerifyFileIntegrityOpts
+) {
   await retry(
     async () => {
         await downlaodFileToDest(downloadUrl, downloadDest, logger, channel);
         await downlaodFileToDest(sumFileUrl, sumFileDest)
         const fileSum = await getFileSum(downloadDest);
+        let fileSumsHash;
         try {
-          const fileSumsHash = await getSumsHashFromFile(sumFileDest);
-          if (fileSum !== fileSumsHash[platform]) {
-            console.log({ fileSum, hash: fileSumsHash[platform], platform })
-            const errorMsg = `File seems corrupted current sum is: ${fileSum} expected was ${fileSumsHash[platform]}, downloading it again`
-            logger?.error(errorMsg)
-            throw Error(errorMsg);
-          }
-          logger?.info(`File from ${downloadUrl} was downloaded, integrity ok with sum: ${fileSum} `)
+          fileSumsHash = await getSumsHashFromFile(sumFileDest);
         } catch (e) {
           logger?.error('The sum file was not found or is corrupted, skipping file integrity verification')
+          return;
         }
+        if (fileSum !== fileSumsHash[platform]) {
+          const errorMsg = `File seems corrupted current sum is: ${fileSum} expected was ${fileSumsHash[platform]}, downloading it again`
+          logger?.error(errorMsg)
+          throw Error(errorMsg);
+        }
+        logger?.info(`File from ${downloadUrl} was downloaded, integrity ok with sum: ${fileSum} `)
     },
-    {
-      retries: 5
+    retryOptions || {
+      retries: DEFAULT_RETRIES
     }
   )
 }
