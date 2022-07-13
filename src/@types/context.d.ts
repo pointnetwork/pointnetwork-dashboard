@@ -1,4 +1,9 @@
-import {GenericProgressLog, IsUpdatingState, UpdateLog} from "./generic";
+import {
+  GenericProgressLog,
+  IdentityLog,
+  IsUpdatingState,
+  UpdateLog,
+} from './generic'
 
 export type MainStatus = {
   isBrowserRunning: boolean
@@ -11,6 +16,8 @@ export type MainStatus = {
     isLoading: boolean
     message: string
   }
+  identityInfo: IdentityLog
+  balance: string | number
 }
 
 export type UpdateStatus = {

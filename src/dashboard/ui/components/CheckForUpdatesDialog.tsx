@@ -1,4 +1,4 @@
-import {FunctionComponent, useContext} from 'react'
+import { FunctionComponent, useContext } from 'react'
 // MUI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -18,9 +18,9 @@ import {
   NodeChannelsEnum,
   PointSDKChannelsEnum,
 } from '../../../@types/ipc_channels'
+import { GenericProgressLog, UpdateLog } from '../../../@types/generic'
 // Context
-import {UpdateStatusContext} from "../../context/UpdateStatusContext";
-import {GenericProgressLog, UpdateLog} from "../../../@types/generic";
+import { UpdateStatusContext } from '../../context/UpdateStatusContext'
 
 /**
  * Helper component to render the update information for a resource
@@ -34,7 +34,7 @@ const ResourceUpdateCard: FunctionComponent<{
   updateLogs: UpdateLog
   downloadLogs: GenericProgressLog
   unpackLogs?: GenericProgressLog
-}> = ({channel, log, updateLogs, downloadLogs, unpackLogs}) => {
+}> = ({ channel, log, updateLogs, downloadLogs, unpackLogs }) => {
   let title = ''
   switch (channel) {
     case FirefoxChannelsEnum:
@@ -107,7 +107,7 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
     firefoxUnpackLogs,
     sdkLog,
     sdkDownloadLogs,
-    sdkUpdateLogs
+    sdkUpdateLogs,
   } = useContext(UpdateStatusContext)
 
   const handleClose = () => {
@@ -125,7 +125,7 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
           ) : Object.values(isUpdating).every(el => !el) ? (
             <CheckCircleIcon color="success" />
           ) : (
-            <CircularProgress size={24} />
+            <CircularProgress size={24} thickness={5} />
           )}
           <Typography variant="h6" ml={0.5}>
             {isUpdating.firefoxError ||
