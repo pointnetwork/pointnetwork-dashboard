@@ -27,6 +27,7 @@ export interface Process {
 export interface LaunchProcessLog {
   isRunning: boolean
   log: string
+  pingErrorCount: number
 }
 
 export interface IdentityLog {

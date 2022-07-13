@@ -1,6 +1,5 @@
 import {
   GenericProgressLog,
-  IdentityLog,
   IsUpdatingState,
   UpdateLog,
 } from './generic'
@@ -16,7 +15,10 @@ export type MainStatus = {
     isLoading: boolean
     message: string
   }
-  identityInfo: IdentityLog
+  identityInfo: {
+    identity: string
+    address: string
+  }
   balance: string | number
 }
 

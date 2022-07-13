@@ -24,10 +24,12 @@ const ResourceStatusCard = ({
   resource,
   isRunning,
   version,
+  onRetry
 }: {
   resource: 'Engine' | 'Browser' | 'Extension'
   isRunning: boolean
   version: string
+  onRetry?: () => void
 }) => {
   return (
     <Paper elevation={4} variant="outlined" sx={{ my: 1 }}>
@@ -45,15 +47,11 @@ const ResourceStatusCard = ({
             Status: {isRunning ? 'Running' : 'Stopped'}
           </Typography>
         </Box>
-        {resource === 'Browser' ? (
-          <Chip
-            label={isRunning ? version : 'Launch'}
-            color={isRunning ? 'default' : 'primary'}
-            onClick={() => !isRunning && window.Dashboard.launchBrowser()}
-          />
-        ) : (
-          <Chip label={version} />
-        )}
+        <Chip
+          label={isRunning || !onRetry ? version : 'Launch'}
+          color={isRunning || !onRetry ? 'default' : 'primary'}
+          onClick={isRunning ? undefined : onRetry}
+        />
       </Box>
     </Paper>
   )
@@ -123,11 +121,13 @@ const MainContent = () => {
               resource="Engine"
               isRunning={isNodeRunning}
               version={nodeVersion}
+              onRetry={window.Dashboard.launchNode}
             />
             <ResourceStatusCard
               resource="Browser"
               isRunning={isBrowserRunning}
               version={browserVersion}
+              onRetry={window.Dashboard.launchBrowser}
             />
             <ResourceStatusCard
               resource="Extension"

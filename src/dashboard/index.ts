@@ -75,11 +75,81 @@ export default async function () {
     logger.info('Removed all event listeners')
 
     try {
-      await node?.stop()
-      await firefox?.stop()
+      await Promise.all([
+        node!.stop(),
+        firefox!.stop()
+      ])
     } catch (error) {
       logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
     }
+  }
+
+  const checkForUpdates = async () => {
+      await Promise.all([
+        (async () => {
+          const nodeUpdateAvailable = await node!.checkForUpdates()
+          if (nodeUpdateAvailable) {
+            await node?.downloadAndInstall()
+          }
+        })(),
+        (async () => {
+          const firefoxUpdateAvailable = await firefox!.checkForUpdates()
+          if (firefoxUpdateAvailable) {
+            await firefox?.downloadAndInstall()
+          }
+        })(),
+        (async () => {
+          const sdkUpdateAvailable = await pointSDK!.checkForUpdates()
+          if (sdkUpdateAvailable) {
+            await pointSDK?.downloadAndInstall()
+          }
+        })(),
+        // TODO: notify the UI and handle it same way as for node, ff and sdk
+        (async () => {
+          if (!global.platform.darwin) { // TODO: why not darwin?
+            try {
+              const latestDashboardV = await helpers.getLatestReleaseFromGithub(
+                'pointnetwork-dashboard'
+              )
+              const installedDashboardV =
+                await helpers.getInstalledDashboardVersion()
+
+              if (latestDashboardV > `v${installedDashboardV}`) {
+                window?.webContents.send(
+                  DashboardChannelsEnum.check_for_updates,
+                  JSON.stringify({
+                    isAvailable: true,
+                    isChecking: false,
+                  } as UpdateLog)
+                )
+              }
+            } catch (e) {
+              logger.error('Failed to check for dashboard updates', e)
+            }
+          }
+        })()
+      ])
+  }
+
+  const checkForUpdatesAndLaunchNode = async () => {
+    try {
+      await checkForUpdates()
+      window?.webContents.send(
+        GenericChannelsEnum.check_for_updates,
+        JSON.stringify({
+          success: true,
+        })
+      )
+    } catch (e) {
+      window?.webContents.send(
+        GenericChannelsEnum.check_for_updates,
+        JSON.stringify({
+          success: false,
+        })
+      )
+      return
+    }
+    await node!.launch()
   }
 
   const checkBalance = async () => {
@@ -232,7 +302,6 @@ export default async function () {
       async listener() {
         try {
           await node?.launch()
-          setTimeout(() => node?.ping(), 3000)
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
@@ -243,16 +312,6 @@ export default async function () {
       async listener() {
         try {
           await node?.getIdentityInfo()
-        } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
-        }
-      },
-    },
-    {
-      channel: NodeChannelsEnum.running_status,
-      async listener() {
-        try {
-          await node?.ping()
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
@@ -297,63 +356,7 @@ export default async function () {
     },
     {
       channel: GenericChannelsEnum.check_for_updates,
-      async listener() {
-        try {
-          // TODO: Check for dashboard updates too
-          await Promise.all([
-            (async () => {
-              const nodeUpdateAvailable = await node!.checkForUpdates()
-              if (nodeUpdateAvailable) {
-                await node?.downloadAndInstall()
-              }
-            })(),
-            (async () => {
-              const firefoxUpdateAvailable = await firefox!.checkForUpdates()
-              if (firefoxUpdateAvailable) {
-                await firefox?.downloadAndInstall()
-              }
-            })(),
-            (async () => {
-              const sdkUpdateAvailable = await pointSDK!.checkForUpdates()
-              if (sdkUpdateAvailable) {
-                await pointSDK?.downloadAndInstall()
-              }
-            })(),
-          ])
-
-          if (!global.platform.darwin) {
-            const latestDashboardV = await helpers.getLatestReleaseFromGithub(
-              'pointnetwork-dashboard'
-            )
-            const installedDashboardV =
-              await helpers.getInstalledDashboardVersion()
-
-            if (latestDashboardV > `v${installedDashboardV}`)
-              window?.webContents.send(
-                DashboardChannelsEnum.check_for_updates,
-                JSON.stringify({
-                  isAvailable: true,
-                  isChecking: false,
-                } as UpdateLog)
-              )
-          }
-
-          window?.webContents.send(
-            GenericChannelsEnum.check_for_updates,
-            JSON.stringify({
-              success: true,
-            })
-          )
-        } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
-          window?.webContents.send(
-            GenericChannelsEnum.check_for_updates,
-            JSON.stringify({
-              success: false,
-            })
-          )
-        }
-      },
+      listener: checkForUpdatesAndLaunchNode
     },
     {
       channel: GenericChannelsEnum.close_window,
@@ -393,6 +396,7 @@ export default async function () {
   const start = async () => {
     registerListeners()
     await createWindow()
+    await checkForUpdatesAndLaunchNode()
   }
 
   try {

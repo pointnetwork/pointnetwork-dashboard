@@ -179,7 +179,7 @@ const kill: KillFunction = async ({ processId, onMessage }) => {
     ? `taskkill /F /PID "${processId}"`
     : `kill "${processId}"`
   const output = await exec(cmd)
-  onMessage(`Killed PID: ${processId} with Output: ${output}`)
+  onMessage(`Killed PID: ${processId} with Output: ${JSON.stringify(output, null, 2)}`)
 }
 
 const utils: Utils = Object.freeze({

@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from 'react'
 import {
   DashboardChannelsEnum,
   FirefoxChannelsEnum,
+  GenericChannelsEnum,
   NodeChannelsEnum,
   UninstallerChannelsEnum,
 } from '../../@types/ipc_channels'
@@ -14,7 +15,7 @@ export const useMainStatus = () => {
   const [loader, setIsLaunching] = useState<{
     isLoading: boolean
     message: string
-  }>({ isLoading: true, message: 'Starting Point Network' })
+  }>({ isLoading: true, message: 'Checking for updates...' })
   const [launchAttempts, setLaunchAttempts] = useState<number>(0)
   // Node
   const [nodeVersion, setNodeVersion] = useState<string>('')
@@ -37,21 +38,7 @@ export const useMainStatus = () => {
     window.Dashboard.on(NodeChannelsEnum.running_status, (_: string) => {
       const parsed: LaunchProcessLog = JSON.parse(_)
       setIsNodeRunning(parsed.isRunning)
-
-      if (!parsed.isRunning) {
-        setTimeout(window.Dashboard.launchNodeAndPing, 2000)
-        setLaunchAttempts(prev => {
-          if (prev >= 5) {
-            setIsLaunching(prev => ({
-              ...prev,
-              message: `Starting Point Network (please wait)`,
-            }))
-          }
-          return prev + 1
-        })
-      } else {
-        setLaunchAttempts(0)
-      }
+      setLaunchAttempts(parsed.pingErrorCount)
     })
 
     window.Dashboard.on(FirefoxChannelsEnum.running_status, (_: string) => {
@@ -76,6 +63,18 @@ export const useMainStatus = () => {
         isLoading: true,
         message: 'Logging Out',
       })
+    })
+
+    window.Dashboard.on(GenericChannelsEnum.check_for_updates, (_: string) => {
+      const parsed = JSON.parse(_)
+      if (parsed.success) {
+        setIsLaunching({
+          isLoading: true,
+          message: 'Starting Point Network'
+        })
+      } else {
+        setIsLaunching({isLoading: false, message: ''})
+      }
     })
 
     window.Dashboard.on(NodeChannelsEnum.get_identity, (_: string) => {
@@ -103,17 +102,10 @@ export const useMainStatus = () => {
     setBrowserVersion(firefoxVersion)
   }
 
-  // 1. Set listeners, get info and start node
+  // 1. Set listeners and get info
   const init = async () => {
     setListeners()
     getInfo()
-    await window.Dashboard.checkForUpdates()
-    window.Dashboard.launchNodeAndPing()
-    setInterval(() => {
-      window.Dashboard.pingNode()
-      window.Dashboard.getIdentityInfo()
-      window.Dashboard.checkBalance()
-    }, 10000)
   }
   useEffect(() => {
     init()
@@ -123,9 +115,12 @@ export const useMainStatus = () => {
   useEffect(() => {
     if (isNodeRunning) {
       window.Dashboard.launchBrowser()
-      window.Dashboard.getIdentityInfo()
       window.Dashboard.checkBalanceAndAirdrop()
       window.Dashboard.sendGeneratedEventToBounty()
+      setInterval(() => {
+        window.Dashboard.getIdentityInfo()
+        window.Dashboard.checkBalance()
+      }, 10000)
     }
   }, [isNodeRunning])
 
