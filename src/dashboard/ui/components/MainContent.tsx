@@ -7,6 +7,7 @@ import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Snackbar from '@mui/material/Snackbar'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 // Context
 import { MainStatusContext } from '../../context/MainStatusContext'
@@ -15,7 +16,6 @@ import TopBar from './TopBar'
 import DashboardTitle from './DashboardTitle'
 // Icons
 import CircleIcon from '@mui/icons-material/Circle'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 // Types
 import { GenericChannelsEnum } from '../../../@types/ipc_channels'
@@ -68,7 +68,7 @@ const InfoDisplayCard = ({
 }) => {
   return (
     <Paper elevation={4} variant="outlined" sx={{ my: 1 }}>
-      <Box p={2} position="relative">
+      <Box p={1.5} position="relative">
         <Typography variant="body2" mb={0.5} sx={{ opacity: 0.7 }}>
           {title}
         </Typography>
@@ -144,11 +144,22 @@ const MainContent = () => {
             <InfoDisplayCard title="Account">
               <Box display="flex" alignItems="center" mb={1}>
                 <AccountCircleIcon fontSize="large" />
-                <Typography variant="h6" ml={1}>
-                  {identityInfo.isFetching
-                    ? 'Not available'
-                    : identityInfo.identity || 'Not registered yet'}
-                </Typography>
+                <Box ml={1}>
+                  <Typography variant="h6">
+                    {identityInfo.isFetching
+                      ? 'Not available'
+                      : identityInfo.identity || 'Not registered yet'}
+                  </Typography>
+                  <Tooltip title="Click to copy your address">
+                    <Typography
+                      variant="caption"
+                      sx={{ overflowWrap: 'anywhere', cursor: 'pointer' }}
+                      onClick={copyWalletAddress}
+                    >
+                      {identityInfo.address || 'Not Available'}
+                    </Typography>
+                  </Tooltip>
+                </Box>
               </Box>
             </InfoDisplayCard>
             <InfoDisplayCard title="Balance">
@@ -158,23 +169,6 @@ const MainContent = () => {
               <Button variant="contained" size="small" disabled={balance > 0}>
                 Request yPOINTS
               </Button>
-            </InfoDisplayCard>
-            <InfoDisplayCard title="Address">
-              <Box display="flex" alignItems="center">
-                <Typography sx={{ overflowWrap: 'anywhere' }}>
-                  {identityInfo.address || 'Not Available'}
-                </Typography>
-              </Box>
-              <Box position="absolute" top={10} right={10}>
-                <Chip
-                  label="Copy"
-                  size="small"
-                  variant="outlined"
-                  onClick={copyWalletAddress}
-                  onDelete={copyWalletAddress}
-                  deleteIcon={<ContentCopyIcon />}
-                />
-              </Box>
             </InfoDisplayCard>
           </Grid>
         </Grid>
