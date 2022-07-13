@@ -23,11 +23,12 @@ export const useMainStatus = () => {
   const [browserVersion, setBrowserVersion] = useState<string>('')
   const [isBrowserRunning, setIsBrowserRunning] = useState<boolean>(false)
   // Identity
-  const [identityInfo, setIdentityInfo] = useState<IdentityLog>({
+  const [identityInfo, setIdentityInfo] = useState<{
+    identity: string
+    address: string
+  }>({
     identity: '',
-    isFetching: true,
     address: '',
-    log: '',
   })
   const [balance, setBalance] = useState<number | string>(0)
 
@@ -79,7 +80,8 @@ export const useMainStatus = () => {
 
     window.Dashboard.on(NodeChannelsEnum.get_identity, (_: string) => {
       const parsed: IdentityLog = JSON.parse(_)
-      setIdentityInfo(parsed)
+      if (!parsed.isFetching)
+        setIdentityInfo({ identity: parsed.identity, address: parsed.address })
     })
 
     window.Dashboard.on(
@@ -107,6 +109,11 @@ export const useMainStatus = () => {
     getInfo()
     await window.Dashboard.checkForUpdates()
     window.Dashboard.launchNodeAndPing()
+    setInterval(() => {
+      window.Dashboard.pingNode()
+      window.Dashboard.getIdentityInfo()
+      window.Dashboard.checkBalanceAndAirdrop()
+    }, 10000)
   }
   useEffect(() => {
     init()
@@ -114,6 +121,7 @@ export const useMainStatus = () => {
 
   // 2. Once node is running, we launch the browser
   useEffect(() => {
+    console.log('Called')
     if (isNodeRunning) {
       window.Dashboard.launchBrowser()
       window.Dashboard.getIdentityInfo()
