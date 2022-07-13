@@ -77,7 +77,7 @@ const GenerateNew = ({
               <Typography fontWeight="bold">IMPORTANT</Typography>
             </AlertTitle>
             <Typography mt={-0.7} variant="body2">
-              Never share your seedphrase with anyone! Write down and keep it in
+              Never share your secret phrase with anyone! Write down and keep it in
               a secure place
             </Typography>
           </Alert>
