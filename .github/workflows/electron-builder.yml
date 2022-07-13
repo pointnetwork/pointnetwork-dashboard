@@ -29,6 +29,11 @@ jobs:
   build_on_linux:
     runs-on: ubuntu-latest
     needs: create_release
+    outputs:
+      rpm_filename: ${{ steps.upload_rpm.outputs.asset_name }}
+      rpm_hash: ${{ steps.upload_rpm.outputs.asset_hash }}
+      deb_filename: ${{ steps.upload_deb.outputs.asset_name }}
+      deb_hash: ${{ steps.upload_deb.outputs.asset_hash }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
@@ -43,7 +48,8 @@ jobs:
       run: ./scripts/package_linux_executables.sh
 
     - name: Upload linux deb artefact
-      uses: actions/upload-release-asset@v1
+      id: upload_deb
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -52,7 +58,8 @@ jobs:
         asset_name: point-${{ needs.create_release.outputs.release_name }}-Linux-Debian-Ubuntu.tar.gz
         asset_content_type: application/gzip
     - name: Upload linux rpm artefact
-      uses: actions/upload-release-asset@v1
+      id: upload_rpm
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -64,6 +71,11 @@ jobs:
   build_on_mac:
     runs-on: macos-latest
     needs: create_release
+    outputs:
+      macos_installer_filename: ${{ steps.upload_installer.outputs.asset_name }}
+      macos_installer_hash: ${{ steps.upload_installer.outputs.asset_hash }}
+      macos_exec_filename: ${{ steps.upload_exec.outputs.asset_name }}
+      macos_exec_hash: ${{ steps.upload_exec.outputs.asset_hash }}
     steps:
     - name: Install the Apple certificate and provisioning profile
       env:
@@ -117,7 +129,7 @@ jobs:
     - name: Compress and package executables
       run: ./scripts/package_macos_executables.sh
     # - name: Upload macos executable
-    #   uses: actions/upload-release-asset@v1
+    #   uses: brianunlam/upload-release-asset@v1.0.5
     #   env:
     #     GITHUB_TOKEN: ${{ github.token }}
     #   with:
@@ -131,7 +143,8 @@ jobs:
     - name: Compress and package Installer
       run: ./scripts/package_macos_installer.sh
     - name: Upload macos installer
-      uses: actions/upload-release-asset@v1
+      id: upload_installer
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -140,7 +153,8 @@ jobs:
         asset_name: point-${{ needs.create_release.outputs.release_name }}-MacOS-installer.tar.gz
         asset_content_type: application/gzip
     - name: Upload macos zipped app
-      uses: actions/upload-release-asset@v1
+      id: upload_exec
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -152,6 +166,11 @@ jobs:
   build_on_win:
     runs-on: windows-latest
     needs: create_release
+    outputs:
+      win_installer_filename: ${{ steps.upload_win_installer.outputs.asset_name }}
+      win_installer_hash: ${{ steps.upload_win_installer.outputs.asset_hash }}
+      win_exe_filename: ${{ steps.upload_win_exe.outputs.asset_name }}
+      win_exe_hash: ${{ steps.upload_win_exe.outputs.asset_hash }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
@@ -185,7 +204,8 @@ jobs:
     - name: Compress and package installer
       run: bash ./scripts/package_win_installer.sh
     - name: Upload win installer
-      uses: actions/upload-release-asset@v1
+      id: upload_win_installer
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -195,7 +215,8 @@ jobs:
         asset_content_type: application/gzip
 
     - name: Upload EXE file
-      uses: actions/upload-release-asset@v1
+      id: upload_win_exe
+      uses: brianunlam/upload-release-asset@v1.0.5
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
@@ -203,3 +224,29 @@ jobs:
         asset_path: ./out/pointDashboard_windows_installer/point.exe
         asset_name: point-${{ needs.create_release.outputs.release_name }}.exe
         asset_content_type: application/octet-stream
+
+  # generate_hash_file:
+  #   runs-on: ubuntu-latest
+  #   needs: [create_release, build_on_win, build_on_linux, build_on_mac]
+  #   steps:
+  #   - name: Generate hash file
+  #     uses: DamianReeves/write-file-action@master
+  #     with:
+  #       path: ./hash
+  #       contents: |
+  #         ${{ needs.build_on_win.outputs.win_installer_filename }}: ${{ needs.build_on_win.outputs.win_installer_hash }}
+  #         ${{ needs.build_on_win.outputs.win_exe_filename }}: ${{ needs.build_on_win.outputs.win_exe_hash }}
+  #         ${{ needs.build_on_linux.outputs.rpm_filename }}: ${{ needs..outputs.rpm_hash }}
+  #         ${{ needs.build_on_linux.outputs.deb_filename }}: ${{ needs.build_on_linux.outputs.deb_hash }}
+  #         ${{ needs.build_on_mac.outputs.macos_installer_filename }}: ${{ needs.build_on_mac.outputs.macos_installer_hash }}
+  #         ${{ needs.build_on_mac.outputs.macos_exec_filename }}: ${{ needs.build_on_mac.outputs.macos_exec_hash }}
+  #       write-mode: append
+  #   - name: Upload sha256 file
+  #     uses: brianunlam/upload-release-asset@v1.0.5
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     with:
+  #       upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+  #       asset_path: ./hash
+  #       asset_name: sha256.txt
+  #       asset_content_type: text/plain

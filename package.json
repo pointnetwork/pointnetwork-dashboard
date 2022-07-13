@@ -1,7 +1,7 @@
 {
   "name": "point",
   "author": "Point Labs",
-  "version": "0.2.48",
+  "version": "0.2.50",
   "description": "PointNetwork",
   "main": "./.webpack/main",
   "repository": {
@@ -14,7 +14,7 @@
     "make": "electron-forge make",
     "release": "electron-forge publish",
     "lint": "eslint . --ext js,ts",
-    "test": "jest",
+    "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "create-installer-win": "node build_installer_win.js",
     "create-installer-mac": "node scripts/create-mac-intaller.js"
