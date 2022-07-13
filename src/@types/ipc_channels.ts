@@ -30,6 +30,7 @@ export enum GenericChannelsEnum {
 }
 
 export enum DashboardChannelsEnum {
+  check_balance = 'dashboard:check_balance',
   check_balance_and_airdrop = 'dashboard:check_balance_and_airdrop',
   closing = 'dashboard:closing',
   get_version = 'dashboard:get_version',
