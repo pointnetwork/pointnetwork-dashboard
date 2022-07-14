@@ -7,7 +7,7 @@ import Logger from "./logger";
 
 const DEFAULT_RETRIES = 5;
 
-  export async function getSumsHashFromFile(sumsFilePath: string) {
+  export async function getChecksumsFromFile(sumsFilePath: string) {
     const hashes = await readFile(sumsFilePath);
     const hashesContent = hashes.toString();
     const lines = hashesContent.split("\n");
@@ -57,7 +57,7 @@ export async function downloadAndVerifyFileIntegrity(
         const fileSum = await getFileSum(downloadDest);
         let fileSumsHash;
         try {
-          fileSumsHash = await getSumsHashFromFile(sumFileDest);
+          fileSumsHash = await getChecksumsFromFile(sumFileDest);
         } catch (e) {
           logger?.error('The sum file was not found or is corrupted, skipping file integrity verification')
           return;
