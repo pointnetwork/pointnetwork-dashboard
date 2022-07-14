@@ -27,8 +27,9 @@ const decompressTargz = require('decompress-targz')
 
 const exec = promisify(_exec)
 
-const PING_ERROR_THRESHOLD = 10
+const PING_ERROR_THRESHOLD = 8
 const PING_INTERVAL = 1000
+const MAX_RETRY_COUNT = 3
 
 // TODO: Add JSDoc comments
 /**
@@ -46,6 +47,7 @@ class Node {
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
   pingErrorCount = 0
+  pointLaunchCount = 0
   pingInterval: NodeJS.Timeout | null = null
   nodeRunning = false
 
@@ -189,6 +191,20 @@ class Node {
         )
         return
       }
+      if (this.pointLaunchCount >= MAX_RETRY_COUNT) {
+        this.pointLaunchCount = 0
+        this.logger.sendToChannel({
+          channel: NodeChannelsEnum.running_status,
+          log: JSON.stringify({
+            isRunning: false,
+            relaunching: false,
+            launchFailed: false,
+            log: 'Point Engine is not running'
+          } as LaunchProcessLog),
+        })
+      } else {
+        this.pointLaunchCount++
+      }
       const file = await this._getBinFile()
       const cmd = global.platform.win32
         ? `set NODE_ENV=production&&"${file}"`
@@ -229,31 +245,41 @@ class Node {
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: true,
-          pingErrorCount: 0,
+          relaunching: false,
+          launchFailed: false,
           log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
       this.pingErrorCount = 0
+      this.pointLaunchCount = 0
       this.nodeRunning = true
     } catch (error) {
       this.pingErrorCount += 1
-      if (this.pingErrorCount > PING_ERROR_THRESHOLD || this.nodeRunning) {
+      const relaunching = this.pingErrorCount > PING_ERROR_THRESHOLD
+      const launchFailed = this.pointLaunchCount >= MAX_RETRY_COUNT
+      if (relaunching || this.nodeRunning) {
         this.logger.error(
           ErrorsEnum.NODE_ERROR,
           this.nodeRunning
             ? 'Node process was stopped, relaunching'
-            : `Unable to Ping after ${PING_ERROR_THRESHOLD} attempts, re-attempting to launch node`
+            : `Unable to Ping after ${PING_ERROR_THRESHOLD} attempts`
         )
         this.pingErrorCount = 0
-        this.launch()
+        if (!launchFailed) {
+          this.launch()
+        } else {
+          clearInterval(this.pingInterval!)
+          this.pingInterval = null
+        }
       }
       this.nodeRunning = false
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: false,
-          pingErrorCount: this.pingErrorCount,
-          log: 'Point Engine is not running',
+          relaunching,
+          launchFailed,
+          log: 'Point Engine is not running'
         } as LaunchProcessLog),
       })
     }

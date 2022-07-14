@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import {FunctionComponent, useEffect, useState} from 'react'
 // MUI
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -14,13 +14,10 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 // Types
 import { GenericChannelsEnum } from '../../../@types/ipc_channels'
 
-const TimeoutAlert = ({
-  identifier,
-  launchAttempts,
-}: {
+const TimeoutAlert: FunctionComponent<{
   identifier: string
-  launchAttempts: number
-}) => {
+  open: boolean
+}> = ({identifier, open}) => {
   const [copied, setCopied] = useState<boolean>(false)
 
   useEffect(() => {
@@ -31,7 +28,7 @@ const TimeoutAlert = ({
   }, [])
 
   return (
-    <Dialog open={launchAttempts >= 10}>
+    <Dialog open={open}>
       <Box p={3}>
         <Typography>
           Failed to start Point Network. Please, close and reopen Point
@@ -77,6 +74,15 @@ const TimeoutAlert = ({
             onClick={window.Dashboard.launchUninstaller}
           >
             Uninstall
+          </Button>
+          <Button
+            color="primary"
+            variant="outlined"
+            size="small"
+            sx={{ ml: 1 }}
+            onClick={window.Dashboard.launchNode}
+          >
+            Retry
           </Button>
           <Button
             color="error"

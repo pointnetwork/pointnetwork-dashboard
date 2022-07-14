@@ -18,14 +18,14 @@ import TimeoutAlert from './components/TimeoutAlert'
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 
 const App = () => {
-  const { identifier, launchAttempts, loader } = useContext(MainStatusContext)
+  const { identifier, launchFailed, loader } = useContext(MainStatusContext)
   const { updateDialogOpen } = useContext(UpdateStatusContext)
 
   return (
     <UIThemeProvider>
       <DisplayIdentifier identifier={identifier} />
       <DashboardUpdateAlert />
-      <TimeoutAlert identifier={identifier} launchAttempts={launchAttempts} />
+      <TimeoutAlert identifier={identifier} open={launchFailed} />
 
       <CheckForUpdatesDialog />
 

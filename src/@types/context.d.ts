@@ -10,7 +10,7 @@ export type MainStatus = {
   identifier: string
   browserVersion: string
   nodeVersion: string
-  launchAttempts: number
+  launchFailed: boolean
   loader: {
     isLoading: boolean
     message: string

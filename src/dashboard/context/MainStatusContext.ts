@@ -16,7 +16,7 @@ export const useMainStatus = () => {
     isLoading: boolean
     message: string
   }>({ isLoading: true, message: 'Checking for updates...' })
-  const [launchAttempts, setLaunchAttempts] = useState<number>(0)
+  const [launchFailed, setLaunchFailed] = useState(false)
   // Node
   const [nodeVersion, setNodeVersion] = useState<string>('')
   const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
@@ -38,7 +38,13 @@ export const useMainStatus = () => {
     window.Dashboard.on(NodeChannelsEnum.running_status, (_: string) => {
       const parsed: LaunchProcessLog = JSON.parse(_)
       setIsNodeRunning(parsed.isRunning)
-      setLaunchAttempts(parsed.pingErrorCount)
+      setLaunchFailed(parsed.launchFailed)
+      if (parsed.relaunching) {
+        setIsLaunching(prevState => ({
+          ...prevState,
+          message: 'Point network failed to start, retrying'
+        }))
+      }
     })
 
     window.Dashboard.on(FirefoxChannelsEnum.running_status, (_: string) => {
@@ -140,7 +146,7 @@ export const useMainStatus = () => {
     identifier,
     browserVersion,
     nodeVersion,
-    launchAttempts,
+    launchFailed,
     loader,
     identityInfo,
     balance,
