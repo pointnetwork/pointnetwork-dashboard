@@ -8,8 +8,7 @@ import url from 'url'
 import progress from 'progress-stream'
 import find from 'find-process'
 import rmfr from 'rmfr'
-import { exec as _exec } from 'node:child_process'
-import {promisify} from 'util'
+import { spawn } from 'node:child_process'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import utils from '../../shared/utils'
@@ -26,8 +25,6 @@ import { ErrorsEnum } from '../@types/errors'
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
-
-const exec = promisify(_exec)
 
 /**
  * WHAT THIS MODULE DOES
@@ -188,9 +185,6 @@ class Firefox {
         helpers.getHomePath(),
         '.point/keystore/liveprofile'
       )
-      let browserCmd = `"${binFile}" --first-startup --profile "${profilePath}" --url https://point`
-      if (global.platform.darwin)
-        browserCmd = `open -W "${binFile}" --args --first-startup --profile "${profilePath}" --url https://point`
 
       this.logger.sendToChannel({
         channel: FirefoxChannelsEnum.running_status,
@@ -200,8 +194,14 @@ class Firefox {
         } as LaunchProcessLog),
       })
       this.logger.info('Launching')
-      exec(browserCmd)
-        .then(() => {
+      const proc = spawn(
+        binFile,
+        ['--first-startup', '--profile', profilePath, '--url', 'https://point'],
+        {stdio: 'ignore'}
+      )
+
+      proc.on('exit', code => {
+        if (code === 0) {
           this.logger.info('Firefox process exited')
           this.logger.sendToChannel({
             channel: FirefoxChannelsEnum.running_status,
@@ -210,9 +210,8 @@ class Firefox {
               log: 'Point Browser is not running',
             } as LaunchProcessLog),
           })
-        })
-        .catch(e => {
-          this.logger.error('Firefox process exited with error: ', e)
+        } else {
+          this.logger.error('Firefox process exited with code ', code)
           this.logger.sendToChannel({
             channel: FirefoxChannelsEnum.running_status,
             log: JSON.stringify({
@@ -220,7 +219,8 @@ class Firefox {
               log: 'Point Browser is not running',
             } as LaunchProcessLog),
           })
-        })
+        }
+      })
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
