@@ -2,25 +2,30 @@ import Dialog from '@mui/material/Dialog'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
+import ContactSupport from './ContactSupport'
 
-// TODO: this will come from a shared repo of `point-error-codes`
+// TODO: this will come from a shared repo of `point-error-codes`.
 type PointErr = { code: number; name: string; text: string }
 const PointErrorCodes: Record<number, PointErr> = {
-  7: {
-    code: 7,
+  11: {
+    code: 11,
     name: 'INVALID_KEYFILE',
-    text: 'Keyfile does not contain the expect format/data',
+    text: 'Keyfile has missing or invalid data.',
+  },
+  12: {
+    code: 12,
+    name: 'LOCKFILE_PRESENT',
+    text: 'Unable to create lockfile, process must be already running.',
+  },
+  13: {
+    code: 13,
+    name: 'DDBB_FAILED_MIGRATION',
+    text: 'Failed to run database migrations.',
   },
 }
 
-const genericError = {
-  code: NaN,
-  name: 'POINT_ENGINE_ERROR',
-  text: 'Unable to launch Point Engine',
-}
-
 function getButtonByError(code: number) {
-  if (code === 7) {
+  if (code === 11) {
     return (
       <Button
         color="primary"
@@ -33,11 +38,24 @@ function getButtonByError(code: number) {
     )
   }
 
+  if (code === 12 || code === 13) {
+    return (
+      <Button
+        color="error"
+        variant="contained"
+        size="small"
+        onClick={window.Dashboard.closeWindow}
+      >
+        Close
+      </Button>
+    )
+  }
+
   return null
 }
 
 function getInstructionsByError(code: number) {
-  if (code === 7) {
+  if (code === 11) {
     return (
       <Typography>
         If you have manually edited `key.json`, you may fix it and restart the
@@ -52,10 +70,13 @@ function getInstructionsByError(code: number) {
 
 type Props = {
   errCode: number
+  identifier: string
 }
 
-const ErrorDialog = ({ errCode }: Props) => {
-  const error = PointErrorCodes[errCode] || genericError
+const ErrorDialog = ({ errCode, identifier }: Props) => {
+  const pointErr = PointErrorCodes[errCode]
+
+  if (!pointErr) return null
 
   return (
     <Dialog open={errCode > 0}>
@@ -70,11 +91,13 @@ const ErrorDialog = ({ errCode }: Props) => {
           p={2}
         >
           <Typography>
-            {error.name}: {error.text}
+            {pointErr.name}: {pointErr.text}
           </Typography>
         </Box>
 
         {getInstructionsByError(errCode)}
+
+        <ContactSupport identifier={identifier} />
 
         <Box display="flex" justifyContent="flex-end" mt={2}>
           {getButtonByError(errCode)}

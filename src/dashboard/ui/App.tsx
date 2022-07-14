@@ -29,7 +29,7 @@ const App = () => {
       <DashboardUpdateAlert />
       <TimeoutAlert identifier={identifier} launchAttempts={launchAttempts} />
       <CheckForUpdatesDialog />
-      <ErrorDialog errCode={engineErrorCode} />
+      <ErrorDialog identifier={identifier} errCode={engineErrorCode} />
 
       <DefaultLoader
         isOpen={loader.isLoading && !updateDialogOpen}
