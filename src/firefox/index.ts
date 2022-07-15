@@ -193,9 +193,10 @@ class Firefox {
           log: 'Point Browser is running',
         } as LaunchProcessLog),
       })
-      this.logger.info('Launching')
+      const cmd = global.platform.darwin ? `${binFile}/Contents/MacOS/firefox` : binFile;
+      this.logger.info('Launching');
       const proc = spawn(
-        binFile,
+        cmd,
         ['--first-startup', '--profile', profilePath, '--url', 'https://point'],
         {stdio: 'ignore'}
       )
