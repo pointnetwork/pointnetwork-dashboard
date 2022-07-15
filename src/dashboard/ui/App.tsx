@@ -15,10 +15,12 @@ import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifie
 import MainContent from './components/MainContent'
 import Sidebar from './components/Sidebar'
 import TimeoutAlert from './components/TimeoutAlert'
+import ErrorDialog from './components/ErrorDialog'
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 
 const App = () => {
-  const { identifier, launchAttempts, loader } = useContext(MainStatusContext)
+  const { identifier, launchAttempts, loader, engineErrorCode } =
+    useContext(MainStatusContext)
   const { updateDialogOpen } = useContext(UpdateStatusContext)
 
   return (
@@ -26,8 +28,8 @@ const App = () => {
       <DisplayIdentifier identifier={identifier} />
       <DashboardUpdateAlert />
       <TimeoutAlert identifier={identifier} launchAttempts={launchAttempts} />
-
       <CheckForUpdatesDialog />
+      <ErrorDialog identifier={identifier} errCode={engineErrorCode} />
 
       <DefaultLoader
         isOpen={loader.isLoading && !updateDialogOpen}

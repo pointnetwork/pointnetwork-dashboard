@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 import axios from 'axios'
-import fs  from 'fs-extra'
+import fs from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
 import { spawn } from 'node:child_process'
@@ -53,6 +53,16 @@ class Node {
   }
 
   /**
+   * Clears the ping interval, if it was running
+   */
+  clearPingInterval() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval)
+      this.pingInterval = null
+    }
+  }
+
+  /**
    * Returns the latest available version for Point Engine
    */
   async getLatestVersion(): Promise<string> {
@@ -92,14 +102,14 @@ class Node {
         if (global.platform.darwin)
           fileName = `point-macos-${latestVersion}.tar.gz`
 
-        const platform = fileName.split('-')[1];
-        const downloadUrl = this.getDownloadURL(fileName, latestVersion);
-        const downloadDest = path.join(this.pointDir, fileName);
-        const sha256FileName = `sha256-${latestVersion}.txt`;
-        const sumFileDest = path.join(this.pointDir, sha256FileName);
-        const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
+        const platform = fileName.split('-')[1]
+        const downloadUrl = this.getDownloadURL(fileName, latestVersion)
+        const downloadDest = path.join(this.pointDir, fileName)
+        const sha256FileName = `sha256-${latestVersion}.txt`
+        const sumFileDest = path.join(this.pointDir, sha256FileName)
+        const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion)
 
-        this.logger.info('Downloading from', downloadUrl);
+        this.logger.info('Downloading from', downloadUrl)
 
         try {
           await downloadAndVerifyFileIntegrity({
@@ -109,14 +119,29 @@ class Node {
             sumFileUrl,
             sumFileDest,
             logger: this.logger,
-            channel: NodeChannelsEnum.download
-          });
-
+            channel: NodeChannelsEnum.download,
+          })
         } catch (e) {
-          this.logger.error(`Could not download pointnode after many retries due to error: ${e}`)
+          // TODO: We stop the ping interval because we are considering this a critical error.
+          // It's the safest approach to avoid potentially running a corrupted file.
+          // We could download the new file to a temp folder, and only after validation
+          // replace the old one. So that if validation fails, we can keep running the old version.
+          this.clearPingInterval()
+
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.error,
+            log: JSON.stringify({
+              isRunning: false,
+              log: '14',
+            } as LaunchProcessLog),
+          })
+
+          this.logger.error(
+            `Could not download pointnode after many retries due to error: ${e}`
+          )
+
           throw e
         }
-
 
         this.logger.info('Unpacking')
         // 3. Unpack the downloaded file and send logs to window
@@ -190,7 +215,9 @@ class Node {
     try {
       this.logger.info('Launching point node')
       if (!fs.existsSync(await this._getBinFile())) {
-        this.logger.error('Trying to launch point node, but bin file does not exist')
+        this.logger.error(
+          'Trying to launch point node, but bin file does not exist'
+        )
         return
       }
       if ((await this._getRunningProcess()).length) {
@@ -203,9 +230,9 @@ class Node {
       const proc = spawn(file, {
         env: {
           ...process.env,
-          NODE_ENV: 'production'
+          NODE_ENV: 'production',
         },
-        stdio: ['ignore', 'ignore', 'pipe']
+        stdio: ['ignore', 'ignore', 'pipe'],
       })
 
       proc.stderr.on('data', data => {
@@ -216,6 +243,22 @@ class Node {
         if (code === 0) {
           this.logger.info('Point node process exited')
         } else {
+          // We only give special handling to `point error codes`, which are > 1.
+          // TODO: for now, we hardcode the codes we want to handle,
+          // we'll improve this when we have the `point-error-codes` shared repo.
+          if (code && [11, 12, 13].includes(code)) {
+            // Critical error from Point Engine, stop the ping interval as they are unrecoverable.
+            this.clearPingInterval()
+
+            this.logger.sendToChannel({
+              channel: NodeChannelsEnum.error,
+              log: JSON.stringify({
+                isRunning: false,
+                log: String(code),
+              } as LaunchProcessLog),
+            })
+          }
+
           this.logger.error('Point node process exited with exit code ', code)
         }
       })
@@ -223,7 +266,6 @@ class Node {
       if (!this.pingInterval) {
         this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
       }
-
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
@@ -292,10 +334,9 @@ class Node {
         done: false,
       } as GenericProgressLog),
     })
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval)
-      this.pingInterval = null
-    }
+
+    this.clearPingInterval()
+
     const process = await this._getRunningProcess()
     if (process.length > 0) {
       this.logger.info('Stopping')
@@ -308,6 +349,7 @@ class Node {
         }
       }
     }
+
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.stop,
       log: JSON.stringify({
@@ -316,6 +358,7 @@ class Node {
         done: false,
       } as GenericProgressLog),
     })
+
     this.logger.info('Stopped')
   }
 
