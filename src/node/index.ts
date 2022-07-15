@@ -1,10 +1,9 @@
 import { BrowserWindow } from 'electron'
 import axios from 'axios'
-import fs, { PathLike } from 'fs-extra'
+import fs  from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
-import { exec as _exec } from 'node:child_process'
-import {promisify} from 'util'
+import { spawn } from 'node:child_process'
 import { https } from 'follow-redirects'
 import moment from 'moment'
 import rmfr from 'rmfr'
@@ -21,11 +20,10 @@ import {
   UpdateLog,
 } from '../@types/generic'
 import { ErrorsEnum } from '../@types/errors'
+import { downloadAndVerifyFileIntegrity } from '../../shared/downloadAndVerifyFileIntegrity'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
-
-const exec = promisify(_exec)
 
 const PING_ERROR_THRESHOLD = 8
 const PING_INTERVAL = 1000
@@ -96,19 +94,31 @@ class Node {
         if (global.platform.darwin)
           fileName = `point-macos-${latestVersion}.tar.gz`
 
-        const downloadUrl = this.getDownloadURL(fileName, latestVersion)
-        const downloadDest = path.join(this.pointDir, fileName)
-        this.logger.info('Downloading from', downloadUrl)
+        const platform = fileName.split('-')[1];
+        const downloadUrl = this.getDownloadURL(fileName, latestVersion);
+        const downloadDest = path.join(this.pointDir, fileName);
+        const sha256FileName = `sha256-${latestVersion}.txt`;
+        const sumFileDest = path.join(this.pointDir, sha256FileName);
+        const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
 
-        const downloadStream = fs.createWriteStream(downloadDest)
+        this.logger.info('Downloading from', downloadUrl);
 
-        // 2. Start downloading and send logs to window
-        await utils.download({
-          channel: NodeChannelsEnum.download,
-          logger: this.logger,
-          downloadUrl,
-          downloadStream,
-        })
+        try {
+          await downloadAndVerifyFileIntegrity({
+            platform,
+            downloadUrl,
+            downloadDest,
+            sumFileUrl,
+            sumFileDest,
+            logger: this.logger,
+            channel: NodeChannelsEnum.download
+          });
+
+        } catch (e) {
+          this.logger.error(`Could not download pointnode after many retries due to error: ${e}`)
+          throw e
+        }
+
 
         this.logger.info('Unpacking')
         // 3. Unpack the downloaded file and send logs to window
@@ -206,19 +216,30 @@ class Node {
         this.pointLaunchCount++
       }
       const file = await this._getBinFile()
-      const cmd = global.platform.win32
-        ? `set NODE_ENV=production&&"${file}"`
-        : `NODE_ENV=production "${file}"`
-      exec(cmd)
-        .then(() => {
+      const proc = spawn(file, {
+        env: {
+          ...process.env,
+          NODE_ENV: 'production'
+        },
+        stdio: ['ignore', 'ignore', 'pipe']
+      })
+
+      proc.stderr.on('data', data => {
+        this.logger.error(`Stderr output from node: ${data}`)
+      })
+
+      proc.on('exit', code => {
+        if (code === 0) {
           this.logger.info('Point node process exited')
-        })
-        .catch(e => {
-          this.logger.error('Point node process exited with error: ', e)
-        })
+        } else {
+          this.logger.error('Point node process exited with exit code ', code)
+        }
+      })
+
       if (!this.pingInterval) {
         this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
       }
+
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
@@ -437,7 +458,7 @@ class Node {
   /**
    * Returns the path where the downloaded Point Engine executable exists
    */
-  async _getBinFile(): Promise<PathLike> {
+  async _getBinFile(): Promise<string> {
     const binPath = await helpers.getBinPath()
     if (global.platform.win32) return path.join(binPath, 'win', 'point.exe')
     if (global.platform.darwin) return path.join(binPath, 'macos', 'point')
