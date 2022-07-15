@@ -26,6 +26,8 @@ import { ErrorsEnum } from '../@types/errors'
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
 
+const CHECK_INTERVAL = 1000
+
 /**
  * WHAT THIS MODULE DOES
  * 1. Downloads the Firefox Browser
@@ -37,6 +39,7 @@ class Firefox {
   logger: Logger
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
+  checkInterval: NodeJS.Timeout | null = null
 
   constructor({ window }: { window: BrowserWindow }) {
     this.window = window
@@ -163,19 +166,13 @@ class Firefox {
    */
   async launch() {
     try {
+      if (!this.checkInterval) {
+        this.checkInterval = setInterval(this.check.bind(this), CHECK_INTERVAL)
+      }
       if (!fs.existsSync(await this._getBinFile())) {
         await this.downloadAndInstall()
       }
-      if ((await this._getRunningProcess()).length) {
-        this.logger.sendToChannel({
-          channel: FirefoxChannelsEnum.running_status,
-          log: JSON.stringify({
-            isRunning: true,
-            log: 'Point Browser is running',
-          } as LaunchProcessLog),
-        })
-        return
-      }
+      if ((await this._getRunningProcess()).length) return
 
       // MAYBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
       await this._createConfigFiles()
@@ -186,13 +183,6 @@ class Firefox {
         '.point/keystore/liveprofile'
       )
 
-      this.logger.sendToChannel({
-        channel: FirefoxChannelsEnum.running_status,
-        log: JSON.stringify({
-          isRunning: true,
-          log: 'Point Browser is running',
-        } as LaunchProcessLog),
-      })
       const cmd = global.platform.darwin ? `${binFile}/Contents/MacOS/firefox` : binFile;
       this.logger.info('Launching');
       const proc = spawn(
@@ -202,24 +192,8 @@ class Firefox {
       )
 
       proc.on('exit', code => {
-        if (code === 0) {
-          this.logger.info('Firefox process exited')
-          this.logger.sendToChannel({
-            channel: FirefoxChannelsEnum.running_status,
-            log: JSON.stringify({
-              isRunning: false,
-              log: 'Point Browser is not running',
-            } as LaunchProcessLog),
-          })
-        } else {
+        if (code !== 0) {
           this.logger.error('Firefox process exited with code ', code)
-          this.logger.sendToChannel({
-            channel: FirefoxChannelsEnum.running_status,
-            log: JSON.stringify({
-              isRunning: false,
-              log: 'Point Browser is not running',
-            } as LaunchProcessLog),
-          })
         }
       })
     } catch (error) {
@@ -227,6 +201,28 @@ class Firefox {
       throw error
     }
   }
+
+  async check() {
+    const process = await this._getRunningProcess()
+    if (process.length > 0) {
+      this.logger.sendToChannel({
+        channel: FirefoxChannelsEnum.running_status,
+        log: JSON.stringify({
+          isRunning: true,
+          log: 'Point Browser is running',
+        } as LaunchProcessLog),
+      })
+    } else {
+      this.logger.sendToChannel({
+        channel: FirefoxChannelsEnum.running_status,
+        log: JSON.stringify({
+          isRunning: false,
+          log: 'Point Browser is not running',
+        } as LaunchProcessLog),
+      })
+    }
+  }
+
 
   /**
    * Stops the running instances of Firefox
@@ -251,6 +247,10 @@ class Firefox {
           throw err
         }
       }
+    }
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval)
+      this.checkInterval = null
     }
     this.logger.sendToChannel({
       channel: FirefoxChannelsEnum.stop,
@@ -633,8 +633,6 @@ pref('security.pki.sha1_enforcement_level', 4)
    * Returns the running instances of Firefox
    */
   async _getRunningProcess(): Promise<Process[]> {
-    this.logger.info('Getting running processes')
-
     return (
       await find('name', /firefox/i)
     ).filter(p => p.cmd.includes('point-browser') && !p.cmd.includes('tab'))
