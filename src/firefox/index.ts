@@ -26,7 +26,7 @@ import { ErrorsEnum } from '../@types/errors'
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
 
-const CHECK_INTERVAL = 1000
+const CHECK_INTERVAL = 400;
 
 /**
  * WHAT THIS MODULE DOES
