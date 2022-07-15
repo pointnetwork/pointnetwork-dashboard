@@ -20,6 +20,7 @@ import {
   UpdateLog,
 } from '../@types/generic'
 import { ErrorsEnum } from '../@types/errors'
+import { downloadAndVerifyFileIntegrity } from '../../shared/downloadAndVerifyFileIntegrity'
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -91,19 +92,31 @@ class Node {
         if (global.platform.darwin)
           fileName = `point-macos-${latestVersion}.tar.gz`
 
-        const downloadUrl = this.getDownloadURL(fileName, latestVersion)
-        const downloadDest = path.join(this.pointDir, fileName)
-        this.logger.info('Downloading from', downloadUrl)
+        const platform = fileName.split('-')[1];
+        const downloadUrl = this.getDownloadURL(fileName, latestVersion);
+        const downloadDest = path.join(this.pointDir, fileName);
+        const sha256FileName = `sha256-${latestVersion}.txt`;
+        const sumFileDest = path.join(this.pointDir, sha256FileName);
+        const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
 
-        const downloadStream = fs.createWriteStream(downloadDest)
+        this.logger.info('Downloading from', downloadUrl);
 
-        // 2. Start downloading and send logs to window
-        await utils.download({
-          channel: NodeChannelsEnum.download,
-          logger: this.logger,
-          downloadUrl,
-          downloadStream,
-        })
+        try {
+          await downloadAndVerifyFileIntegrity({
+            platform,
+            downloadUrl,
+            downloadDest,
+            sumFileUrl,
+            sumFileDest,
+            logger: this.logger,
+            channel: NodeChannelsEnum.download
+          });
+
+        } catch (e) {
+          this.logger.error(`Could not download pointnode after many retries due to error: ${e}`)
+          throw e
+        }
+
 
         this.logger.info('Unpacking')
         // 3. Unpack the downloaded file and send logs to window
@@ -210,6 +223,7 @@ class Node {
       if (!this.pingInterval) {
         this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
       }
+
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
