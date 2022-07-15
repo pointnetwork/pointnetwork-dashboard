@@ -22,6 +22,11 @@ const PointErrorCodes: Record<number, PointErr> = {
     name: 'DDBB_FAILED_MIGRATION',
     text: 'Failed to run database migrations.',
   },
+  14: {
+    code: 14,
+    name: 'INVALID_CHECKSUM',
+    text: 'Checksum for downloaded file does not match the expected one.',
+  },
 }
 
 function getButtonByError(code: number) {
@@ -38,7 +43,7 @@ function getButtonByError(code: number) {
     )
   }
 
-  if (code === 12 || code === 13) {
+  if (code === 12 || code === 13 || code === 14) {
     return (
       <Button
         color="error"
@@ -61,6 +66,15 @@ function getInstructionsByError(code: number) {
         If you have manually edited `key.json`, you may fix it and restart the
         Point Dashboard. Otherwise, click on the button below to log out and
         create a new account or import an existing one.
+      </Typography>
+    )
+  }
+
+  if (code === 14) {
+    return (
+      <Typography>
+        Please make sure your network is working correctly. Close the Dashboard
+        and restart it to trigger a new download.
       </Typography>
     )
   }

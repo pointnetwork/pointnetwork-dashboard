@@ -53,6 +53,16 @@ class Node {
   }
 
   /**
+   * Clears the ping interval, if it was running
+   */
+  clearPingInterval() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval)
+      this.pingInterval = null
+    }
+  }
+
+  /**
    * Returns the latest available version for Point Engine
    */
   async getLatestVersion(): Promise<string> {
@@ -112,9 +122,24 @@ class Node {
             channel: NodeChannelsEnum.download,
           })
         } catch (e) {
+          // TODO: We stop the ping interval because we are considering this a critical error.
+          // It's the safest approach to avoid potentially running a corrupted file.
+          // We could download the new file to a temp folder, and only after validation
+          // replace the old one. So that if validation fails, we can keep running the old version.
+          this.clearPingInterval()
+
+          this.logger.sendToChannel({
+            channel: NodeChannelsEnum.error,
+            log: JSON.stringify({
+              isRunning: false,
+              log: '14',
+            } as LaunchProcessLog),
+          })
+
           this.logger.error(
             `Could not download pointnode after many retries due to error: ${e}`
           )
+
           throw e
         }
 
@@ -218,6 +243,22 @@ class Node {
         if (code === 0) {
           this.logger.info('Point node process exited')
         } else {
+          // We only give special handling to `point error codes`, which are > 1.
+          // TODO: for now, we hardcode the codes we want to handle,
+          // we'll improve this when we have the `point-error-codes` shared repo.
+          if (code && [11, 12, 13].includes(code)) {
+            // Critical error from Point Engine, stop the ping interval as they are unrecoverable.
+            this.clearPingInterval()
+
+            this.logger.sendToChannel({
+              channel: NodeChannelsEnum.error,
+              log: JSON.stringify({
+                isRunning: false,
+                log: String(code),
+              } as LaunchProcessLog),
+            })
+          }
+
           this.logger.error('Point node process exited with exit code ', code)
         }
       })
@@ -293,10 +334,9 @@ class Node {
         done: false,
       } as GenericProgressLog),
     })
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval)
-      this.pingInterval = null
-    }
+
+    this.clearPingInterval()
+
     const process = await this._getRunningProcess()
     if (process.length > 0) {
       this.logger.info('Stopping')
@@ -309,6 +349,7 @@ class Node {
         }
       }
     }
+
     this.logger.sendToChannel({
       channel: NodeChannelsEnum.stop,
       log: JSON.stringify({
@@ -317,6 +358,7 @@ class Node {
         done: false,
       } as GenericProgressLog),
     })
+
     this.logger.info('Stopped')
   }
 
