@@ -58,6 +58,7 @@ export enum NodeChannelsEnum {
   running_status = 'node:running_status',
   stop = 'node:stop',
   unpack = 'node:unpack',
+  error = 'node:error',
 }
 
 export enum UninstallerChannelsEnum {

@@ -215,9 +215,9 @@ export default async function () {
     },
     {
       channel: DashboardChannelsEnum.check_balance,
-      listener() {
+      async listener() {
         try {
-          checkBalance()
+          await checkBalance()
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
