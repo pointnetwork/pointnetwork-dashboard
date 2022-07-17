@@ -1,5 +1,5 @@
-import { UpdateLog } from './../@types/generic'
-import { app, BrowserWindow, ipcMain, shell, clipboard } from 'electron'
+import {UpdateLog} from './../@types/generic'
+import {app, BrowserWindow, clipboard, ipcMain, shell} from 'electron'
 import axios from 'axios'
 import Bounty from '../bounty'
 import Firefox from '../firefox'
@@ -9,7 +9,7 @@ import Uninstaller from '../uninstaller'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 import welcome from '../welcome'
-import { getIdentifier } from '../../shared/getIdentifier'
+import {getIdentifier} from '../../shared/getIdentifier'
 import baseWindowConfig from '../../shared/windowConfig'
 // Types
 import {
@@ -20,8 +20,8 @@ import {
   NodeChannelsEnum,
   UninstallerChannelsEnum,
 } from '../@types/ipc_channels'
-import { EventListener } from '../@types/generic'
-import { ErrorsEnum } from '../@types/errors'
+import {EventListener} from '../@types/generic'
+import {ErrorsEnum} from '../@types/errors'
 
 let window: BrowserWindow | null
 let node: Node | null
@@ -80,7 +80,10 @@ export default async function () {
         firefox!.stop()
       ])
     } catch (error) {
-      logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+      logger.error({
+        errorType: ErrorsEnum.STOP_ERROR,
+        error
+      })
     }
   }
 
@@ -123,8 +126,12 @@ export default async function () {
                   } as UpdateLog)
                 )
               }
-            } catch (e) {
-              logger.error('Failed to check for dashboard updates', e)
+            } catch (error) {
+              logger.error({
+                errorType: ErrorsEnum.UPDATE_ERROR,
+                error,
+                info: 'Failed to check for dashboard updates'
+              })
             }
           }
         })()
@@ -164,7 +171,10 @@ export default async function () {
     if (res.data?.balance && !isNaN(res.data.balance)) {
       balance = res.data.balance
     } else {
-      logger.error(`Unexpected balance response: ${res.data}`)
+      logger.error({
+        errorType: ErrorsEnum.DASHBOARD_ERROR,
+        error: new Error(`Unexpected balance response: ${res.data}`)
+      })
     }
     window?.webContents.send(
       DashboardChannelsEnum.check_balance_and_airdrop,
@@ -181,7 +191,7 @@ export default async function () {
         try {
           new Bounty({ window: window! }).sendGenerated()
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -196,7 +206,7 @@ export default async function () {
           await welcome()
           window!.close()
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -209,7 +219,7 @@ export default async function () {
             helpers.getInstalledDashboardVersion()
           )
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -219,7 +229,7 @@ export default async function () {
         try {
           await checkBalance()
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -244,7 +254,7 @@ export default async function () {
             try {
               await axios.get(`${faucetURL}/airdrop?address=${address}`)
             } catch (error) {
-              logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+              logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
             }
           }
 
@@ -262,7 +272,7 @@ export default async function () {
             balance = await checkBalance()
           }
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -273,7 +283,7 @@ export default async function () {
         try {
           await uninstaller?.launch()
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -284,7 +294,7 @@ export default async function () {
         try {
           await firefox?.launch()
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -303,7 +313,7 @@ export default async function () {
         try {
           await node?.launch()
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -313,7 +323,7 @@ export default async function () {
         try {
           await node?.getIdentityInfo()
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -350,7 +360,7 @@ export default async function () {
         try {
           shell.openExternal(link)
         } catch (error) {
-          logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
+          logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error})
         }
       },
     },
@@ -402,8 +412,12 @@ export default async function () {
   try {
     await app.whenReady()
     await start()
-  } catch (e) {
-    logger.error('Failed to start Dashboard window', e)
+  } catch (error) {
+    logger.error({
+      errorType: ErrorsEnum.FATAL_ERROR,
+      error,
+      info: 'Failed to start Dashboard window'
+    })
     app.quit()
   }
 }

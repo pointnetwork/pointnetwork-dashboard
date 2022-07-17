@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron'
+import {BrowserWindow} from 'electron'
 import fs from 'fs-extra'
 import axios from 'axios'
 import moment from 'moment'
@@ -8,20 +8,21 @@ import url from 'url'
 import progress from 'progress-stream'
 import find from 'find-process'
 import rmfr from 'rmfr'
-import { spawn } from 'node:child_process'
+import {spawn} from 'node:child_process'
 import helpers from '../../shared/helpers'
 import Logger from '../../shared/logger'
 import utils from '../../shared/utils'
 // Types
 import {
   GenericProgressLog,
-  LaunchProcessLog,
-  UpdateLog,
-  Process,
   GithubRelease,
+  LaunchProcessLog,
+  Process,
+  UpdateLog,
 } from '../@types/generic'
-import { FirefoxChannelsEnum } from '../@types/ipc_channels'
-import { ErrorsEnum } from '../@types/errors'
+import {FirefoxChannelsEnum} from '../@types/ipc_channels'
+import {ErrorsEnum} from '../@types/errors'
+import ProcessError from "../../shared/ProcessError";
 
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
@@ -56,8 +57,12 @@ class Firefox {
         'https://product-details.mozilla.org/1.0/firefox_versions.json'
       )
       return res.data.LATEST_FIREFOX_VERSION
-    } catch (error: any) {
-      this.logger.error('Failed to get the latest version')
+    } catch (error) {
+      this.logger.error({
+        errorType: ErrorsEnum.UPDATE_ERROR,
+        error,
+        info: 'Failed to get the latest version'
+      })
       throw error
     }
   }
@@ -155,7 +160,7 @@ class Firefox {
 
         resolve()
       } catch (error) {
-        this.logger.error(ErrorsEnum.FIREFOX_ERROR, error)
+        this.logger.error({errorType: ErrorsEnum.FIREFOX_ERROR, error})
         reject(error)
       }
     })
@@ -193,11 +198,17 @@ class Firefox {
 
       proc.on('exit', code => {
         if (code !== 0) {
-          this.logger.error('Firefox process exited with code ', code)
+          this.logger.error({
+            errorType: ErrorsEnum.FIREFOX_ERROR,
+            error: new ProcessError('Firefox process exited', code)
+          })
         }
       })
     } catch (error) {
-      this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+      this.logger.error({
+        errorType: ErrorsEnum.LAUNCH_ERROR,
+        error
+      })
       throw error
     }
   }
@@ -242,9 +253,12 @@ class Firefox {
       for (const p of process) {
         try {
           await utils.kill({ processId: p.pid, onMessage: this.logger.info })
-        } catch (err) {
-          this.logger.error(ErrorsEnum.STOP_ERROR, err)
-          throw err
+        } catch (error) {
+          this.logger.error({
+            errorType: ErrorsEnum.STOP_ERROR,
+            error
+          })
+          throw error
         }
       }
     }
@@ -322,7 +336,7 @@ class Firefox {
           error: true,
         } as UpdateLog),
       })
-      this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      this.logger.error({errorType: ErrorsEnum.UPDATE_ERROR, error})
       throw error
     }
   }
@@ -410,12 +424,12 @@ class Firefox {
                 },
               })
             } catch (error: any) {
-              this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+              this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error})
               throw error
             } finally {
               dmg.unmount(dmgPath, (error: any) => {
                 if (error) {
-                  this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+                  this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error})
                   throw error
                 }
                 _resolve()
@@ -455,7 +469,7 @@ class Firefox {
             error: true,
           } as GenericProgressLog),
         })
-        this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+        this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error})
         throw error
       }
     })
@@ -545,7 +559,7 @@ pref('security.pki.sha1_enforcement_level', 4)
 
       this.logger.info('Created configuration files')
     } catch (error: any) {
-      this.logger.error(ErrorsEnum.FIREFOX_CONFIG_ERROR, error)
+      this.logger.error({errorType: ErrorsEnum.FIREFOX_CONFIG_ERROR, error})
       throw error
     }
   }

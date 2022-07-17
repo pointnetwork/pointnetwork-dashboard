@@ -64,11 +64,11 @@ class Bounty {
         this.logger.info('Saved "isGeneratedEvent" in "infoReferral.json"')
       }
     } catch (error) {
-      this.logger.error(
-        ErrorsEnum.BOUNTY_ERROR,
-        'Failed to send "event=generated" to bounty server',
-        error
-      )
+      this.logger.error({
+        errorType: ErrorsEnum.BOUNTY_ERROR,
+        error,
+        info: 'Failed to send "event=generated" to bounty server'
+      })
     }
   }
 
@@ -85,11 +85,11 @@ class Bounty {
       this.logger.info('Sent event=install to https://bounty.pointnetwork.io')
       await this._saveReferralInfo()
     } catch (error) {
-      this.logger.error(
-        ErrorsEnum.BOUNTY_ERROR,
-        'Failed to send "event=install" to bounty server',
-        error
-      )
+      this.logger.error({
+        errorType: ErrorsEnum.BOUNTY_ERROR,
+        error,
+        info: 'Failed to send "event=install" to bounty server'
+      })
     }
   }
 
@@ -106,11 +106,11 @@ class Bounty {
         'Sent event=install_started to https://bounty.pointnetwork.io'
       )
     } catch (error) {
-      this.logger.error(
-        ErrorsEnum.BOUNTY_ERROR,
-        'Failed to send "event=install_started" to bounty server',
-        error
-      )
+      this.logger.error({
+        errorType: ErrorsEnum.BOUNTY_ERROR,
+        error,
+        info: 'Failed to send "event=install_started" to bounty server'
+      })
     }
   }
 
@@ -129,11 +129,11 @@ class Bounty {
       )
       this.logger.info('Saved referralCode to "infoReferral.json"')
     } catch (error) {
-      this.logger.error(
-        ErrorsEnum.BOUNTY_ERROR,
-        'Failed to save "infoReferral.json"',
-        error
-      )
+      this.logger.error({
+        errorType: ErrorsEnum.BOUNTY_ERROR,
+        error,
+        info: 'Failed to save "infoReferral.json"'
+      })
     }
   }
 
@@ -152,11 +152,12 @@ class Bounty {
         trashDir = path.join(helpers.getHomePath(), '.Trash')
         trashDirContent = await fs.readdir(trashDir)
         this.logger.info('".Trash" directory read')
-      } catch (e) {
-        this.logger.error(
-          ErrorsEnum.BOUNTY_ERROR,
-          'Not allowed to read ".Trash" directory'
-        )
+      } catch (error) {
+        this.logger.error({
+          errorType: ErrorsEnum.BOUNTY_ERROR,
+          error,
+          info: 'Not allowed to read ".Trash" directory'
+        })
       }
     }
 
@@ -168,11 +169,12 @@ class Bounty {
       downloadDir = path.join(helpers.getHomePath(), 'Downloads')
       downloadDirContent = await fs.readdir(downloadDir)
       this.logger.info('"Downloads" directory read')
-    } catch (e) {
-      this.logger.error(
-        ErrorsEnum.BOUNTY_ERROR,
-        'Not allowed to read "Downloads" directory'
-      )
+    } catch (error) {
+      this.logger.error({
+        errorType: ErrorsEnum.BOUNTY_ERROR,
+        error,
+        info: 'Not allowed to read "Downloads" directory'
+      })
     }
 
     // Get referral code from the desktop folder
@@ -183,11 +185,12 @@ class Bounty {
       desktopDir = path.join(helpers.getHomePath(), 'Desktop')
       desktopDirContent = await fs.readdir(desktopDir)
       this.logger.info('"Desktop" directory read')
-    } catch (e) {
-      this.logger.error(
-        ErrorsEnum.BOUNTY_ERROR,
-        'Not allowed to read "Desktop" directory'
-      )
+    } catch (error) {
+      this.logger.error({
+        errorType: ErrorsEnum.BOUNTY_ERROR,
+        error,
+        info: 'Not allowed to read "Desktop" directory'
+      })
     }
 
     // Make sure it's one of our file downloads and pick the first one

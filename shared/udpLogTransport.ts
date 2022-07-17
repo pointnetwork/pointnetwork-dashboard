@@ -43,12 +43,25 @@ export function createUdpLogTransport(
 ) {
   const udpStream = createUdpStream({ address, port })
   const udpLogTransport: UdpLogTransport = (message: any) => {
+    let code: number | undefined
+    let stack: string | undefined
+    let errorType: string | undefined
+    const err = message.data.find((item: any[]) => item instanceof Error)
+    if (err) {
+      errorType = err.type
+      code = err.code
+      stack = err.stack
+    }
     const payload = {
       level: getLogLevel(message.level),
       time: message.date.getTime(),
       pid,
       hostname: hostName,
-      msg: message.data.join(' '),
+      msg: message.data.slice(1).join(' '),
+      module: message.data[0],
+      code,
+      stack,
+      errorType,
       ...additionalTags,
     }
     udpStream.write(Buffer.from(JSON.stringify(payload)), helpers.noop)

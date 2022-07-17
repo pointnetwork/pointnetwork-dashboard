@@ -108,7 +108,10 @@ class Installer {
       )
       this.logger.info('Installation complete')
     } catch (error) {
-      this.logger.error(ErrorsEnum.INSTALLATION_ERROR, error)
+      this.logger.error({
+        errorType: ErrorsEnum.INSTALLATION_ERROR,
+        error
+      })
       this.logger.sendToChannel({
         channel: InstallerChannelsEnum.error,
         log: this._attempts.toString(),
@@ -174,7 +177,7 @@ class Installer {
           log: 'Error creating directories',
         } as GenericProgressLog),
       })
-      this.logger.error(ErrorsEnum.CREATE_DIRS_ERROR, error)
+      this.logger.error({errorType: ErrorsEnum.CREATE_DIRS_ERROR, error})
       throw error
     }
   }
@@ -254,7 +257,7 @@ class Installer {
           log: 'Error cloning repositories',
         } as GenericProgressLog),
       })
-      this.logger.error(ErrorsEnum.CLONE_REPOS_ERROR, error)
+      this.logger.error({errorType: ErrorsEnum.CLONE_REPOS_ERROR, error})
       throw error
     }
   }
