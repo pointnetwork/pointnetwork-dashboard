@@ -115,7 +115,7 @@ const download: DownloadFunction = ({
               error: true,
             } as GenericProgressLog),
           })
-        logger?.error(ErrorsEnum.DOWNLOAD_ERROR, 'Request failed', error)
+        logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, info: 'Request failed', error})
         reject(error)
       })
 
@@ -128,7 +128,7 @@ const download: DownloadFunction = ({
               error: true,
             } as GenericProgressLog),
           })
-        logger?.error(ErrorsEnum.DOWNLOAD_ERROR, 'TIMEOUT', error)
+        logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, info: 'TIMEOUT', error})
         reject(error)
         req.destroy()
         res.pause()
@@ -142,7 +142,7 @@ const download: DownloadFunction = ({
             error: true,
           } as GenericProgressLog),
         })
-      logger?.error(ErrorsEnum.DOWNLOAD_ERROR, error)
+      logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, error})
       reject(error)
     }
   })

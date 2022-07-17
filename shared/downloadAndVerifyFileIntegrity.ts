@@ -1,9 +1,10 @@
-import { readFile } from "fs-extra";
-import { createHash } from 'crypto';
+import {readFile} from "fs-extra";
+import {createHash} from 'crypto';
 import retry from 'async-retry';
-import { DownloadChannels } from "../src/@types/ipc_channels";
-import { downlaodFileToDest } from "./downloadFileToDest";
+import {DownloadChannels} from "../src/@types/ipc_channels";
+import {downlaodFileToDest} from "./downloadFileToDest";
 import Logger from "./logger";
+import {ErrorsEnum} from "../src/@types/errors";
 
 const DEFAULT_RETRIES = 5;
 
@@ -58,14 +59,20 @@ export async function downloadAndVerifyFileIntegrity(
         let fileSumsHash;
         try {
           fileSumsHash = await getChecksumsFromFile(sumFileDest);
-        } catch (e) {
-          logger?.error('The sum file was not found or is corrupted, skipping file integrity verification')
+        } catch (error) {
+          logger?.error({
+            errorType: ErrorsEnum.DOWNLOAD_ERROR,
+            error,
+            info: 'The sum file was not found or is corrupted, skipping file integrity verification'
+          })
           return;
         }
         if (fileSum !== fileSumsHash[platform]) {
-          const errorMsg = `File seems corrupted current sum is: ${fileSum} expected was ${fileSumsHash[platform]}, downloading it again`
-          logger?.error(errorMsg)
-          throw Error(errorMsg);
+          const error = new Error(
+            `File seems corrupted current sum is: ${fileSum} expected was ${fileSumsHash[platform]}, downloading it again`
+          )
+          logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, error})
+          throw error
         }
         logger?.info(`File from ${downloadUrl} was downloaded, integrity ok with sum: ${fileSum} `)
     },
