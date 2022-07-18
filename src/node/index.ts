@@ -26,8 +26,13 @@ const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 
 const PING_ERROR_THRESHOLD = 5
-const PING_INTERVAL = 2000
+const PING_INTERVAL = 2500
+const PING_TIMEOUT = 2000
 const MAX_RETRY_COUNT = 3
+
+if (PING_INTERVAL < PING_TIMEOUT) {
+  throw new Error('Ping timeout should not exceed ping interval')
+}
 
 // TODO: Add JSDoc comments
 /**
@@ -293,7 +298,7 @@ class Node {
   async ping() {
     try {
       await axios.get('https://point/v1/api/status/meta', {
-        timeout: PING_INTERVAL,
+        timeout: PING_TIMEOUT,
         proxy: {
           host: 'localhost',
           port: 8666,
