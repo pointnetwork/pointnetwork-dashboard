@@ -25,8 +25,8 @@ import { downloadAndVerifyFileIntegrity } from '../../shared/downloadAndVerifyFi
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 
-const PING_ERROR_THRESHOLD = 8
-const PING_INTERVAL = 1000
+const PING_ERROR_THRESHOLD = 5
+const PING_INTERVAL = 2000
 const MAX_RETRY_COUNT = 3
 
 // TODO: Add JSDoc comments
