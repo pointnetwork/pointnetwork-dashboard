@@ -346,9 +346,9 @@ export default async function () {
     {
       channel: GenericChannelsEnum.open_external_link,
       // @ts-ignore
-      listener(_, link: string) {
+      async listener(_, link: string) {
         try {
-          shell.openExternal(link)
+          await shell.openExternal(link)
         } catch (error) {
           logger.error(ErrorsEnum.DASHBOARD_ERROR, error)
         }
