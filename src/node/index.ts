@@ -26,13 +26,9 @@ const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 
 const PING_ERROR_THRESHOLD = 5
-const PING_INTERVAL = 2500
-const PING_TIMEOUT = 2000
+const PING_INTERVAL = 1000
+const PING_TIMEOUT = 5000
 const MAX_RETRY_COUNT = 3
-
-if (PING_INTERVAL < PING_TIMEOUT) {
-  throw new Error('Ping timeout should not exceed ping interval')
-}
 
 // TODO: Add JSDoc comments
 /**
@@ -51,7 +47,7 @@ class Node {
   pointDir: string = helpers.getPointPath()
   pingErrorCount = 0
   pointLaunchCount = 0
-  pingInterval: NodeJS.Timeout | null = null
+  pingTimeout: NodeJS.Timeout | null = null
   nodeRunning = false
 
   constructor({ window }: { window: BrowserWindow }) {
@@ -62,10 +58,10 @@ class Node {
   /**
    * Clears the ping interval, if it was running
    */
-  clearPingInterval() {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval)
-      this.pingInterval = null
+  clearPingTimeout() {
+    if (this.pingTimeout) {
+      clearTimeout(this.pingTimeout)
+      this.pingTimeout = null
     }
   }
 
@@ -133,7 +129,7 @@ class Node {
           // It's the safest approach to avoid potentially running a corrupted file.
           // We could download the new file to a temp folder, and only after validation
           // replace the old one. So that if validation fails, we can keep running the old version.
-          this.clearPingInterval()
+          this.clearPingTimeout()
 
           this.logger.sendToChannel({
             channel: NodeChannelsEnum.error,
@@ -221,8 +217,8 @@ class Node {
   async launch() {
     try {
       this.logger.info('Launching point node')
-      if (!this.pingInterval) {
-        this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
+      if (!this.pingTimeout) {
+        this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL)
       }
       if (!fs.existsSync(await this._getBinFile())) {
         this.logger.error(
@@ -272,7 +268,7 @@ class Node {
           // we'll improve this when we have the `point-error-codes` shared repo.
           if (code && [11, 12, 13].includes(code)) {
             // Critical error from Point Engine, stop the ping interval as they are unrecoverable.
-            this.clearPingInterval()
+            this.clearPingTimeout()
 
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.error,
@@ -320,6 +316,7 @@ class Node {
       this.pingErrorCount = 0
       this.pointLaunchCount = 0
       this.nodeRunning = true
+      this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL)
     } catch (error) {
       this.pingErrorCount += 1
       const relaunching = this.pingErrorCount > PING_ERROR_THRESHOLD
@@ -334,8 +331,6 @@ class Node {
         this.pingErrorCount = 0
         if (!launchFailed) {
           this.launch()
-        } else {
-          this.clearPingInterval()
         }
       }
       this.nodeRunning = false
@@ -348,6 +343,11 @@ class Node {
           log: 'Point Engine is not running'
         } as LaunchProcessLog),
       })
+      if (launchFailed) {
+        this.clearPingTimeout()
+      } else {
+        this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL)
+      }
     }
   }
 
@@ -364,7 +364,7 @@ class Node {
       } as GenericProgressLog),
     })
 
-    this.clearPingInterval()
+    this.clearPingTimeout()
 
     const process = await this._getRunningProcess()
     if (process.length > 0) {
