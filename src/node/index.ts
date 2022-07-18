@@ -216,6 +216,9 @@ class Node {
   async launch() {
     try {
       this.logger.info('Launching point node')
+      if (!this.pingInterval) {
+        this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
+      }
       if (!fs.existsSync(await this._getBinFile())) {
         this.logger.error(
           'Trying to launch point node, but bin file does not exist'
@@ -278,10 +281,6 @@ class Node {
           this.logger.error('Point node process exited with exit code ', code)
         }
       })
-
-      if (!this.pingInterval) {
-        this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
-      }
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
