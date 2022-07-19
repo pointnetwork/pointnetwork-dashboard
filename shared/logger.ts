@@ -67,4 +67,11 @@ export default class Logger {
       this.window?.webContents.send(channel, log)
     } catch (error) {}
   }
+
+  sendMetric = (payload: Record<string, string | number | boolean>) => {
+    ;(logger.transports.udp as any).__udpStream.write(
+      Buffer.from(JSON.stringify({ identifier, ...payload })),
+      helpers.noop
+    )
+  }
 }
