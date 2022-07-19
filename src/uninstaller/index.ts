@@ -139,7 +139,7 @@ class Uninstaller {
               log: 'Error unpacking Point Uninstaller',
             } as GenericProgressLog),
           })
-          this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+          this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error})
         }
 
         // 4. Delete the downloaded file
@@ -149,7 +149,7 @@ class Uninstaller {
 
         resolve()
       } catch (error) {
-        this.logger.error(ErrorsEnum.UNINSTALLER_ERROR, error)
+        this.logger.error({errorType: ErrorsEnum.UNINSTALLER_ERROR, error})
         reject(error)
       }
     })
@@ -179,10 +179,14 @@ class Uninstaller {
       this.logger.info('Launching')
       return exec(cmd, (error, stdout, stderr) => {
         if (error) {
-          this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+          this.logger.error({errorType: ErrorsEnum.LAUNCH_ERROR, error})
         }
+        // TODO: refactor with spawn and log exit code
         if (stderr) {
-          this.logger.error(ErrorsEnum.LAUNCH_ERROR, stderr)
+          this.logger.error({
+            errorType: ErrorsEnum.LAUNCH_ERROR,
+            error: new Error(`Stderr output from uninstaller: ${stderr}`)
+          })
         }
         if (stdout) this.logger.info('Ran successfully')
         this.logger.sendToChannel({

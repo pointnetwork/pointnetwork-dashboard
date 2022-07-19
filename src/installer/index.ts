@@ -1,16 +1,15 @@
-import { InstallerChannelsEnum } from './../@types/ipc_channels'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import {InstallerChannelsEnum} from './../@types/ipc_channels'
+import {app, BrowserWindow, ipcMain, shell} from 'electron'
 import welcome from '../welcome'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import Installer from './service'
 import helpers from '../../shared/helpers'
-import { getIdentifier } from '../../shared/getIdentifier'
+import {getIdentifier} from '../../shared/getIdentifier'
 // Types
-import {
-  DashboardChannelsEnum,
-  GenericChannelsEnum,
-} from '../@types/ipc_channels'
+import {DashboardChannelsEnum, GenericChannelsEnum,} from '../@types/ipc_channels'
+import {ErrorsEnum} from "../@types/errors";
+
 export { Installer }
 
 const logger = new Logger({ module: 'installer_window' })
@@ -64,7 +63,10 @@ export default async function () {
           await welcome()
           installer!.close()
         } catch (error) {
-          logger.error(error)
+          logger.error({
+            errorType: ErrorsEnum.INSTALLATION_ERROR,
+            error
+          })
         }
       },
     },
@@ -74,7 +76,10 @@ export default async function () {
         try {
           shell.openExternal('https://pointnetwork.io/page/terms')
         } catch (error) {
-          logger.error(error)
+          logger.error({
+            errorType: ErrorsEnum.DASHBOARD_ERROR,
+            error
+          })
         }
       },
     },
@@ -134,8 +139,12 @@ export default async function () {
   try {
     await app.whenReady()
     await start()
-  } catch (e) {
-    logger.error('Failed to start Installer window', e)
+  } catch (error) {
+    logger.error({
+      errorType: ErrorsEnum.FATAL_ERROR,
+      error,
+      info:'Failed to start Installer window'
+    })
     app.quit()
   }
 }

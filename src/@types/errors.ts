@@ -20,4 +20,5 @@ export enum ErrorsEnum {
   UPDATE_ERROR = 'UPDATE_ERROR',
 
   GITHUB_ERROR = 'GITHUB_ERROR',
+  FATAL_ERROR = 'FATAL_ERROR'
 }

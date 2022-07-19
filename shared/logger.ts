@@ -5,6 +5,7 @@ import logger from 'electron-log'
 import { createUdpLogTransport } from './udpLogTransport'
 import { getIdentifier } from './getIdentifier'
 import * as os from 'node:os'
+import {ErrorsEnum} from "../src/@types/errors";
 
 export const DEFAULT_LEVEL = 'info'
 const pointPath = helpers.getPointPath()
@@ -18,6 +19,8 @@ logger.transports.udp = createUdpLogTransport(address, port, DEFAULT_LEVEL, {
   osArch: os.arch(),
   osRelease: os.release(),
   osVersion: os.version(),
+  processName: 'dashboard',
+  processVersion: helpers.getInstalledDashboardVersion()
 })
 logger.transports.console.level = DEFAULT_LEVEL
 logger.transports.file.level = DEFAULT_LEVEL
@@ -50,8 +53,13 @@ export default class Logger {
     logger.info(`[${this.module}]`, ...log)
   }
 
-  error = (...err: any[]) => {
-    logger.error(`[${this.module}]`, ...err)
+  error = ({errorType, error, info}: {
+    errorType: ErrorsEnum
+    error: Error
+    info?: string
+  }) => {
+    (error as any).type = errorType
+    logger.error(`[${this.module}]`, info ? `${info}: ` : '', error)
   }
 
   sendToChannel = ({ channel, log }: { channel: string; log: string }) => {

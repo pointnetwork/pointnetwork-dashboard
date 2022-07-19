@@ -102,7 +102,7 @@ class PointSDK {
 
         resolve()
       } catch (error) {
-        this.logger.error(ErrorsEnum.POINTSDK_ERROR, reject)
+        this.logger.error({errorType: ErrorsEnum.POINTSDK_ERROR, error})
         reject(error)
       }
     })
@@ -165,7 +165,7 @@ class PointSDK {
           error: true,
         } as UpdateLog),
       })
-      this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      this.logger.error({errorType: ErrorsEnum.UPDATE_ERROR, error})
       throw error
     }
   }

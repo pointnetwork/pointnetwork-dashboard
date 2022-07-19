@@ -1,16 +1,17 @@
-import { app, BrowserWindow, ipcMain, clipboard } from 'electron'
+import {app, BrowserWindow, clipboard, ipcMain} from 'electron'
 import WelcomeService from './service'
 import dashboard from '../dashboard'
 import baseWindowConfig from '../../shared/windowConfig'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
-import { getIdentifier } from '../../shared/getIdentifier'
+import {getIdentifier} from '../../shared/getIdentifier'
 // Types
 import {
   DashboardChannelsEnum,
   GenericChannelsEnum,
   WelcomeChannelsEnum,
 } from '../@types/ipc_channels'
+import {ErrorsEnum} from "../@types/errors";
 
 const logger = new Logger({ module: 'welcome_window' })
 
@@ -170,8 +171,12 @@ export default async function () {
   try {
     await app.whenReady()
     await start()
-  } catch (e) {
-    logger.error('Failed to start Welcome window', e)
+  } catch (error) {
+    logger.error({
+      errorType: ErrorsEnum.FATAL_ERROR,
+      error,
+      info: 'Failed to start Welcome window'
+    })
     app.quit()
   }
 }

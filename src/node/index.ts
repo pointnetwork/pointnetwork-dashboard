@@ -1,26 +1,27 @@
-import { BrowserWindow } from 'electron'
+import {BrowserWindow} from 'electron'
 import axios from 'axios'
 import fs from 'fs-extra'
 import path from 'node:path'
 import find from 'find-process'
-import { spawn } from 'node:child_process'
-import { https } from 'follow-redirects'
+import {spawn} from 'node:child_process'
+import {https} from 'follow-redirects'
 import moment from 'moment'
 import rmfr from 'rmfr'
 import utils from '../../shared/utils'
 import Logger from '../../shared/logger'
 import helpers from '../../shared/helpers'
 // Types
-import { NodeChannelsEnum } from '../@types/ipc_channels'
+import {NodeChannelsEnum} from '../@types/ipc_channels'
 import {
-  Process,
   GenericProgressLog,
   IdentityLog,
   LaunchProcessLog,
+  Process,
   UpdateLog,
 } from '../@types/generic'
-import { ErrorsEnum } from '../@types/errors'
-import { downloadAndVerifyFileIntegrity } from '../../shared/downloadAndVerifyFileIntegrity'
+import {ErrorsEnum} from '../@types/errors'
+import {downloadAndVerifyFileIntegrity} from '../../shared/downloadAndVerifyFileIntegrity'
+import ProcessError from "../../shared/ProcessError";
 
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
@@ -139,9 +140,11 @@ class Node {
             } as LaunchProcessLog),
           })
 
-          this.logger.error(
-            `Could not download pointnode after many retries due to error: ${e}`
-          )
+          this.logger.error({
+            errorType: ErrorsEnum.DOWNLOAD_ERROR,
+            error: e,
+            info: 'Could not download pointnode after many retries due to error'
+          })
 
           throw e
         }
@@ -170,7 +173,7 @@ class Node {
               error: true,
             } as GenericProgressLog),
           })
-          this.logger.error(ErrorsEnum.UNPACK_ERROR, error)
+          this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error})
           throw error
         }
         this.logger.sendToChannel({
@@ -202,7 +205,7 @@ class Node {
 
         resolve()
       } catch (error) {
-        this.logger.error(ErrorsEnum.NODE_ERROR, error)
+        this.logger.error({errorType: ErrorsEnum.NODE_ERROR, error})
         reject(error)
       }
     })
@@ -221,9 +224,10 @@ class Node {
         this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL)
       }
       if (!fs.existsSync(await this._getBinFile())) {
-        this.logger.error(
-          'Trying to launch point node, but bin file does not exist'
-        )
+        this.logger.error({
+          errorType: ErrorsEnum.LAUNCH_ERROR,
+          error: new Error('Trying to launch point node, but bin file does not exist')
+        })
         return
       }
       if ((await this._getRunningProcess()).length) {
@@ -255,8 +259,12 @@ class Node {
         stdio: ['ignore', 'ignore', 'pipe'],
       })
 
-      proc.stderr.on('data', data => {
-        this.logger.error(`Stderr output from node: ${data}`)
+      proc.stderr.on('data', (data: string) => {
+        this.logger.error({
+          errorType: ErrorsEnum.NODE_ERROR,
+          error: new Error(data),
+          info: 'Stderr output from node'
+        })
       })
 
       proc.on('exit', code => {
@@ -279,11 +287,14 @@ class Node {
             })
           }
 
-          this.logger.error('Point node process exited with exit code ', code)
+          this.logger.error({
+            errorType: ErrorsEnum.NODE_ERROR,
+            error: new ProcessError('Point node process exited', code)
+          })
         }
       })
     } catch (error) {
-      this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
+      this.logger.error({errorType: ErrorsEnum.LAUNCH_ERROR, error})
       throw error
     }
   }
@@ -322,12 +333,12 @@ class Node {
       const relaunching = this.pingErrorCount > PING_ERROR_THRESHOLD
       const launchFailed = this.pointLaunchCount >= MAX_RETRY_COUNT
       if (relaunching || this.nodeRunning) {
-        this.logger.error(
-          ErrorsEnum.NODE_ERROR,
-          this.nodeRunning
+        this.logger.error({
+          errorType: ErrorsEnum.NODE_ERROR,
+          error: new Error(this.nodeRunning
             ? 'Node process was stopped, relaunching'
-            : `Unable to Ping after ${PING_ERROR_THRESHOLD} attempts`
-        )
+            : `Unable to Ping after ${PING_ERROR_THRESHOLD} attempts`)
+        })
         this.pingErrorCount = 0
         if (!launchFailed) {
           this.launch()
@@ -372,9 +383,9 @@ class Node {
       for (const p of process) {
         try {
           await utils.kill({ processId: p.pid, onMessage: this.logger.info })
-        } catch (err) {
-          this.logger.error(ErrorsEnum.STOP_ERROR, err)
-          throw err
+        } catch (error) {
+          this.logger.error({errorType: ErrorsEnum.STOP_ERROR, error})
+          throw error
         }
       }
     }
@@ -450,7 +461,7 @@ class Node {
           error: true,
         } as UpdateLog),
       })
-      this.logger.error(ErrorsEnum.UPDATE_ERROR, error)
+      this.logger.error({errorType: ErrorsEnum.UPDATE_ERROR, error})
       throw error
     }
   }
@@ -487,7 +498,11 @@ class Node {
       })
       return { address, identity }
     } catch (e) {
-      this.logger.error(ErrorsEnum.NODE_ERROR, 'Unable to fetch identity info')
+      this.logger.error({
+        errorType: ErrorsEnum.NODE_ERROR,
+        error: e,
+        info: 'Unable to fetch identity info'
+      })
       throw e
     }
   }
