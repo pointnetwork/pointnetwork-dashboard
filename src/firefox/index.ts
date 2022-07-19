@@ -26,7 +26,7 @@ import { ErrorsEnum } from '../@types/errors'
 const dmg = require('dmg')
 const bz2 = require('unbzip2-stream')
 
-const CHECK_INTERVAL = 400;
+const CHECK_INTERVAL = 2000;
 
 /**
  * WHAT THIS MODULE DOES
@@ -172,7 +172,10 @@ class Firefox {
       if (!fs.existsSync(await this._getBinFile())) {
         await this.downloadAndInstall()
       }
-      if ((await this._getRunningProcess()).length) return
+      if ((await this._getRunningProcess()).length) {
+        this.logger.info('Firefox is already running')
+        return
+      }
 
       // MAYBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
       await this._createConfigFiles()

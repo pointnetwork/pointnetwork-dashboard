@@ -16,7 +16,7 @@ export const useMainStatus = () => {
     isLoading: boolean
     message: string
   }>({ isLoading: true, message: 'Checking for updates...' })
-  const [launchAttempts, setLaunchAttempts] = useState<number>(0)
+  const [launchFailed, setLaunchFailed] = useState(false)
   // Node
   const [nodeVersion, setNodeVersion] = useState<string>('')
   const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
@@ -43,19 +43,25 @@ export const useMainStatus = () => {
       setIsLaunching({ isLoading: false, message: '' })
     })
 
-    window.Dashboard.on(NodeChannelsEnum.running_status, (_: string) => {
-      const parsed: LaunchProcessLog = JSON.parse(_)
+    window.Dashboard.on(NodeChannelsEnum.running_status, (log: string) => {
+      const parsed: LaunchProcessLog = JSON.parse(log)
       setIsNodeRunning(parsed.isRunning)
-      setLaunchAttempts(parsed.pingErrorCount)
+      setLaunchFailed(parsed.launchFailed)
+      if (parsed.relaunching) {
+        setIsLaunching(prevState => ({
+          ...prevState,
+          message: 'Point network failed to start, retrying'
+        }))
+      }
     })
 
-    window.Dashboard.on(FirefoxChannelsEnum.running_status, (_: string) => {
-      const parsed: LaunchProcessLog = JSON.parse(_)
+    window.Dashboard.on(FirefoxChannelsEnum.running_status, (log: string) => {
+      const parsed: LaunchProcessLog = JSON.parse(log)
       setIsBrowserRunning(parsed.isRunning)
     })
 
-    window.Dashboard.on(UninstallerChannelsEnum.running_status, (_: string) => {
-      const parsed: LaunchProcessLog = JSON.parse(_)
+    window.Dashboard.on(UninstallerChannelsEnum.running_status, (log: string) => {
+      const parsed: LaunchProcessLog = JSON.parse(log)
       setIsLaunching({ isLoading: parsed.isRunning, message: parsed.log })
     })
 
@@ -73,8 +79,8 @@ export const useMainStatus = () => {
       })
     })
 
-    window.Dashboard.on(GenericChannelsEnum.check_for_updates, (_: string) => {
-      const parsed = JSON.parse(_)
+    window.Dashboard.on(GenericChannelsEnum.check_for_updates, (log: string) => {
+      const parsed = JSON.parse(log)
       if (parsed.success) {
         setIsLaunching({
           isLoading: true,
@@ -85,16 +91,16 @@ export const useMainStatus = () => {
       }
     })
 
-    window.Dashboard.on(NodeChannelsEnum.get_identity, (_: string) => {
-      const parsed: IdentityLog = JSON.parse(_)
+    window.Dashboard.on(NodeChannelsEnum.get_identity, (log: string) => {
+      const parsed: IdentityLog = JSON.parse(log)
       if (!parsed.isFetching)
         setIdentityInfo({ identity: parsed.identity, address: parsed.address })
     })
 
     window.Dashboard.on(
       DashboardChannelsEnum.check_balance_and_airdrop,
-      (_: string) => {
-        setBalance(_)
+      (bal: string) => {
+        setBalance(bal)
       }
     )
   }
@@ -148,7 +154,7 @@ export const useMainStatus = () => {
     identifier,
     browserVersion,
     nodeVersion,
-    launchAttempts,
+    launchFailed,
     loader,
     identityInfo,
     balance,

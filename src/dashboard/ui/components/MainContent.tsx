@@ -121,7 +121,6 @@ const MainContent = () => {
               resource="Engine"
               isRunning={isNodeRunning}
               version={nodeVersion}
-              onRetry={window.Dashboard.launchNode}
             />
             <ResourceStatusCard
               resource="Browser"

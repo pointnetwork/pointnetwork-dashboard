@@ -19,15 +19,14 @@ import ErrorDialog from './components/ErrorDialog'
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 
 const App = () => {
-  const { identifier, launchAttempts, loader, engineErrorCode } =
-    useContext(MainStatusContext)
+  const { identifier, launchFailed, loader, engineErrorCode } = useContext(MainStatusContext)
   const { updateDialogOpen } = useContext(UpdateStatusContext)
 
   return (
     <UIThemeProvider>
       <DisplayIdentifier identifier={identifier} />
       <DashboardUpdateAlert />
-      <TimeoutAlert identifier={identifier} launchAttempts={launchAttempts} />
+      <TimeoutAlert identifier={identifier} open={launchFailed && !engineErrorCode} />
       <CheckForUpdatesDialog />
       <ErrorDialog identifier={identifier} errCode={engineErrorCode} />
 

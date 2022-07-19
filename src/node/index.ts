@@ -25,8 +25,10 @@ import { downloadAndVerifyFileIntegrity } from '../../shared/downloadAndVerifyFi
 const decompress = require('decompress')
 const decompressTargz = require('decompress-targz')
 
-const PING_ERROR_THRESHOLD = 10
+const PING_ERROR_THRESHOLD = 5
 const PING_INTERVAL = 1000
+const PING_TIMEOUT = 5000
+const MAX_RETRY_COUNT = 3
 
 // TODO: Add JSDoc comments
 /**
@@ -44,7 +46,8 @@ class Node {
   window: BrowserWindow
   pointDir: string = helpers.getPointPath()
   pingErrorCount = 0
-  pingInterval: NodeJS.Timeout | null = null
+  pointLaunchCount = 0
+  pingTimeout: NodeJS.Timeout | null = null
   nodeRunning = false
 
   constructor({ window }: { window: BrowserWindow }) {
@@ -55,10 +58,10 @@ class Node {
   /**
    * Clears the ping interval, if it was running
    */
-  clearPingInterval() {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval)
-      this.pingInterval = null
+  clearPingTimeout() {
+    if (this.pingTimeout) {
+      clearTimeout(this.pingTimeout)
+      this.pingTimeout = null
     }
   }
 
@@ -126,7 +129,7 @@ class Node {
           // It's the safest approach to avoid potentially running a corrupted file.
           // We could download the new file to a temp folder, and only after validation
           // replace the old one. So that if validation fails, we can keep running the old version.
-          this.clearPingInterval()
+          this.clearPingTimeout()
 
           this.logger.sendToChannel({
             channel: NodeChannelsEnum.error,
@@ -214,6 +217,9 @@ class Node {
   async launch() {
     try {
       this.logger.info('Launching point node')
+      if (!this.pingTimeout) {
+        this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL)
+      }
       if (!fs.existsSync(await this._getBinFile())) {
         this.logger.error(
           'Trying to launch point node, but bin file does not exist'
@@ -225,6 +231,20 @@ class Node {
           'Point node is currently running. Skipping starting it'
         )
         return
+      }
+      if (this.pointLaunchCount >= MAX_RETRY_COUNT) {
+        this.pointLaunchCount = 0
+        this.logger.sendToChannel({
+          channel: NodeChannelsEnum.running_status,
+          log: JSON.stringify({
+            isRunning: false,
+            relaunching: false,
+            launchFailed: false,
+            log: 'Point Engine is not running'
+          } as LaunchProcessLog),
+        })
+      } else {
+        this.pointLaunchCount++
       }
       const file = await this._getBinFile()
       const proc = spawn(file, {
@@ -248,7 +268,7 @@ class Node {
           // we'll improve this when we have the `point-error-codes` shared repo.
           if (code && [11, 12, 13].includes(code)) {
             // Critical error from Point Engine, stop the ping interval as they are unrecoverable.
-            this.clearPingInterval()
+            this.clearPingTimeout()
 
             this.logger.sendToChannel({
               channel: NodeChannelsEnum.error,
@@ -262,10 +282,6 @@ class Node {
           this.logger.error('Point node process exited with exit code ', code)
         }
       })
-
-      if (!this.pingInterval) {
-        this.pingInterval = setInterval(this.ping.bind(this), PING_INTERVAL)
-      }
     } catch (error) {
       this.logger.error(ErrorsEnum.LAUNCH_ERROR, error)
       throw error
@@ -278,7 +294,7 @@ class Node {
   async ping() {
     try {
       await axios.get('https://point/v1/api/status/meta', {
-        timeout: PING_INTERVAL,
+        timeout: PING_TIMEOUT,
         proxy: {
           host: 'localhost',
           port: 8666,
@@ -292,33 +308,46 @@ class Node {
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: true,
-          pingErrorCount: 0,
+          relaunching: false,
+          launchFailed: false,
           log: 'Point Engine is running',
         } as LaunchProcessLog),
       })
       this.pingErrorCount = 0
+      this.pointLaunchCount = 0
       this.nodeRunning = true
+      this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL)
     } catch (error) {
       this.pingErrorCount += 1
-      if (this.pingErrorCount > PING_ERROR_THRESHOLD || this.nodeRunning) {
+      const relaunching = this.pingErrorCount > PING_ERROR_THRESHOLD
+      const launchFailed = this.pointLaunchCount >= MAX_RETRY_COUNT
+      if (relaunching || this.nodeRunning) {
         this.logger.error(
           ErrorsEnum.NODE_ERROR,
           this.nodeRunning
             ? 'Node process was stopped, relaunching'
-            : `Unable to Ping after ${PING_ERROR_THRESHOLD} attempts, re-attempting to launch node`
+            : `Unable to Ping after ${PING_ERROR_THRESHOLD} attempts`
         )
         this.pingErrorCount = 0
-        this.launch()
+        if (!launchFailed) {
+          this.launch()
+        }
       }
       this.nodeRunning = false
       this.logger.sendToChannel({
         channel: NodeChannelsEnum.running_status,
         log: JSON.stringify({
           isRunning: false,
-          pingErrorCount: this.pingErrorCount,
-          log: 'Point Engine is not running',
+          relaunching,
+          launchFailed,
+          log: 'Point Engine is not running'
         } as LaunchProcessLog),
       })
+      if (launchFailed) {
+        this.clearPingTimeout()
+      } else {
+        this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL)
+      }
     }
   }
 
@@ -335,7 +364,7 @@ class Node {
       } as GenericProgressLog),
     })
 
-    this.clearPingInterval()
+    this.clearPingTimeout()
 
     const process = await this._getRunningProcess()
     if (process.length > 0) {
