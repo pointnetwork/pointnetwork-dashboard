@@ -1,4 +1,4 @@
-import { IpcMainEvent } from 'electron'
+import {IpcMainEvent} from 'electron';
 
 export interface IsUpdatingState {
   firefox: boolean

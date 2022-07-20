@@ -6,4 +6,4 @@ enum WelcomeRoutes {
   verify = 'verify',
 }
 
-export default WelcomeRoutes
+export default WelcomeRoutes;
