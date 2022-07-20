@@ -11,7 +11,7 @@ export interface IsUpdatingState {
 
 export interface EventListener {
   channel: string
-  listener: (_: IpcMainEvent, args: any[]) => void
+  listener: (_: IpcMainEvent, ...args: any[]) => void
 }
 
 export interface Process {

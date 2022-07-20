@@ -226,8 +226,7 @@ class Bounty {
         if (
             Number.isNaN(Number(this.referralCode)) ||
       Number(this.referralCode) < 0
-        )
-            this.referralCode = '000000000000';
+        ) {this.referralCode = '000000000000';}
 
         this.logger.info('Referral Code: ', this.referralCode);
     }

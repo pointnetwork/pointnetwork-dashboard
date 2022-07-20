@@ -93,8 +93,9 @@ export const useMainStatus = () => {
 
         window.Dashboard.on(NodeChannelsEnum.get_identity, (log: string) => {
             const parsed: IdentityLog = JSON.parse(log);
-            if (!parsed.isFetching)
+            if (!parsed.isFetching) {
                 setIdentityInfo({identity: parsed.identity, address: parsed.address});
+            }
         });
 
         window.Dashboard.on(

@@ -35,10 +35,11 @@ class WelcomeService {
    * Useful where we want to do some cleanup before closing the window
    */
     async login() {
-        if (helpers.isLoggedIn())
+        if (helpers.isLoggedIn()) {
             throw Error(
                 'Already logged in (~/.point/keystore/key.json already exists). You need to log out first.'
             );
+        }
 
         if (!fs.existsSync(helpers.getLiveDirectoryPath())) {
             await fs.mkdir(helpers.getLiveDirectoryPath());

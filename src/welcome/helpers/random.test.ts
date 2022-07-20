@@ -25,8 +25,8 @@ describe('pickMultipleRandomly', () => {
             const picks = pickMultipleRandomly(input, 3);
 
             const seen: Record<string, number> = {};
-            picks.forEach(i => {
-                seen[i.word] = (seen[i.word] || 0) + 1;
+            picks.forEach(pick => {
+                seen[pick.word] = (seen[pick.word] || 0) + 1;
             });
 
             Object.keys(seen).forEach(k => expect(seen[k]).toBe(1));

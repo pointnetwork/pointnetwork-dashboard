@@ -5,6 +5,7 @@ import {WelcomeChannelsEnum} from '../@types/ipc_channels';
 
 type Args = [WelcomeChannelsEnum, any]
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 const mockSend = jest.fn(() => {});
 
 const mockWindow = {webContents: {send: mockSend}};

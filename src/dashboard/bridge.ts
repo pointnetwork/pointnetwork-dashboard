@@ -69,7 +69,7 @@ export const api = {
     minimizeWindow: () => ipcRenderer.send(GenericChannelsEnum.minimize_window),
     closeWindow: () => ipcRenderer.send(GenericChannelsEnum.close_window),
 
-    on: (channel: string, callback: (...args: unknown[]) => void) =>
+    on: (channel: string, callback: (...args: any[]) => void) =>
         ipcRenderer.on(channel, (_, data) => callback(data))
 };
 

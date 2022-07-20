@@ -101,10 +101,8 @@ class Node {
                 // 1. Set the parameters for download
                 const latestVersion = await this.getLatestVersion();
                 let fileName = `point-linux-${latestVersion}.tar.gz`;
-                if (global.platform.win32)
-                    fileName = `point-win-${latestVersion}.tar.gz`;
-                if (global.platform.darwin)
-                    fileName = `point-macos-${latestVersion}.tar.gz`;
+                if (global.platform.win32) {fileName = `point-win-${latestVersion}.tar.gz`;}
+                if (global.platform.darwin) {fileName = `point-macos-${latestVersion}.tar.gz`;}
 
                 const platform = fileName.split('-')[1];
                 const downloadUrl = this.getDownloadURL(fileName, latestVersion);

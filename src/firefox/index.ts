@@ -82,12 +82,12 @@ class Firefox {
             const repo = 'phyrox-esr-portable';
             const githubAPIURL = helpers.getGithubAPIURL();
             const githubURL = helpers.getGithubURL();
-            const url = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`;
+            const githubUrl = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`;
             const fallback = `${githubURL}/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`;
             const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/;
 
             try {
-                const {data} = await axios.get<GithubRelease>(url);
+                const {data} = await axios.get<GithubRelease>(githubUrl);
                 const browserAsset = data.assets.find(a => re.test(a.name));
 
                 if (!browserAsset) {
@@ -348,7 +348,7 @@ class Firefox {
    */
     async _unpack({src, dest}: { src: string; dest: string }): Promise<void> {
     // eslint-disable-next-line no-async-promise-executor
-        return new Promise(async (resolve, reject) => {
+        return new Promise(async (resolve) => {
             const _resolve = () => {
                 this.logger.sendToChannel({
                     channel: FirefoxChannelsEnum.unpack,
@@ -380,14 +380,14 @@ class Firefox {
                     await utils.extractZip({
                         src,
                         dest,
-                        onProgress: (progress: number) => {
+                        onProgress: (_progress: number) => {
                             this.logger.sendToChannel({
                                 channel: FirefoxChannelsEnum.unpack,
                                 log: JSON.stringify({
                                     started: true,
                                     log: 'Unpacking Point Browser',
                                     done: false,
-                                    progress
+                                    progress: _progress
                                 } as GenericProgressLog)
                             });
                         }
@@ -398,17 +398,17 @@ class Firefox {
                 if (global.platform.darwin) {
                     dmg.mount(src, async (_err: any, dmgPath: any) => {
                         try {
-                            const src = `${dmgPath}/Firefox.app`;
+                            const _src = `${dmgPath}/Firefox.app`;
                             const dst = `${dest}/Firefox.app`;
 
-                            const totalFiles = await helpers.countFilesinDir(src);
+                            const totalFiles = await helpers.countFilesinDir(_src);
                             let filesCopied = 0;
 
-                            await fs.copy(src, dst, {
-                                filter: src => {
-                                    if (fs.statSync(src).isFile()) {
+                            await fs.copy(_src, dst, {
+                                filter: __src => {
+                                    if (fs.statSync(__src).isFile()) {
                                         filesCopied++;
-                                        const progress = Math.round(
+                                        const _progress = Math.round(
                                             (filesCopied / totalFiles) * 100
                                         );
 
@@ -418,7 +418,7 @@ class Firefox {
                                                 started: true,
                                                 log: 'Unpacking Point Browser',
                                                 done: false,
-                                                progress
+                                                progress: _progress
                                             } as GenericProgressLog)
                                         });
                                     }
@@ -584,8 +584,7 @@ pref('security.pki.sha1_enforcement_level', 4)
 
         let appPath = rootPath;
         if (global.platform.win32) appPath = path.join(rootPath, 'app');
-        if (global.platform.darwin)
-            appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');
+        if (global.platform.darwin) {appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');}
 
         if (!fs.existsSync(appPath)) {
             await fs.mkdir(appPath);
@@ -620,8 +619,7 @@ pref('security.pki.sha1_enforcement_level', 4)
     async _getPoliciesPath(): Promise<string> {
         const rootPath = await this._getRootPath();
         let distributionPath = path.join(await this._getAppPath(), 'distribution');
-        if (global.platform.linux)
-            distributionPath = path.join(rootPath, 'distribution');
+        if (global.platform.linux) {distributionPath = path.join(rootPath, 'distribution');}
 
         if (!fs.existsSync(distributionPath)) {
             await fs.mkdir(distributionPath);

@@ -343,7 +343,6 @@ export default async function () {
         },
         {
             channel: GenericChannelsEnum.copy_to_clipboard,
-            // @ts-ignore
             listener(_, message: string) {
                 clipboard.writeText(message);
                 window?.webContents.send(GenericChannelsEnum.copy_to_clipboard);
@@ -351,7 +350,6 @@ export default async function () {
         },
         {
             channel: GenericChannelsEnum.open_external_link,
-            // @ts-ignore
             async listener(_, link: string) {
                 try {
                     await shell.openExternal(link);

@@ -37,7 +37,7 @@ export const api = {
     openTermsAndConditions: () =>
         ipcRenderer.send(InstallerChannelsEnum.open_terms_link),
 
-    on: (channel: string, callback: (...args: unknown[]) => void) => {
+    on: (channel: string, callback: (...args: any[]) => void) => {
         ipcRenderer.on(channel, (_, data) => callback(data));
     }
 };

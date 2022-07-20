@@ -55,10 +55,8 @@ class Uninstaller {
                 // 1. Set the parameters for download
                 const latestVersion = await this.getLatestVersion();
                 let filename = `point-uninstaller-${latestVersion}-Linux-Debian-Ubuntu.tar.gz`;
-                if (global.platform.win32)
-                    filename = `point-uninstaller-${latestVersion}-Windows-installer.zip`;
-                if (global.platform.darwin)
-                    filename = `point-uninstaller-${latestVersion}-MacOS-portable.tar.gz`;
+                if (global.platform.win32) {filename = `point-uninstaller-${latestVersion}-Windows-installer.zip`;}
+                if (global.platform.darwin) {filename = `point-uninstaller-${latestVersion}-MacOS-portable.tar.gz`;}
 
                 const downloadUrl = this.getDownloadURL(filename, latestVersion);
                 const downloadDest = path.join(this.pointDir, filename);
@@ -112,7 +110,11 @@ class Uninstaller {
                     }
 
                     if (global.platform.darwin) {
-                        await decompress(downloadDest, this.pointDir, {plugins: [decompressTargz()]});
+                        await decompress(
+                            downloadDest,
+                            this.pointDir,
+                            {plugins: [decompressTargz()]}
+                        );
                     }
 
                     if (global.platform.linux) {

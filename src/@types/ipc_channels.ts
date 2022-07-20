@@ -77,4 +77,9 @@ export enum BountyChannelsEnum {
   send_generated = 'bounty:send_generated',
 }
 
-export type DownloadChannels = NodeChannelsEnum.download | FirefoxChannelsEnum.download | PointSDKChannelsEnum.download | UninstallerChannelsEnum.download | undefined;
+export type DownloadChannels =
+    | NodeChannelsEnum.download
+    | FirefoxChannelsEnum.download
+    | PointSDKChannelsEnum.download
+    | UninstallerChannelsEnum.download
+    | undefined;

@@ -52,14 +52,15 @@ const download: DownloadFunction = ({
             }
 
             logger?.info(`Downloading Point ${asset}`);
-            channel &&
-        logger?.sendToChannel({
-            channel,
-            log: JSON.stringify({
-                started: true,
-                log: `Starting to download Point ${asset}`
-            } as GenericProgressLog)
-        });
+            if (channel) {
+                logger?.sendToChannel({
+                    channel,
+                    log: JSON.stringify({
+                        started: true,
+                        log: `Starting to download Point ${asset}`
+                    } as GenericProgressLog)
+                });
+            }
 
             const req = https.get(downloadUrl, {timeout: 15000}, async response => {
                 res = response;
@@ -77,71 +78,78 @@ const download: DownloadFunction = ({
 
                     if (temp !== percentage) {
                         percentage = temp;
-                        onProgress && onProgress(percentage);
+                        if (onProgress) {
+                            onProgress(percentage);
+                        }
 
-                        channel &&
-              logger?.sendToChannel({
-                  channel,
-                  log: JSON.stringify({
-                      log: `Downloading Point ${asset}`,
-                      progress: percentage
-                  } as GenericProgressLog)
-              });
+                        if (channel) {
+                            logger?.sendToChannel({
+                                channel,
+                                log: JSON.stringify({
+                                    log: `Downloading Point ${asset}`,
+                                    progress: percentage
+                                } as GenericProgressLog)
+                            });
+                        }
                     }
                 });
 
                 response.on('end', () => {
                     logger?.info(`Downloaded Point ${asset}`);
-                    channel &&
-            logger?.sendToChannel({
-                channel,
-                log: JSON.stringify({
-                    started: false,
-                    log: `Point ${asset} downloaded`,
-                    progress: 100,
-                    done: true
-                } as GenericProgressLog)
-            });
+                    if (channel) {
+                        logger?.sendToChannel({
+                            channel,
+                            log: JSON.stringify({
+                                started: false,
+                                log: `Point ${asset} downloaded`,
+                                progress: 100,
+                                done: true
+                            } as GenericProgressLog)
+                        });
+                    }
                     resolve();
                 });
             });
 
             req.on('error', error => {
-                channel &&
-          logger?.sendToChannel({
-              channel,
-              log: JSON.stringify({
-                  log: 'Request failed',
-                  error: true
-              } as GenericProgressLog)
-          });
+                if (channel) {
+                    logger?.sendToChannel({
+                        channel,
+                        log: JSON.stringify({
+                            log: 'Request failed',
+                            error: true
+                        } as GenericProgressLog)
+                    });
+                }
                 logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, info: 'Request failed', error});
                 reject(error);
             });
 
             req.on('timeout', error => {
-                channel &&
-          logger?.sendToChannel({
-              channel,
-              log: JSON.stringify({
-                  log: 'Internet connection lost',
-                  error: true
-              } as GenericProgressLog)
-          });
+                if (channel) {
+                    logger?.sendToChannel({
+                        channel,
+                        log: JSON.stringify({
+                            log: 'Internet connection lost',
+                            error: true
+                        } as GenericProgressLog)
+                    });
+                }
                 logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, info: 'TIMEOUT', error});
                 reject(error);
                 req.destroy();
                 res.pause();
             });
         } catch (error) {
-            channel &&
-        logger?.sendToChannel({
-            channel,
-            log: JSON.stringify({
-                log: `Error downloading Point ${asset}`,
-                error: true
-            } as GenericProgressLog)
-        });
+            if (channel) {
+                logger?.sendToChannel({
+                    channel,
+                    log: JSON.stringify({
+                        log: `Error downloading Point ${asset}`,
+                        error: true
+                    } as GenericProgressLog)
+                });
+            }
             logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, error});
             reject(error);
         }
@@ -161,7 +169,9 @@ const extractZip: ExtractZipFunction = ({src, dest, onProgress}) =>
                     const extracted = zipfile.entriesRead;
                     const total = zipfile.entryCount;
 
-                    onProgress && onProgress(Math.round((extracted / total) * 100));
+                    if (onProgress) {
+                        onProgress(Math.round((extracted / total) * 100));
+                    }
                 }
             });
             resolve();

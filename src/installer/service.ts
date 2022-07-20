@@ -97,8 +97,9 @@ class Installer {
                 await new Node({window: this.window}).downloadAndInstall();
                 this._stepsCompleted++;
             }
-            if (this._stepsCompleted === 5)
+            if (this._stepsCompleted === 5) {
                 await new Uninstaller({window: this.window}).downloadAndInstall();
+            }
 
             await bounty.sendInstalled();
 

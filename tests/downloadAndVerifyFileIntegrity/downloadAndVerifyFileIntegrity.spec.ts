@@ -26,7 +26,7 @@ describe('Download and verify file integrity', () => {
     });
 
     it(`should download file and check integrity when it's ok`, async () => {
-        const spy = jest.spyOn(downloadFileModule, 'downlaodFileToDest');
+        const spy = jest.spyOn(downloadFileModule, 'downloadFileToDest');
         spy.mockResolvedValue();
         await downloadAndVerifyFileIntegrity({
             platform: 'win',
@@ -39,7 +39,7 @@ describe('Download and verify file integrity', () => {
     });
 
     it(`should retry download file if integrity fails`, async () => {
-        const spy = jest.spyOn(downloadFileModule, 'downlaodFileToDest');
+        const spy = jest.spyOn(downloadFileModule, 'downloadFileToDest');
         spy.mockResolvedValue();
         const retries = 5;
         try {

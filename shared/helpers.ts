@@ -18,7 +18,7 @@ const getOSAndArch = () => {
         if (arch === 'x64') {
             osAndArch = 'linux-x86_64';
         }
-        if (arch === 'x32') {
+        if (arch === 'ia32') {
             osAndArch = 'linux-i686';
         }
     }
@@ -26,7 +26,7 @@ const getOSAndArch = () => {
         if (arch === 'x64') {
             osAndArch = 'win64';
         }
-        if (arch === 'x32') {
+        if (arch === 'ia32') {
             osAndArch = 'win32';
         }
     }
@@ -209,6 +209,7 @@ const getBinPath = async () => {
     return dir;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop(): void {}
 
 const countFilesinDir = async (dir: string): Promise<number> => {

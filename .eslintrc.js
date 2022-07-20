@@ -28,6 +28,7 @@ module.exports = {
         'build_installer_win.js'
     ],
     rules: {
+        'curly': ['error', 'multi-line'],
         'react/prop-types': 'off',
         'no-implicit-coercion': ['error'],
         'indent': ['error', 4, {
@@ -42,7 +43,7 @@ module.exports = {
         'semi': ['error', 'always'],
         'linebreak-style': ['error', 'unix'],
         'no-fallthrough': 'off',
-        'no-console': 'error',
+        'no-console': 'warn', // TODO: replace console with logger in helpers and set to error
         'no-debugger': 'error',
         'max-len': ['warn', {
             code: 100,
@@ -87,9 +88,9 @@ module.exports = {
         '@typescript-eslint/no-var-requires': 'off', // TODO: enable
         '@typescript-eslint/ban-ts-comment': 'error',
         '@typescript-eslint/no-non-null-assertion': 'off',
-        '@typescript-eslint/no-shadow': 'off', // TODO: fix all and enable
-        '@typescript-eslint/no-this-alias': 'off', // TODO: fix all and enable
-        '@typescript-eslint/no-empty-function': 'off', // TODO: fix all and enable
+        '@typescript-eslint/no-shadow': 'error',
+        '@typescript-eslint/no-this-alias': 'error',
+        '@typescript-eslint/no-empty-function': 'error',
         'no-shadow': 'off',
         '@typescript-eslint/no-unused-vars': 'error',
         'no-unused-vars': 'off',
