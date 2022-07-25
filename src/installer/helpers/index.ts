@@ -1,1 +1,1 @@
-export * from './github-progress'
+export * from './github-progress';

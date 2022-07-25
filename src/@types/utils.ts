@@ -1,11 +1,11 @@
-import { WriteStream } from 'fs-extra'
-import Logger from '../../shared/logger'
+import {WriteStream} from 'fs-extra';
+import Logger from '../../shared/logger';
 import {
-  FirefoxChannelsEnum,
-  NodeChannelsEnum,
-  PointSDKChannelsEnum,
-  UninstallerChannelsEnum,
-} from './ipc_channels'
+    FirefoxChannelsEnum,
+    NodeChannelsEnum,
+    PointSDKChannelsEnum,
+    UninstallerChannelsEnum
+} from './ipc_channels';
 
 export type DownloadFunction = (_: {
   logger?: Logger

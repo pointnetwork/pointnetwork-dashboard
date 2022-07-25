@@ -1,4 +1,4 @@
-import { GenericProgressLog, IsUpdatingState, UpdateLog } from './generic'
+import {GenericProgressLog, IsUpdatingState, UpdateLog} from './generic';
 
 export type MainStatus = {
   isBrowserRunning: boolean

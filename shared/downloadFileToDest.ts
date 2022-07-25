@@ -1,13 +1,19 @@
-import { createWriteStream } from "fs-extra";
+import {createWriteStream} from 'fs-extra';
 import utils from './utils';
-import { DownloadChannels } from "../src/@types/ipc_channels";
+import {DownloadChannels} from '../src/@types/ipc_channels';
+import Logger from './logger';
 
-export async function downlaodFileToDest(downloadUrl: string, downloadDest: string, logger?: any, channel?: DownloadChannels) {
-  const downloadStream = createWriteStream(downloadDest);
-  return utils.download({
-    channel,
-    logger,
-    downloadUrl,
-    downloadStream,
-  });
+export async function downloadFileToDest(
+    downloadUrl: string,
+    downloadDest: string,
+    logger?: Logger,
+    channel?: DownloadChannels
+) {
+    const downloadStream = createWriteStream(downloadDest);
+    return utils.download({
+        channel,
+        logger,
+        downloadUrl,
+        downloadStream
+    });
 }

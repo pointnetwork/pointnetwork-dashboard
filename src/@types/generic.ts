@@ -1,4 +1,4 @@
-import { IpcMainEvent } from 'electron'
+import {IpcMainEvent} from 'electron';
 
 export interface IsUpdatingState {
   firefox: boolean
@@ -11,7 +11,7 @@ export interface IsUpdatingState {
 
 export interface EventListener {
   channel: string
-  listener: (_: IpcMainEvent, args: any[]) => void
+  listener: (_: IpcMainEvent, ...args: any[]) => void
 }
 
 export interface Process {
