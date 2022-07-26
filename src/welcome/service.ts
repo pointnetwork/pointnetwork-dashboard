@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import Mnemonic from 'bitcore-mnemonic';
 import Logger from '../../shared/logger';
 import helpers from '../../shared/helpers';
-import {pickMultipleRandomly, Word} from './helpers';
+import {Word} from './helpers';
 // Types
 import {WelcomeChannelsEnum} from '../@types/ipc_channels';
 
@@ -116,10 +116,10 @@ class WelcomeService {
         // this.picks = pickMultipleRandomly(availableOptions, 3).sort((a, b) => a.idx - b.idx);
 
         // always fixed
-        const fixedOrder = [ 1, 3, 12 ];
+        const fixedOrder = [1, 3, 12];
         this.picks = [];
-        for(let f of fixedOrder) {
-            this.picks.push({ word: availableOptions[f-1], idx: f-1 });
+        for (const f of fixedOrder) {
+            this.picks.push({word: availableOptions[f - 1], idx: f - 1});
         }
 
         this.window.webContents.send(WelcomeChannelsEnum.pick_words, this.picks);
