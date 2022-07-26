@@ -71,8 +71,8 @@ const VerifyPhrase = ({
       <Typography variant="h4" mt={12} mb={2}>
         Verify Secret Phrase
       </Typography>
-      <Typography mb={1}>
-        Enter the word that belongs to the number in the correct order
+      <Typography mb={5} color="#777777">
+        Enter the words to make sure you saved them
       </Typography>
       <Grid container spacing={2} mb={1}>
         {words.map((word, idx) => (
@@ -83,7 +83,7 @@ const VerifyPhrase = ({
               }
               name={idx.toString()}
               value={inputs[idx]}
-              label={`Word ${word.idx + 1}`}
+              label={`Word ${word.idx + 1}` + ((word.idx+1 === 12) ? ' (the last one)' : '')}
               onChange={handleChange}
             />
           </Grid>
@@ -100,7 +100,7 @@ const VerifyPhrase = ({
           color={isMatch ? 'success' : 'error'}
           ml={0.5}
         >
-          Words {isMatch ? '' : 'do not'} match
+          {false ? '' : 'Words' + (isMatch ? '' : ' do not') + ' match'}
         </Typography>
       </Box>
       <Button

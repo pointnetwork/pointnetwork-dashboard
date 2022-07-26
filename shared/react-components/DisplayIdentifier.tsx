@@ -9,8 +9,9 @@ const DisplayIdentifier = ({ identifier }: { identifier: string }) => {
         ml={1}
         sx={{ opacity: 0.7 }}
         fontFamily="monospace"
+        color="#777777"
       >
-        {identifier}
+        Support ID: {identifier}
       </Typography>
     </Box>
   )

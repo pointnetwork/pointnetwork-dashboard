@@ -12,6 +12,8 @@ import DisclaimerDialog from './components/DisclaimerDialog'
 import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
 import DownloadExtractLogs from './components/DownloadExtractLogs'
 import TopBar from './components/TopBar'
+import SendIcon from '@mui/icons-material/Send'
+import Icon from '@mui/material/Icon'
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 // Types
 import {
@@ -63,28 +65,30 @@ export default function App() {
         sx={{ p: '3.5%', overflow: 'hidden', maxHeight: '82vh' }}
       >
         <Box display="flex" alignItems="baseline">
-          <Typography variant="h4" gutterBottom component="h1">
-            {installing ? 'Installing' : 'Welcome to the Point Installer'}
+          <Typography variant="h4" gutterBottom component="h1" fontWeight="900">
+            {installing ? 'Installing' : 'Welcome to Point Installer'}
           </Typography>
-          <Typography ml={1}>v{version}</Typography>
+          <Typography ml={1} color="#555555">v{version}</Typography>
         </Box>
 
         <Box flex={1} display={installing ? 'none' : 'block'}>
-          <Typography>
-            The following components will be installed on your system to run
+          <Typography color="#cccccc">
+            The following components will be installed to run
             Point Network
           </Typography>
           <Box px={2} mt={2} mb={3} bgcolor="primary.light" borderRadius={2}>
             <List>
               <ListItemText>Point Engine</ListItemText>
               <ListItemText>Point LiveProfile</ListItemText>
-              <ListItemText>PointSDK</ListItemText>
+              <ListItemText>Point SDK</ListItemText>
               <ListItemText>Point Browser (Firefox)</ListItemText>
               <ListItemText>Point Uninstaller</ListItemText>
             </List>
           </Box>
           <Button variant="contained" onClick={sendStartInstallation}>
             Start Installation
+            &nbsp;
+            <SendIcon></SendIcon>
           </Button>
         </Box>
         {attempts ? (

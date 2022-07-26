@@ -58,20 +58,7 @@ const GenerateNew = ({
         Generate Secret Phrase
       </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={7}>
-          <Box border="2px dashed #ccc" borderRadius={3} px={2.5} py={1.5}>
-            <Grid container>
-              {secretPhrase.map((word, idx) => (
-                <Grid item xs={6} py={1.5} key={idx}>
-                  <Typography>
-                    {idx + 1}. {word}
-                  </Typography>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Grid>
-        <Grid item xs={5}>
+        <Grid item sx={{width:'100%'}}>
           <Alert severity="info">
             <AlertTitle>
               <Typography fontWeight="bold">IMPORTANT</Typography>
@@ -81,7 +68,21 @@ const GenerateNew = ({
               a secure place
             </Typography>
           </Alert>
-          <Box mt={1.5} mb={6.5}>
+
+          <Box border="2px dashed #555" backgroundColor="#111111" color="#ff8800" borderRadius={3} mt={2} px={2.5} py={1.5}>
+            <Grid container>
+              {secretPhrase.map((word, idx) => (
+                <Grid item xs={2} py={1.5} key={idx}>
+                  <Typography>
+                    <span style={{borderBottom:'1px solid #333333'}}>{word}</span>
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        </Grid>
+        <Grid item width="100%">
+          <Box mt={1.5} mb={6.5} width="100%">
             <Typography mb={1.5}>
               Click "Generate" to generate a new secret phrase
             </Typography>
@@ -101,17 +102,19 @@ const GenerateNew = ({
             >
               Copy
             </Button>
+
+            <Button
+                variant="contained"
+                // size="large"
+                endIcon={<SendIcon />}
+                // fullWidth
+                onClick={() => setRoute(WelcomeRoutes.verify)}
+                disabled={secretPhrase.some(el => !el)}
+                sx={{float:'right'}}
+            >
+              Continue
+            </Button>
           </Box>
-          <Button
-            variant="contained"
-            size="large"
-            endIcon={<SendIcon />}
-            fullWidth
-            onClick={() => setRoute(WelcomeRoutes.verify)}
-            disabled={secretPhrase.some(el => !el)}
-          >
-            Continue
-          </Button>
         </Grid>
       </Grid>
     </MainLayout>

@@ -113,7 +113,15 @@ class WelcomeService {
    */
     pickRandomWords(): Word[] {
         const availableOptions = this.mnemonic.split(' ');
-        this.picks = pickMultipleRandomly(availableOptions, 3).sort((a, b) => a.idx - b.idx);
+        // this.picks = pickMultipleRandomly(availableOptions, 3).sort((a, b) => a.idx - b.idx);
+
+        // always fixed
+        const fixedOrder = [ 1, 3, 12 ];
+        this.picks = [];
+        for(let f of fixedOrder) {
+            this.picks.push({ word: availableOptions[f-1], idx: f-1 });
+        }
+
         this.window.webContents.send(WelcomeChannelsEnum.pick_words, this.picks);
         return this.picks;
     }
