@@ -4,3 +4,5 @@ packages
 .webpack
 out
 yarn-error.log
+
+/.idea

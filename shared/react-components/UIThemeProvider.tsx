@@ -3,15 +3,17 @@ import ThemeProvider from '@mui/material/styles/ThemeProvider'
 import createTheme from '@mui/material/styles/createTheme'
 import deepPurple from '@mui/material/colors/deepPurple'
 import blueGrey from '@mui/material/colors/blueGrey'
+import indigo from '@mui/material/colors/indigo'
 
 const theme = createTheme({
   typography: {
     fontFamily: 'Arial',
   },
   palette: {
+    mode: 'dark',
     primary: {
-      main: deepPurple.A200,
-      light: blueGrey[50],
+      main: deepPurple.A100,
+      light: deepPurple[700],
     },
   },
 })

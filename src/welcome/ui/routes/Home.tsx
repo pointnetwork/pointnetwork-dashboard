@@ -21,22 +21,26 @@ const Home = ({
 
   return (
     <Container maxWidth="sm">
-      <Typography variant="h4" mt={16}>
-        Enjoy the next generation of Internet
+      <Typography variant="h5" mt={16}>
+        Do you already have a web3 secret phrase?
+      </Typography>
+      <Typography variant="body2" color="#aaaaaa">
+        12 words that give you access to your account
       </Typography>
       <Box width="560px">
         <Grid container pt={2.5}>
           <ClickableCard
+            isDefault={true}
             setRoute={() => setRoute(WelcomeRoutes.new)}
             icon={<KeyIcon sx={{ height: 64, width: 64 }} />}
           >
-            Generate New Secret Phrase
+            No, generate one
           </ClickableCard>
           <ClickableCard
             setRoute={() => setRoute(WelcomeRoutes.existing)}
             icon={<DownloadIcon sx={{ height: 64, width: 64 }} />}
           >
-            Import an Existing Secret Phrase
+            Yes, I have it
           </ClickableCard>
         </Grid>
       </Box>
@@ -50,14 +54,17 @@ const ClickableCard = ({
   icon,
   children,
   setRoute,
+  isDefault
 }: {
   icon: any
   children: string
-  setRoute: ReactEventHandler
+  setRoute: ReactEventHandler,
+  isDefault: boolean
 }) => {
   return (
     <Grid item xs={6} p={1}>
       <Box
+        backgroundColor={(isDefault) ? '#29244b' : 'inherit'}
         border={3}
         borderRadius={3}
         p={3}
