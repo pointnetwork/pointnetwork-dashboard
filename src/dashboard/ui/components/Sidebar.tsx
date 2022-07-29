@@ -18,12 +18,8 @@ import {ReactComponent as PointLogo} from '../../../../assets/point-logo.svg';
 
 const Sidebar = () => {
     const [logoutDialogOpen, setLogoutDialogOpen] = useState<boolean>(false);
-    const [anchorElSettings, setAnchorElSettings] = useState<
-    null | (EventTarget & Element)
-        >(null);
-    const [anchorElHelp, setAnchorElHelp] = useState<
-    null | (EventTarget & Element)
-        >(null);
+    const [anchorElSettings, setAnchorElSettings] = useState<null | (EventTarget & Element)>(null);
+    const [anchorElHelp, setAnchorElHelp] = useState<null | (EventTarget & Element)>(null);
 
     const isSettingsMenuOpen = Boolean(anchorElSettings);
     const isHelpMenuOpen = Boolean(anchorElHelp);
@@ -59,8 +55,10 @@ const Sidebar = () => {
             alignItems="center"
             justifyContent="space-between"
         >
-            <Box height={40} width={40}>
-                <PointLogo />
+            <Box flex={1} sx={{'-webkit-app-region': 'drag'}}>
+                <Box height={40} width={40}>
+                    <PointLogo />
+                </Box>
             </Box>
             <Stack spacing={1}>
                 <IconButton onClick={openHelpMenu}>
@@ -87,7 +85,7 @@ const Sidebar = () => {
             >
                 <MenuItem onClick={window.Dashboard.launchUninstaller}>
                     <CancelPresentationIcon sx={{mr: 0.8, opacity: 0.7}} />
-          Uninstall
+            Uninstall
                 </MenuItem>
             </Menu>
 
@@ -108,7 +106,7 @@ const Sidebar = () => {
                     }
                 >
                     <HelpIcon sx={{mr: 0.8, opacity: 0.7}} />
-          Help & Feedback
+            Help & Feedback
                 </MenuItem>
             </Menu>
 
@@ -122,7 +120,7 @@ const Sidebar = () => {
                             size="small"
                             onClick={() => setLogoutDialogOpen(false)}
                         >
-              Cancel
+            Cancel
                         </Button>
                         <Button
                             color="error"
@@ -131,7 +129,7 @@ const Sidebar = () => {
                             sx={{ml: 1}}
                             onClick={handleLogout}
                         >
-              Log Out
+            Log Out
                         </Button>
                     </Box>
                 </Box>
