@@ -170,7 +170,7 @@ class Installer {
                     log: `Created required directories`
                 } as GenericProgressLog)
             });
-        } catch (error: any) {
+        } catch (error) {
             this.logger.sendToChannel({
                 channel: InstallerChannelsEnum.create_dirs,
                 log: JSON.stringify({

@@ -396,7 +396,7 @@ class Firefox {
                 }
 
                 if (global.platform.darwin) {
-                    dmg.mount(src, async (_err: any, dmgPath: any) => {
+                    dmg.mount(src, async (_err: Error, dmgPath: string) => {
                         try {
                             const _src = `${dmgPath}/Firefox.app`;
                             const dst = `${dest}/Firefox.app`;
@@ -425,11 +425,11 @@ class Firefox {
                                     return true; // To actually copy the file
                                 }
                             });
-                        } catch (error: any) {
+                        } catch (error) {
                             this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error});
                             throw error;
                         } finally {
-                            dmg.unmount(dmgPath, (error: any) => {
+                            dmg.unmount(dmgPath, (error: Error) => {
                                 if (error) {
                                     this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error});
                                     throw error;
@@ -463,7 +463,7 @@ class Firefox {
 
                     readStream.on('finish', _resolve);
                 }
-            } catch (error: any) {
+            } catch (error) {
                 this.logger.sendToChannel({
                     channel: FirefoxChannelsEnum.unpack,
                     log: JSON.stringify({
@@ -560,7 +560,7 @@ pref('security.pki.sha1_enforcement_level', 4)
             );
 
             this.logger.info('Created configuration files');
-        } catch (error: any) {
+        } catch (error) {
             this.logger.error({errorType: ErrorsEnum.FIREFOX_CONFIG_ERROR, error});
             throw error;
         }

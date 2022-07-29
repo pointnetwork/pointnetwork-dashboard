@@ -69,6 +69,7 @@ export const api = {
     minimizeWindow: () => ipcRenderer.send(GenericChannelsEnum.minimize_window),
     closeWindow: () => ipcRenderer.send(GenericChannelsEnum.close_window),
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on: (channel: string, callback: (...args: any[]) => void) =>
         ipcRenderer.on(channel, (_, data) => callback(data))
 };

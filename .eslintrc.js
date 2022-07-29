@@ -91,6 +91,7 @@ module.exports = {
         '@typescript-eslint/no-shadow': 'error',
         '@typescript-eslint/no-this-alias': 'error',
         '@typescript-eslint/no-empty-function': 'error',
+        '@typescript-eslint/no-explicit-any': 'error',
         'no-shadow': 'off',
         '@typescript-eslint/no-unused-vars': 'error',
         'no-unused-vars': 'off',

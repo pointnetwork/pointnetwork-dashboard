@@ -506,6 +506,7 @@ class Node {
    */
     async _getRunningProcess(): Promise<Process[]> {
         return (await find('name', 'point', true)).filter(p =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (p as any).bin.match(/bin.+?point(.exe)?$/)
         );
     }

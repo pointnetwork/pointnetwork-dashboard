@@ -37,6 +37,7 @@ export const api = {
     openTermsAndConditions: () =>
         ipcRenderer.send(InstallerChannelsEnum.open_terms_link),
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on: (channel: string, callback: (...args: any[]) => void) => {
         ipcRenderer.on(channel, (_, data) => callback(data));
     }
