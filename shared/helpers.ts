@@ -195,6 +195,8 @@ const logout = async () => {
 
 const getPointPath = () => path.join(getHomePath(), '.point');
 
+const getPointLockfilePath = () => path.join(getPointPath(), 'point_dashboard');
+
 const getPointPathTemp = () => path.join(getHomePath(), '.temp');
 
 const getPointSrcPath = () => path.join(getPointPath(), 'src');
@@ -292,6 +294,7 @@ export default Object.freeze({
     getPointSoftwarePath,
     getBinPath,
     getPointPath,
+    getPointLockfilePath,
     getLiveDirectoryPathResources,
     countFilesinDir,
     getInstalledDashboardVersion,
