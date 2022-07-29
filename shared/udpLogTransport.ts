@@ -1,4 +1,4 @@
-import {createSocket, Socket} from 'dgram';
+ import {createSocket, Socket} from 'dgram';
 import {LevelOption} from 'electron-log';
 import {Writable} from 'stream';
 import {hostname} from 'os';
@@ -9,7 +9,7 @@ const pid = process.pid;
 
 type UdpLogTransport = {
     level: LevelOption
-  __udpStream: Writable
+    __udpStream: Writable
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (message: Record<string, any>): void
 }
