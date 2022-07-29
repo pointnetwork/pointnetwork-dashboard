@@ -73,19 +73,19 @@ export default async function () {
         },
         {
             channel: WelcomeChannelsEnum.validate_words,
-            listener(_: any, words: string[]) {
-        welcomeService!.verifyWords(words);
+            listener(_: unknown, words: string[]) {
+              welcomeService!.verifyWords(words);
             }
         },
         {
             channel: WelcomeChannelsEnum.validate_mnemonic,
-            listener(_: any, message: string) {
-        welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''));
+            listener(_: unknown, message: string) {
+              welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''));
             }
         },
         {
             channel: WelcomeChannelsEnum.copy_mnemonic,
-            listener(_: any, message: string) {
+            listener(_: unknown, message: string) {
                 clipboard.writeText(message);
                 window?.webContents.send(WelcomeChannelsEnum.copy_mnemonic);
             }
