@@ -55,7 +55,7 @@ describe('Download and verify file integrity', () => {
                     maxTimeout: 1
                 }
             });
-        } catch (error: any) {
+        } catch (error) {
             expect(error.message).toBe(
                 'File seems corrupted current sum is: 86b0dd629ee2448ccc089d77a030f1c6e619d311bd0072649666521b830f7747 expected was ce8192a608fe8c90b16c45e2e7d130fd136fb08b4ea82ab34ef3fc9bd5ec3f2e, downloading it again'
             );

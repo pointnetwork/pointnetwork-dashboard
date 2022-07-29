@@ -8,8 +8,10 @@ const hostName = hostname();
 const pid = process.pid;
 
 type UdpLogTransport = {
-  level: LevelOption
-  (message: any): void
+    level: LevelOption
+    __udpStream: Writable
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (message: any): void
 }
 
 const logLevels: Record<string, number> = {
@@ -42,10 +44,11 @@ export function createUdpLogTransport(
     additionalTags: Record<string, string | number>
 ) {
     const udpStream = createUdpStream({address, port});
-    const udpLogTransport: UdpLogTransport = (message: any) => {
+    const udpLogTransport: UdpLogTransport = (message) => {
         let code: number | undefined;
         let stack: string | undefined;
         let errorType: string | undefined;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const err = message.data.find((item: any[]) => item instanceof Error);
         if (err) {
             errorType = err.type;
@@ -66,7 +69,7 @@ export function createUdpLogTransport(
         };
         udpStream.write(Buffer.from(JSON.stringify(payload)), helpers.noop);
     };
-    udpLogTransport.level = level
-    ;(udpLogTransport as any).__udpStream = udpStream;
+    udpLogTransport.level = level;
+    udpLogTransport.__udpStream = udpStream;
     return udpLogTransport;
 }

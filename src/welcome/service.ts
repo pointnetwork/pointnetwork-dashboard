@@ -91,8 +91,10 @@ class WelcomeService {
                     WelcomeChannelsEnum.validate_mnemonic,
                     true
                 );
-            } else throw new Error('Invalid phrase');
-        } catch (error: any) {
+            } else {
+                throw new Error('Invalid phrase');
+            }
+        } catch (error) {
             this.window.webContents.send(WelcomeChannelsEnum.validate_mnemonic, error);
         }
     }
