@@ -44,8 +44,8 @@ class Installer {
     }
 
     /**
-   * Returns the installation status
-   */
+     * Returns the installation status
+     */
     static isInstalled = async () => {
         try {
             return JSON.parse(
@@ -60,8 +60,8 @@ class Installer {
     };
 
     /**
-   * Creates dirs, clones repos, installs Point Node, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
-   */
+     * Creates dirs, clones repos, installs Point Node, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
+     */
     install = async () => {
         try {
             this._attempts++;
@@ -122,15 +122,15 @@ class Installer {
     };
 
     /**
-   * Closes the window
-   */
+     * Closes the window
+     */
     close() {
         this.window.close();
     }
 
     /**
-   * Created the required directories
-   */
+     * Created the required directories
+     */
     async _createDirs() {
         try {
             this.logger.info('Creating directories');
@@ -142,23 +142,25 @@ class Installer {
                 } as GenericProgressLog)
             });
 
-            await Promise.all(DIRECTORIES.map(async dir => {
-                const total = DIRECTORIES.length;
-                let created = 0;
+            await Promise.all(
+                DIRECTORIES.map(async dir => {
+                    const total = DIRECTORIES.length;
+                    let created = 0;
 
-                await fs.mkdir(dir, {recursive: true});
+                    await fs.mkdir(dir, {recursive: true});
 
-                created++;
-                const progress = Math.round((created / total) * 100);
+                    created++;
+                    const progress = Math.round((created / total) * 100);
 
-                this.logger.sendToChannel({
-                    channel: InstallerChannelsEnum.create_dirs,
-                    log: JSON.stringify({
-                        progress,
-                        log: `Created ${dir}`
-                    } as GenericProgressLog)
-                });
-            }));
+                    this.logger.sendToChannel({
+                        channel: InstallerChannelsEnum.create_dirs,
+                        log: JSON.stringify({
+                            progress,
+                            log: `Created ${dir}`
+                        } as GenericProgressLog)
+                    });
+                })
+            );
 
             this.logger.info('Created directories');
             this.logger.sendToChannel({
@@ -184,8 +186,8 @@ class Installer {
     }
 
     /**
-   * Clones the required repositories and copies the live profile
-   */
+     * Clones the required repositories and copies the live profile
+     */
     async _cloneRepos(): Promise<void> {
         try {
             this.logger.info('Cloning repositories');
@@ -217,7 +219,7 @@ class Installer {
                             if (progressData) {
                                 const cap = 90; // Don't go to 100% since there are further steps.
                                 const progress =
-                  progressData.progress <= cap ? progressData.progress : cap;
+                                    progressData.progress <= cap ? progressData.progress : cap;
 
                                 this.logger.sendToChannel({
                                     channel: InstallerChannelsEnum.clone_repos,
