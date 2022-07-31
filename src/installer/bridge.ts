@@ -40,6 +40,10 @@ export const api = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on: (channel: string, callback: (...args: any[]) => void) => {
         ipcRenderer.on(channel, (_, data) => callback(data));
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    once: (channel: string, callback: (...args: any[]) => void) => {
+        ipcRenderer.once(channel, (_, data) => callback(data));
     }
 };
 
