@@ -43,6 +43,12 @@ export default function App() {
         window.Installer.on(InstallerChannelsEnum.error, (_attempt: string) => {
             setAttempts(Number(_attempt));
         });
+        window.Installer.once(PointSDKChannelsEnum.download, () => {
+            loggerRef.current?.scrollTo({
+                top: loggerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        });
         getInfo();
     }, []);
 
