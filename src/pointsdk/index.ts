@@ -42,7 +42,7 @@ class PointSDK {
    * Downloads and instals the Point SDK
    */
     downloadAndInstall(): Promise<void> {
-    // eslint-disable-next-line no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor 
         return new Promise(async (resolve, reject) => {
             try {
                 const latestVersion = await this.getLatestVersion();
