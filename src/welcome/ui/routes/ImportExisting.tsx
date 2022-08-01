@@ -1,4 +1,5 @@
-import {ChangeEvent, Dispatch, SetStateAction, useEffect, useState} from 'react';
+import {Dispatch, SetStateAction, useEffect, useState} from 'react';
+import mnemonicWords from 'mnemonic-words';
 import WelcomeRoutes from './routes';
 // Material UI
 import Alert from '@mui/material/Alert';
@@ -13,6 +14,7 @@ import MainLayout from '../components/MainLayout';
 import SendIcon from '@mui/icons-material/Send';
 // Types
 import {WelcomeChannelsEnum} from '../../../@types/ipc_channels';
+import {Autocomplete} from '@mui/material';
 
 const ImportExisting = ({
     route,
@@ -26,6 +28,13 @@ const ImportExisting = ({
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [secretPhrase, setSecretPhrase] = useState<string[]>(Array(12).fill(''));
+    // Focusing the next input after filling the word
+    useEffect(() => {
+        const filledPhraseLength = secretPhrase.filter(word => Boolean(word)).length;
+        if (filledPhraseLength > 0 && filledPhraseLength < 12) {
+            document.getElementById(`input_${filledPhraseLength}`)?.focus();
+        }
+    }, [secretPhrase]);
 
     useEffect(() => {
         window.Welcome.on(WelcomeChannelsEnum.paste_mnemonic, (phrase: string) => {
@@ -36,11 +45,8 @@ const ImportExisting = ({
         });
     }, []);
 
-    const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        setSecretPhrase(prev => {
-            prev[Number(e.target.name)] = e.target.value.trim();
-            return [...prev];
-        });
+    const handleChange = (value: string, index: number) => {
+        setSecretPhrase(prev => prev.map((item, idx) => idx === index ? value.trim() : item));
     };
 
     const handleConfirmAndLogin = () => {
@@ -90,12 +96,33 @@ const ImportExisting = ({
             <Grid container spacing={2}>
                 {secretPhrase.map((word, index) => (
                     <Grid item xs={3} key={index}>
-                        <TextField
-                            name={index.toString()}
-                            label={index + 1}
-                            value={word}
-                            onChange={handleChange}
-                            disabled={index ? !secretPhrase[index - 1] : false}
+                        <Autocomplete
+                            renderInput={(params) => <TextField
+                                {...params}
+                                label={index + 1}
+                                // Because of useEffect, pressing tab leads to losing focus.
+                                // Also, we want to handle space press same as Tab or Enter.
+                                // This is the hacky way to achieve it
+                                onKeyDown={e => {
+                                    if (e.key === 'Tab' || e.key === ' ') {
+                                        e.key = 'Enter';
+                                    }
+                                }}
+                            />}
+                            id={`input_${index}`}
+                            disableClearable
+                            autoHighlight
+                            autoSelect
+                            forcePopupIcon={false}
+                            filterOptions={(options, {inputValue}) =>
+                                options.filter(
+                                    option => inputValue && option.startsWith(inputValue)
+                                )
+                            }
+                            options={mnemonicWords}
+                            value={word ?? null}
+                            onChange={(e, newValue) => {handleChange(newValue ?? '', index);}}
+                            disabled={index !== 0 && !secretPhrase[index - 1]}
                         />
                     </Grid>
                 ))}
