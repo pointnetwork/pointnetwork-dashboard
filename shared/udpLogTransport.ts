@@ -9,9 +9,9 @@ const pid = process.pid;
 
 type UdpLogTransport = {
     level: LevelOption
-    __udpStream: Writable
+  __udpStream: Writable
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (message: any): void
+    (message: Record<string, any>): void
 }
 
 const logLevels: Record<string, number> = {
@@ -27,7 +27,7 @@ function getLogLevel(level: string): number {
     return logLevels[level] || logLevels.info;
 }
 
-function createUdpStream(options: { address: string; port: number }) {
+function createWritable(options: { address: string; port: number }) {
     const socket: Socket = createSocket('udp4');
     return new Writable({
         final: () => socket.close(),
@@ -35,6 +35,20 @@ function createUdpStream(options: { address: string; port: number }) {
             socket.send(data, 0, data.length, options.port, options.address, done);
         }
     });
+}
+
+export function createUdpStream(options: { address: string; port: number }) {
+    let writable = createWritable(options);
+    const erroHandler = () => {
+        writable = createWritable(options);
+        writable.on('error', erroHandler);
+    };
+    writable.on('error', erroHandler);
+    return {
+        write: (chunk: Buffer|string, cb: (err: Error|null|undefined) => void) => {
+            writable.write(chunk, cb);
+        }
+    };
 }
 
 export function createUdpLogTransport(
@@ -70,6 +84,6 @@ export function createUdpLogTransport(
         udpStream.write(Buffer.from(JSON.stringify(payload)), helpers.noop);
     };
     udpLogTransport.level = level;
-    udpLogTransport.__udpStream = udpStream;
+    udpLogTransport.__udpStream = udpStream as Writable;
     return udpLogTransport;
 }
