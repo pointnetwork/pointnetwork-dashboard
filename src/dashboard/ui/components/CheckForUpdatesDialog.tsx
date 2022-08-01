@@ -80,8 +80,9 @@ const ResourceUpdateCard: FunctionComponent<{
                             color="error"
                             size="small"
                             onClick={handleRetry}
+                            sx={{marginLeft: '5px'}}
                         >
-              Retry
+                            Retry
                         </Button>
                     ) : null}
                 </Box>
