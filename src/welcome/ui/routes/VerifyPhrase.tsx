@@ -1,4 +1,4 @@
-import {ChangeEvent, Dispatch, SetStateAction, useEffect, useState} from 'react';
+import {Dispatch, SetStateAction, useEffect, useState} from 'react';
 import WelcomeRoutes from './routes';
 // Material UI
 import Box from '@mui/material/Box';
@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 // Components
 import MainLayout from '../components/MainLayout';
 // Icons
@@ -14,6 +15,7 @@ import ErrorIcon from '@mui/icons-material/Error';
 import SendIcon from '@mui/icons-material/Send';
 // Types
 import {WelcomeChannelsEnum} from '../../../@types/ipc_channels';
+import mnemonicWords from 'mnemonic-words';
 
 const VerifyPhrase = ({
     route,
@@ -25,18 +27,18 @@ const VerifyPhrase = ({
     if (route !== WelcomeRoutes.verify) return null;
 
     const [isMatch, setIsMatch] = useState<boolean>(false);
-    const [inputs, setInputs] = useState<string[]>([]);
+    const [inputs, setInputs] = useState<string[]>(Array(3).fill(''));
     const [words, setWords] = useState<{ word: string; idx: number }[]>([]);
 
     useEffect(() => {
-        window.Welcome.pickWords();
-
         window.Welcome.on(
             WelcomeChannelsEnum.pick_words,
             (_: { word: string; idx: number }[]) => {
                 setWords(_);
             }
         );
+
+        window.Welcome.pickWords();
     }, []);
 
     useEffect(() => {
@@ -46,11 +48,8 @@ const VerifyPhrase = ({
         );
     }, [inputs, words]);
 
-    const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        setInputs(prev => {
-            prev[Number(e.target.name)] = e.target.value.trim();
-            return [...prev];
-        });
+    const handleChange = (value: string, index: number) => {
+        setInputs(prev => prev.map((item, idx) => idx === index ? value.trim() : item));
     };
 
     const handleLogin = () => {
@@ -76,15 +75,33 @@ const VerifyPhrase = ({
             </Typography>
             <Grid container spacing={2} mb={1}>
                 {words.map((word, idx) => (
-                    <Grid item xs={4}>
-                        <TextField
-                            color={
-                                word.word.trim() === inputs[idx]?.trim() ? 'success' : 'error'
+                    <Grid item xs={4} key={idx}>
+                        <Autocomplete
+                            renderInput={(params) => <TextField
+                                {...params}
+                                color={
+                                    word.word.trim() === inputs[idx]?.trim() ? 'success' : 'error'
+                                }
+                                label={`Word ${word.idx + 1}`
+                                    + ((word.idx + 1 === 12) ? ' (the last one)' : '')}
+                                onKeyDown={e => {
+                                    if (e.key === ' ') {
+                                        e.key = 'Enter';
+                                    }
+                                }}
+                            />}
+                            id={`input_${idx}`}
+                            autoHighlight
+                            autoSelect
+                            forcePopupIcon={false}
+                            filterOptions={(options, {inputValue}) =>
+                                options.filter(
+                                    option => inputValue && option.startsWith(inputValue)
+                                )
                             }
-                            name={idx.toString()}
-                            value={inputs[idx]}
-                            label={`Word ${word.idx + 1}` + ((word.idx + 1 === 12) ? ' (the last one)' : '')}
-                            onChange={handleChange}
+                            options={mnemonicWords}
+                            value={inputs[idx] || null}
+                            onChange={(e, newValue) => {handleChange(newValue ?? '', idx);}}
                         />
                     </Grid>
                 ))}
