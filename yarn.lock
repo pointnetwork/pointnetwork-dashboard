@@ -9906,6 +9906,11 @@
   "resolved" "https://registry.npmjs.org/mkpath/-/mkpath-0.1.0.tgz"
   "version" "0.1.0"
 
+"mnemonic-words@^1.1.0":
+  "integrity" "sha512-b327H3DdGw5EsM+Lv6ujPrA28JPpJSQuVsG+n63h7puYerBEOE/00Jz/XJmnx1fvjSLWmFeQtSFKrhX7g3jQuQ=="
+  "resolved" "https://registry.npmjs.org/mnemonic-words/-/mnemonic-words-1.1.0.tgz"
+  "version" "1.1.0"
+
 "moment@^2.19.3", "moment@^2.29.3":
   "integrity" "sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w=="
   "resolved" "https://registry.npmjs.org/moment/-/moment-2.29.4.tgz"
