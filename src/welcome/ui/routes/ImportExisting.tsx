@@ -8,13 +8,13 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 // Components
 import MainLayout from '../components/MainLayout';
 // Icons
 import SendIcon from '@mui/icons-material/Send';
 // Types
 import {WelcomeChannelsEnum} from '../../../@types/ipc_channels';
-import {Autocomplete} from '@mui/material';
 
 const ImportExisting = ({
     route,
@@ -110,7 +110,6 @@ const ImportExisting = ({
                                 }}
                             />}
                             id={`input_${index}`}
-                            disableClearable
                             autoHighlight
                             autoSelect
                             forcePopupIcon={false}
@@ -120,7 +119,7 @@ const ImportExisting = ({
                                 )
                             }
                             options={mnemonicWords}
-                            value={word ?? null}
+                            value={word || null}
                             onChange={(e, newValue) => {handleChange(newValue ?? '', index);}}
                             disabled={index !== 0 && !secretPhrase[index - 1]}
                         />
