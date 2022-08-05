@@ -1,585 +1,505 @@
-import fs from 'fs-extra'
-import path from 'path'
-import extract from 'extract-zip'
-import tarfs from 'tar-fs'
-import url from 'url'
-import helpers from '../../shared/helpers'
-import util from 'util'
-import https from 'follow-redirects'
-import { BrowserWindow } from 'electron'
-import Logger from '../../shared/logger'
-import type { Process } from '../@types/process'
-import { InstallationStepsEnum } from '../@types/installation'
-import progress from 'progress-stream'
-import moment from 'moment'
+import {BrowserWindow} from 'electron';
+import fs from 'fs-extra';
+import axios from 'axios';
+import moment from 'moment';
+import path from 'node:path';
+import tarfs from 'tar-fs';
+import url from 'url';
+import progress from 'progress-stream';
+import find from 'find-process';
+import rmfr from 'rmfr';
+import {spawn} from 'node:child_process';
+import helpers from '../../shared/helpers';
+import Logger from '../../shared/logger';
+import utils from '../../shared/utils';
+// Types
+import {
+    GenericProgressLog,
+    GithubRelease,
+    LaunchProcessLog,
+    Process,
+    UpdateLog
+} from '../@types/generic';
+import {FirefoxChannelsEnum} from '../@types/ipc_channels';
+import {ErrorsEnum} from '../@types/errors';
+import ProcessError from '../../shared/ProcessError';
 
-const rimraf = require('rimraf')
-const dmg = require('dmg')
-const bz2 = require('unbzip2-stream')
-const find = require('find-process')
-const exec = util.promisify(require('child_process').exec)
+const dmg = require('dmg');
+const bz2 = require('unbzip2-stream');
 
-const logger = new Logger()
-export default class {
-  private window
-  private installationLogger
+const CHECK_INTERVAL = 2000;
 
-  constructor(window: BrowserWindow) {
-    this.window = window
-    this.installationLogger = new Logger({ window, channel: 'installer' })
-  }
+/**
+ * WHAT THIS MODULE DOES
+ * 1. Downloads the Firefox Browser
+ * 2. Checks for updates whether new Firefox Browser release is available
+ * 3. Launches the Firefox Browser
+ * 4. Kills the Firefox Browser
+ */
+class Firefox {
+    logger: Logger;
+    window: BrowserWindow;
+    pointDir: string = helpers.getPointPath();
+    checkInterval: NodeJS.Timeout | null = null;
 
-  async isInstalled() {
-    this.installationLogger.info('Checking Firefox installation')
-
-    const binPath = await this.getBinPath()
-    if (fs.existsSync(binPath)) {
-      this.installationLogger.info('Firefox already installed')
-      return true
+    constructor({window}: { window: BrowserWindow }) {
+        this.window = window;
+        this.logger = new Logger({window, module: 'firefox'});
     }
-    this.installationLogger.info('Firefox not installed')
-    return false
-  }
 
-  getURLMacAndLinux(
-    version: unknown,
-    osAndArch: any,
-    language: string,
+    /**
+   * Returns the latest available version for Firefox
+   */
+    async getLatestVersion(): Promise<string> {
+        try {
+            this.logger.info('Getting the latest version');
+            const res = await axios.get(
+                'https://product-details.mozilla.org/1.0/firefox_versions.json'
+            );
+            return res.data.LATEST_FIREFOX_VERSION;
+        } catch (error) {
+            this.logger.error({
+                errorType: ErrorsEnum.UPDATE_ERROR,
+                error,
+                info: 'Failed to get the latest version'
+            });
+            throw error;
+        }
+    }
+
+    /**
+   * Returns the download URL for the version provided and the file name provided
+   */
+    async getDownloadURL({
+        filename,
+        version
+    }: {
     filename: string
-  ) {
-    return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${osAndArch}/${language}/${filename}`
-  }
+    version: string
+  }): Promise<string> {
+        if (global.platform.win32) {
+            const owner = 'pointnetwork';
+            const repo = 'phyrox-esr-portable';
+            const githubAPIURL = helpers.getGithubAPIURL();
+            const githubURL = helpers.getGithubURL();
+            const githubUrl = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`;
+            const fallback = `${githubURL}/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`;
+            const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/;
 
-  async getURLWindows() {
-    const url = await helpers.getPortableDashboardDownloadURL()
-    return url
-  }
+            try {
+                const {data} = await axios.get<GithubRelease>(githubUrl);
+                const browserAsset = data.assets.find(a => re.test(a.name));
 
-  getFileName(version: unknown) {
-    if (global.platform.darwin) {
-      return `Firefox%20${version}.dmg`
-    }
-    // linux
-    return `firefox-${version}.tar.bz2`
-  }
-
-  download = async () =>
-    // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
-      this.installationLogger.info(
-        InstallationStepsEnum.BROWSER,
-        'Starting Firefox installation...'
-      )
-
-      const language = 'en-US'
-      const version = await this.getLastVersionFirefox() // '93.0b4'//
-      const osAndArch = helpers.getOSAndArch()
-      const browserDir = helpers.getBrowserFolderPath()
-      const pointPath = helpers.getPointPath()
-      const pacFile = url.pathToFileURL(
-        path.join(
-          helpers.getLiveDirectoryPathResources(),
-          'resources',
-          'pac.js'
-        )
-      )
-
-      let firefoxURL = ''
-      let filename = ''
-      if (global.platform.win32) {
-        firefoxURL = await this.getURLWindows()
-        filename = firefoxURL.split('/').pop()!
-      } else {
-        filename = this.getFileName(version)
-        firefoxURL = this.getURLMacAndLinux(
-          version,
-          osAndArch,
-          language,
-          filename
-        )
-      }
-
-      const releasePath = path.join(browserDir, filename)
-      const firefoxRelease = fs.createWriteStream(releasePath)
-
-      if (!fs.existsSync(browserDir)) {
-        this.installationLogger.info('Creating browser directory')
-        fs.mkdirSync(browserDir)
-      }
-
-      https.https.get(firefoxURL, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Downloading Firefox...'
-        )
-        await response.pipe(firefoxRelease)
-
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
-
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Downloading is the first half of the process (second is unpacking),
-            // hence the division by 2.
-            const progress = Math.round(Number(percentage) / 2)
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.BROWSER}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
-      })
-
-      firefoxRelease.on('finish', () => {
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Downloaded Firefox'
-        )
-        const cb = async () => {
-          fs.unlink(releasePath, err => {
-            if (err) {
-              this.installationLogger.error(err)
-              reject(err)
-            } else {
-              this.installationLogger.info(`\nDeleted file: ${releasePath}`)
-              this.window.webContents.send('firefox:setVersion', version)
-              this.window.webContents.send('firefox:finishDownload', true)
-              // write firefox version to a file
-              fs.writeFile(
-                path.join(pointPath, 'infoFirefox.json'),
-                JSON.stringify({
-                  installedReleaseVersion: version,
-                  lastCheck: moment().unix(),
-                  isInitialized: false,
-                }),
-                'utf8',
-                err => {
-                  if (err) {
-                    this.installationLogger.error(
-                      'An error occured while infoFirefox.json JSON Object to File.'
-                    )
-                    return console.log(err)
-                  }
-
-                  this.installationLogger.info(
-                    'infoFirefox.json file has been saved.'
-                  )
+                if (!browserAsset) {
+                    return fallback;
                 }
-              )
-              resolve(
-                this.installationLogger.info(
-                  `${InstallationStepsEnum.BROWSER}:100`,
-                  'Installed Firefox successfully'
-                )
-              )
+
+                return browserAsset.browser_download_url;
+            } catch (err) {
+                return fallback;
             }
-          })
-
-          await this.createConfigFiles(pacFile)
         }
-        this.unpack(releasePath, browserDir, cb)
-      })
-    })
 
-  getIdExtension = async () =>
+        return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${helpers.getOSAndArch()}/en-US/${filename}`;
+    }
+
+    /**
+   * Downloads the Firefox brwoser, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoFirefox.json file
+   */
+    downloadAndInstall(): Promise<void> {
     // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
-      const version = await helpers.getlatestSDKReleaseVersion()
-      const extensionPath = helpers.getPointPath()
-      const downloadManifest = this.getURL('manifest.json', version)
-      const downloadPathManifest = path.join(extensionPath, 'manifest.json')
-      const manifest = fs.createWriteStream(downloadPathManifest)
-      https.https.get(downloadManifest, function (response) {
-        response.pipe(manifest)
-      })
-      manifest.on('finish', async () => {
-        manifest.close()
-        console.log('Download Manifest Completed')
-        resolve(true)
-      })
-    })
+        return new Promise(async (resolve, reject) => {
+            try {
+                // 0. Delete previous installation
+                this.logger.info('Removing previous installations');
+                const browserDir = path.join(this.pointDir, 'src', 'point-browser');
+                await rmfr(browserDir);
 
-  downloadInstallPointSDK = async () =>
-    // eslint-disable-next-line no-async-promise-executor
-    new Promise(async (resolve, reject) => {
-      const pointPath = helpers.getPointPath()
-      const version = await helpers.getlatestSDKReleaseVersion()
-      const extensionPath = helpers.getLiveExtensionsDirectoryPathResources()
-      const filename = helpers.getSDKFileName(version)
-      const manifestPath = helpers.getPointPath()
-      const downloadPathManifest = path.join(manifestPath, 'manifest.json')
+                // 1. Set the parameters for download
+                const version = await this.getLatestVersion();
+                let filename = `firefox-${version}.tar.bz2`;
+                if (global.platform.darwin) {
+                    filename = `Firefox%20${version}.dmg`;
+                }
+                if (global.platform.win32) filename = `firefox-win-${version}.zip`;
 
-      const man = await fs.readFile(downloadPathManifest, 'utf8')
-      const idExtension = JSON.parse(man).browser_specific_settings.gecko.id
-      const downloadPath = path.join(extensionPath, `${idExtension}.xpi`)
-      if (fs.existsSync(downloadPath)) {
-        fs.unlink(downloadPath)
-      }
-      const downloadStream = fs.createWriteStream(downloadPath)
-      const downloadUrl = this.getURL(filename, version)
+                const downloadUrl = await this.getDownloadURL({version, filename});
+                const downloadDest = path.join(this.pointDir, filename);
+                this.logger.info('Downloading from', downloadUrl);
 
-      // Setting `extensions.autoDisableScopes` to 0
-      // to automatically enable new PointSDK version
-      // this.setDisableScopes(false)
-      helpers.setIsFirefoxInit(false)
+                const downloadStream = fs.createWriteStream(downloadDest);
 
-      https.https.get(downloadUrl, async response => {
-        this.installationLogger.info(
-          InstallationStepsEnum.POINT_SDK,
-          'Downloading PointSDK...'
-        )
+                // 2. Start downloading and send logs to window
+                await utils.download({
+                    channel: FirefoxChannelsEnum.download,
+                    logger: this.logger,
+                    downloadUrl,
+                    downloadStream
+                });
 
-        await response.pipe(downloadStream)
+                // Unack
+                await this._unpack({src: downloadDest, dest: browserDir});
+                // Create configuration files
+                await this._createConfigFiles();
+                // Delete downloaded file
+                this.logger.info('Removing downloaded file');
+                await fs.unlink(downloadDest);
+                this.logger.info('Removed downloaded file');
+                // Write JSON file
+                this.logger.info('Saving "infoFirefox.json"');
+                await fs.writeFile(
+                    path.join(this.pointDir, 'infoFirefox.json'),
+                    JSON.stringify({
+                        installedReleaseVersion: version,
+                        lastCheck: moment().unix(),
+                        isInitialized: false
+                    }),
+                    'utf8'
+                );
+                this.logger.info('Saved "infoFirefox.json"');
 
-        const total = response.headers['content-length']
-        let downloaded = 0
-        let percentage = 0
-        let temp = 0
-        response.on('data', chunk => {
-          downloaded += Buffer.from(chunk).length
+                resolve();
+            } catch (error) {
+                this.logger.error({errorType: ErrorsEnum.FIREFOX_ERROR, error});
+                reject(error);
+            }
+        });
+    }
 
-          temp = Math.round((downloaded * 100) / Number(total))
-          if (temp !== percentage) {
-            percentage = temp
-
-            // Don't let this progress reach 100% as there are some minor final tasks after.
-            const progress = percentage > 0 ? Math.round(percentage) - 1 : 0
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.POINT_SDK}:${progress}`,
-              'Downloading'
-            )
-          }
-        })
-      })
-
-      downloadStream.on('close', async () => {
-        this.installationLogger.info(
-          `${InstallationStepsEnum.POINT_SDK}:100`,
-          'Downloaded SDK'
-        )
-        this.window.webContents.send('pointSDK:finishDownload', true)
-
-        // stringify JSON Object
-        fs.writeFile(
-          path.join(pointPath, 'infoSDK.json'),
-          JSON.stringify({
-            installedReleaseVersion: version,
-            lastCheck: moment().unix(),
-          }),
-          'utf8',
-          function (err: any) {
-            if (err) {
-              logger.info('An error occured while writing JSON Object to File.')
-              return logger.info(err)
+    /**
+   * Launches the Firefox brwoser if Firefox is not running already
+   */
+    async launch() {
+        try {
+            if (!this.checkInterval) {
+                this.checkInterval = setInterval(this.check.bind(this), CHECK_INTERVAL);
+            }
+            if (!fs.existsSync(await this._getBinFile())) {
+                await this.downloadAndInstall();
+            }
+            if ((await this._getRunningProcess()).length) {
+                this.logger.info('Firefox is already running');
+                return;
             }
 
-            logger.info('JSON file has been saved.')
-          }
-        )
-        resolve(
-          this.installationLogger.info(
-            `${InstallationStepsEnum.POINT_SDK}:100`,
-            'Installed Firefox successfully'
-          )
-        )
-      })
-    })
+            // MAYBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
+            await this._createConfigFiles();
 
-  async checkSDKVersion() {
-    const installedVersion = helpers.getInstalledSDKVersion()
-    const lastCheck = moment.unix(installedVersion.lastCheck)
-    if (moment().diff(lastCheck, 'hours') >= 1) {
-      const latestReleaseVersion = await helpers.getlatestSDKReleaseVersion()
+            const binFile = await this._getBinFile();
+            const profilePath = path.join(
+                helpers.getHomePath(),
+                '.point/keystore/liveprofile'
+            );
 
-      logger.info('installed', installedVersion.installedReleaseVersion)
-      logger.info('last', latestReleaseVersion)
-      if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
-        logger.info('sdk Update need it')
-        this.window.webContents.send('sdk:update', true)
-        await this.getIdExtension()
-        await this.downloadInstallPointSDK()
-      } else {
-        this.window.webContents.send('sdk:update', false)
-      }
-    } else {
-      this.window.webContents.send('sdk:update', false)
-    }
-  }
+            const cmd = global.platform.darwin ? `${binFile}/Contents/MacOS/firefox` : binFile;
+            this.logger.info('Launching');
+            const proc = spawn(
+                cmd,
+                ['--first-startup', '--profile', profilePath, '--url', 'https://point'],
+                {stdio: 'ignore'}
+            );
 
-  getURL(filename: string, version: string) {
-    return `https://github.com/pointnetwork/pointsdk/releases/download/${version}/${filename}`
-  }
-
-  async launch() {
-    // const isRunning = await find('name', /firefox*/gi)
-    // if (isRunning.length > 0) {
-    //   logger.info('Firefox already Running')
-    //   this.window.webContents.send('firefox:active', true)
-    //   return
-    // }
-    const cmd = await this.getBinPath()
-    const profilePath = path.join(
-      helpers.getHomePath(),
-      '.point/keystore/liveprofile'
-    )
-
-    const browserCmd = `"${cmd}" --first-startup --profile "${profilePath}" --url https://point`
-
-    this.window.webContents.send('firefox:active', true)
-    try {
-      await exec(browserCmd)
-      this.window.webContents.send('firefox:active', false)
-    } catch (error) {
-      this.window.webContents.send('firefox:active', false)
-    }
-  }
-
-  getKillCmd(pid: number) {
-    return global.platform.win32 ? `taskkill /F /PID "${pid}"` : `kill "${pid}"`
-  }
-
-  async close() {
-    const processes: Process[] = await find('name', /firefox/i)
-
-    const pointBrowserParentProcesses = processes.filter(
-      p => p.cmd.includes('point-browser') && !p.cmd.includes('tab')
-    )
-
-    if (pointBrowserParentProcesses.length > 0) {
-      for (const p of pointBrowserParentProcesses) {
-        logger.info(`[firefox:close] Killing PID ${p.pid}...`)
-        try {
-          const cmdOutput = await exec(this.getKillCmd(p.pid))
-          logger.info(`[firefox:close] Output of "kill ${p.pid}":`, cmdOutput)
-        } catch (err) {
-          logger.error(`[firefox:close] Output of "kill ${p.pid}":`, err)
+            proc.on('exit', code => {
+                if (code !== 0) {
+                    this.logger.error({
+                        errorType: ErrorsEnum.FIREFOX_ERROR,
+                        error: new ProcessError('Firefox process exited', code)
+                    });
+                }
+            });
+        } catch (error) {
+            this.logger.error({
+                errorType: ErrorsEnum.LAUNCH_ERROR,
+                error
+            });
+            throw error;
         }
-      }
     }
-  }
 
-  async unpack(
-    releasePath: string,
-    browserDir: string,
-    cb: { (): Promise<void>; (): void }
-  ) {
-    this.installationLogger.info(
-      InstallationStepsEnum.BROWSER,
-      'Unpacking Firefox (this can take a few minutes)'
-    )
-    if (global.platform.win32) {
-      try {
-        await extract(releasePath, {
-          dir: browserDir,
-          onEntry: (_, zipfile) => {
-            const extracted = zipfile.entriesRead
-            const total = zipfile.entryCount
-
-            // Unpacking is the second half of the process (first is downloading),
-            // hence the division by 2 and the plus 50.
-            const progress = Math.round(((extracted / total) * 100) / 2 + 50)
-
-            this.installationLogger.info(
-              `${InstallationStepsEnum.BROWSER}:${progress}`,
-              'Unpacking Firefox'
-            )
-          },
-        })
-        this.installationLogger.info(
-          InstallationStepsEnum.BROWSER,
-          'Extraction complete'
-        )
-        cb()
-      } catch (err: any) {
-        logger.info(err)
-      }
-    }
-    if (global.platform.darwin) {
-      dmg.mount(releasePath, async (_err: any, dmgPath: any) => {
-        try {
-          const src = `${dmgPath}/Firefox.app`
-          const dst = `${browserDir}/Firefox.app`
-
-          const totalFiles = await helpers.countFilesinDir(src)
-          let filesCopied = 0
-
-          await fs.copy(src, dst, {
-            filter: src => {
-              if (fs.statSync(src).isFile()) {
-                filesCopied++
-
-                // Unpacking is the second half of the process (first is downloading),
-                // hence the division by 2 and the plus 50.
-                const progress = Math.round(
-                  ((filesCopied / totalFiles) * 100) / 2 + 50
-                )
-
-                this.installationLogger.info(
-                  `${InstallationStepsEnum.BROWSER}:${progress}`,
-                  'Unpacking Firefox'
-                )
-              }
-              return true // To actually copy the file
-            },
-          })
-        } catch (err) {
-          logger.info('Error Unpacking Firefox:', err)
-        } finally {
-          dmg.unmount(dmgPath, (err: any) => {
-            if (err) throw err
-            cb()
-          })
+    async check() {
+        const process = await this._getRunningProcess();
+        if (process.length > 0) {
+            this.logger.sendToChannel({
+                channel: FirefoxChannelsEnum.running_status,
+                log: JSON.stringify({
+                    isRunning: true,
+                    log: 'Point Browser is running'
+                } as LaunchProcessLog)
+            });
+        } else {
+            this.logger.sendToChannel({
+                channel: FirefoxChannelsEnum.running_status,
+                log: JSON.stringify({
+                    isRunning: false,
+                    log: 'Point Browser is not running'
+                } as LaunchProcessLog)
+            });
         }
-      })
-    }
-    if (global.platform.linux || global.platform.linux) {
-      const stats = fs.statSync(releasePath)
-      const progressStream = progress({ length: stats.size, time: 250 })
-      progressStream.on('progress', p => {
-        // Unpacking is the second half of the process (first is downloading),
-        // hence the division by 2 and the plus 50.
-        const progress = Math.round(p.percentage / 2 + 50)
-        this.installationLogger.info(
-          `${InstallationStepsEnum.BROWSER}:${progress}`,
-          'Unpacking Firefox'
-        )
-      })
-
-      const readStream = fs
-        .createReadStream(releasePath)
-        .pipe(progressStream)
-        .pipe(bz2())
-        .pipe(tarfs.extract(browserDir))
-
-      readStream.on('finish', cb)
-    }
-  }
-
-  async getRootPath() {
-    if (global.platform.win32 || global.platform.darwin) {
-      return path.join(helpers.getBrowserFolderPath())
-    }
-    // linux
-    return path.join(helpers.getBrowserFolderPath(), 'firefox')
-  }
-
-  async getAppPath() {
-    const rootPath = await this.getRootPath()
-
-    if (global.platform.win32 || global.platform.darwin) {
-      let appPath = ''
-      if (global.platform.darwin) {
-        appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
-      } else {
-        appPath = path.join(rootPath, 'app')
-      }
-
-      if (!fs.existsSync(appPath)) {
-        fs.mkdirSync(appPath)
-      }
-
-      return appPath
     }
 
-    // linux
-    return rootPath
-  }
-
-  async getPrefPath() {
-    const rootPath = await this.getRootPath()
-
-    if (global.platform.win32 || global.platform.darwin) {
-      let appPath = ''
-      if (global.platform.darwin) {
-        appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
-      } else {
-        appPath = path.join(rootPath, 'app')
-      }
-
-      const defaultsPath = path.join(appPath, 'defaults')
-      const prefPath = path.join(defaultsPath, 'pref')
-
-      if (!fs.existsSync(appPath)) {
-        fs.mkdirSync(appPath)
-      }
-      if (!fs.existsSync(defaultsPath)) {
-        fs.mkdirSync(defaultsPath)
-      }
-      if (!fs.existsSync(prefPath)) {
-        fs.mkdirSync(prefPath)
-      }
-
-      return prefPath
-    }
-    // linux. all directories already exist.
-    return path.join(rootPath, 'defaults', 'pref')
-  }
-
-  async getPoliciesPath() {
-    const rootPath = await this.getRootPath()
-    let distributionPath
-
-    if (global.platform.win32 || global.platform.darwin) {
-      let appPath = ''
-      if (global.platform.darwin) {
-        appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources')
-      } else {
-        appPath = path.join(rootPath, 'app')
-      }
-
-      distributionPath = path.join(appPath, 'distribution')
-    } else {
-      // linux
-      distributionPath = path.join(rootPath, 'distribution')
+    /**
+   * Stops the running instances of Firefox
+   */
+    async stop() {
+        this.logger.sendToChannel({
+            channel: FirefoxChannelsEnum.stop,
+            log: JSON.stringify({
+                started: true,
+                log: 'Finding running processes for Point Browser',
+                done: false
+            } as GenericProgressLog)
+        });
+        const process = await this._getRunningProcess();
+        if (process.length > 0) {
+            this.logger.info('Stopping');
+            for (const p of process) {
+                try {
+                    await utils.kill({processId: p.pid, onMessage: this.logger.info});
+                } catch (error) {
+                    this.logger.error({
+                        errorType: ErrorsEnum.STOP_ERROR,
+                        error
+                    });
+                    throw error;
+                }
+            }
+        }
+        if (this.checkInterval) {
+            clearInterval(this.checkInterval);
+            this.checkInterval = null;
+        }
+        this.logger.sendToChannel({
+            channel: FirefoxChannelsEnum.stop,
+            log: JSON.stringify({
+                started: true,
+                log: 'Killed running processes for Point Browser',
+                done: false
+            } as GenericProgressLog)
+        });
+        this.logger.info('Stopped');
     }
 
-    if (!fs.existsSync(distributionPath)) {
-      fs.mkdirSync(distributionPath)
-    }
-    return distributionPath
-  }
+    /**
+   * Checks for Point Node updates
+   */
+    async checkForUpdates() {
+        try {
+            this.logger.info('Checking for updates');
+            this.logger.sendToChannel({
+                channel: FirefoxChannelsEnum.check_for_updates,
+                log: JSON.stringify({
+                    isChecking: true,
+                    isAvailable: false,
+                    log: 'Checking for updates',
+                    error: false
+                } as UpdateLog)
+            });
+            const installInfo = await helpers.getInstalledVersionInfo('firefox');
+            const isBinMissing = !fs.existsSync(await this._getBinFile());
+            const latestVersion = await this.getLatestVersion();
 
-  async getBinPath() {
-    const rootPath = await this.getRootPath()
-    if (global.platform.win32) {
-      // return path.join(rootPath, 'point-browser-portable.exe')
-      return path.join(rootPath, 'app', 'firefox.exe')
+            if (
+                isBinMissing ||
+        !installInfo.lastCheck ||
+        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
+          installInfo.installedReleaseVersion !== latestVersion)
+            ) {
+                this.logger.info('Update available');
+                this.logger.sendToChannel({
+                    channel: FirefoxChannelsEnum.check_for_updates,
+                    log: JSON.stringify({
+                        isChecking: false,
+                        isAvailable: true,
+                        log: 'Update available. Proceeding to download the update',
+                        error: false
+                    } as UpdateLog)
+                });
+                return true;
+            } else {
+                this.logger.info('Already up to date');
+                this.logger.sendToChannel({
+                    channel: FirefoxChannelsEnum.check_for_updates,
+                    log: JSON.stringify({
+                        isChecking: false,
+                        isAvailable: false,
+                        log: 'Already up to date',
+                        error: false
+                    } as UpdateLog)
+                });
+                return false;
+            }
+        } catch (error) {
+            this.logger.sendToChannel({
+                channel: FirefoxChannelsEnum.check_for_updates,
+                log: JSON.stringify({
+                    isChecking: false,
+                    isAvailable: true,
+                    log: 'Failed to update',
+                    error: true
+                } as UpdateLog)
+            });
+            this.logger.error({errorType: ErrorsEnum.UPDATE_ERROR, error});
+            throw error;
+        }
     }
-    if (global.platform.darwin) {
-      return `${path.join(
-        rootPath,
-        'Firefox.app',
-        'Contents',
-        'MacOS',
-        'firefox'
-      )}`
+
+    /**
+   * Unpacks the Firefox brwoser based on the platform
+   */
+    async _unpack({src, dest}: { src: string; dest: string }): Promise<void> {
+    // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async (resolve) => {
+            const _resolve = () => {
+                this.logger.sendToChannel({
+                    channel: FirefoxChannelsEnum.unpack,
+                    log: JSON.stringify({
+                        started: false,
+                        log: 'Unpacked Point Browser',
+                        done: true,
+                        progress: 100
+                    } as GenericProgressLog)
+                });
+                this.logger.info('Unpacked');
+                resolve();
+            };
+
+            try {
+                this.logger.info('Unpacking');
+                this.logger.sendToChannel({
+                    channel: FirefoxChannelsEnum.unpack,
+                    log: JSON.stringify({
+                        started: true,
+                        log: 'Unpacking Point Browser (this might take a few minutes)',
+                        done: false,
+                        progress: 0,
+                        error: false
+                    } as GenericProgressLog)
+                });
+
+                if (global.platform.win32) {
+                    await utils.extractZip({
+                        src,
+                        dest,
+                        onProgress: (_progress: number) => {
+                            this.logger.sendToChannel({
+                                channel: FirefoxChannelsEnum.unpack,
+                                log: JSON.stringify({
+                                    started: true,
+                                    log: 'Unpacking Point Browser',
+                                    done: false,
+                                    progress: _progress
+                                } as GenericProgressLog)
+                            });
+                        }
+                    });
+                    _resolve();
+                }
+
+                if (global.platform.darwin) {
+                    dmg.mount(src, async (_err: any, dmgPath: any) => {
+                        try {
+                            const _src = `${dmgPath}/Firefox.app`;
+                            const dst = `${dest}/Firefox.app`;
+
+                            const totalFiles = await helpers.countFilesinDir(_src);
+                            let filesCopied = 0;
+
+                            await fs.copy(_src, dst, {
+                                filter: __src => {
+                                    if (fs.statSync(__src).isFile()) {
+                                        filesCopied++;
+                                        const _progress = Math.round(
+                                            (filesCopied / totalFiles) * 100
+                                        );
+
+                                        this.logger.sendToChannel({
+                                            channel: FirefoxChannelsEnum.unpack,
+                                            log: JSON.stringify({
+                                                started: true,
+                                                log: 'Unpacking Point Browser',
+                                                done: false,
+                                                progress: _progress
+                                            } as GenericProgressLog)
+                                        });
+                                    }
+                                    return true; // To actually copy the file
+                                }
+                            });
+                        } catch (error: any) {
+                            this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error});
+                            throw error;
+                        } finally {
+                            dmg.unmount(dmgPath, (error: any) => {
+                                if (error) {
+                                    this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error});
+                                    throw error;
+                                }
+                                _resolve();
+                            });
+                        }
+                    });
+                }
+
+                if (global.platform.linux) {
+                    const stats = await fs.stat(src);
+                    const progressStream = progress({length: stats.size, time: 250});
+                    progressStream.on('progress', p => {
+                        this.logger.sendToChannel({
+                            channel: FirefoxChannelsEnum.unpack,
+                            log: JSON.stringify({
+                                started: true,
+                                log: 'Unpacking Point Browser',
+                                done: false,
+                                progress: Math.round(p.percentage)
+                            } as GenericProgressLog)
+                        });
+                    });
+
+                    const readStream = fs
+                        .createReadStream(src)
+                        .pipe(progressStream)
+                        .pipe(bz2())
+                        .pipe(tarfs.extract(dest));
+
+                    readStream.on('finish', _resolve);
+                }
+            } catch (error: any) {
+                this.logger.sendToChannel({
+                    channel: FirefoxChannelsEnum.unpack,
+                    log: JSON.stringify({
+                        log: 'Unpacking Error',
+                        error: true
+                    } as GenericProgressLog)
+                });
+                this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error});
+                throw error;
+            }
+        });
     }
-    // linux
-    return path.join(rootPath, 'firefox')
-  }
 
-  async createConfigFiles(pacFile: url.URL) {
-    this.installationLogger.info('Creating configuration files for Firefox...')
-    if (!pacFile)
-      throw Error('pacFile sent to createConfigFiles is undefined or null!')
+    /**
+   * Create configuration files for Firefox
+   */
+    async _createConfigFiles() {
+        try {
+            this.logger.info('Creating configuration files');
 
-    let configFilename = 'firefox.cfg'
-    if (global.platform.win32) {
-      configFilename = 'portapps.cfg'
-    }
+            const pacFile = url.pathToFileURL(
+                path.join(
+                    helpers.getLiveDirectoryPathResources(),
+                    'resources',
+                    'pac.js'
+                )
+            );
+            let configFilename = 'firefox.cfg';
+            if (global.platform.win32) {
+                configFilename = 'portapps.cfg';
+            }
 
-    const autoconfigContent = `pref("general.config.filename", "${configFilename}");
+            const autoconfigContent = `pref("general.config.filename", "${configFilename}");
 pref("general.config.obscure_value", 0);
-`
-    const firefoxCfgContent = `
+`;
+            const firefoxCfgContent = `
 // IMPORTANT: Start your code on the 2nd line
 // pref('network.proxy.type', 1)
 pref("intl.locale.requested", "en-US");
@@ -601,6 +521,7 @@ pref('browser.laterrun.enabled', true)
 pref('doh-rollout.doneFirstRun', true)
 pref('trailhead.firstrun.didSeeAboutWelcome', true)
 pref('toolkit.telemetry.reportingpolicy.firstRun', false)
+pref('toolkit.startup.max_resumed_crashes', -1)
 pref('browser.shell.didSkipDefaultBrowserCheckOnFirstRun', true)
 pref('app.shield.optoutstudies.enabled', false)
 pref('network.proxy.autoconfig_url', '${pacFile}')
@@ -609,143 +530,127 @@ pref('network.captive-portal-service.enabled', false)
 pref('browser.tabs.drawInTitlebar', true)
 pref('extensions.enabledScopes', 0)
 pref('extensions.autoDisableScopes', 0)
-pref("extensions.startupScanScopes", 15);
-`
-    const policiesCfgContent = `{
+pref("extensions.startupScanScopes", 15)
+pref("trailhead.firstrun.branches", "nofirstrun-empty")
+pref("browser.aboutwelcome.enabled", false)
+pref("browser.sessionstore.resume_session_once", false)
+pref("browser.sessionstore.resume_from_crash", false)
+pref("browser.startup.upgradeDialog.enabled", false)
+pref('security.pki.sha1_enforcement_level', 4)
+`;
+            const policiesCfgContent = `{
   "policies": {
       "DisableAppUpdate": true
     }
-}`
+}`;
+            // Write the autoconfig file
+            await fs.writeFile(
+                path.join(await this._getPrefPath(), 'autoconfig.js'),
+                autoconfigContent
+            );
+            // Write the firefox config file
+            await fs.writeFile(
+                path.join(await this._getAppPath(), configFilename),
+                firefoxCfgContent
+            );
+            // Write the policies file
+            await fs.writeFile(
+                path.join(await this._getPoliciesPath(), 'policies.json'),
+                policiesCfgContent
+            );
 
-    const prefPath = await this.getPrefPath()
-    const appPath = await this.getAppPath()
-    const policiesPath = await this.getPoliciesPath()
-
-    fs.writeFile(
-      path.join(prefPath, 'autoconfig.js'),
-      autoconfigContent,
-      err => {
-        if (err) {
-          logger.error(err)
+            this.logger.info('Created configuration files');
+        } catch (error: any) {
+            this.logger.error({errorType: ErrorsEnum.FIREFOX_CONFIG_ERROR, error});
+            throw error;
         }
-      }
-    )
-
-    fs.writeFile(path.join(appPath, configFilename), firefoxCfgContent, err => {
-      if (err) {
-        logger.error(err)
-      }
-    })
-
-    fs.writeFile(
-      path.join(policiesPath, 'policies.json'),
-      policiesCfgContent,
-      err => {
-        if (err) {
-          logger.error('Error writing browser settings: ' + err)
-        }
-      }
-    )
-
-    this.installationLogger.info('Created configuration files for Firefox')
-  }
-
-  async setDisableScopes(flag: boolean) {
-    this.installationLogger.info('Setting extensions.autoDisableScopes to 15')
-
-    let configFilename = 'firefox.cfg'
-    if (global.platform.win32) {
-      configFilename = 'portapps.cfg'
     }
-    const appPath = await this.getAppPath()
-    const configPath = path.join(appPath, configFilename)
 
-    fs.readFile(configPath, 'utf8', (err, data) => {
-      if (err) {
-        this.installationLogger.error(
-          `Setting extensions.autoDisableScopes to 15, ${err}`
-        )
-        return err
-      }
-
-      let result
-      if (flag)
-        result = data.replace(
-          /pref\('extensions.autoDisableScopes', 0\)/g,
-          "pref('extensions.autoDisableScopes', 15)"
-        )
-      else
-        result = data.replace(
-          /pref\('extensions.autoDisableScopes', 15\)/g,
-          "pref('extensions.autoDisableScopes', 0)"
-        )
-
-      fs.writeFile(configPath, result, 'utf8', err => {
-        if (err) {
-          this.installationLogger.error(
-            `Setting extensions.autoDisableScopes to 15, ${err}`
-          )
-          return err
+    /**
+   * Returns the path where Firefox installation resides
+   */
+    async _getRootPath(): Promise<string> {
+        if (global.platform.win32 || global.platform.darwin) {
+            return path.join(await helpers.getBrowserFolderPath());
         }
-      })
-    })
-  }
-
-  async getLastVersionFirefox() {
-    const url = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
-
-    return new Promise(resolve => {
-      https.https.get(url, (res: { on: (arg0: string, arg1: any) => void }) => {
-        let data = ''
-
-        res.on('data', (chunk: string) => {
-          data += chunk
-        })
-
-        res.on('end', () => {
-          try {
-            const json = JSON.parse(data)
-            resolve(json.LATEST_FIREFOX_VERSION)
-          } catch (error: any) {
-            logger.error(error.message)
-          }
-        })
-      })
-    })
-  }
-
-  async checkFirefoxVersion() {
-    const pointPath = helpers.getPointPath()
-    const installedVersion = helpers.getInstalledFirefoxVersion()
-
-    const latestReleaseVersion = await this.getLastVersionFirefox()
-
-    this.installationLogger.info(
-      'firefox version installed',
-      installedVersion.installedReleaseVersion
-    )
-    this.window.webContents.send(
-      'firefox:setVersion',
-      installedVersion.installedReleaseVersion
-    )
-    this.installationLogger.info(
-      'firefox last version',
-      String(latestReleaseVersion)
-    )
-    if (installedVersion.installedReleaseVersion !== latestReleaseVersion) {
-      this.installationLogger.info('Firefox Update needed')
-      this.window.webContents.send('firefox:update', true)
-
-      // Closes firefox
-      this.close().then(() =>
-        // Delete firefox folder
-        setTimeout(() => {
-          if (fs.existsSync(path.join(pointPath, 'contracts')))
-            rimraf.sync(path.join(pointPath, 'src', 'point-browser', 'firefox'))
-        }, 500)
-      )
-    } else {
-      this.window.webContents.send('firefox:update', false)
+        return path.join(await helpers.getBrowserFolderPath(), 'firefox');
     }
-  }
+
+    /**
+   * Returns the app path for the Firefox installation
+   */
+    async _getAppPath(): Promise<string> {
+        const rootPath = await this._getRootPath();
+
+        let appPath = rootPath;
+        if (global.platform.win32) appPath = path.join(rootPath, 'app');
+        if (global.platform.darwin) {appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');}
+
+        if (!fs.existsSync(appPath)) {
+            await fs.mkdir(appPath);
+        }
+
+        return appPath;
+    }
+
+    /**
+   * Returns the pref path for the Firefox installation
+   */
+    async _getPrefPath(): Promise<string> {
+        const rootPath = await this._getRootPath();
+
+        if (global.platform.linux) return path.join(rootPath, 'defaults', 'pref');
+
+        const defaultsPath = path.join(await this._getAppPath(), 'defaults');
+        const prefPath = path.join(defaultsPath, 'pref');
+
+        if (!fs.existsSync(defaultsPath)) {
+            await fs.mkdir(defaultsPath);
+        }
+        if (!fs.existsSync(prefPath)) {
+            await fs.mkdir(prefPath);
+        }
+        return prefPath;
+    }
+
+    /**
+   * Returns the policies path for the Firefox installation
+   */
+    async _getPoliciesPath(): Promise<string> {
+        const rootPath = await this._getRootPath();
+        let distributionPath = path.join(await this._getAppPath(), 'distribution');
+        if (global.platform.linux) {distributionPath = path.join(rootPath, 'distribution');}
+
+        if (!fs.existsSync(distributionPath)) {
+            await fs.mkdir(distributionPath);
+        }
+        return distributionPath;
+    }
+
+    /**
+   * Returns the executable bin path for the Firefox installation
+   */
+    async _getBinFile(): Promise<string> {
+        const rootPath = await this._getRootPath();
+        if (global.platform.win32) {
+            // return path.join(rootPath, 'point-browser-portable.exe')
+            return path.join(rootPath, 'app', 'firefox.exe');
+        }
+        if (global.platform.darwin) {
+            return `${path.join(rootPath, 'Firefox.app')}`;
+        }
+        // linux
+        return path.join(rootPath, 'firefox');
+    }
+
+    /**
+   * Returns the running instances of Firefox
+   */
+    async _getRunningProcess(): Promise<Process[]> {
+        return (
+            await find('name', /firefox/i)
+        ).filter(p => p.cmd.includes('point-browser') && !p.cmd.includes('tab'));
+    }
 }
+
+export default Firefox;

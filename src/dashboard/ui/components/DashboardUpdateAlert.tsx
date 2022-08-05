@@ -1,47 +1,43 @@
 import { useState, useEffect } from 'react'
+// MUI
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
+// Types
+import { DashboardChannelsEnum } from '../../../@types/ipc_channels'
+import { UpdateLog } from '../../../@types/generic'
 
 const DashboardUpdateAlert = () => {
-  const [status, setStatus] = useState<{
-    isUpdateAvailable: boolean
-    latestVersion: string
-  }>({
-    isUpdateAvailable: false,
-    latestVersion: '',
-  })
+  const [showAlert, setShowAlert] = useState<boolean>(false)
 
   useEffect(() => {
     window.Dashboard.on(
-      'dashboard:isNewDashboardReleaseAvailable',
-      (message: { isUpdateAvailable: boolean; latestVersion: string }) => {
-        setStatus(message)
+      DashboardChannelsEnum.check_for_updates,
+      (_: string) => {
+        const parsed = JSON.parse(_) as UpdateLog
+        if (parsed.isAvailable) setShowAlert(true)
       }
     )
-    window.Dashboard.isNewDashboardReleaseAvailable()
   }, [])
 
-  const openDonwloadLink = () => {
-    window.Dashboard.openDashboardDownloadLink(
-      `https://github.com/pointnetwork/pointnetwork-dashboard/releases/tag/${status.latestVersion}`
-    )
-  }
-
-  if (!status.isUpdateAvailable) return null
-
-  return (
+  return showAlert ? (
     <Alert
-      sx={{ position: 'absolute', right: '2.5%', top: '2.5%' }}
+      sx={{ position: 'absolute', right: 12, top: 36, zIndex: 999999 }}
       severity="info"
+      onClose={() => setShowAlert(false)}
     >
       <AlertTitle>New Update Available</AlertTitle>
       Click{' '}
-      <strong style={{ cursor: 'pointer' }} onClick={openDonwloadLink}>
+      <strong
+        style={{ cursor: 'pointer' }}
+        onClick={() =>
+          window.Dashboard.openExternalLink('https://pointnetwork.io/download')
+        }
+      >
         here
       </strong>{' '}
       to download the latest version
     </Alert>
-  )
+  ) : null
 }
 
 export default DashboardUpdateAlert

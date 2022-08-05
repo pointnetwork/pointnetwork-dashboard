@@ -1,261 +1,59 @@
-import { MouseEventHandler, useEffect, useState, useRef } from 'react'
-// Material UI
-import Box from '@mui/material/Box'
-import UIThemeProvider from '../../../shared/UIThemeProvider'
-// Icons
-import { ReactComponent as FirefoxLogo } from '../../../assets/firefox-logo.svg'
-import { ReactComponent as PointLogo } from '../../../assets/point-logo.svg'
+import { FunctionComponent, useContext } from 'react'
+// MUI
+import Grid from '@mui/material/Grid'
+// Context
+import { useMainStatus, MainStatusContext } from '../context/MainStatusContext'
+import {
+  UpdateStatusContext,
+  useUpdateStatus,
+} from '../context/UpdateStatusContext'
 // Components
-import TopBar from './components/TopBar'
-import ResourceItemCard from './components/ResourceItemCard'
+import CheckForUpdatesDialog from './components/CheckForUpdatesDialog'
 import DashboardUpdateAlert from './components/DashboardUpdateAlert'
-import DashboardTitle from './components/DashboardTitle'
-import WalletInfo from './components/WalletInfo'
-import UpdateProgress from './components/UpdateProgress'
 import DefaultLoader from './components/DefaultLoader'
+import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
+import MainContent from './components/MainContent'
+import Sidebar from './components/Sidebar'
+import TimeoutAlert from './components/TimeoutAlert'
+import ErrorDialog from './components/ErrorDialog'
+import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
 
-export default function App() {
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [loadingMessage, setLoadingMessage] = useState<string>(
-    'Checking for updates'
-  )
-  // Update state variables
-  const [isNodeUpdating, setIsNodeUpdating] = useState<boolean>(true)
-  const [isFirefoxUpdating, setIsFirefoxUpdating] = useState<boolean>(true)
-  const [isSdkUpdating, setIsSdkUpdating] = useState<boolean>(true)
-  // Progress state variables
-  const [nodeUpdateProgess, setNodeUpdateProgress] = useState<number>(0)
-  const [firefoxUpdateProgess, setFirefoxUpdateProgress] = useState<number>(0)
-  // Running state variables
-  const [isFirefoxRunning, setIsFirefoxRunning] = useState<boolean>(false)
-  const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false)
-  // Wallet info
-  const [identity, setIdentity] = useState<string | null>(null)
-  const [isLoadingWalletInfo, setIsLoadingWalletInfo] = useState<boolean>(true)
-  const [walletInfo, setWalletInfo] = useState<{
-    address: string
-    balance: string
-  }>({
-    address: '',
-    balance: '',
-  })
-  // Version state variables
-  const [nodeVersion, setNodeVersion] = useState<string | null>(null)
-  const [firefoxVersion, setFirefoxVersion] = useState<string | null>(null)
-
-  const checkStartTime = useRef(0)
-
-  useEffect(() => {
-    // Add custom styles to window since it's frameless
-    document.body.style.margin = '0'
-    document.body.style.padding = '0'
-    document.body.style.minHeight = '100vh'
-    document.body.style.border = '1.5px solid rgba(0, 0, 0, 0.2)'
-    document.body.style.boxSizing = 'border-box'
-
-    setIsLoading(true)
-
-    // Check for updates
-    window.Dashboard.checkUpdate()
-
-    window.Dashboard.on('node:update', (status: boolean) => {
-      setIsNodeUpdating(status)
-      if (status) {
-        window.Dashboard.DownloadNode()
-        window.Dashboard.on('installer:log', ([msg]: string[]) => {
-          if (msg.includes('POINT_NODE:')) {
-            setNodeUpdateProgress(Number(msg.replace('POINT_NODE:', '')))
-          }
-        })
-      }
-    })
-
-    window.Dashboard.on('firefox:update', (status: boolean) => {
-      setIsFirefoxUpdating(status)
-      if (status) {
-        window.Dashboard.DownloadFirefox()
-        window.Dashboard.on('installer:log', ([msg]: string[]) => {
-          if (msg.includes('BROWSER:')) {
-            setFirefoxUpdateProgress(Number(msg.replace('BROWSER:', '')))
-          }
-        })
-      }
-    })
-
-    window.Dashboard.on('sdk:update', (status: boolean) => {
-      setIsSdkUpdating(status)
-    })
-
-    // Check if updates have finished downloading
-    window.Dashboard.on('pointNode:finishDownload', () => {
-      setIsNodeUpdating(false)
-    })
-
-    window.Dashboard.on('pointSDK:finishDownload', () => {
-      setIsSdkUpdating(false)
-    })
-
-    window.Dashboard.on('firefox:finishDownload', () => {
-      setIsFirefoxUpdating(false)
-    })
-
-    // Get the versions
-    window.Dashboard.getDashboardVersion()
-
-    window.Dashboard.on('firefox:setVersion', (firefoxVersion: string) => {
-      setFirefoxVersion(firefoxVersion)
-    })
-
-    window.Dashboard.on('node:identity', (identity: string) => {
-      setIdentity(identity)
-    })
-
-    window.Dashboard.on('firefox:active', (status: boolean) => {
-      setIsFirefoxRunning(status)
-      window.Dashboard.changeFirefoxStatus(status)
-      window.Dashboard.getIdentity()
-    })
-
-    window.Dashboard.on('node:wallet_info', (message: string) => {
-      setWalletInfo(JSON.parse(message))
-      setIsLoadingWalletInfo(false)
-    })
-
-    window.Dashboard.on('dashboard:close', () => {
-      setLoadingMessage('Closing Dashboard')
-      setIsLoading(true)
-    })
-  }, [])
-
-  useEffect(() => {
-    if (!isFirefoxUpdating && !isNodeUpdating && !isSdkUpdating) {
-      setIsLoading(true)
-      setLoadingMessage('Starting up Node and Browser')
-      // First, launch Node and check if it's running or not
-      window.Dashboard.launchNode()
-      checkNode()
-      window.Dashboard.on(
-        'pointNode:checked',
-        ({
-          version,
-          isRunning,
-        }: {
-          version: string | null
-          isRunning: boolean
-        }) => {
-          setNodeVersion(version)
-          if (isRunning !== isNodeRunning) setIsNodeRunning(isRunning)
-          if (
-            !isRunning &&
-            new Date().getTime() - checkStartTime.current < 120000
-          ) {
-            setTimeout(checkNode, 1000)
-          } else {
-            console.error('Failed to start node in 2 minutes')
-            setIsLoading(false)
-          }
-        }
-      )
-    } else {
-      setIsLoading(false)
-    }
-  }, [isFirefoxUpdating, isNodeUpdating, isSdkUpdating])
-
-  useEffect(() => {
-    if (isNodeRunning) {
-      openFirefox()
-      requestYPoints()
-      window.Dashboard.getIdentity()
-      setInterval(checkNode, 10000)
-    }
-  }, [isNodeRunning])
-
-  useEffect(() => {
-    setIsLoading(false)
-  }, [isFirefoxRunning])
-
-  const logout: MouseEventHandler = () => {
-    window.Dashboard.logOut()
-  }
-
-  const checkNode = () => {
-    if (checkStartTime.current === 0) {
-      checkStartTime.current = new Date().getTime()
-    }
-    window.Dashboard.checkNode()
-  }
-
-  const openFirefox = () => {
-    if (!isFirefoxUpdating) {
-      window.Dashboard.openFirefox()
-    }
-  }
-
-  const requestYPoints = () => {
-    setIsLoadingWalletInfo(true)
-    window.Dashboard.checkBalanceAndAirdrop()
-  }
+const App = () => {
+  const { identifier, launchFailed, loader, engineErrorCode } = useContext(MainStatusContext)
+  const { updateDialogOpen } = useContext(UpdateStatusContext)
 
   return (
     <UIThemeProvider>
-      <TopBar isLoading={isLoading} />
+      <DisplayIdentifier identifier={identifier} />
       <DashboardUpdateAlert />
+      <TimeoutAlert identifier={identifier} open={launchFailed && !engineErrorCode} />
+      <CheckForUpdatesDialog />
+      <ErrorDialog identifier={identifier} errCode={engineErrorCode} />
 
-      <Box px="3.5%" pt="3%">
-        <DashboardTitle />
-        <DefaultLoader message={loadingMessage} isLoading={isLoading} />
-        <UpdateProgress
-          isLoading={isLoading}
-          isNodeUpdating={isNodeUpdating}
-          isFirefoxUpdating={isFirefoxUpdating}
-          isSdkUpdating={isSdkUpdating}
-          nodeUpdateProgess={nodeUpdateProgess}
-          firefoxUpdateProgess={firefoxUpdateProgess}
-        />
-        <WalletInfo
-          isLoading={isLoading}
-          isNodeUpdating={isNodeUpdating}
-          isFirefoxUpdating={isFirefoxUpdating}
-          isSdkUpdating={isSdkUpdating}
-          isLoadingWalletInfo={isLoadingWalletInfo}
-          identity={identity}
-          logout={logout}
-          requestYPoints={requestYPoints}
-          walletInfo={walletInfo}
-        />
-        <Box
-          display="grid"
-          my="1.5rem"
-          sx={{
-            opacity: isLoading || isNodeUpdating || isFirefoxUpdating ? 0.2 : 1,
-            gridTemplateColumns: { sm: '1fr 1fr' },
-            gap: 2,
-          }}
-        >
-          <ResourceItemCard
-            title="Point Browser (Firefox)"
-            status={isFirefoxRunning}
-            onClick={openFirefox}
-            icon={<FirefoxLogo />}
-            buttonLabel="Launch Browser"
-            isLoading={
-              isLoading ||
-              isNodeUpdating ||
-              isFirefoxUpdating ||
-              isFirefoxRunning
-            }
-            version={firefoxVersion}
-          />
-          <ResourceItemCard
-            title="Point Node"
-            status={!!nodeVersion}
-            icon={<PointLogo />}
-            buttonLabel="Check Status"
-            isLoading={isLoading || isNodeUpdating || isFirefoxUpdating}
-            version={nodeVersion}
-          />
-        </Box>
-      </Box>
+      <DefaultLoader
+        isOpen={loader.isLoading && !updateDialogOpen}
+        message={loader.message}
+      />
+
+      <Grid container height="99.5vh">
+        <Sidebar />
+        <MainContent />
+      </Grid>
     </UIThemeProvider>
   )
 }
+
+const AppWithContext: FunctionComponent = () => {
+  const mainStatus = useMainStatus()
+  const updateStatus = useUpdateStatus()
+
+  return (
+    <MainStatusContext.Provider value={mainStatus}>
+      <UpdateStatusContext.Provider value={updateStatus}>
+        <App />
+      </UpdateStatusContext.Provider>
+    </MainStatusContext.Provider>
+  )
+}
+
+export default AppWithContext

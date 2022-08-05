@@ -1,56 +1,36 @@
-import { useState } from 'react'
-// MAterial UI
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import UIThemeProvider from '../../../shared/UIThemeProvider'
+import { useEffect, useState } from 'react'
 // Components
-import SeedGenerator from './components/SeedGenerator'
-import SeedConfirmation from './components/SeedConfirmation'
-import Login from './components/Login'
+import TopBar from './components/TopBar'
+import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
+import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
+// Pages
+import Home from './routes/Home'
+import GenerateNew from './routes/GenerateNew'
+import ImportExisting from './routes/ImportExisting'
+import VerifyPhrase from './routes/VerifyPhrase'
+import WelcomeRoutes from './routes/routes'
 
 export default function App() {
-  const [seed, setSeed] = useState<string>('')
-  const [seedConfirm, setSeedConfirm] = useState<boolean>(false)
-  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false)
+  const [route, setRoute] = useState<string>(WelcomeRoutes.home)
 
-  const login = () => {
-    setSeed('')
-    setIsLoggingIn(true)
-    setSeedConfirm(true)
+  const [identifier, setIdentifier] = useState<string>('')
+
+  const getIdentifier = async () => {
+    const id = await window.Welcome.getIdentifier()
+    setIdentifier(id)
   }
-
-  const goBack = () => {
-    setIsLoggingIn(false)
-    setSeedConfirm(false)
-  }
-
-  const renderScreen = () => {
-    if (!seedConfirm) {
-      return (
-        <SeedGenerator
-          seed={seed}
-          setSeed={setSeed}
-          confirm={() => setSeedConfirm(true)}
-          login={login}
-        />
-      )
-    }
-
-    if (isLoggingIn) {
-      return <Login goBack={goBack} />
-    }
-
-    return <SeedConfirmation seed={seed} goBack={goBack} />
-  }
+  useEffect(() => {
+    getIdentifier()
+  }, [])
 
   return (
     <UIThemeProvider>
-      <Box sx={{ p: '3.5%' }}>
-        <Typography variant="h4" component="h1">
-          Welcome to Point Network
-        </Typography>
-        {renderScreen()}
-      </Box>
+      <TopBar />
+      <DisplayIdentifier identifier={identifier} />
+      <Home route={route} setRoute={setRoute} />
+      <GenerateNew route={route} setRoute={setRoute} />
+      <ImportExisting route={route} setRoute={setRoute} />
+      <VerifyPhrase route={route} setRoute={setRoute} />
     </UIThemeProvider>
   )
 }

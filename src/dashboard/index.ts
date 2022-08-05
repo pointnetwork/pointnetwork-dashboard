@@ -1,385 +1,417 @@
+import {UpdateLog} from './../@types/generic';
+import {app, BrowserWindow, clipboard, ipcMain, shell} from 'electron';
+import axios from 'axios';
+import Bounty from '../bounty';
+import Firefox from '../firefox';
+import Node from '../node';
+import PointSDK from '../pointsdk';
+import Uninstaller from '../uninstaller';
+import Logger from '../../shared/logger';
+import helpers from '../../shared/helpers';
+import welcome from '../welcome';
+import {getIdentifier} from '../../shared/getIdentifier';
+import baseWindowConfig from '../../shared/windowConfig';
+// Types
 import {
-  app,
-  BrowserWindow,
-  ipcMain,
-  dialog,
-  IpcMainEvent,
-  shell,
-} from 'electron'
-import Firefox from '../firefox'
-import Node from '../node'
-import helpers from '../../shared/helpers'
-import baseWindowConfig from '../../shared/windowConfig'
-import axios from 'axios'
-import Logger from '../../shared/logger'
+    BountyChannelsEnum,
+    DashboardChannelsEnum,
+    FirefoxChannelsEnum,
+    GenericChannelsEnum,
+    NodeChannelsEnum,
+    UninstallerChannelsEnum
+} from '../@types/ipc_channels';
+import {EventListener} from '../@types/generic';
+import {ErrorsEnum} from '../@types/errors';
 
-const logger = new Logger()
+let window: BrowserWindow | null;
+let node: Node | null;
+let firefox: Firefox | null;
+let pointSDK: PointSDK | null;
+let uninstaller: Uninstaller | null;
 
-let mainWindow: BrowserWindow | null
+declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string;
 
-let node: Node | null
-let firefox: Firefox | null
+const logger = new Logger({module: 'dashboard_window'});
 
-let isFirefoxRunning = false
-let isLoggingOut = false
+export default async function () {
+    async function createWindow() {
+        window = new BrowserWindow({
+            ...baseWindowConfig,
+            width: 860,
+            height: 560,
+            webPreferences: {
+                ...baseWindowConfig.webPreferences,
+                preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY
+            }
+        });
 
-declare const DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY: string
-declare const DASHBOARD_WINDOW_WEBPACK_ENTRY: string
+        firefox = new Firefox({window});
+        node = new Node({window});
+        pointSDK = new PointSDK({window});
+        uninstaller = new Uninstaller({window});
 
-const MESSAGES = {
-  closeConfirmation: {
-    title: 'Are you sure you want to close?',
-    message:
-      'Closing the Dashboard will also close the Browser. Are you sure you want to close them?',
-    buttons: {
-      confirm: 'Yes',
-      cancel: 'No',
-    },
-  },
-  logoutConfirmation: {
-    title: 'Are you sure you want to log out?',
-    message:
-      'Do you want to close the browser and remove the secret phrase from this computer?',
-    buttons: {
-      confirm: 'Yes',
-      cancel: 'No',
-    },
-  },
-}
+        window.on('close', async ev => {
+            ev.preventDefault();
+            await shutdownResources();
+            window?.destroy();
+        });
 
-// const assetsPath =
-//   process.env.NODE_ENV === 'production'
-//     ? process.resourcesPath
-//     : app.getAppPath()
+        window.on('closed', () => {
+            node = null;
+            firefox = null;
+            window = null;
+        });
 
-export default function (isExplicitRun = false) {
-  async function createWindow() {
-    mainWindow = new BrowserWindow({
-      ...baseWindowConfig,
-      width: 860,
-      height: 560,
-      frame: false,
-      webPreferences: {
-        ...baseWindowConfig.webPreferences,
-        preload: DASHBOARD_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      },
-    })
+        await window.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY);
+    }
 
-    isLoggingOut = false
-
-    node = new Node(mainWindow!)
-    await node.checkNodeVersion()
-
-    firefox = new Firefox(mainWindow!)
-    // debug
-    // mainWindow.webContents.openDevTools()
-
-    mainWindow.loadURL(DASHBOARD_WINDOW_WEBPACK_ENTRY)
-
-    mainWindow.on('close', async ev => {
-      // We prevent default to programatically close the window,
-      // thus ensuring we await for all necessary actions to complete.
-      ev.preventDefault()
-
-      let quit = true
-
-      if (!isLoggingOut && isFirefoxRunning) {
-        const confirmationAnswer = dialog.showMessageBoxSync({
-          type: 'question',
-          title: MESSAGES.closeConfirmation.title,
-          message: MESSAGES.closeConfirmation.message,
-          buttons: [
-            MESSAGES.closeConfirmation.buttons.confirm,
-            MESSAGES.closeConfirmation.buttons.cancel,
-          ],
-        })
-
-        if (confirmationAnswer === 1) {
-          // User clicked 'No' (button at index 1)
-          quit = false
-        }
-      }
-
-      if (quit) {
-        mainWindow?.webContents.send('dashboard:close')
-        logger.info('Closed Dashboard Window')
-        events.forEach(event => {
-          ipcMain.removeListener(event.channel, event.listener)
-          logger.info('[dashboard:index.ts] Removed event', event.channel)
-        })
+    /**
+   * Useful where we want to do some cleanup before closing the window
+   */
+    const shutdownResources = async () => {
+        logger.info('Removing all event listeners');
+        await removeListeners();
+        logger.info('Removed all event listeners');
 
         try {
-          await Promise.all([firefox?.close(), Node.stopNode()])
-        } catch (err) {
-          logger.error('[dashboard:index.ts] Error in `close` handler', err)
-        } finally {
-          mainWindow?.destroy()
-        }
-      }
-    })
-
-    mainWindow.on('closed', () => {
-      node = null
-      firefox = null
-      mainWindow = null
-    })
-  }
-
-  const events = [
-    {
-      channel: 'firefox:launch',
-      listener() {
-        firefox!.launch()
-        if (!helpers.getIsFirefoxInit()) {
-          // firefox!.setDisableScopes(true)
-          helpers.setIsFirefoxInit(true)
-        }
-      },
-    },
-    {
-      channel: 'firefox:status',
-      listener(_ev: IpcMainEvent, isRunning: boolean) {
-        isFirefoxRunning = isRunning
-      },
-    },
-    {
-      channel: 'node:launch',
-      listener() {
-        node!.launch()
-      },
-    },
-    {
-      channel: 'node:check',
-      listener() {
-        node!.pointNodeCheck()
-      },
-    },
-    {
-      channel: 'sdk:checkUpdate',
-      listener() {
-        firefox?.checkSDKVersion()
-      },
-    },
-    {
-      channel: 'node:download',
-      listener() {
-        node!.download()
-      },
-    },
-    {
-      channel: 'node:checkUpdate',
-      listener() {
-        node!.checkNodeVersion()
-      },
-    },
-    {
-      channel: 'firefox:checkUpdate',
-      listener() {
-        firefox!.checkFirefoxVersion()
-      },
-    },
-    {
-      channel: 'firefox:download',
-      listener() {
-        console.log('listener firefox!.download() called')
-        firefox!.download()
-      },
-    },
-    {
-      channel: 'node:getIdentity',
-      listener() {
-        node!.getIdentity()
-      },
-    },
-    {
-      channel: 'dashboard:openDownloadLink',
-      listener(event: IpcMainEvent, url: string) {
-        try {
-          shell.openExternal(url)
+            await Promise.all([
+        node!.stop(),
+        firefox!.stop()
+            ]);
         } catch (error) {
-          logger.error(error)
+            logger.error({
+                errorType: ErrorsEnum.STOP_ERROR,
+                error
+            });
         }
-      },
-    },
-    {
-      channel: 'dashboard:isNewDashboardReleaseAvailable',
-      async listener() {
-        mainWindow!.webContents.send(
-          'dashboard:isNewDashboardReleaseAvailable',
-          await helpers.isNewDashboardReleaseAvailable()
-        )
-      },
-    },
-    {
-      channel: 'node:getDashboardVersion',
-      listener() {
-        mainWindow!.webContents.send(
-          'node:getDashboardVersion',
-          helpers.getInstalledDashboardVersion()
-        )
-      },
-    },
-    {
-      channel: 'logOut',
-      async listener() {
-        const confirmationAnswer = dialog.showMessageBoxSync({
-          type: 'question',
-          title: MESSAGES.logoutConfirmation.title,
-          message: MESSAGES.logoutConfirmation.message,
-          buttons: [
-            MESSAGES.logoutConfirmation.buttons.confirm,
-            MESSAGES.logoutConfirmation.buttons.cancel,
-          ],
-        })
+    };
 
-        if (confirmationAnswer === 0) {
-          // User clicked 'Yes' (button at index 0)
-          isLoggingOut = true
-          await Node.stopNode()
-          helpers.logout()
-          mainWindow!.close()
-        }
-      },
-    },
-    {
-      channel: 'node:stop',
-      async listener() {
-        await Node.stopNode()
-      },
-    },
-    {
-      channel: 'node:getVersion',
-      async listener(event: IpcMainEvent) {
-        event.returnValue = await helpers.getInstalledNodeVersion()
-      },
-    },
-    {
-      channel: 'node:check_balance_and_airdrop',
-      async listener() {
-        // TODO: move this func somewhere to utils
-        const delay = (ms: number) =>
-          new Promise(resolve => {
-            setTimeout(resolve, ms)
-          })
-        const start = new Date().getTime()
+    const checkForUpdates = async () => {
+        await Promise.all([
+            (async () => {
+                const nodeUpdateAvailable = await node!.checkForUpdates();
+                if (nodeUpdateAvailable) {
+                    await node?.downloadAndInstall();
+                }
+            })(),
+            (async () => {
+                const firefoxUpdateAvailable = await firefox!.checkForUpdates();
+                if (firefoxUpdateAvailable) {
+                    await firefox?.downloadAndInstall();
+                }
+            })(),
+            (async () => {
+                const sdkUpdateAvailable = await pointSDK!.checkForUpdates();
+                if (sdkUpdateAvailable) {
+                    await pointSDK?.downloadAndInstall();
+                }
+            })(),
+            // TODO: notify the UI and handle it same way as for node, ff and sdk
+            (async () => {
+                if (!global.platform.darwin) { // TODO: why not darwin?
+                    try {
+                        const latestDashboardV = await helpers.getLatestReleaseFromGithub(
+                            'pointnetwork-dashboard'
+                        );
+                        const installedDashboardV =
+                await helpers.getInstalledDashboardVersion();
+
+                        if (latestDashboardV > `v${installedDashboardV}`) {
+                            window?.webContents.send(
+                                DashboardChannelsEnum.check_for_updates,
+                                JSON.stringify({
+                                    isAvailable: true,
+                                    isChecking: false
+                                } as UpdateLog)
+                            );
+                        }
+                    } catch (error) {
+                        logger.error({
+                            errorType: ErrorsEnum.UPDATE_ERROR,
+                            error,
+                            info: 'Failed to check for dashboard updates'
+                        });
+                    }
+                }
+            })()
+        ]);
+    };
+
+    const checkForUpdatesAndLaunchNode = async () => {
         try {
-          let balance = 0
-          logger.info('[node:check_balance_and_airdrop] Getting wallet address')
-          const addressRes = await axios.get(
+            await checkForUpdates();
+            window?.webContents.send(
+                GenericChannelsEnum.check_for_updates,
+                JSON.stringify({success: true})
+            );
+        } catch (e) {
+            window?.webContents.send(
+                GenericChannelsEnum.check_for_updates,
+                JSON.stringify({success: false})
+            );
+            return;
+        }
+        await node!.launch();
+    };
+
+    const checkBalance = async () => {
+        let balance = 0;
+        const addressRes = await axios.get(
             'http://localhost:2468/v1/api/wallet/address'
-          )
-          const address = addressRes.data.data.address
+        );
+        const address = addressRes.data.data.address;
 
-          const requestAirdrop = async () => {
-            logger.info(
-              '[node:check_balance_and_airdrop] Airdropping wallet address with POINTS'
-            )
-            try {
-              await axios.get(
-                `https://point-faucet.herokuapp.com/airdrop?address=${address}`
-              )
-            } catch (e) {
-              logger.error(e)
-            }
-          }
-
-          const checkBalance = async () => {
-            logger.info(
-              `[node:check_balance_and_airdrop] Getting wallet balance for address: ${address}`
-            )
-            try {
-              const res = await axios.get(
-                `https://point-faucet.herokuapp.com/balance?address=${address}`
-              )
-              if (res.data?.balance && !isNaN(res.data.balance)) {
-                logger.info(
-                  `[node:check_balance_and_airdrop] Balance: ${res.data.balance}`
-                )
-                balance = res.data.balance
-              } else {
-                logger.error(`Unexpected balance response: ${res.data}`)
-              }
-            } catch (e) {
-              logger.error(e)
-            }
-          }
-
-          await checkBalance()
-
-          mainWindow!.webContents.send(
-            'node:wallet_info',
-            JSON.stringify({ balance, address })
-          )
-          // eslint-disable-next-line no-unmodified-loop-condition
-          while (balance <= 0) {
-            if (new Date().getTime() - start > 120000) {
-              throw new Error(
-                'Could not get positive wallet balance in 2 minutes'
-              )
-            }
-            await requestAirdrop()
-            await delay(10000)
-            await checkBalance()
-          }
-
-          mainWindow!.webContents.send(
-            'node:wallet_info',
-            JSON.stringify({ balance, address })
-          )
-        } catch (error) {
-          logger.error(error)
+        const faucetURL = helpers.getFaucetURL();
+        const res = await axios.get(`${faucetURL}/balance?address=${address}`);
+        if (res.data?.balance && !isNaN(res.data.balance)) {
+            balance = res.data.balance;
+        } else {
+            logger.error({
+                errorType: ErrorsEnum.DASHBOARD_ERROR,
+                error: new Error(`Unexpected balance response: ${res.data}`)
+            });
         }
-      },
-    },
-    {
-      channel: 'dashboard:minimizeWindow',
-      listener() {
-        mainWindow?.minimize()
-      },
-    },
-    {
-      channel: 'dashboard:closeWindow',
-      listener() {
-        mainWindow?.close()
-      },
-    },
-  ]
+        window?.webContents.send(
+            DashboardChannelsEnum.check_balance_and_airdrop,
+            balance
+        );
+        return balance;
+    };
 
-  async function registerListeners() {
-    events.forEach(event => {
-      ipcMain.on(event.channel, event.listener)
-      logger.info('[dashboard:index.ts] Registered event', event.channel)
-    })
-  }
+    const events: EventListener[] = [
+    // Bounty channels
+        {
+            channel: BountyChannelsEnum.send_generated,
+            listener() {
+                try {
+                    new Bounty({window: window!}).sendGenerated();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        // Dashboard channels
+        {
+            channel: DashboardChannelsEnum.log_out,
+            async listener() {
+                try {
+                    window?.webContents.send(DashboardChannelsEnum.log_out);
+                    await shutdownResources();
+                    await helpers.logout();
+                    await welcome();
+          window!.close();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        {
+            channel: DashboardChannelsEnum.get_version,
+            async listener() {
+                try {
+                    window?.webContents.send(
+                        DashboardChannelsEnum.get_version,
+                        helpers.getInstalledDashboardVersion()
+                    );
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        {
+            channel: DashboardChannelsEnum.check_balance,
+            async listener() {
+                try {
+                    await checkBalance();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        {
+            channel: DashboardChannelsEnum.check_balance_and_airdrop,
+            async listener() {
+                // TODO: move this func somewhere to utils
+                const delay = (ms: number) =>
+                    new Promise(resolve => {
+                        setTimeout(resolve, ms);
+                    });
+                const start = new Date().getTime();
+                try {
+                    const addressRes = await axios.get(
+                        'http://localhost:2468/v1/api/wallet/address'
+                    );
+                    const address = addressRes.data.data.address;
 
-  if (isExplicitRun) {
-    createWindow()
-    registerListeners()
-  }
+                    const requestAirdrop = async () => {
+                        const faucetURL = helpers.getFaucetURL();
+                        logger.info('Airdropping wallet address with POINTS');
+                        try {
+                            await axios.get(`${faucetURL}/airdrop?address=${address}`);
+                        } catch (error) {
+                            logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                        }
+                    };
 
-  app.on('will-quit', async function () {
+                    let balance = await checkBalance();
+
+                    // eslint-disable-next-line no-unmodified-loop-condition
+                    while (balance <= 0) {
+                        if (new Date().getTime() - start > 120000) {
+                            throw new Error(
+                                'Could not get positive wallet balance in 2 minutes'
+                            );
+                        }
+                        await requestAirdrop();
+                        await delay(10000);
+                        balance = await checkBalance();
+                    }
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        // Uninstaller channels
+        {
+            channel: UninstallerChannelsEnum.launch,
+            async listener() {
+                try {
+                    await uninstaller?.launch();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        // Firefox channels
+        {
+            channel: FirefoxChannelsEnum.launch,
+            async listener() {
+                try {
+                    await firefox?.launch();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        {
+            channel: FirefoxChannelsEnum.get_version,
+            async listener() {
+                const version = (await helpers.getInstalledVersionInfo('firefox'))
+                    .installedReleaseVersion;
+                window?.webContents.send(FirefoxChannelsEnum.get_version, version);
+            }
+        },
+        // Node channels
+        {
+            channel: NodeChannelsEnum.launch,
+            async listener() {
+                try {
+                    await node?.launch();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        {
+            channel: NodeChannelsEnum.get_identity,
+            async listener() {
+                try {
+                    await node?.getIdentityInfo();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        {
+            channel: NodeChannelsEnum.get_version,
+            async listener() {
+                const version = (await helpers.getInstalledVersionInfo('node'))
+                    .installedReleaseVersion;
+                window?.webContents.send(NodeChannelsEnum.get_version, version);
+            }
+        },
+        // Generic channels
+        {
+            channel: GenericChannelsEnum.get_identifier,
+            listener() {
+                window?.webContents.send(
+                    GenericChannelsEnum.get_identifier,
+                    getIdentifier()[0]
+                );
+            }
+        },
+        {
+            channel: GenericChannelsEnum.copy_to_clipboard,
+            listener(_, message: string) {
+                clipboard.writeText(message);
+                window?.webContents.send(GenericChannelsEnum.copy_to_clipboard);
+            }
+        },
+        {
+            channel: GenericChannelsEnum.open_external_link,
+            async listener(_, link: string) {
+                try {
+                    await shell.openExternal(link);
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
+        {
+            channel: GenericChannelsEnum.check_for_updates,
+            listener: checkForUpdatesAndLaunchNode
+        },
+        {
+            channel: GenericChannelsEnum.close_window,
+            async listener() {
+                window?.webContents.send(DashboardChannelsEnum.closing);
+                window?.close();
+            }
+        },
+        {
+            channel: GenericChannelsEnum.minimize_window,
+            listener() {
+                window?.minimize();
+            }
+        }
+    ];
+
+    const registerListeners = () => {
+        events.forEach(event => {
+            ipcMain.on(event.channel, event.listener);
+            logger.info('Registered event', event.channel);
+        });
+    };
+
+    const removeListeners = () => {
+        events.forEach(event => {
+            ipcMain.off(event.channel, event.listener);
+            logger.info('Removed event listener', event.channel);
+        });
+    };
+
+    app.on('will-quit', async function () {
     // This is a good place to add tests insuring the app is still
     // responsive and all windows are closed.
-    logger.info('Dashboard Window "will-quit" event')
-  })
+        logger.info('Dashboard Window "will-quit" event');
+    });
 
-  if (!isExplicitRun) {
-    app
-      .on('ready', createWindow)
-      .whenReady()
-      .then(registerListeners)
-      .catch(e => logger.error(e))
+    const start = async () => {
+        registerListeners();
+        await createWindow();
+        await checkForUpdatesAndLaunchNode();
+    };
 
-    app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit()
-      }
-    })
-
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow()
-      }
-    })
-  }
+    try {
+        await app.whenReady();
+        await start();
+    } catch (error) {
+        logger.error({
+            errorType: ErrorsEnum.FATAL_ERROR,
+            error,
+            info: 'Failed to start Dashboard window'
+        });
+        app.quit();
+    }
 }

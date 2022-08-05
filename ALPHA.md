@@ -2,6 +2,10 @@
 
 ![alpha screenshot](resources/alpha_screenshot_2.png)
 
+## Download Alpha binaries
+
+If you just need to run Point Network as a non-technical user, you can download binaries from here: [https://pointnetwork.io/download](https://pointnetwork.io/download)
+
 ## Notes
 
 - This is experimental alpha software! If you can and know how, better test it on a virtual machine first (fresh Ubuntu is recommended). If you are not tech-savvy, maybe wait for others to try it out first and see how it goes

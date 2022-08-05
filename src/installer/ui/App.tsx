@@ -1,88 +1,151 @@
-import { useReducer, useState } from 'react'
-// MAterial UI
+import { useEffect, useRef, useState } from 'react'
+// Material UI
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import List from '@mui/material/List'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
-// Theme provider
-import UIThemeProvider from '../../../shared/UIThemeProvider'
-import { InstallationStepsEnum } from '../../@types/installation'
-import { installationLogReducer, initialState } from '../reducer'
-import Logs from './Logs'
-import { parseLog } from '../helpers'
+// Components
+import CreateDirLogs from './components/CreateDirLogs'
+import DisclaimerDialog from './components/DisclaimerDialog'
+import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
+import DownloadExtractLogs from './components/DownloadExtractLogs'
+import TopBar from './components/TopBar'
+import SendIcon from '@mui/icons-material/Send'
+import Icon from '@mui/material/Icon'
+import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
+// Types
+import {
+  NodeChannelsEnum,
+  FirefoxChannelsEnum,
+  PointSDKChannelsEnum,
+  UninstallerChannelsEnum,
+  InstallerChannelsEnum,
+} from '../../@types/ipc_channels'
 
 export default function App() {
-  const [logs, dispatch] = useReducer(installationLogReducer, initialState)
+  const loggerRef = useRef<HTMLElement>()
+  const [disclaimerOpen, setDisclaimerOpen] = useState<boolean>(true)
+  const [attempts, setAttempts] = useState<number>(0)
   const [installing, setInstalling] = useState<boolean>(false)
+  const [version, setVersion] = useState<string>('')
+  const [identifier, setIdentifier] = useState<string>('')
+
+  const getInfo = async () => {
+    const [dashboardVersion, id] = await Promise.all([
+      window.Installer.getDashboardVersion(),
+      window.Installer.getIdentifier(),
+    ])
+    setVersion(dashboardVersion)
+    setIdentifier(id)
+  }
+  useEffect(() => {
+    window.Installer.on(InstallerChannelsEnum.error, (_attempt: string) => {
+      setAttempts(Number(_attempt))
+    })
+    getInfo()
+  }, [])
 
   function sendStartInstallation() {
+    setAttempts(0)
     window.Installer.startInstallation()
     setInstalling(true)
-
-    window.Installer.on('installer:log', (log: string[]) => {
-      const { category, progress, message } = parseLog(log)
-
-      // The UI will only display logs associated to a category.
-      if (category) {
-        const payload = { message, progress }
-        dispatch({ type: category, payload })
-      }
-    })
   }
 
   return (
     <UIThemeProvider>
+      <TopBar isLoading={false} />
+      <DisplayIdentifier identifier={identifier} />
+      <DisclaimerDialog open={disclaimerOpen} setOpen={setDisclaimerOpen} />
+
       <Box
         display={'flex'}
         flexDirection="column"
         sx={{ p: '3.5%', overflow: 'hidden', maxHeight: '82vh' }}
       >
-        <Typography variant="h4" gutterBottom component="h1">
-          {installing ? 'Installing' : 'Welcome to the Point Installer'}
-        </Typography>
+        <Box display="flex" alignItems="baseline">
+          <Typography variant="h4" gutterBottom component="h1" fontWeight="900">
+            {installing ? 'Installing' : 'Welcome to Point Installer'}
+          </Typography>
+          <Typography ml={1} color="#555555">v{version}</Typography>
+        </Box>
 
         <Box flex={1} display={installing ? 'none' : 'block'}>
-          <Typography>
-            The following components will be installed on your system to run the
-            point dashboard
+          <Typography color="#cccccc">
+            The following components will be installed to run
+            Point Network
           </Typography>
-          <Box
-            sx={{ px: '1rem', mt: '1rem', mb: '2rem' }}
-            bgcolor="primary.light"
-            borderRadius={2}
-          >
+          <Box px={2} mt={2} mb={3} bgcolor="primary.light" borderRadius={2}>
             <List>
-              <ListItemText>Point Node</ListItemText>
+              <ListItemText>Point Engine</ListItemText>
               <ListItemText>Point LiveProfile</ListItemText>
+              <ListItemText>Point SDK</ListItemText>
               <ListItemText>Point Browser (Firefox)</ListItemText>
+              <ListItemText>Point Uninstaller</ListItemText>
             </List>
           </Box>
           <Button variant="contained" onClick={sendStartInstallation}>
             Start Installation
+            &nbsp;
+            <SendIcon></SendIcon>
           </Button>
         </Box>
+        {attempts ? (
+          <Alert severity="error">
+            <Typography mb={1} variant="body2">
+              {attempts >= 5
+                ? `An error occurred during installation. Please quit and try installing again. Make sure you have a stable internet connection and use a VPN (if you can). If you're
+        still facing issues, then please contact us. We'll be glad to help
+        you out.`
+                : `An error occurred during installation. Please try again. Make sure you have a stable internet connection
+                and use a VPN (if you can)`}
+            </Typography>
+            {attempts < 5 ? (
+              <Button
+                size="small"
+                color="error"
+                onClick={sendStartInstallation}
+                variant="contained"
+              >
+                Retry Installation
+              </Button>
+            ) : null}
+          </Alert>
+        ) : null}
         <Box
-          sx={{ p: '1rem', mt: '.5rem', overflowY: 'auto' }}
+          ref={loggerRef}
+          sx={{ p: '1rem', mt: '.5rem', overflowY: 'scroll' }}
           bgcolor="primary.light"
           borderRadius={2}
           display={installing ? 'block' : 'none'}
         >
-          <Logs
-            stepCategory={InstallationStepsEnum.DIRECTORIES}
-            log={logs[InstallationStepsEnum.DIRECTORIES]}
+          <CreateDirLogs
+            title="Create Directoires"
+            channel={InstallerChannelsEnum.create_dirs}
           />
-          <Logs
-            stepCategory={InstallationStepsEnum.CODE}
-            log={logs[InstallationStepsEnum.CODE]}
+          <CreateDirLogs
+            title="Clone Repositories"
+            channel={InstallerChannelsEnum.clone_repos}
           />
-          <Logs
-            stepCategory={InstallationStepsEnum.BROWSER}
-            log={logs[InstallationStepsEnum.BROWSER]}
+          <DownloadExtractLogs
+            title="Browser"
+            downloadChannel={FirefoxChannelsEnum.download}
+            unpackChannel={FirefoxChannelsEnum.unpack}
           />
-          <Logs
-            stepCategory={InstallationStepsEnum.POINT_NODE}
-            log={logs[InstallationStepsEnum.POINT_NODE]}
+          <DownloadExtractLogs
+            title="SDK Extenstion"
+            downloadChannel={PointSDKChannelsEnum.download}
+          />
+          <DownloadExtractLogs
+            title="Node"
+            downloadChannel={NodeChannelsEnum.download}
+            unpackChannel={NodeChannelsEnum.unpack}
+          />
+          <DownloadExtractLogs
+            title="Uninstaller"
+            downloadChannel={UninstallerChannelsEnum.download}
+            unpackChannel={UninstallerChannelsEnum.unpack}
           />
         </Box>
       </Box>

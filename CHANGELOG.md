@@ -6,6 +6,59 @@ Dashboard).
 
 # Unreleased
 
+## [0.2.22]
+
+### Fixed
+- Fixed a bug where the Point node process was being killed after some time.
+
+# Released
+
+## [0.2.21]
+
+### Fixed
+- Fixed a bug that prevented the dashboard from being closed when clicking on
+  the quit button
+- Fixed a bug where, on some operating systems, Point Node was not being closed
+  after logging out or closing the dashboard
+
+## [0.2.18]
+### Added
+- The dashboard automatically updates all of its components to their latest
+    versions.
+- Whenever an update process is taking place, Point Dashboard lets the user
+    know by displaying a message and a progress bar.
+- Whenever a new version of Point Dashboard is released, the user gets a
+    notification asking them to update their application, along with a link
+    where they can download the latest version.
+- The installation progress window now shows progress bars to let the user
+    know the progress of the downloads and installations of the multiple
+    components.
+- Point Dashboard can now be easily uninstalled by clicking on a menu item
+    located at the top right corner of the dashboard window.
+- Added a seed phrase generation component to help the user generate new Point
+    accounts.
+- Point Dashboard automatically airdrops yPOINT to alpha users when they
+    create a new account.
+- Point Dashboard shows the user's wallet information: their address, their
+    identity and their balance.
+- The main dashboard window shows the installed versions of its components:
+    Point Node, Point Browser and Point Dashboard.
+### Changed
+- Improved the UI/UX of the dashboard.
+- The dashboard now presents to the user a more friendly interface when
+    installing the multiple components of the dashboard.
+- The user can now logout by clicking on a button. This action erases the
+    user's private key from their computer to promote the user's privacy.
+### Fixed
+- Corrected the branding of the dashboard: added our logos and changed the
+    color palette.
+- PointSDK's UI has been improved to match our company's branding.
+### Security
+- The seed phrase generation component provides a tool to aid the user
+    validate that they are storing their seed phrases correctly.
+- Point Browser now requests the user's permission whenever a transaction will
+    take place.
+
 ## [0.2.0]
 ### Added
 - The addition of a [changelog](https://keepachangelog.com/en/1.0.0/)
@@ -24,8 +77,6 @@ Dashboard).
 ### Deprecated
 - Usage `install-debian.sh` and `insntall-windows.bat` scripts for the
   installation process.
-
-# Released
 
 ## [0.1.0] - 2022-01-08
 

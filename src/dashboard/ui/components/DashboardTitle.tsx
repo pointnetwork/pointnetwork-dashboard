@@ -6,10 +6,12 @@ import Typography from '@mui/material/Typography'
 const DashboardTitle = () => {
   const [dashboardVersion, setDashboardVersion] = useState<string>('0.0.0')
 
+  const getDashboardVersion = async () => {
+    const version = await window.Dashboard.getDashboardVersion()
+    setDashboardVersion(version)
+  }
   useEffect(() => {
-    window.Dashboard.on('node:getDashboardVersion', (dversion: string) => {
-      setDashboardVersion(dversion)
-    })
+    getDashboardVersion()
   }, [])
 
   return (
@@ -23,7 +25,7 @@ const DashboardTitle = () => {
         </Typography>
       </Box>
       <Typography color="text.secondary">
-        Manage and control Point Network components from here
+        Manage and control Point Network components in here
       </Typography>
     </Fragment>
   )

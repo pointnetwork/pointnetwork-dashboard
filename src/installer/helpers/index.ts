@@ -1,2 +1,1 @@
-export * from './parse-log'
-export * from './github-progress'
+export * from './github-progress';
