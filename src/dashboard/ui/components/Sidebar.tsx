@@ -61,13 +61,16 @@ const Sidebar = () => {
                 </Box>
             </Box>
             <Stack spacing={1}>
-                <IconButton onClick={openHelpMenu}>
+                <IconButton onClick={openHelpMenu} id="open-help-menu-button">
                     <HelpIcon />
                 </IconButton>
-                <IconButton onClick={openSettingsMenu}>
+                <IconButton onClick={openSettingsMenu} id="open-settings-menu-button">
                     <SettingsIcon />
                 </IconButton>
-                <IconButton onClick={() => setLogoutDialogOpen(true)}>
+                <IconButton
+                    id="open-logout-dialog-button"
+                    onClick={() => setLogoutDialogOpen(true)}
+                >
                     <LogoutIcon />
                 </IconButton>
             </Stack>
@@ -83,9 +86,12 @@ const Sidebar = () => {
                     }
                 }}
             >
-                <MenuItem onClick={window.Dashboard.launchUninstaller}>
+                <MenuItem
+                    id="launch-uninstaller-menu-item"
+                    onClick={window.Dashboard.launchUninstaller}
+                >
                     <CancelPresentationIcon sx={{mr: 0.8, opacity: 0.7}} />
-            Uninstall
+                    Uninstall
                 </MenuItem>
             </Menu>
 
@@ -101,12 +107,13 @@ const Sidebar = () => {
                 }}
             >
                 <MenuItem
+                    id="open-support-link-menu-item"
                     onClick={() =>
                         window.Dashboard.openExternalLink('https://pointnetwork.io/support')
                     }
                 >
                     <HelpIcon sx={{mr: 0.8, opacity: 0.7}} />
-            Help & Feedback
+                    Help & Feedback
                 </MenuItem>
             </Menu>
 
@@ -115,21 +122,23 @@ const Sidebar = () => {
                     <Typography>Are you sure you want to log out?</Typography>
                     <Box display="flex" justifyContent="flex-end" mt={2}>
                         <Button
+                            id="cancel-logout-button"
                             color="inherit"
                             variant="outlined"
                             size="small"
                             onClick={() => setLogoutDialogOpen(false)}
                         >
-            Cancel
+                            Cancel
                         </Button>
                         <Button
+                            id="logout-button"
                             color="error"
                             variant="contained"
                             size="small"
                             sx={{ml: 1}}
                             onClick={handleLogout}
                         >
-            Log Out
+                            Log Out
                         </Button>
                     </Box>
                 </Box>

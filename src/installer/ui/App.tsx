@@ -73,13 +73,14 @@ export default function App() {
                     <Typography variant="h4" gutterBottom component="h1" fontWeight="900">
                         {installing ? 'Installing' : 'Welcome to Point Installer'}
                     </Typography>
-                    <Typography ml={1} color="#555555">v{version}</Typography>
+                    <Typography ml={1} color="#555555">
+                        v{version}
+                    </Typography>
                 </Box>
 
                 <Box flex={1} display={installing ? 'none' : 'block'}>
                     <Typography color="#cccccc">
-            The following components will be installed to run
-            Point Network
+                        The following components will be installed to run Point Network
                     </Typography>
                     <Box px={2} mt={2} mb={3} bgcolor="primary.light" borderRadius={2}>
                         <List>
@@ -90,9 +91,12 @@ export default function App() {
                             <ListItemText>Point Uninstaller</ListItemText>
                         </List>
                     </Box>
-                    <Button variant="contained" onClick={sendStartInstallation}>
-            Start Installation
-            &nbsp;
+                    <Button
+                        id="start-installation-button"
+                        variant="contained"
+                        onClick={sendStartInstallation}
+                    >
+                        Start Installation &nbsp;
                         <SendIcon></SendIcon>
                     </Button>
                 </Box>
@@ -108,12 +112,13 @@ export default function App() {
                         </Typography>
                         {attempts < 5 ? (
                             <Button
+                                id="retry-installation-button"
                                 size="small"
                                 color="error"
                                 onClick={sendStartInstallation}
                                 variant="contained"
                             >
-                Retry Installation
+                                Retry Installation
                             </Button>
                         ) : null}
                     </Alert>

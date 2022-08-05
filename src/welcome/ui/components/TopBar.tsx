@@ -17,13 +17,14 @@ const TopBar = () => {
             <Box flex={1} sx={{'-webkit-app-region': 'drag'}}></Box>
             <Box
                 sx={{
-                    'opacity': 0.4,
-                    'transition': 'all 150ms',
+                    opacity: 0.4,
+                    transition: 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}
             >
                 <Box
+                    id="minimize-button"
                     px=".75rem"
                     py=".25rem"
                     display="flex"
@@ -38,13 +39,14 @@ const TopBar = () => {
             </Box>
             <Box
                 sx={{
-                    'opacity': 0.4,
-                    'transition': 'all 150ms',
+                    opacity: 0.4,
+                    transition: 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}
             >
                 <Box
+                    id="close-button"
                     px=".75rem"
                     py=".25rem"
                     bgcolor="red"

@@ -19,8 +19,8 @@ const GenerateNew = ({
     route,
     setRoute
 }: {
-  route: string
-  setRoute: Dispatch<SetStateAction<string>>
+    route: string;
+    setRoute: Dispatch<SetStateAction<string>>;
 }) => {
     if (route !== WelcomeRoutes.new) return null;
 
@@ -36,12 +36,9 @@ const GenerateNew = ({
             }
         });
 
-        window.Welcome.on(
-            WelcomeChannelsEnum.generate_mnemonic,
-            (phrase: string) => {
-                setSecretPhrase(phrase.split(' '));
-            }
-        );
+        window.Welcome.on(WelcomeChannelsEnum.generate_mnemonic, (phrase: string) => {
+            setSecretPhrase(phrase.split(' '));
+        });
 
         window.Welcome.on(WelcomeChannelsEnum.copy_mnemonic, () => {
             setAlert('Copied');
@@ -57,17 +54,17 @@ const GenerateNew = ({
                 anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
             />
             <Typography variant="h4" mt={3} mb={2}>
-        Generate Secret Phrase
+                Generate Secret Phrase
             </Typography>
             <Grid container spacing={3}>
-                <Grid item sx={{width:'100%'}}>
+                <Grid item sx={{width: '100%'}}>
                     <Alert severity="info">
                         <AlertTitle>
                             <Typography fontWeight="bold">IMPORTANT</Typography>
                         </AlertTitle>
                         <Typography mt={-0.7} variant="body2">
-              Never share your secret phrase with anyone! Write down and keep it in
-              a secure place
+                            Never share your secret phrase with anyone! Write down and keep it in a
+                            secure place
                         </Typography>
                     </Alert>
 
@@ -84,7 +81,9 @@ const GenerateNew = ({
                             {secretPhrase.map((word, idx) => (
                                 <Grid item xs={2} py={1.5} key={idx}>
                                     <Typography>
-                                        <span style={{borderBottom:'1px solid #333333'}}>{word}</span>
+                                        <span style={{borderBottom: '1px solid #333333'}}>
+                                            {word}
+                                        </span>
                                     </Typography>
                                 </Grid>
                             ))}
@@ -94,35 +93,36 @@ const GenerateNew = ({
                 <Grid item width="100%">
                     <Box mt={1.5} mb={6.5} width="100%">
                         <Typography mb={1.5}>
-              Click "Generate" to generate a new secret phrase
+                            Click "Generate" to generate a new secret phrase
                         </Typography>
                         <Button
+                            id="generate-seed-phrase-button"
                             variant={secretPhrase.some(el => !el) ? 'contained' : 'outlined'}
                             sx={{mr: 1.5}}
                             onClick={window.Welcome.generateMnemonic}
                         >
-              Generate
+                            Generate
                         </Button>
                         <Button
+                            id="copy-seed-phrase-button"
                             variant="outlined"
-                            onClick={() =>
-                                window.Welcome.copyMnemonic(secretPhrase.join(' '))
-                            }
+                            onClick={() => window.Welcome.copyMnemonic(secretPhrase.join(' '))}
                             disabled={secretPhrase.some(el => !el)}
                         >
-              Copy
+                            Copy
                         </Button>
 
                         <Button
+                            id="continue-seed-verfication-button"
                             variant="contained"
                             // size="large"
                             endIcon={<SendIcon />}
                             // fullWidth
                             onClick={() => setRoute(WelcomeRoutes.verify)}
                             disabled={secretPhrase.some(el => !el)}
-                            sx={{float:'right'}}
+                            sx={{float: 'right'}}
                         >
-              Continue
+                            Continue
                         </Button>
                     </Box>
                 </Grid>

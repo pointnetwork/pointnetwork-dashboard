@@ -3,9 +3,9 @@ import Box from '@mui/material/Box';
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
 
-const TopBar = ({isLoading = true}: { isLoading: boolean }) => {
+const TopBar = ({isLoading = true}: {isLoading: boolean}) => {
     const handeClose = () => {
-        if (!isLoading){
+        if (!isLoading) {
             window.Installer.closeWindow();
         }
     };
@@ -19,13 +19,14 @@ const TopBar = ({isLoading = true}: { isLoading: boolean }) => {
             <Box flex={1} sx={{'-webkit-app-region': 'drag'}}></Box>
             <Box
                 sx={{
-                    'opacity': 0.4,
-                    'transition': 'all 150ms',
+                    opacity: 0.4,
+                    transition: 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}
             >
                 <Box
+                    id="minimize-button"
                     px=".75rem"
                     py=".25rem"
                     display="flex"
@@ -40,13 +41,14 @@ const TopBar = ({isLoading = true}: { isLoading: boolean }) => {
             </Box>
             <Box
                 sx={{
-                    'opacity': 0.4,
-                    'transition': 'all 150ms',
+                    opacity: 0.4,
+                    transition: 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}
             >
                 <Box
+                    id="close-button"
                     px=".75rem"
                     py=".25rem"
                     bgcolor="red"

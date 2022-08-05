@@ -10,12 +10,12 @@ const MainLayout = ({
     children,
     navigate
 }: {
-  navigate: ReactEventHandler
-  children: ReactElement | ReactElement[]
+    navigate: ReactEventHandler;
+    children: ReactElement | ReactElement[];
 }) => (
     <Box>
         <Box pl={2}>
-            <IconButton onClick={navigate}>
+            <IconButton id="go-back-button" onClick={navigate}>
                 <ArrowBackIcon />
             </IconButton>
         </Box>

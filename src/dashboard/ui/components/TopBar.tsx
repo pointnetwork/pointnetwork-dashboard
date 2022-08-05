@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
 
-const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
+const TopBar = ({isBrowserRunning = true}: {isBrowserRunning: boolean}) => {
     const [closeDialogOpen, setCloseDialogOpen] = useState<boolean>(false);
 
     const handleCloseRequest = () => {
@@ -30,13 +30,14 @@ const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
             <Box flex={1} sx={{'-webkit-app-region': 'drag'}}></Box>
             <Box
                 sx={{
-                    'opacity': 0.4,
-                    'transition': 'all 150ms',
+                    opacity: 0.4,
+                    transition: 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}
             >
                 <Box
+                    id="minimize-button"
                     px=".75rem"
                     py=".25rem"
                     display="flex"
@@ -51,13 +52,14 @@ const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
             </Box>
             <Box
                 sx={{
-                    'opacity': 0.4,
-                    'transition': 'all 150ms',
+                    opacity: 0.4,
+                    transition: 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}
             >
                 <Box
+                    id="close-button"
                     px=".75rem"
                     py=".25rem"
                     bgcolor="red"
@@ -76,21 +78,23 @@ const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
                     <Typography>Quit Point Network and Point Browser?</Typography>
                     <Box display="flex" justifyContent="flex-end" mt={2}>
                         <Button
+                            id="close-cancel-button"
                             color="inherit"
                             variant="outlined"
                             size="small"
                             onClick={() => setCloseDialogOpen(false)}
                         >
-              Cancel
+                            Cancel
                         </Button>
                         <Button
+                            id="close-confirm-button"
                             color="error"
                             variant="contained"
                             size="small"
                             sx={{ml: 1}}
                             onClick={handleClose}
                         >
-              Quit
+                            Quit
                         </Button>
                     </Box>
                 </Box>
