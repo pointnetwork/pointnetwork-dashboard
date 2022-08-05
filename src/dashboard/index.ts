@@ -248,7 +248,7 @@ export default async function () {
                         const faucetURL = helpers.getFaucetURL();
                         logger.info('Airdropping wallet address with POINTS');
                         try {
-                            await axios.get(`${faucetURL}/airdrop?address=${address}`);
+                            await axios.get(`${faucetURL}/airdrop?address=${address}&network=xnet`); // TODO: the network argument should be set dynamically
                         } catch (error) {
                             logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
                         }
