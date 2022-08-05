@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import ContactSupport from './ContactSupport';
 
 // TODO: this will come from a shared repo of `point-error-codes`.
-type PointErr = { code: number; name: string; text: string }
+type PointErr = {code: number; name: string; text: string};
 const PointErrorCodes: Record<number, PointErr> = {
     11: {
         code: 11,
@@ -38,7 +38,7 @@ function getButtonByError(code: number) {
                 size="small"
                 onClick={window.Dashboard.logOut}
             >
-        Log Out
+                Log Out
             </Button>
         );
     }
@@ -51,7 +51,7 @@ function getButtonByError(code: number) {
                 size="small"
                 onClick={window.Dashboard.closeWindow}
             >
-        Close
+                Close
             </Button>
         );
     }
@@ -63,9 +63,9 @@ function getInstructionsByError(code: number) {
     if (code === 11) {
         return (
             <Typography>
-        If you have manually edited `key.json`, you may fix it and restart the
-        Point Dashboard. Otherwise, click on the button below to log out and
-        create a new account or import an existing one.
+                If you have manually edited `key.json`, you may fix it and restart the Point
+                Dashboard. Otherwise, click on the button below to log out and create a new account
+                or import an existing one.
             </Typography>
         );
     }
@@ -73,8 +73,8 @@ function getInstructionsByError(code: number) {
     if (code === 14) {
         return (
             <Typography>
-        Please make sure your network is working correctly. Close the Dashboard
-        and restart it to trigger a new download.
+                Please make sure your network is working correctly. Close the Dashboard and restart
+                it to trigger a new download.
             </Typography>
         );
     }
@@ -83,9 +83,9 @@ function getInstructionsByError(code: number) {
 }
 
 type Props = {
-  errCode: number
-  identifier: string
-}
+    errCode: number;
+    identifier: string;
+};
 
 const ErrorDialog = ({errCode, identifier}: Props) => {
     const pointErr = PointErrorCodes[errCode];
@@ -96,14 +96,10 @@ const ErrorDialog = ({errCode, identifier}: Props) => {
         <Dialog open={errCode > 0}>
             <Box p={3}>
                 <Typography variant="h5" gutterBottom>
-          Sorry, we have run into an error.
+                    Sorry, we have run into an error.
                 </Typography>
 
-                <Box
-                    sx={{backgroundColor: '#eee', border: '1px solid #ddd'}}
-                    my={2}
-                    p={2}
-                >
+                <Box bgcolor="#262626" border={1} borderColor="#555" borderRadius={1} my={2} p={2}>
                     <Typography>
                         {pointErr.name}: {pointErr.text}
                     </Typography>
