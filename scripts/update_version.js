@@ -24,12 +24,12 @@ if (!/^\d+\.\d+\.\d+$/.test(version)) {
 }
 
 const notStagedLines = execSyncClean('git status --porcelain=v1 2>/dev/null | wc -l');
-const branch = execSyncClean('git rev-parse --abbrev-ref HEAD');
-if (branch !== 'develop') {
-    console.error('You need to be on develop branch to create the release');
-    console.error('HINT: git checkout develop');
-    process.exit(1);
-}
+// const branch = execSyncClean('git rev-parse --abbrev-ref HEAD');
+// if (branch !== 'develop') {
+//     console.error('You need to be on develop branch to create the release');
+//     console.error('HINT: git checkout develop');
+//     process.exit(1);
+// }
 
 if (Number(notStagedLines)) {
     console.error('You have unstaged changes. Please commit or stash them before creating a new release');
@@ -37,13 +37,13 @@ if (Number(notStagedLines)) {
     process.exit(1);
 }
 
-const localDevelop = execSyncClean('git rev-parse HEAD');
-const remoteDevelop = execSyncClean('git rev-parse origin/develop');
-if (localDevelop !== remoteDevelop) {
-    console.error('Your local branch must be on sync with remote develop branch');
-    console.error('HINT: git fetch && git reset --hard origin/develop');
-    process.exit(1);
-}
+// const localDevelop = execSyncClean('git rev-parse HEAD');
+// const remoteDevelop = execSyncClean('git rev-parse origin/develop');
+// if (localDevelop !== remoteDevelop) {
+//     console.error('Your local branch must be on sync with remote develop branch');
+//     console.error('HINT: git fetch && git reset --hard origin/develop');
+//     process.exit(1);
+// }
 
 try {
     execSync(`npm version ${version}`);
