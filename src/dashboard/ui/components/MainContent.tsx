@@ -157,10 +157,10 @@ const MainContent = () => {
                         </InfoDisplayCard>
                         <InfoDisplayCard title="Balance">
                             <Typography variant="h6" mb={1}>
-                                {balance} yPOINT
+                                {balance} xPOINT
                             </Typography>
                             <Button variant="contained" size="small" disabled={balance > 0}>
-                Request yPOINTS
+                Request xPOINTS
                             </Button>
                         </InfoDisplayCard>
                     </Grid>
