@@ -163,7 +163,7 @@ export default async function () {
         const address = addressRes.data.data.address;
 
         const faucetURL = helpers.getFaucetURL();
-        const res = await axios.get(`${faucetURL}/balance?address=${address}`);
+        const res = await axios.get(`${faucetURL}/balance?address=${address}&network=xnet`); // TODO: the network argument should be set dynamically
         if (res.data?.balance && !isNaN(res.data.balance)) {
             balance = res.data.balance;
         } else {
