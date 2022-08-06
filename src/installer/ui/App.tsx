@@ -126,7 +126,7 @@ export default function App() {
                     display={installing ? 'block' : 'none'}
                 >
                     <CreateDirLogs
-                        title="Create Directoires"
+                        title="Create Directories"
                         channel={InstallerChannelsEnum.create_dirs}
                     />
                     <CreateDirLogs
