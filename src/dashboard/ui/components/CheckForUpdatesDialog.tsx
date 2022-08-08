@@ -133,8 +133,8 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
                         {isUpdating.firefoxError || isUpdating.nodeError || isUpdating.pointsdkError
                             ? 'Error occured while updating'
                             : Object.values(isUpdating).every(el => !el)
-                            ? 'Up to Date'
-                            : 'Updating...'}
+                                ? 'Up to Date'
+                                : 'Updating...'}
                     </Typography>
                 </Box>
                 <Grid container>
