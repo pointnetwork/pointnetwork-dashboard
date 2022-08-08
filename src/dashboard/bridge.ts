@@ -7,7 +7,7 @@ import {
     FirefoxChannelsEnum,
     GenericChannelsEnum,
     NodeChannelsEnum,
-    SdkChannelsEnum
+    PointSDKChannelsEnum
 } from './../@types/ipc_channels';
 
 declare global {
@@ -43,10 +43,10 @@ export const api = {
         ipcRenderer.send(NodeChannelsEnum.get_version);
     }),
     getSdkVersion: () => new Promise<string>((resolve) => {
-        ipcRenderer.once(SdkChannelsEnum.get_version, (_, v: string) => {
+        ipcRenderer.once(PointSDKChannelsEnum.get_version, (_, v: string) => {
             resolve(v);
         });
-        ipcRenderer.send(SdkChannelsEnum.get_version);
+        ipcRenderer.send(PointSDKChannelsEnum.get_version);
     }),
     // Uninstaller
     launchUninstaller: () => ipcRenderer.send(UninstallerChannelsEnum.launch),

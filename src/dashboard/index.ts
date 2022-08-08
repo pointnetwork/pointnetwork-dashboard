@@ -18,7 +18,7 @@ import {
     FirefoxChannelsEnum,
     GenericChannelsEnum,
     NodeChannelsEnum,
-    SdkChannelsEnum,
+    PointSDKChannelsEnum,
     UninstallerChannelsEnum
 } from '../@types/ipc_channels';
 import {EventListener} from '../@types/generic';
@@ -338,7 +338,7 @@ export default async function () {
             async listener() {
                 const version = (await helpers.getInstalledVersionInfo('sdk'))
                     .installedReleaseVersion;
-                window?.webContents.send(SdkChannelsEnum.get_version, version);
+                window?.webContents.send(PointSDKChannelsEnum.get_version, version);
             }
         },
         // Generic channels
