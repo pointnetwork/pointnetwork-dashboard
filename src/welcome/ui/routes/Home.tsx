@@ -72,9 +72,9 @@ const ClickableCard = ({
             alignItems="center"
             justifyContent="center"
             sx={{
-                backgroundColor: isDefault ? '#29244b' : 'inherit',
-                transition: 'all .2s',
-                cursor: 'pointer',
+                'backgroundColor': isDefault ? '#29244b' : 'inherit',
+                'transition': 'all .2s',
+                'cursor': 'pointer',
                 '&:hover': {
                     color: ' white',
                     background: deepPurple.A200,

@@ -1,36 +1,38 @@
 import {GenericProgressLog, IsUpdatingState, UpdateLog} from './generic';
 
 export type MainStatus = {
-  isBrowserRunning: boolean
-  isNodeRunning: boolean
-  identifier: string
-  browserVersion: string
-  nodeVersion: string
-  launchFailed: boolean
-  loader: {
-    isLoading: boolean
-    message: string
-  }
-  identityInfo: {
-    identity: string
-    address: string
-  }
-  balance: string | number
-  engineErrorCode: number
-}
+    isBrowserRunning: boolean;
+    isNodeRunning: boolean;
+    identifier: string;
+    browserVersion: string;
+    nodeVersion: string;
+    sdkVersion: string;
+    launchFailed: boolean;
+    loader: {
+        isLoading: boolean;
+        message: string;
+    };
+    identityInfo: {
+        identity: string;
+        address: string;
+    };
+    balance: string | number;
+    engineErrorCode: number;
+    getInfo: () => void;
+};
 
 export type UpdateStatus = {
-  isUpdating: IsUpdatingState
-  updateDialogOpen: boolean
-  nodeLog: string
-  nodeDownloadLogs: GenericProgressLog
-  nodeUpdateLogs: UpdateLog
-  nodeUnpackLogs: GenericProgressLog
-  firefoxLog: string
-  firefoxDownloadLogs: GenericProgressLog
-  firefoxUpdateLogs: UpdateLog
-  firefoxUnpackLogs: GenericProgressLog
-  sdkLog: string
-  sdkDownloadLogs: GenericProgressLog
-  sdkUpdateLogs: UpdateLog
-}
+    isUpdating: IsUpdatingState;
+    updateDialogOpen: boolean;
+    nodeLog: string;
+    nodeDownloadLogs: GenericProgressLog;
+    nodeUpdateLogs: UpdateLog;
+    nodeUnpackLogs: GenericProgressLog;
+    firefoxLog: string;
+    firefoxDownloadLogs: GenericProgressLog;
+    firefoxUpdateLogs: UpdateLog;
+    firefoxUnpackLogs: GenericProgressLog;
+    sdkLog: string;
+    sdkDownloadLogs: GenericProgressLog;
+    sdkUpdateLogs: UpdateLog;
+};

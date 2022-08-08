@@ -18,6 +18,7 @@ import {
     FirefoxChannelsEnum,
     GenericChannelsEnum,
     NodeChannelsEnum,
+    PointSDKChannelsEnum,
     UninstallerChannelsEnum
 } from '../@types/ipc_channels';
 import {EventListener} from '../@types/generic';
@@ -329,6 +330,15 @@ export default async function () {
                 const version = (await helpers.getInstalledVersionInfo('node'))
                     .installedReleaseVersion;
                 window?.webContents.send(NodeChannelsEnum.get_version, version);
+            }
+        },
+        // PointSDK channels
+        {
+            channel: NodeChannelsEnum.get_version,
+            async listener() {
+                const version = (await helpers.getInstalledVersionInfo('sdk'))
+                    .installedReleaseVersion;
+                window?.webContents.send(PointSDKChannelsEnum.get_version, version);
             }
         },
         // Generic channels

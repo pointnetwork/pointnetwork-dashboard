@@ -18,8 +18,8 @@ const TopBar = () => {
             <Box flex={1} sx={{'-webkit-app-region': 'drag'}}></Box>
             <Box
                 sx={{
-                    opacity: 0.4,
-                    transition: 'all 150ms',
+                    'opacity': 0.4,
+                    'transition': 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}
@@ -40,8 +40,8 @@ const TopBar = () => {
             </Box>
             <Box
                 sx={{
-                    opacity: 0.4,
-                    transition: 'all 150ms',
+                    'opacity': 0.4,
+                    'transition': 'all 150ms',
                     '&:hover': {opacity: 1},
                     '&:active': {opacity: 0.5}
                 }}

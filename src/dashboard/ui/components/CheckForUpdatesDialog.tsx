@@ -1,4 +1,4 @@
-import {FunctionComponent, useContext} from 'react';
+import {FunctionComponent, useContext, useEffect} from 'react';
 // MUI
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -22,6 +22,7 @@ import {GenericProgressLog, UpdateLog} from '../../../@types/generic';
 // Context
 import {UpdateStatusContext} from '../../context/UpdateStatusContext';
 import DomIds from '../../../@types/DOM-el-ids';
+import {MainStatusContext} from '../../context/MainStatusContext';
 
 /**
  * Helper component to render the update information for a resource
@@ -109,10 +110,15 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
         sdkDownloadLogs,
         sdkUpdateLogs
     } = useContext(UpdateStatusContext);
+    const {getInfo} = useContext(MainStatusContext);
 
     const handleClose = () => {
         window.Dashboard.closeWindow();
     };
+
+    useEffect(() => {
+        if (!isUpdating.firefox && !isUpdating.node && !isUpdating.pointsdk) getInfo();
+    }, [isUpdating]);
 
     return (
         <Dialog open={updateDialogOpen} fullWidth>
@@ -129,8 +135,8 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
                         {isUpdating.firefoxError || isUpdating.nodeError || isUpdating.pointsdkError
                             ? 'Error occured while updating'
                             : Object.values(isUpdating).every(el => !el)
-                            ? 'Up to Date'
-                            : 'Updating...'}
+                                ? 'Up to Date'
+                                : 'Updating...'}
                     </Typography>
                 </Box>
                 <Grid container>

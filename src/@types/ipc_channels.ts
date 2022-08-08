@@ -71,6 +71,7 @@ export enum UninstallerChannelsEnum {
 export enum PointSDKChannelsEnum {
   download = 'pointsdk:download',
   check_for_updates = 'pointsdk:check_for_updates',
+  get_version = 'sdk:get_version',
 }
 
 export enum BountyChannelsEnum {
@@ -79,6 +80,7 @@ export enum BountyChannelsEnum {
 
 export type DownloadChannels =
     | NodeChannelsEnum.download
+    | PointSDKChannelsEnum.download
     | FirefoxChannelsEnum.download
     | PointSDKChannelsEnum.download
     | UninstallerChannelsEnum.download

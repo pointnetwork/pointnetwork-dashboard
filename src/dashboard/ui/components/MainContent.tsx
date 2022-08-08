@@ -77,8 +77,15 @@ const InfoDisplayCard = ({
 const MainContent = () => {
     const [alert, setAlert] = useState<string>('');
 
-    const {isBrowserRunning, isNodeRunning, browserVersion, nodeVersion, balance, identityInfo} =
-        useContext(MainStatusContext);
+    const {
+        isBrowserRunning,
+        isNodeRunning,
+        browserVersion,
+        nodeVersion,
+        sdkVersion,
+        balance,
+        identityInfo
+    } = useContext(MainStatusContext);
 
     useEffect(() => {
         window.Dashboard.on(GenericChannelsEnum.copy_to_clipboard, () => {
@@ -122,7 +129,7 @@ const MainContent = () => {
                         <ResourceStatusCard
                             resource="Extension"
                             isRunning={isBrowserRunning}
-                            version="v0.0.16"
+                            version={sdkVersion}
                         />
                     </Grid>
 
