@@ -1,4 +1,4 @@
-import {FunctionComponent, useContext} from 'react';
+import {FunctionComponent, useContext, useEffect} from 'react';
 // MUI
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -21,19 +21,17 @@ import {
 import {GenericProgressLog, UpdateLog} from '../../../@types/generic';
 // Context
 import {UpdateStatusContext} from '../../context/UpdateStatusContext';
+import {MainStatusContext} from '../../context/MainStatusContext';
 
 /**
  * Helper component to render the update information for a resource
  */
 const ResourceUpdateCard: FunctionComponent<{
-  channel:
-    | typeof FirefoxChannelsEnum
-    | typeof NodeChannelsEnum
-    | typeof PointSDKChannelsEnum
-  log: string
-  updateLogs: UpdateLog
-  downloadLogs: GenericProgressLog
-  unpackLogs?: GenericProgressLog
+    channel: typeof FirefoxChannelsEnum | typeof NodeChannelsEnum | typeof PointSDKChannelsEnum;
+    log: string;
+    updateLogs: UpdateLog;
+    downloadLogs: GenericProgressLog;
+    unpackLogs?: GenericProgressLog;
 }> = ({channel, log, updateLogs, downloadLogs, unpackLogs}) => {
     let title = '';
     switch (channel) {
@@ -110,32 +108,33 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
         sdkDownloadLogs,
         sdkUpdateLogs
     } = useContext(UpdateStatusContext);
+    const {getInfo} = useContext(MainStatusContext);
 
     const handleClose = () => {
         window.Dashboard.closeWindow();
     };
 
+    useEffect(() => {
+        if (!isUpdating.firefox && !isUpdating.node && !isUpdating.pointsdk) getInfo();
+    }, [isUpdating]);
+
     return (
         <Dialog open={updateDialogOpen} fullWidth>
             <Box p={2}>
                 <Box display="flex" alignItems="center" ml={1}>
-                    {isUpdating.firefoxError ||
-          isUpdating.nodeError ||
-          isUpdating.pointsdkError ? (
-                                <ErrorIcon color="error" />
-                            ) : Object.values(isUpdating).every(el => !el) ? (
-                                <CheckCircleIcon color="success" />
-                            ) : (
-                                <CircularProgress size={24} thickness={5} />
-                            )}
+                    {isUpdating.firefoxError || isUpdating.nodeError || isUpdating.pointsdkError ? (
+                        <ErrorIcon color="error" />
+                    ) : Object.values(isUpdating).every(el => !el) ? (
+                        <CheckCircleIcon color="success" />
+                    ) : (
+                        <CircularProgress size={24} thickness={5} />
+                    )}
                     <Typography variant="h6" ml={0.5}>
-                        {isUpdating.firefoxError ||
-            isUpdating.nodeError ||
-            isUpdating.pointsdkError
+                        {isUpdating.firefoxError || isUpdating.nodeError || isUpdating.pointsdkError
                             ? 'Error occured while updating'
                             : Object.values(isUpdating).every(el => !el)
-                                ? 'Up to Date'
-                                : 'Updating...'}
+                            ? 'Up to Date'
+                            : 'Updating...'}
                     </Typography>
                 </Box>
                 <Grid container>
@@ -160,15 +159,13 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
                         updateLogs={sdkUpdateLogs}
                     />
                 </Grid>
-                {isUpdating.firefoxError ||
-        isUpdating.nodeError ||
-        isUpdating.pointsdkError ? (
-                            <Box display="flex" flexDirection="row-reverse">
-                                <Button color="error" onClick={handleClose}>
-              Close Point Network
-                                </Button>
-                            </Box>
-                        ) : null}
+                {isUpdating.firefoxError || isUpdating.nodeError || isUpdating.pointsdkError ? (
+                    <Box display="flex" flexDirection="row-reverse">
+                        <Button color="error" onClick={handleClose}>
+                            Close Point Network
+                        </Button>
+                    </Box>
+                ) : null}
             </Box>
         </Dialog>
     );
