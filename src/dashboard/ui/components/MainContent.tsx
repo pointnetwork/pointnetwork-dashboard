@@ -80,6 +80,7 @@ const MainContent = () => {
         isNodeRunning,
         browserVersion,
         nodeVersion,
+        sdkVersion,
         balance,
         identityInfo
     } = useContext(MainStatusContext);
@@ -127,7 +128,7 @@ const MainContent = () => {
                         <ResourceStatusCard
                             resource="Extension"
                             isRunning={isBrowserRunning}
-                            version="v0.0.16"
+                            version={sdkVersion}
                         />
                     </Grid>
 
