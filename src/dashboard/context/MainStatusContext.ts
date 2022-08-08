@@ -13,9 +13,9 @@ export const useMainStatus = () => {
     // General
     const [identifier, setIdentifier] = useState<string>('');
     const [loader, setIsLaunching] = useState<{
-    isLoading: boolean
-    message: string
-  }>({isLoading: true, message: 'Checking for updates...'});
+        isLoading: boolean;
+        message: string;
+    }>({isLoading: true, message: 'Checking for updates...'});
     const [launchFailed, setLaunchFailed] = useState(false);
     // Node
     const [nodeVersion, setNodeVersion] = useState<string>('');
@@ -28,12 +28,12 @@ export const useMainStatus = () => {
     const [isBrowserRunning, setIsBrowserRunning] = useState<boolean>(false);
     // Identity
     const [identityInfo, setIdentityInfo] = useState<{
-    identity: string
-    address: string
-  }>({
-      identity: '',
-      address: ''
-  });
+        identity: string;
+        address: string;
+    }>({
+        identity: '',
+        address: ''
+    });
     const [balance, setBalance] = useState<number | string>(0);
 
     // Register these events once to prevent leaks
@@ -100,12 +100,9 @@ export const useMainStatus = () => {
             }
         });
 
-        window.Dashboard.on(
-            DashboardChannelsEnum.check_balance_and_airdrop,
-            (bal: string) => {
-                setBalance(bal);
-            }
-        );
+        window.Dashboard.on(DashboardChannelsEnum.check_balance_and_airdrop, (bal: string) => {
+            setBalance(bal);
+        });
     };
 
     const getInfo = async () => {
@@ -164,10 +161,9 @@ export const useMainStatus = () => {
         loader,
         identityInfo,
         balance,
-        engineErrorCode
+        engineErrorCode,
+        getInfo
     };
 };
 
-export const MainStatusContext = createContext<MainStatus>(
-  {} as unknown as MainStatus
-);
+export const MainStatusContext = createContext<MainStatus>({} as unknown as MainStatus);
