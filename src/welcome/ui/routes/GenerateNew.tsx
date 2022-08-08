@@ -14,6 +14,7 @@ import MainLayout from '../components/MainLayout';
 import SendIcon from '@mui/icons-material/Send';
 // Types
 import {WelcomeChannelsEnum} from '../../../@types/ipc_channels';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const GenerateNew = ({
     route,
@@ -96,7 +97,7 @@ const GenerateNew = ({
                             Click "Generate" to generate a new secret phrase
                         </Typography>
                         <Button
-                            id="generate-seed-phrase-button"
+                            id={DomIds.welcome.generateNew.generateSeedPhraseButton}
                             variant={secretPhrase.some(el => !el) ? 'contained' : 'outlined'}
                             sx={{mr: 1.5}}
                             onClick={window.Welcome.generateMnemonic}
@@ -104,7 +105,7 @@ const GenerateNew = ({
                             Generate
                         </Button>
                         <Button
-                            id="copy-seed-phrase-button"
+                            id={DomIds.welcome.generateNew.copySeedPhraseButton}
                             variant="outlined"
                             onClick={() => window.Welcome.copyMnemonic(secretPhrase.join(' '))}
                             disabled={secretPhrase.some(el => !el)}
@@ -113,7 +114,7 @@ const GenerateNew = ({
                         </Button>
 
                         <Button
-                            id="continue-seed-verfication-button"
+                            id={DomIds.welcome.generateNew.continueSeedVerificationButton}
                             variant="contained"
                             // size="large"
                             endIcon={<SendIcon />}

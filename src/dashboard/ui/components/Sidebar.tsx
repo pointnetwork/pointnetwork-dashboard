@@ -15,6 +15,7 @@ import HelpIcon from '@mui/icons-material/Help';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {ReactComponent as PointLogo} from '../../../../assets/point-logo.svg';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const Sidebar = () => {
     const [logoutDialogOpen, setLogoutDialogOpen] = useState<boolean>(false);
@@ -61,14 +62,17 @@ const Sidebar = () => {
                 </Box>
             </Box>
             <Stack spacing={1}>
-                <IconButton onClick={openHelpMenu} id="open-help-menu-button">
+                <IconButton onClick={openHelpMenu} id={DomIds.dashboard.sidebar.openHelpMenuButton}>
                     <HelpIcon />
                 </IconButton>
-                <IconButton onClick={openSettingsMenu} id="open-settings-menu-button">
+                <IconButton
+                    onClick={openSettingsMenu}
+                    id={DomIds.dashboard.sidebar.openSettingsMenuButton}
+                >
                     <SettingsIcon />
                 </IconButton>
                 <IconButton
-                    id="open-logout-dialog-button"
+                    id={DomIds.dashboard.sidebar.openLogoutDialogButton}
                     onClick={() => setLogoutDialogOpen(true)}
                 >
                     <LogoutIcon />
@@ -87,7 +91,7 @@ const Sidebar = () => {
                 }}
             >
                 <MenuItem
-                    id="launch-uninstaller-menu-item"
+                    id={DomIds.dashboard.sidebar.launchUninstallerMenuItem}
                     onClick={window.Dashboard.launchUninstaller}
                 >
                     <CancelPresentationIcon sx={{mr: 0.8, opacity: 0.7}} />
@@ -107,7 +111,7 @@ const Sidebar = () => {
                 }}
             >
                 <MenuItem
-                    id="open-support-link-menu-item"
+                    id={DomIds.dashboard.sidebar.openSupportLinkMenuItem}
                     onClick={() =>
                         window.Dashboard.openExternalLink('https://pointnetwork.io/support')
                     }
@@ -122,7 +126,7 @@ const Sidebar = () => {
                     <Typography>Are you sure you want to log out?</Typography>
                     <Box display="flex" justifyContent="flex-end" mt={2}>
                         <Button
-                            id="cancel-logout-button"
+                            id={DomIds.dashboard.sidebar.cancelLogoutButton}
                             color="inherit"
                             variant="outlined"
                             size="small"
@@ -131,7 +135,7 @@ const Sidebar = () => {
                             Cancel
                         </Button>
                         <Button
-                            id="logout-button"
+                            id={DomIds.dashboard.sidebar.logoutButton}
                             color="error"
                             variant="contained"
                             size="small"

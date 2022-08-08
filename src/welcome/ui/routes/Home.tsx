@@ -9,6 +9,7 @@ import deepPurple from '@mui/material/colors/deepPurple';
 // Icons
 import DownloadIcon from '@mui/icons-material/Download';
 import KeyIcon from '@mui/icons-material/Key';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const Home = ({route, setRoute}: {route: string; setRoute: Dispatch<SetStateAction<string>>}) => {
     if (route !== WelcomeRoutes.home) return null;
@@ -24,7 +25,7 @@ const Home = ({route, setRoute}: {route: string; setRoute: Dispatch<SetStateActi
             <Box width="560px">
                 <Grid container pt={2.5}>
                     <ClickableCard
-                        id="generate-new-card"
+                        id={DomIds.welcome.home.generateNewCard}
                         isDefault={true}
                         setRoute={() => setRoute(WelcomeRoutes.new)}
                         icon={<KeyIcon sx={{height: 64, width: 64}} />}
@@ -32,7 +33,7 @@ const Home = ({route, setRoute}: {route: string; setRoute: Dispatch<SetStateActi
                         No, generate one
                     </ClickableCard>
                     <ClickableCard
-                        id="import-existing-card"
+                        id={DomIds.welcome.home.importExistingCard}
                         setRoute={() => setRoute(WelcomeRoutes.existing)}
                         icon={<DownloadIcon sx={{height: 64, width: 64}} />}
                     >

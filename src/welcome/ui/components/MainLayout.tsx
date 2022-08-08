@@ -5,6 +5,7 @@ import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 // Icons
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const MainLayout = ({
     children,
@@ -15,7 +16,7 @@ const MainLayout = ({
 }) => (
     <Box>
         <Box pl={2}>
-            <IconButton id="go-back-button" onClick={navigate}>
+            <IconButton id={DomIds.welcome.mainLayout.goBackButton} onClick={navigate}>
                 <ArrowBackIcon />
             </IconButton>
         </Box>

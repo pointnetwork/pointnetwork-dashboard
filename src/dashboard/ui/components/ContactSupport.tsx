@@ -7,6 +7,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {GenericChannelsEnum} from '../../../@types/ipc_channels';
 import ExternalLink from '../../../../shared/react-components/ExternalLink';
+import DomIds from '../../../@types/DOM-el-ids';
 
 type Props = {identifier: string};
 
@@ -26,7 +27,7 @@ const ContactSupport = ({identifier}: Props) => {
                 If the problem persists, please try to uninstall and reinstall the Dashboard or
                 contact the support team{' '}
                 <ExternalLink
-                    id="support-link"
+                    id={DomIds.dashboard.contactSupport.supportLink}
                     onClick={() =>
                         window.Dashboard.openExternalLink('https://pointnetwork.io/support')
                     }
@@ -47,7 +48,7 @@ const ContactSupport = ({identifier}: Props) => {
                 ) : (
                     <Box display="flex" alignItems="center">
                         <IconButton
-                            id="copy-identifier-button"
+                            id={DomIds.dashboard.contactSupport.copyIdentifierButton}
                             onClick={() => window.Dashboard.copyToClipboard(identifier)}
                         >
                             <ContentCopyIcon fontSize="small" />

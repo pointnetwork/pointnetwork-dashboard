@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const DisclaimerDialog = ({
     open,
@@ -22,7 +23,7 @@ const DisclaimerDialog = ({
                 the software to you to access it, and it's up to you how to use it, however by using
                 the software you agree to comply with our{' '}
                 <Typography
-                    id="open-terms-link"
+                    id={DomIds.installer.disclaimerDialog.openTermsLink}
                     mt={1}
                     variant="caption"
                     color="primary"
@@ -69,11 +70,15 @@ const DisclaimerDialog = ({
                 justifyContent="center"
                 mt={3}
             >
-                <Button id="accept-terms-button" variant="contained" onClick={() => setOpen(false)}>
+                <Button
+                    id={DomIds.installer.disclaimerDialog.acceptTermsButton}
+                    variant="contained"
+                    onClick={() => setOpen(false)}
+                >
                     I undestand and agree to continue
                 </Button>
                 <Button
-                    id="reject-terms-button"
+                    id={DomIds.installer.disclaimerDialog.rejectTermsButton}
                     color="inherit"
                     variant="text"
                     onClick={window.Installer.closeWindow}

@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const TopBar = ({isBrowserRunning = true}: {isBrowserRunning: boolean}) => {
     const [closeDialogOpen, setCloseDialogOpen] = useState<boolean>(false);
@@ -37,7 +38,7 @@ const TopBar = ({isBrowserRunning = true}: {isBrowserRunning: boolean}) => {
                 }}
             >
                 <Box
-                    id="minimize-button"
+                    id={DomIds.dashboard.topbar.minimizeButton}
                     px=".75rem"
                     py=".25rem"
                     display="flex"
@@ -59,7 +60,7 @@ const TopBar = ({isBrowserRunning = true}: {isBrowserRunning: boolean}) => {
                 }}
             >
                 <Box
-                    id="close-button"
+                    id={DomIds.dashboard.topbar.closeButton}
                     px=".75rem"
                     py=".25rem"
                     bgcolor="red"
@@ -78,7 +79,7 @@ const TopBar = ({isBrowserRunning = true}: {isBrowserRunning: boolean}) => {
                     <Typography>Quit Point Network and Point Browser?</Typography>
                     <Box display="flex" justifyContent="flex-end" mt={2}>
                         <Button
-                            id="close-cancel-button"
+                            id={DomIds.dashboard.topbar.closeCancelButton}
                             color="inherit"
                             variant="outlined"
                             size="small"
@@ -87,7 +88,7 @@ const TopBar = ({isBrowserRunning = true}: {isBrowserRunning: boolean}) => {
                             Cancel
                         </Button>
                         <Button
-                            id="close-confirm-button"
+                            id={DomIds.dashboard.topbar.closeConfirmButton}
                             color="error"
                             variant="contained"
                             size="small"

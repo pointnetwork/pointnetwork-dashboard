@@ -22,6 +22,7 @@ import {
     UninstallerChannelsEnum,
     InstallerChannelsEnum
 } from '../../@types/ipc_channels';
+import DomIds from '../../@types/DOM-el-ids';
 
 export default function App() {
     const loggerRef = useRef<HTMLElement>();
@@ -92,7 +93,7 @@ export default function App() {
                         </List>
                     </Box>
                     <Button
-                        id="start-installation-button"
+                        id={DomIds.installer.app.startInstallationButton}
                         variant="contained"
                         onClick={sendStartInstallation}
                     >
@@ -112,7 +113,7 @@ export default function App() {
                         </Typography>
                         {attempts < 5 ? (
                             <Button
-                                id="retry-installation-button"
+                                id={DomIds.installer.app.restartInstallationButton}
                                 size="small"
                                 color="error"
                                 onClick={sendStartInstallation}

@@ -5,6 +5,7 @@ import AlertTitle from '@mui/material/AlertTitle';
 // Types
 import {DashboardChannelsEnum} from '../../../@types/ipc_channels';
 import {UpdateLog} from '../../../@types/generic';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const DashboardUpdateAlert = () => {
     const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -25,7 +26,7 @@ const DashboardUpdateAlert = () => {
             <AlertTitle>New Update Available</AlertTitle>
             Click{' '}
             <strong
-                id="dashboard-update-download-link"
+                id={DomIds.dashboard.dashboardUpdateAlert.dashboardUpdateDownloadLink}
                 style={{cursor: 'pointer'}}
                 onClick={() =>
                     window.Dashboard.openExternalLink('https://pointnetwork.io/download')

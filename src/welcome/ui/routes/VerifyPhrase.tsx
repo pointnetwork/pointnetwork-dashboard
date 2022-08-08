@@ -16,6 +16,7 @@ import SendIcon from '@mui/icons-material/Send';
 // Types
 import {WelcomeChannelsEnum} from '../../../@types/ipc_channels';
 import mnemonicWords from 'mnemonic-words';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const VerifyPhrase = ({
     route,
@@ -116,7 +117,7 @@ const VerifyPhrase = ({
                 </Typography>
             </Box>
             <Button
-                id="login-button"
+                id={DomIds.welcome.verifyPhrase.loginButton}
                 variant="contained"
                 size="large"
                 endIcon={<SendIcon />}

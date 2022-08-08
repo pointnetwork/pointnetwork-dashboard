@@ -15,6 +15,7 @@ import MainLayout from '../components/MainLayout';
 import SendIcon from '@mui/icons-material/Send';
 // Types
 import {WelcomeChannelsEnum} from '../../../@types/ipc_channels';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const ImportExisting = ({
     route,
@@ -82,7 +83,7 @@ const ImportExisting = ({
                 </Grid>
                 <Grid item xs={2} mt={3}>
                     <Button
-                        id="paste-seed-phrase-button"
+                        id={DomIds.welcome.importExisting.pasteSeedPhraseButton}
                         variant="outlined"
                         onClick={window.Welcome.pasteMnemonic}
                         sx={{ml: 5}}
@@ -130,7 +131,7 @@ const ImportExisting = ({
             </Grid>
             <Box mt={4}>
                 <Button
-                    id="login-button"
+                    id={DomIds.welcome.importExisting.loginButton}
                     variant="contained"
                     size="large"
                     disabled={secretPhrase.some(e => !e) || loading}

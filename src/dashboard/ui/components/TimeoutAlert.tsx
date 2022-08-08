@@ -6,6 +6,7 @@ import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
 // Components
 import ContactSupport from './ContactSupport';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const TimeoutAlert: FunctionComponent<{
     identifier: string;
@@ -19,7 +20,7 @@ const TimeoutAlert: FunctionComponent<{
             <ContactSupport identifier={identifier} />
             <Box display="flex" justifyContent="flex-end" mt={2}>
                 <Button
-                    id="launch-uninstaller-button"
+                    id={DomIds.dashboard.timeoutAlert.launchUninstallerButton}
                     color="error"
                     variant="outlined"
                     size="small"
@@ -28,7 +29,7 @@ const TimeoutAlert: FunctionComponent<{
                     Uninstall
                 </Button>
                 <Button
-                    id="launch-node-button"
+                    id={DomIds.dashboard.timeoutAlert.launchNodeButton}
                     color="primary"
                     variant="outlined"
                     size="small"
@@ -38,7 +39,7 @@ const TimeoutAlert: FunctionComponent<{
                     Retry
                 </Button>
                 <Button
-                    id="close-button"
+                    id={DomIds.dashboard.timeoutAlert.closeButton}
                     color="error"
                     variant="contained"
                     size="small"

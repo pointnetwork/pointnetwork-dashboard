@@ -19,6 +19,7 @@ import CircleIcon from '@mui/icons-material/Circle';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 // Types
 import {GenericChannelsEnum} from '../../../@types/ipc_channels';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const ResourceStatusCard = ({
     resource,
@@ -139,7 +140,7 @@ const MainContent = () => {
                                     </Typography>
                                     <Tooltip title="Click to copy your address">
                                         <Typography
-                                            id="copy-wallet-address"
+                                            id={DomIds.dashboard.mainContent.copyWalletAddress}
                                             variant="caption"
                                             sx={{overflowWrap: 'anywhere', cursor: 'pointer'}}
                                             onClick={copyWalletAddress}
