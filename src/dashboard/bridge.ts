@@ -6,7 +6,8 @@ import {
     UninstallerChannelsEnum,
     FirefoxChannelsEnum,
     GenericChannelsEnum,
-    NodeChannelsEnum
+    NodeChannelsEnum,
+    SdkChannelsEnum
 } from './../@types/ipc_channels';
 
 declare global {
@@ -40,6 +41,12 @@ export const api = {
             resolve(v);
         });
         ipcRenderer.send(NodeChannelsEnum.get_version);
+    }),
+    getSdkVersion: () => new Promise<string>((resolve) => {
+        ipcRenderer.once(SdkChannelsEnum.get_version, (_, v: string) => {
+            resolve(v);
+        });
+        ipcRenderer.send(SdkChannelsEnum.get_version);
     }),
     // Uninstaller
     launchUninstaller: () => ipcRenderer.send(UninstallerChannelsEnum.launch),

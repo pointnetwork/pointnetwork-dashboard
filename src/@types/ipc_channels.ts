@@ -61,6 +61,12 @@ export enum NodeChannelsEnum {
   error = 'node:error',
 }
 
+export enum SdkChannelsEnum {
+  download = 'sdk:download',
+  check_for_updates = 'sdk:check_for_updates',
+  get_version = 'sdk:get_version',
+}
+
 export enum UninstallerChannelsEnum {
   download = 'uninstaller:download',
   launch = 'uninstaller:launch',
@@ -79,6 +85,7 @@ export enum BountyChannelsEnum {
 
 export type DownloadChannels =
     | NodeChannelsEnum.download
+    | SdkChannelsEnum.download
     | FirefoxChannelsEnum.download
     | PointSDKChannelsEnum.download
     | UninstallerChannelsEnum.download

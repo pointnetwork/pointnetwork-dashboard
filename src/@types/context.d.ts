@@ -6,6 +6,7 @@ export type MainStatus = {
   identifier: string
   browserVersion: string
   nodeVersion: string
+  sdkVersion: string
   launchFailed: boolean
   loader: {
     isLoading: boolean

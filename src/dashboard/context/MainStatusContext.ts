@@ -21,6 +21,8 @@ export const useMainStatus = () => {
     const [nodeVersion, setNodeVersion] = useState<string>('');
     const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false);
     const [engineErrorCode, setEngineErrorCode] = useState<number>(0);
+    // PointSDK
+    const [sdkVersion, setSdkVersion] = useState<string>('');
     // Browser
     const [browserVersion, setBrowserVersion] = useState<string>('');
     const [isBrowserRunning, setIsBrowserRunning] = useState<boolean>(false);
@@ -107,13 +109,15 @@ export const useMainStatus = () => {
     };
 
     const getInfo = async () => {
-        const [id, pointNodeVersion, firefoxVersion] = await Promise.all([
+        const [id, pointNodeVersion, pointSdkVersion, firefoxVersion] = await Promise.all([
             window.Dashboard.getIndentifier(),
             window.Dashboard.getNodeVersion(),
+            window.Dashboard.getSdkVersion(),
             window.Dashboard.getFirefoxVersion()
         ]);
         setIdentifier(id);
         setNodeVersion(pointNodeVersion);
+        setSdkVersion(pointSdkVersion);
         setBrowserVersion(firefoxVersion);
     };
 
@@ -155,6 +159,7 @@ export const useMainStatus = () => {
         identifier,
         browserVersion,
         nodeVersion,
+        sdkVersion,
         launchFailed,
         loader,
         identityInfo,
