@@ -5,17 +5,18 @@ import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 // Icons
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const MainLayout = ({
     children,
     navigate
 }: {
-  navigate: ReactEventHandler
-  children: ReactElement | ReactElement[]
+    navigate: ReactEventHandler;
+    children: ReactElement | ReactElement[];
 }) => (
     <Box>
         <Box pl={2}>
-            <IconButton onClick={navigate}>
+            <IconButton id={DomIds.welcome.mainLayout.goBackButton} onClick={navigate}>
                 <ArrowBackIcon />
             </IconButton>
         </Box>

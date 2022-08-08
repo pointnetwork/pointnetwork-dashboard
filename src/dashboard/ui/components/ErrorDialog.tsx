@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import ContactSupport from './ContactSupport';
+import DomIds from '../../../@types/DOM-el-ids';
 
 // TODO: this will come from a shared repo of `point-error-codes`.
 type PointErr = {code: number; name: string; text: string};
@@ -33,6 +34,7 @@ function getButtonByError(code: number) {
     if (code === 11) {
         return (
             <Button
+                id={DomIds.dashboard.errorDialog.logoutButton}
                 color="primary"
                 variant="contained"
                 size="small"
@@ -46,6 +48,7 @@ function getButtonByError(code: number) {
     if (code === 12 || code === 13 || code === 14) {
         return (
             <Button
+                id={DomIds.dashboard.errorDialog.closeButton}
                 color="error"
                 variant="contained"
                 size="small"

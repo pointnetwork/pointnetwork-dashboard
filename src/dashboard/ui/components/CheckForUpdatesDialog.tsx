@@ -21,6 +21,7 @@ import {
 import {GenericProgressLog, UpdateLog} from '../../../@types/generic';
 // Context
 import {UpdateStatusContext} from '../../context/UpdateStatusContext';
+import DomIds from '../../../@types/DOM-el-ids';
 import {MainStatusContext} from '../../context/MainStatusContext';
 
 /**
@@ -74,6 +75,7 @@ const ResourceUpdateCard: FunctionComponent<{
                     </Box>
                     {downloadLogs.error || unpackLogs?.error || updateLogs.error ? (
                         <Button
+                            id={DomIds.dashboard.checkForUpdatesDialog.retryUpdatesButton}
                             variant="outlined"
                             color="error"
                             size="small"
@@ -161,7 +163,11 @@ const CheckForUpdatesDialog: FunctionComponent = () => {
                 </Grid>
                 {isUpdating.firefoxError || isUpdating.nodeError || isUpdating.pointsdkError ? (
                     <Box display="flex" flexDirection="row-reverse">
-                        <Button color="error" onClick={handleClose}>
+                        <Button
+                            id={DomIds.dashboard.checkForUpdatesDialog.closeButton}
+                            color="error"
+                            onClick={handleClose}
+                        >
                             Close Point Network
                         </Button>
                     </Box>

@@ -2,10 +2,11 @@ import Box from '@mui/material/Box';
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
+import DomIds from '../../../@types/DOM-el-ids';
 
-const TopBar = ({isLoading = true}: { isLoading: boolean }) => {
+const TopBar = ({isLoading = true}: {isLoading: boolean}) => {
     const handeClose = () => {
-        if (!isLoading){
+        if (!isLoading) {
             window.Installer.closeWindow();
         }
     };
@@ -26,6 +27,7 @@ const TopBar = ({isLoading = true}: { isLoading: boolean }) => {
                 }}
             >
                 <Box
+                    id={DomIds.installer.topbar.minimizeButton}
                     px=".75rem"
                     py=".25rem"
                     display="flex"
@@ -47,6 +49,7 @@ const TopBar = ({isLoading = true}: { isLoading: boolean }) => {
                 }}
             >
                 <Box
+                    id={DomIds.installer.topbar.closeButton}
                     px=".75rem"
                     py=".25rem"
                     bgcolor="red"

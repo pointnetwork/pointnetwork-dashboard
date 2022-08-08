@@ -9,38 +9,35 @@ import deepPurple from '@mui/material/colors/deepPurple';
 // Icons
 import DownloadIcon from '@mui/icons-material/Download';
 import KeyIcon from '@mui/icons-material/Key';
+import DomIds from '../../../@types/DOM-el-ids';
 
-const Home = ({
-    route,
-    setRoute
-}: {
-  route: string
-  setRoute: Dispatch<SetStateAction<string>>
-}) => {
+const Home = ({route, setRoute}: {route: string; setRoute: Dispatch<SetStateAction<string>>}) => {
     if (route !== WelcomeRoutes.home) return null;
 
     return (
         <Container maxWidth="sm">
             <Typography variant="h5" mt={16}>
-        Do you already have a web3 secret phrase?
+                Do you already have a web3 secret phrase?
             </Typography>
             <Typography variant="body2" color="#aaaaaa">
-        12 words that give you access to your account
+                12 words that give you access to your account
             </Typography>
             <Box width="560px">
                 <Grid container pt={2.5}>
                     <ClickableCard
+                        id={DomIds.welcome.home.generateNewCard}
                         isDefault={true}
                         setRoute={() => setRoute(WelcomeRoutes.new)}
                         icon={<KeyIcon sx={{height: 64, width: 64}} />}
                     >
-            No, generate one
+                        No, generate one
                     </ClickableCard>
                     <ClickableCard
+                        id={DomIds.welcome.home.importExistingCard}
                         setRoute={() => setRoute(WelcomeRoutes.existing)}
-                        icon={<DownloadIcon sx={{height: 64, width: 64}}/>}
+                        icon={<DownloadIcon sx={{height: 64, width: 64}} />}
                     >
-            Yes, I have it
+                        Yes, I have it
                     </ClickableCard>
                 </Grid>
             </Box>
@@ -51,18 +48,21 @@ const Home = ({
 export default Home;
 
 const ClickableCard = ({
+    id,
     icon,
     children,
     setRoute,
     isDefault = false
 }: {
-  icon: JSX.Element
-  children: string
-  setRoute: ReactEventHandler,
-  isDefault?: boolean
+    id: string;
+    icon: JSX.Element;
+    children: string;
+    setRoute: ReactEventHandler;
+    isDefault?: boolean;
 }) => (
     <Grid item xs={6} p={1}>
         <Box
+            id={id}
             border={3}
             borderRadius={3}
             p={3}

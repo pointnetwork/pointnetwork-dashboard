@@ -7,8 +7,9 @@ import Typography from '@mui/material/Typography';
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
+import DomIds from '../../../@types/DOM-el-ids';
 
-const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
+const TopBar = ({isBrowserRunning = true}: {isBrowserRunning: boolean}) => {
     const [closeDialogOpen, setCloseDialogOpen] = useState<boolean>(false);
 
     const handleCloseRequest = () => {
@@ -37,6 +38,7 @@ const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
                 }}
             >
                 <Box
+                    id={DomIds.dashboard.topbar.minimizeButton}
                     px=".75rem"
                     py=".25rem"
                     display="flex"
@@ -58,6 +60,7 @@ const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
                 }}
             >
                 <Box
+                    id={DomIds.dashboard.topbar.closeButton}
                     px=".75rem"
                     py=".25rem"
                     bgcolor="red"
@@ -76,21 +79,23 @@ const TopBar = ({isBrowserRunning = true}: { isBrowserRunning: boolean }) => {
                     <Typography>Quit Point Network and Point Browser?</Typography>
                     <Box display="flex" justifyContent="flex-end" mt={2}>
                         <Button
+                            id={DomIds.dashboard.topbar.closeCancelButton}
                             color="inherit"
                             variant="outlined"
                             size="small"
                             onClick={() => setCloseDialogOpen(false)}
                         >
-              Cancel
+                            Cancel
                         </Button>
                         <Button
+                            id={DomIds.dashboard.topbar.closeConfirmButton}
                             color="error"
                             variant="contained"
                             size="small"
                             sx={{ml: 1}}
                             onClick={handleClose}
                         >
-              Quit
+                            Quit
                         </Button>
                     </Box>
                 </Box>

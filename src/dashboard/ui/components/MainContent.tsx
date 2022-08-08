@@ -19,6 +19,7 @@ import CircleIcon from '@mui/icons-material/Circle';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 // Types
 import {GenericChannelsEnum} from '../../../@types/ipc_channels';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const ResourceStatusCard = ({
     resource,
@@ -26,10 +27,10 @@ const ResourceStatusCard = ({
     version,
     onRetry
 }: {
-  resource: 'Engine' | 'Browser' | 'Extension'
-  isRunning: boolean
-  version: string
-  onRetry?: () => void
+    resource: 'Engine' | 'Browser' | 'Extension';
+    isRunning: boolean;
+    version: string;
+    onRetry?: () => void;
 }) => (
     <Paper elevation={4} variant="outlined" sx={{my: 1}}>
         <Box px={2} py={1.5} display="flex" alignItems="center">
@@ -40,13 +41,14 @@ const ResourceStatusCard = ({
             )}
             <Box px={2} flex={1}>
                 <Typography variant="h6" mb={-0.4}>
-            Point {resource}
+                    Point {resource}
                 </Typography>
                 <Typography variant="body2" sx={{opacity: 0.7}}>
-            Status: {isRunning ? 'Running' : 'Stopped'}
+                    Status: {isRunning ? 'Running' : 'Stopped'}
                 </Typography>
             </Box>
             <Chip
+                id={`${resource.toLowerCase()}-launch-chip`}
                 label={isRunning || !onRetry ? version : 'Launch'}
                 color={isRunning || !onRetry ? 'default' : 'primary'}
                 onClick={isRunning ? undefined : onRetry}
@@ -59,8 +61,8 @@ const InfoDisplayCard = ({
     title,
     children
 }: {
-  title: string
-  children: ReactElement | ReactElement[]
+    title: string;
+    children: ReactElement | ReactElement[];
 }) => (
     <Paper elevation={4} variant="outlined" sx={{my: 1}}>
         <Box p={1.5} position="relative">
@@ -91,8 +93,7 @@ const MainContent = () => {
         });
     }, []);
 
-    const copyWalletAddress = () =>
-        window.Dashboard.copyToClipboard(identityInfo.address);
+    const copyWalletAddress = () => window.Dashboard.copyToClipboard(identityInfo.address);
 
     return (
         <Grid item xs={11}>
@@ -111,7 +112,7 @@ const MainContent = () => {
                 <Grid container columnSpacing={3} mt={2}>
                     <Grid item xs={6}>
                         <Typography variant="body2" mb={0.3}>
-              Resources
+                            Resources
                         </Typography>
                         <Divider />
                         <ResourceStatusCard
@@ -134,7 +135,7 @@ const MainContent = () => {
 
                     <Grid item xs={6}>
                         <Typography variant="body2" mb={0.3}>
-              Account Information
+                            Account Information
                         </Typography>
                         <Divider />
                         <InfoDisplayCard title="Account">
@@ -146,6 +147,7 @@ const MainContent = () => {
                                     </Typography>
                                     <Tooltip title="Click to copy your address">
                                         <Typography
+                                            id={DomIds.dashboard.mainContent.copyWalletAddress}
                                             variant="caption"
                                             sx={{overflowWrap: 'anywhere', cursor: 'pointer'}}
                                             onClick={copyWalletAddress}
@@ -161,7 +163,7 @@ const MainContent = () => {
                                 {balance} xPOINT
                             </Typography>
                             <Button variant="contained" size="small" disabled={balance > 0}>
-                Request xPOINTS
+                                Request xPOINTS
                             </Button>
                         </InfoDisplayCard>
                     </Grid>

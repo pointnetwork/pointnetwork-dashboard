@@ -7,8 +7,9 @@ import CheckIcon from '@mui/icons-material/Check';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {GenericChannelsEnum} from '../../../@types/ipc_channels';
 import ExternalLink from '../../../../shared/react-components/ExternalLink';
+import DomIds from '../../../@types/DOM-el-ids';
 
-type Props = { identifier: string }
+type Props = {identifier: string};
 
 const ContactSupport = ({identifier}: Props) => {
     const [copied, setCopied] = useState<boolean>(false);
@@ -23,16 +24,17 @@ const ContactSupport = ({identifier}: Props) => {
     return (
         <Box py={3}>
             <Typography>
-        If the problem persists, please try to uninstall and reinstall the
-        Dashboard or contact the support team{' '}
+                If the problem persists, please try to uninstall and reinstall the Dashboard or
+                contact the support team{' '}
                 <ExternalLink
+                    id={DomIds.dashboard.contactSupport.supportLink}
                     onClick={() =>
                         window.Dashboard.openExternalLink('https://pointnetwork.io/support')
                     }
                 >
-          here
+                    here
                 </ExternalLink>{' '}
-        with your support ID -{' '}
+                with your support ID -{' '}
             </Typography>
             <Box display="flex" alignItems="center" mt={1}>
                 <Chip label={identifier} sx={{mr: 0.5}} />
@@ -46,6 +48,7 @@ const ContactSupport = ({identifier}: Props) => {
                 ) : (
                     <Box display="flex" alignItems="center">
                         <IconButton
+                            id={DomIds.dashboard.contactSupport.copyIdentifierButton}
                             onClick={() => window.Dashboard.copyToClipboard(identifier)}
                         >
                             <ContentCopyIcon fontSize="small" />

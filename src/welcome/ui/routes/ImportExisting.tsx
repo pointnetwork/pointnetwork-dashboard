@@ -15,13 +15,14 @@ import MainLayout from '../components/MainLayout';
 import SendIcon from '@mui/icons-material/Send';
 // Types
 import {WelcomeChannelsEnum} from '../../../@types/ipc_channels';
+import DomIds from '../../../@types/DOM-el-ids';
 
 const ImportExisting = ({
     route,
     setRoute
 }: {
-  route: string
-  setRoute: Dispatch<SetStateAction<string>>
+    route: string;
+    setRoute: Dispatch<SetStateAction<string>>;
 }) => {
     if (route !== WelcomeRoutes.existing) return null;
 
@@ -46,7 +47,7 @@ const ImportExisting = ({
     }, []);
 
     const handleChange = (value: string, index: number) => {
-        setSecretPhrase(prev => prev.map((item, idx) => idx === index ? value.trim() : item));
+        setSecretPhrase(prev => prev.map((item, idx) => (idx === index ? value.trim() : item)));
     };
 
     const handleConfirmAndLogin = () => {
@@ -55,16 +56,13 @@ const ImportExisting = ({
         const seed = words.join(' ');
         window.Welcome.validateMnemonic(seed);
 
-        window.Welcome.on(
-            WelcomeChannelsEnum.validate_mnemonic,
-            (result: string | boolean) => {
-                if (result === true) {
-                    window.Welcome.login();
-                } else {
-                    setError(result.toString());
-                }
+        window.Welcome.on(WelcomeChannelsEnum.validate_mnemonic, (result: string | boolean) => {
+            if (result === true) {
+                window.Welcome.login();
+            } else {
+                setError(result.toString());
             }
-        );
+        });
 
         window.Welcome.on(WelcomeChannelsEnum.login, () => setLoading(false));
     };
@@ -79,17 +77,18 @@ const ImportExisting = ({
                 )}
                 <Grid item xs={10} mt={3}>
                     <Typography variant="h4" mb={3}>
-            Import Existing Key
+                        Import Existing Key
                     </Typography>
                     <Typography>Please enter your secret phrase</Typography>
                 </Grid>
                 <Grid item xs={2} mt={3}>
                     <Button
+                        id={DomIds.welcome.importExisting.pasteSeedPhraseButton}
                         variant="outlined"
                         onClick={window.Welcome.pasteMnemonic}
                         sx={{ml: 5}}
                     >
-            Paste
+                        Paste
                     </Button>
                 </Grid>
             </Grid>
@@ -97,18 +96,20 @@ const ImportExisting = ({
                 {secretPhrase.map((word, index) => (
                     <Grid item xs={3} key={index}>
                         <Autocomplete
-                            renderInput={(params) => <TextField
-                                {...params}
-                                label={index + 1}
-                                // Because of useEffect, pressing tab leads to losing focus.
-                                // Also, we want to handle space press same as Tab or Enter.
-                                // This is the hacky way to achieve it
-                                onKeyDown={e => {
-                                    if (e.key === 'Tab' || e.key === ' ') {
-                                        e.key = 'Enter';
-                                    }
-                                }}
-                            />}
+                            renderInput={params => (
+                                <TextField
+                                    {...params}
+                                    label={index + 1}
+                                    // Because of useEffect, pressing tab leads to losing focus.
+                                    // Also, we want to handle space press same as Tab or Enter.
+                                    // This is the hacky way to achieve it
+                                    onKeyDown={e => {
+                                        if (e.key === 'Tab' || e.key === ' ') {
+                                            e.key = 'Enter';
+                                        }
+                                    }}
+                                />
+                            )}
                             id={`input_${index}`}
                             autoHighlight
                             autoSelect
@@ -120,7 +121,9 @@ const ImportExisting = ({
                             }
                             options={mnemonicWords}
                             value={word || null}
-                            onChange={(e, newValue) => {handleChange(newValue ?? '', index);}}
+                            onChange={(e, newValue) => {
+                                handleChange(newValue ?? '', index);
+                            }}
                             disabled={index !== 0 && !secretPhrase[index - 1]}
                         />
                     </Grid>
@@ -128,6 +131,7 @@ const ImportExisting = ({
             </Grid>
             <Box mt={4}>
                 <Button
+                    id={DomIds.welcome.importExisting.loginButton}
                     variant="contained"
                     size="large"
                     disabled={secretPhrase.some(e => !e) || loading}
