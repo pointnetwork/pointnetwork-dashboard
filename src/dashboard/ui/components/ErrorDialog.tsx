@@ -102,7 +102,7 @@ const ErrorDialog = ({errCode, identifier}: Props) => {
                     Sorry, we have run into an error.
                 </Typography>
 
-                <Box sx={{backgroundColor: '#eee', border: '1px solid #ddd'}} my={2} p={2}>
+                <Box bgcolor="#262626" border={1} borderColor="#555" borderRadius={1} my={2} p={2}>
                     <Typography>
                         {pointErr.name}: {pointErr.text}
                     </Typography>

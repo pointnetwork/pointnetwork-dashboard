@@ -19,7 +19,7 @@ const CreateDirLogs = ({
     title,
     channel
 }: {
-  title: 'Create Directoires' | 'Clone Repositories'
+  title: 'Create Directories' | 'Clone Repositories'
   // eslint-disable-next-line camelcase
   channel: InstallerChannelsEnum.clone_repos | InstallerChannelsEnum.create_dirs
 }) => {
