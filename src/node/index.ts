@@ -270,7 +270,7 @@ class Node {
                     // We only give special handling to `point error codes`, which are > 1.
                     // TODO: for now, we hardcode the codes we want to handle,
                     // we'll improve this when we have the `point-error-codes` shared repo.
-                    if (code && [11, 12, 13].includes(code)) {
+                    if (code && [11, 13].includes(code)) {
                         // Critical error from Point Engine, stop the ping interval as they are unrecoverable.
                         this.clearPingTimeout();
 
