@@ -56,10 +56,12 @@ export default class Logger {
 
     error = ({errorType, error, info}: {
     errorType: ErrorsEnum
-    error: Error & {type?: string}
+    error?: Error & {type?: string}
     info?: string
   }) => {
-        error.type = errorType;
+        if (error) {
+            error.type = errorType;
+        }
         logger.error(`[${this.module}]`, info ? `${info}: ` : '', error);
     };
 
