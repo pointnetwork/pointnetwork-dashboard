@@ -138,7 +138,7 @@ const download: DownloadFunction = ({
                 logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, info: 'TIMEOUT', error});
                 reject(error);
                 req.destroy();
-                res.pause();
+                res?.pause();
             });
         } catch (error) {
             if (channel) {
