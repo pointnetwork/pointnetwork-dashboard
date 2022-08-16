@@ -60,7 +60,7 @@ class Installer {
     };
 
     /**
-   * Creates dirs, clones repos, installs Point Node, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
+   * Creates dirs, clones repos, installs Point Engine, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
    */
     install = async () => {
         try {

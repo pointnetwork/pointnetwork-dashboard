@@ -32,7 +32,7 @@ class Uninstaller {
     }
 
     /**
-   * Returns the latest available version for Point Node
+   * Returns the latest available version for Point Engine
    */
     async getLatestVersion(): Promise<string> {
         return await helpers.getLatestReleaseFromGithub('pointnetwork-uninstaller');
@@ -157,7 +157,7 @@ class Uninstaller {
 
     /**
    * Checks
-   * 1. If Point Node exists or not, if it doesn't then downloads it
+   * 1. If Point Engine exists or not, if it doesn't then downloads it
    * 2. Launches the Point Uninstaller
    */
     async launch() {
