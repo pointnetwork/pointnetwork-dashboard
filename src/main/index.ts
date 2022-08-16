@@ -6,6 +6,7 @@ import Logger from '../../shared/logger';
 import {dialog} from 'electron';
 import fs from 'fs-extra';
 import lockfile from 'proper-lockfile';
+import {ErrorsEnum} from '../@types/errors';
 
 const logger = new Logger({module: 'main'});
 
@@ -40,7 +41,10 @@ export default async function main() {
 }
 
 main()
-    .catch(e => {
-        logger.error(e);
+    .catch((error: Error) => {
+        logger.error({
+            errorType: ErrorsEnum.FATAL_ERROR,
+            error
+        });
         dialog.showErrorBox('Error', 'Point Dashboard is already running.');
     });
