@@ -19,63 +19,41 @@ class PointSDK {
     window: BrowserWindow;
     pointDir: string = helpers.getPointPath();
 
-    constructor({window}: { window: BrowserWindow }) {
+    constructor({window}: {window: BrowserWindow}) {
         this.window = window;
         this.logger = new Logger({window, module: 'point_sdk'});
     }
 
     /**
-   * Returns the latest available version for Point Node
-   */
+     * Returns the latest available version for Point Node
+     */
     async getLatestVersion(): Promise<string> {
         return await helpers.getLatestReleaseFromGithub('pointsdk');
     }
 
     /**
-   * Returns the download URL for the version provided and the file name provided
-   */
+     * Returns the download URL for the version provided and the file name provided
+     */
     getDownloadURL(filename: string, version: string): string {
         return `${helpers.getGithubURL()}/pointnetwork/pointsdk/releases/download/${version}/${filename}`;
     }
 
     /**
-   * Downloads and instals the Point SDK
-   */
+     * Downloads and instals the Point SDK
+     */
     downloadAndInstall(): Promise<void> {
-    // eslint-disable-next-line no-async-promise-executor 
+        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 const latestVersion = await this.getLatestVersion();
-                // Donwload the manifest first
-                const manifestDownloadUrl = this.getDownloadURL(
-                    'manifest.json',
-                    latestVersion
-                );
-                const manifestDownloadDest = path.join(this.pointDir, 'manifest.json');
-                this.logger.info('Downloading Manifest file from', manifestDownloadUrl);
-
-                const manifestDownloadStream =
-          fs.createWriteStream(manifestDownloadDest);
-
-                await utils.download({
-                    channel: PointSDKChannelsEnum.download,
-                    logger: this.logger,
-                    downloadUrl: manifestDownloadUrl,
-                    downloadStream: manifestDownloadStream
-                });
-
-                // Download the extension
-                const filename = `point_network-${latestVersion.replace(
-                    'v',
-                    ''
-                )}-an+fx.xpi`;
-                const manifest = await fs.readFile(manifestDownloadDest, 'utf8');
-                const extensionId =
-          JSON.parse(manifest).browser_specific_settings.gecko.id;
+                const filename = `point_network-${latestVersion.replace('v', '')}-an+fx.xpi`;
                 const extensionsPath = helpers.getLiveExtensionsDirectoryPathResources();
 
                 const downloadUrl = this.getDownloadURL(filename, latestVersion);
-                const downloadPath = path.join(extensionsPath, `${extensionId}.xpi`);
+                const downloadPath = path.join(
+                    extensionsPath,
+                    `{c8388105-6543-4833-90c9-beb8c6b19d61}.xpi`
+                );
                 this.logger.info('Downloading SDK from', downloadUrl);
 
                 const downloadStream = fs.createWriteStream(downloadPath);
@@ -109,8 +87,8 @@ class PointSDK {
     }
 
     /**
-   * Checks for Point Node updates
-   */
+     * Checks for Point Node updates
+     */
     async checkForUpdates() {
         try {
             this.logger.info('Checking for updates');
@@ -128,8 +106,8 @@ class PointSDK {
 
             if (
                 !installInfo.lastCheck ||
-        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
-          installInfo.installedReleaseVersion !== latestVersion)
+                (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
+                    installInfo.installedReleaseVersion !== latestVersion)
             ) {
                 this.logger.info('Update available');
                 this.logger.sendToChannel({
