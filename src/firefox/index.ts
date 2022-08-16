@@ -280,7 +280,7 @@ class Firefox {
     }
 
     /**
-   * Checks for Point Node updates
+   * Checks for Point Engine updates
    */
     async checkForUpdates() {
         try {

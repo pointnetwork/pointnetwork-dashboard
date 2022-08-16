@@ -38,7 +38,7 @@ const download: DownloadFunction = ({
         try {
             switch (channel) {
                 case NodeChannelsEnum.download:
-                    asset = 'Node';
+                    asset = 'Engine';
                     break;
                 case FirefoxChannelsEnum.download:
                     asset = 'Browser';
