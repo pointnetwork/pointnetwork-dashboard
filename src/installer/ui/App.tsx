@@ -109,7 +109,7 @@ export default function App() {
         still facing issues, then please contact us. We'll be glad to help
         you out.`
                                 : `An error occurred during installation. Please try again. Make sure you have a stable internet connection
-                and use a VPN (if you can)`}
+                and use a VPN, if the internet in your country is censored.`}
                         </Typography>
                         {attempts < 5 ? (
                             <Button
