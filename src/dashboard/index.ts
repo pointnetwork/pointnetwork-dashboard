@@ -1,4 +1,3 @@
-import {UpdateLog} from './../@types/generic';
 import {app, BrowserWindow, clipboard, ipcMain, shell} from 'electron';
 import axios from 'axios';
 import Bounty from '../bounty';
@@ -21,7 +20,7 @@ import {
     PointSDKChannelsEnum,
     UninstallerChannelsEnum
 } from '../@types/ipc_channels';
-import {EventListener} from '../@types/generic';
+import {UpdateLog, EventListener} from '../@types/generic';
 import {ErrorsEnum} from '../@types/errors';
 
 let window: BrowserWindow | null;
@@ -233,11 +232,6 @@ export default async function () {
         {
             channel: DashboardChannelsEnum.check_balance_and_airdrop,
             async listener() {
-                // TODO: move this func somewhere to utils
-                const delay = (ms: number) =>
-                    new Promise(resolve => {
-                        setTimeout(resolve, ms);
-                    });
                 const start = new Date().getTime();
                 try {
                     const addressRes = await axios.get(
@@ -265,7 +259,7 @@ export default async function () {
                             );
                         }
                         await requestAirdrop();
-                        await delay(10000);
+                        await helpers.delay(10000);
                         balance = await checkBalance();
                     }
                 } catch (error) {
@@ -278,7 +272,7 @@ export default async function () {
             channel: UninstallerChannelsEnum.launch,
             async listener() {
                 try {
-                    await uninstaller?.launch();
+                    await uninstaller!.launch();
                 } catch (error) {
                     logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
                 }

@@ -6,6 +6,7 @@ import os from 'os';
 import {platform, arch} from 'process';
 import axios from 'axios';
 import rmfr from 'rmfr';
+import {app} from 'electron';
 
 const getOSAndArch = () => {
     // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
@@ -197,7 +198,7 @@ const getPointPath = () => path.join(getHomePath(), '.point');
 
 const getPointLockfilePath = () => path.join(getPointPath(), 'point_dashboard');
 
-const getPointPathTemp = () => path.join(getHomePath(), '.temp');
+const getPointPathTemp = () => path.join(app.getPath('temp'), 'point');
 
 const getPointSrcPath = () => path.join(getPointPath(), 'src');
 
@@ -277,6 +278,11 @@ const getGithubAPIURL = () => isChineseTimezone()
     ? 'https://gh-connector.point.space:3889'
     : 'https://api.github.com';
 
+const delay = (ms: number) =>
+    new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+
 export default Object.freeze({
     noop,
     getOSAndArch,
@@ -310,5 +316,6 @@ export default Object.freeze({
     getGithubURL,
     getGithubAPIURL,
     getLatestReleaseFromGithub,
-    getInstalledVersionInfo
+    getInstalledVersionInfo,
+    delay
 });
