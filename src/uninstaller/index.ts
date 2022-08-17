@@ -195,10 +195,24 @@ class Uninstaller {
    * Returns the path where the downloaded Point Uninstaller executable exists
    */
     _getBinFile(): string {
-        const binPath = helpers.getPointPathTemp();
+        const binPath = path.join(
+            helpers.getPointPathTemp(),
+            `pointnetwork-uninstaller-${process.platform}-x64`
+        );
+        if (global.platform.win32) {
+            return path.join(binPath, 'pointnetwork-uninstaller.exe');
+        }
+        if (global.platform.darwin) {
+            return path.join(
+                binPath,
+                'pointnetwork-uninstaller.app',
+                'Contents',
+                'MacOS',
+                'pointnetwork-uninstaller'
+            );
+        }
         return path.join(
             binPath,
-            `pointnetwork-uninstaller-${process.platform}-x64`,
             'pointnetwork-uninstaller'
         );
     }
