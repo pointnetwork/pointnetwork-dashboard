@@ -49,7 +49,9 @@ export const api = {
         ipcRenderer.send(PointSDKChannelsEnum.get_version);
     }),
     // Uninstaller
-    launchUninstaller: () => ipcRenderer.send(UninstallerChannelsEnum.launch),
+    launchUninstaller: () => {
+        ipcRenderer.send(UninstallerChannelsEnum.launch);
+    },
     // Firefox
     getFirefoxVersion: () =>
         new Promise<string>(resolve => {
