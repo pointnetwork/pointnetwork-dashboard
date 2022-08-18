@@ -52,7 +52,7 @@ export const useMainStatus = () => {
             if (parsed.relaunching) {
                 setIsLaunching(prevState => ({
                     ...prevState,
-                    message: 'Point network failed to start, retrying'
+                    message: 'Trying to connect to Point Engine'
                 }));
             }
         });
