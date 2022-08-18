@@ -191,7 +191,7 @@ class Firefox {
                 '.point/keystore/liveprofile'
             );
 
-            const cmd = global.platform.darwin ? `${binFile}/Contents/MacOS/firefox` : binFile;
+            const cmd = global.platform.darwin ? `open -W ${binFile}/Contents/MacOS/firefox` : binFile;
             this.logger.info('Launching');
             const proc = spawn(
                 cmd,
