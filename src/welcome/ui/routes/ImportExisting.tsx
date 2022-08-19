@@ -79,12 +79,13 @@ const ImportExisting = ({
                     <Typography variant="h4" mb={3}>
                         Import Existing Key
                     </Typography>
-                    <Typography>Please enter your secret phrase</Typography>
+                    <Typography color="#999">Please enter your secret phrase</Typography>
                 </Grid>
                 <Grid item xs={2} mt={3}>
                     <Button
                         id={DomIds.welcome.importExisting.pasteSeedPhraseButton}
                         variant="outlined"
+                        color="inherit"
                         onClick={window.Welcome.pasteMnemonic}
                         sx={{ml: 5}}
                     >

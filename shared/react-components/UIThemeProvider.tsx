@@ -8,14 +8,12 @@ const theme = createTheme({
     palette: {
         mode: 'dark',
         primary: {
-            main: deepPurple.A100,
-            light: deepPurple[700]
+            main: deepPurple[500],
+            light: deepPurple[300]
         }
     }
 });
 
-export default function UIThemeProvider({children}: {
-  children: ReactElement | ReactElement[]
-}) {
+export default function UIThemeProvider({children}: {children: ReactElement | ReactElement[]}) {
     return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 }

@@ -68,7 +68,7 @@ const Sidebar = () => {
         <Grid
             item
             xs={1}
-            bgcolor="primary.light"
+            bgcolor="primary.main"
             p={1}
             py={2}
             display="flex"

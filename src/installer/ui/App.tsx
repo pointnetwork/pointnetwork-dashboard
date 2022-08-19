@@ -70,20 +70,20 @@ export default function App() {
                 flexDirection="column"
                 sx={{p: '3.5%', overflow: 'hidden', maxHeight: '82vh'}}
             >
-                <Box display="flex" alignItems="baseline">
-                    <Typography variant="h4" gutterBottom component="h1" fontWeight="900">
+                <Box display="flex" alignItems="baseline" mt={2}>
+                    <Typography variant="h4" gutterBottom component="h1" fontWeight="700">
                         {installing ? 'Installing' : 'Welcome to Point Installer'}
                     </Typography>
-                    <Typography ml={1} color="#555555">
+                    <Typography ml={1} color="#777">
                         v{version}
                     </Typography>
                 </Box>
 
                 <Box flex={1} display={installing ? 'none' : 'block'}>
-                    <Typography color="#cccccc">
+                    <Typography color="#bbb">
                         The following components will be installed to run Point Network
                     </Typography>
-                    <Box px={2} mt={2} mb={3} bgcolor="primary.light" borderRadius={2}>
+                    <Box px={2} mt={2} mb={3} bgcolor="#262626" borderRadius={2}>
                         <List>
                             <ListItemText>Point Engine</ListItemText>
                             <ListItemText>Point LiveProfile</ListItemText>
@@ -127,7 +127,7 @@ export default function App() {
                 <Box
                     ref={loggerRef}
                     sx={{p: '1rem', mt: '.5rem', overflowY: 'scroll'}}
-                    bgcolor="primary.light"
+                    bgcolor="#222"
                     borderRadius={2}
                     display={installing ? 'block' : 'none'}
                 >

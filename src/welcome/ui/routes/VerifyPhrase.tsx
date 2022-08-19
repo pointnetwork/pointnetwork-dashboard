@@ -59,10 +59,10 @@ const VerifyPhrase = ({
 
     return (
         <MainLayout navigate={() => setRoute(WelcomeRoutes.new)}>
-            <Typography variant="h4" mt={12} mb={2}>
+            <Typography variant="h4" mt={12} gutterBottom>
                 Verify Secret Phrase
             </Typography>
-            <Typography mb={5} color="#777777">
+            <Typography mb={5} color="#999">
                 Enter the words to make sure you saved them
             </Typography>
             <Grid container spacing={2} mb={1}>

@@ -16,12 +16,10 @@ const Home = ({route, setRoute}: {route: string; setRoute: Dispatch<SetStateActi
 
     return (
         <Container maxWidth="sm">
-            <Typography variant="h5" mt={16}>
+            <Typography variant="h4" mt={12} gutterBottom fontWeight="700">
                 Do you already have a web3 secret phrase?
             </Typography>
-            <Typography variant="body2" color="#aaaaaa">
-                12 words that give you access to your account
-            </Typography>
+            <Typography color="#aaa">12 words that give you access to your account</Typography>
             <Box width="560px">
                 <Grid container pt={2.5}>
                     <ClickableCard
@@ -72,9 +70,9 @@ const ClickableCard = ({
             alignItems="center"
             justifyContent="center"
             sx={{
-                'backgroundColor': isDefault ? '#29244b' : 'inherit',
-                'transition': 'all .2s',
-                'cursor': 'pointer',
+                backgroundColor: isDefault ? '#29244b' : 'inherit',
+                transition: 'all .2s',
+                cursor: 'pointer',
                 '&:hover': {
                     color: ' white',
                     background: deepPurple.A200,
