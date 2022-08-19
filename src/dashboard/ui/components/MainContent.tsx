@@ -33,7 +33,7 @@ const ResourceStatusCard = ({
     onRetry?: () => void;
 }) => (
     <Paper elevation={4} variant="outlined" sx={{my: 1}}>
-        <Box px={2} py={1.5} display="flex" alignItems="center">
+        <Box px={2} py={1.5} display="flex" alignItems="center" bgcolor="#262626">
             {isRunning ? (
                 <CircleIcon sx={{height: 16, width: 16}} color="success" />
             ) : (
@@ -65,7 +65,7 @@ const InfoDisplayCard = ({
     children: ReactElement | ReactElement[];
 }) => (
     <Paper elevation={4} variant="outlined" sx={{my: 1}}>
-        <Box p={1.5} position="relative">
+        <Box p={1.5} position="relative" bgcolor="#262626">
             <Typography variant="body2" mb={0.5} sx={{opacity: 0.7}}>
                 {title}
             </Typography>
