@@ -126,7 +126,18 @@ export default function App() {
                 ) : null}
                 <Box
                     ref={loggerRef}
-                    sx={{p: '1rem', mt: '.5rem', overflowY: 'scroll'}}
+                    sx={{
+                        p: '1rem',
+                        mt: '.5rem',
+                        overflowY: 'scroll',
+                        '::-webkit-scrollbar': {
+                            width: '6px'
+                        },
+                        '::-webkit-scrollbar-thumb': {
+                            background: '#555',
+                            borderRadius: '4px'
+                        }
+                    }}
                     bgcolor="#222"
                     borderRadius={2}
                     display={installing ? 'block' : 'none'}
