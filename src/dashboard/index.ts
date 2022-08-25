@@ -10,6 +10,7 @@ import helpers from '../../shared/helpers';
 import welcome from '../welcome';
 import {getIdentifier} from '../../shared/getIdentifier';
 import baseWindowConfig from '../../shared/windowConfig';
+import path from 'path';
 // Types
 import {
     BountyChannelsEnum,
@@ -163,19 +164,38 @@ export default async function () {
         if (pointAddedToPath || process.platform === 'win32') {
             return;
         }
-        switch (systemShell) {
-            case '/bin/bash':
-                exec(`echo '\nPATH=$PATH:$HOME/.point/bin/${process.platform}/' >> ~/.bashrc`);
+
+        // Determining the shell init file path.
+        let initFilePath: string;
+        switch (true) {
+            case /bash/.test(systemShell):
+                initFilePath = path.join(helpers.getHomePath(), '.bashrc')
                 break;
-            case '/bin/sh':
-            case '/bin/zsh':
-            case '/bin/ksh':
-            case '/bin/dash':
-                exec(`echo "\nPATH=$PATH:$HOME/.point/bin/${process.platform}/" >> ~/.profile`);
+            case /sh/.test(systemShell):
+            case /zsh/.test(systemShell):
+                initFilePath = path.join(helpers.getHomePath(), '.zshrc')
+                break;
+            case /ksh/.test(systemShell):
+            case /dash/.test(systemShell):
+                initFilePath = path.join(helpers.getHomePath(), '.profile')
                 break;
             default:
                 throw new Error('Unknown system shell');
         }
+
+        // We'll search for `.point/bin` in the init file to know if we already
+        // appended. We need to switch from `/` to `\` depending if it's Windows.
+        const plat = helpers.getOSAndArch();
+        let exportSubStr: string;
+        plat == 'win32' ? exportSubStr = '.point\bin' : exportSubStr = '.point/bin';
+
+        // If already appended, return.
+        if (helpers.lookupStrInFile(initFilePath, exportSubStr)) return;
+
+        // Appending.
+        const pathExportStr = `echo '\nexport PATH=$PATH:$HOME/.point/bin/${process.platform}/'`
+        exec(`${pathExportStr} >> ${initFilePath}`);
+
         window?.webContents.send(DashboardChannelsEnum.set_point_path);
     };
 

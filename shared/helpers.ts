@@ -283,6 +283,12 @@ const delay = (ms: number) =>
         setTimeout(resolve, ms);
     });
 
+const lookupStrInFile = (filename: string, str: string): boolean => {
+    const contents = fs.readFileSync(filename, 'utf-8');
+    const result = contents.includes(str);
+    return result;
+};
+
 export default Object.freeze({
     noop,
     getOSAndArch,
@@ -317,5 +323,6 @@ export default Object.freeze({
     getGithubAPIURL,
     getLatestReleaseFromGithub,
     getInstalledVersionInfo,
-    delay
+    delay,
+    lookupStrInFile
 });
