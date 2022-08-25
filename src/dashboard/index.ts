@@ -170,7 +170,7 @@ export default async function () {
             case /sh/.test(systemShell):
                 return path.join(home, '.profile');
             default:
-                throw new Error('Unknown system shell');
+                return '';
         }
     };
 
