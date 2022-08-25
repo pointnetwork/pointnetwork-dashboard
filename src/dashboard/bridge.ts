@@ -77,6 +77,13 @@ export const api = {
     },
     minimizeWindow: () => ipcRenderer.send(GenericChannelsEnum.minimize_window),
     closeWindow: () => ipcRenderer.send(GenericChannelsEnum.close_window),
+    checkShellAndPath: () => new Promise<{systemShell?: string; pointAddedToPath: boolean}>(
+        (resolve) => {
+            ipcRenderer.once(DashboardChannelsEnum.check_shell_and_path, (_, res) => {
+                resolve(res);
+            });
+            ipcRenderer.send(DashboardChannelsEnum.check_shell_and_path);
+        }),
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on: (channel: string, callback: (...args: any[]) => void) =>
