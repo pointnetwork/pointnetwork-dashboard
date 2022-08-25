@@ -20,8 +20,9 @@ import {
     PointSDKChannelsEnum,
     UninstallerChannelsEnum
 } from '../@types/ipc_channels';
-import {UpdateLog, EventListener} from '../@types/generic';
+import {EventListener, UpdateLog} from '../@types/generic';
 import {ErrorsEnum} from '../@types/errors';
+import {exec} from 'child_process';
 
 let window: BrowserWindow | null;
 let node: Node | null;
@@ -153,6 +154,31 @@ export default async function () {
             return;
         }
         await node!.launch();
+    };
+
+    const checkShellAndPath = () => ({
+        systemShell: process.env.SHELL,
+        pointAddedToPath: process.env.PATH?.includes('.point')
+    });
+
+    const addPointToPath = () => {
+        const {systemShell, pointAddedToPath} = checkShellAndPath();
+        if (pointAddedToPath || process.platform === 'win32') {
+            return;
+        }
+        switch (systemShell) {
+            case '/bin/bash':
+                exec(`echo '\nPATH=$PATH:$HOME/.point/bin/${process.platform}/' >> ~/.bashrc`);
+                break;
+            case '/bin/sh':
+            case '/bin/zsh':
+            case '/bin/ksh':
+            case '/bin/dash':
+                exec(`echo "\nPATH=$PATH:$HOME/.point/bin/${process.platform}/" >> ~/.profile`);
+                break;
+            default:
+                throw new Error('Unknown system shell');
+        }
     };
 
     const checkBalance = async () => {
@@ -377,6 +403,23 @@ export default async function () {
             channel: GenericChannelsEnum.minimize_window,
             listener() {
                 window?.minimize();
+            }
+        },
+        {
+            channel: DashboardChannelsEnum.check_shell_and_path,
+            listener() {
+                const res = checkShellAndPath();
+                window?.webContents.send(DashboardChannelsEnum.check_shell_and_path, res);
+            }
+        },
+        {
+            channel: DashboardChannelsEnum.set_point_path,
+            listener() {
+                try {
+                    addPointToPath();
+                } catch (error) {
+                    logger.error({error, errorType: ErrorsEnum.DASHBOARD_ERROR});
+                }
             }
         }
     ];
