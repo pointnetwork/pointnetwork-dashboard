@@ -1,12 +1,10 @@
-import {ReactEventHandler, useEffect, useState} from 'react';
+import {ReactEventHandler, useState} from 'react';
 // MUI
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
-import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
@@ -16,18 +14,13 @@ import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
 import HelpIcon from '@mui/icons-material/Help';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
-import CodeIcon from '@mui/icons-material/Code';
 import {ReactComponent as PointLogo} from '../../../../assets/point-logo.svg';
 import DomIds from '../../../@types/DOM-el-ids';
-import {DashboardChannelsEnum} from '../../../@types/ipc_channels';
 
 const Sidebar = () => {
     const [logoutDialogOpen, setLogoutDialogOpen] = useState<boolean>(false);
     const [anchorElSettings, setAnchorElSettings] = useState<null | (EventTarget & Element)>(null);
     const [anchorElHelp, setAnchorElHelp] = useState<null | (EventTarget & Element)>(null);
-
-    const [isAddedToPath, setAddedToPath] = useState<boolean>(true);
-    const [alert, setAlert] = useState<string>('');
 
     const isSettingsMenuOpen = Boolean(anchorElSettings);
     const isHelpMenuOpen = Boolean(anchorElHelp);
@@ -51,19 +44,6 @@ const Sidebar = () => {
         setLogoutDialogOpen(false);
     };
 
-    useEffect(() => {
-        window.Dashboard.checkShellAndPath().then(res => {
-            setAddedToPath(res.pointAddedToPath);
-        });
-
-        window.Dashboard.on(DashboardChannelsEnum.set_point_path, () => {
-            setAlert('Added Point to PATH');
-            window.Dashboard.checkShellAndPath().then(res => {
-                setAddedToPath(res.pointAddedToPath);
-            });
-        });
-    }, []);
-
     return (
         <Grid
             item
@@ -76,13 +56,6 @@ const Sidebar = () => {
             alignItems="center"
             justifyContent="space-between"
         >
-            <Snackbar
-                open={Boolean(alert)}
-                message={alert}
-                autoHideDuration={3000}
-                onClose={() => setAlert('')}
-                anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
-            />
             <Box flex={1} sx={{'-webkit-app-region': 'drag'}}>
                 <Box height={40} width={40}>
                     <PointLogo />
@@ -124,20 +97,6 @@ const Sidebar = () => {
                     <CancelPresentationIcon sx={{mr: 0.8, opacity: 0.7}} />
                     Uninstall
                 </MenuItem>
-                <MenuItem
-                    onClick={() => {
-                        if (!isAddedToPath) window.Dashboard.addPointToPath();
-                        closeSettingsMenu();
-                    }}
-                >
-                    <CodeIcon sx={{mr: 0.8, opacity: 0.7}} />
-                    Add Point to PATH (For Developers)
-                </MenuItem>
-                {isAddedToPath ? (
-                    <Alert severity="success" sx={{mx: 1.5, my: 1}}>
-                        Point added to PATH already
-                    </Alert>
-                ) : null}
             </Menu>
 
             <Menu

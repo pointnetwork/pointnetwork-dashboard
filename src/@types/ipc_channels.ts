@@ -37,8 +37,6 @@ export enum DashboardChannelsEnum {
   get_version = 'dashboard:get_version',
   check_for_updates = 'dashboard:check_for_updates',
   log_out = 'dashboard:log_out',
-  check_shell_and_path = 'dashboard:check_shell_and_path',
-  set_point_path = 'dashboard:set_point_path',
 }
 
 export enum FirefoxChannelsEnum {

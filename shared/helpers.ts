@@ -8,12 +8,6 @@ import axios from 'axios';
 import rmfr from 'rmfr';
 import {app} from 'electron';
 
-const getOS = () => {
-    if (platform === 'win32') return 'win';
-    if (platform === 'darwin') return 'macos';
-    return platform;
-};
-
 const getOSAndArch = () => {
     // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
     let osAndArch = '';
@@ -289,12 +283,6 @@ const delay = (ms: number) =>
         setTimeout(resolve, ms);
     });
 
-const lookupStrInFile = (filename: string, str: string): boolean => {
-    const contents = fs.readFileSync(filename, 'utf-8');
-    const result = contents.includes(str);
-    return result;
-};
-
 export default Object.freeze({
     noop,
     getOSAndArch,
@@ -329,7 +317,5 @@ export default Object.freeze({
     getGithubAPIURL,
     getLatestReleaseFromGithub,
     getInstalledVersionInfo,
-    delay,
-    lookupStrInFile,
-    getOS
+    delay
 });
