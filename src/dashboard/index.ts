@@ -154,47 +154,59 @@ export default async function () {
         await node!.launch();
     };
 
-    const checkShellAndPath = () => ({
-        systemShell: process.env.SHELL,
-        pointAddedToPath: process.env.PATH?.includes('.point')
-    });
+    const getInitFilePath = () => {
+        const home = helpers.getHomePath();
+        const systemShell = process.env.SHELL ? process.env.SHELL : '';
 
-    const addPointToPath = () => {
-        const {systemShell, pointAddedToPath} = checkShellAndPath();
-        if (pointAddedToPath || process.platform === 'win32') {
-            return;
-        }
-
-        // Determining the shell init file path.
-        let initFilePath: string;
         switch (true) {
             case /bash/.test(systemShell):
-                initFilePath = path.join(helpers.getHomePath(), '.bashrc')
-                break;
-            case /sh/.test(systemShell):
+                return path.join(home, '.bashrc');
             case /zsh/.test(systemShell):
-                initFilePath = path.join(helpers.getHomePath(), '.zshrc')
-                break;
+                return path.join(home, '.zshrc');
             case /ksh/.test(systemShell):
+                return path.join(home, '.profile');
             case /dash/.test(systemShell):
-                initFilePath = path.join(helpers.getHomePath(), '.profile')
-                break;
+                return path.join(home, '.profile');
+            case /sh/.test(systemShell):
+                return path.join(home, '.profile');
             default:
                 throw new Error('Unknown system shell');
         }
+    };
 
-        // We'll search for `.point/bin` in the init file to know if we already
-        // appended. We need to switch from `/` to `\` depending if it's Windows.
+    const checkShellAndPath = () => {
+        const initFilePath = getInitFilePath();
         const plat = helpers.getOSAndArch();
-        let exportSubStr: string;
-        plat == 'win32' ? exportSubStr = '.point\bin' : exportSubStr = '.point/bin';
 
-        // If already appended, return.
-        if (helpers.lookupStrInFile(initFilePath, exportSubStr)) return;
+        const result = {
+            systemShell: process.env.SHELL,
+            pointAddedToPath: false
+        };
 
-        // Appending.
-        const pathExportStr = `echo '\nexport PATH=$PATH:$HOME/.point/bin/${process.platform}/'`
-        exec(`${pathExportStr} >> ${initFilePath}`);
+        if (plat === 'win32' || plat === 'win64') {
+            if (process.env.Path === undefined) return result;
+            result.pointAddedToPath = process.env.Path.includes('.point');
+        } else {
+            result.pointAddedToPath = helpers.lookupStrInFile(initFilePath, '.point');
+        }
+
+        return result;
+    };
+
+    const addPointToPath = () => {
+        const {pointAddedToPath} = checkShellAndPath();
+        if (pointAddedToPath) return;
+
+        const plat = helpers.getOS();
+        const binPath = path.join(helpers.getHomePath(), `.point/bin/${plat}`);
+
+        let cmd = '';
+        if (plat === 'win') {
+            cmd = `REG ADD HKCU\\Environment /v Path /t REG_SZ /d "${process.env.Path};${binPath}" /f`;
+        } else {
+            cmd = `echo '\nexport PATH=$PATH:${binPath}' >> ${getInitFilePath()}`;
+        }
+        exec(cmd);
 
         window?.webContents.send(DashboardChannelsEnum.set_point_path);
     };
