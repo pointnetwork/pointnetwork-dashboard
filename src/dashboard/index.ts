@@ -68,18 +68,15 @@ export default async function () {
     }
 
     /**
-   * Useful where we want to do some cleanup before closing the window
-   */
+     * Useful where we want to do some cleanup before closing the window
+     */
     const shutdownResources = async () => {
         logger.info('Removing all event listeners');
         await removeListeners();
         logger.info('Removed all event listeners');
 
         try {
-            await Promise.all([
-        node!.stop(),
-        firefox!.stop()
-            ]);
+            await Promise.all([node!.stop(), firefox!.stop()]);
         } catch (error) {
             logger.error({
                 errorType: ErrorsEnum.STOP_ERROR,
@@ -110,13 +107,13 @@ export default async function () {
             })(),
             // TODO: notify the UI and handle it same way as for node, ff and sdk
             (async () => {
-                if (!global.platform.darwin) { // TODO: why not darwin?
+                if (!global.platform.darwin) {
+                    // TODO: why not darwin?
                     try {
                         const latestDashboardV = await helpers.getLatestReleaseFromGithub(
                             'pointnetwork-dashboard'
                         );
-                        const installedDashboardV =
-                await helpers.getInstalledDashboardVersion();
+                        const installedDashboardV = await helpers.getInstalledDashboardVersion();
 
                         if (latestDashboardV > `v${installedDashboardV}`) {
                             window?.webContents.send(
@@ -179,13 +176,12 @@ export default async function () {
             default:
                 throw new Error('Unknown system shell');
         }
+        window?.webContents.send(DashboardChannelsEnum.set_point_path);
     };
 
     const checkBalance = async () => {
         let balance = 0;
-        const addressRes = await axios.get(
-            'http://localhost:2468/v1/api/wallet/address'
-        );
+        const addressRes = await axios.get('http://localhost:2468/v1/api/wallet/address');
         const address = addressRes.data.data.address;
 
         const faucetURL = helpers.getFaucetURL();
@@ -198,15 +194,12 @@ export default async function () {
                 error: new Error(`Unexpected balance response: ${res.data}`)
             });
         }
-        window?.webContents.send(
-            DashboardChannelsEnum.check_balance_and_airdrop,
-            balance
-        );
+        window?.webContents.send(DashboardChannelsEnum.check_balance_and_airdrop, balance);
         return balance;
     };
 
     const events: EventListener[] = [
-    // Bounty channels
+        // Bounty channels
         {
             channel: BountyChannelsEnum.send_generated,
             listener() {
@@ -226,7 +219,7 @@ export default async function () {
                     await shutdownResources();
                     await helpers.logout();
                     await welcome();
-          window!.close();
+                    window!.close();
                 } catch (error) {
                     logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
                 }
@@ -280,9 +273,7 @@ export default async function () {
                     // eslint-disable-next-line no-unmodified-loop-condition
                     while (balance <= 0) {
                         if (new Date().getTime() - start > 120000) {
-                            throw new Error(
-                                'Could not get positive wallet balance in 2 minutes'
-                            );
+                            throw new Error('Could not get positive wallet balance in 2 minutes');
                         }
                         await requestAirdrop();
                         await helpers.delay(10000);
@@ -365,10 +356,7 @@ export default async function () {
         {
             channel: GenericChannelsEnum.get_identifier,
             listener() {
-                window?.webContents.send(
-                    GenericChannelsEnum.get_identifier,
-                    getIdentifier()[0]
-                );
+                window?.webContents.send(GenericChannelsEnum.get_identifier, getIdentifier()[0]);
             }
         },
         {
@@ -439,8 +427,8 @@ export default async function () {
     };
 
     app.on('will-quit', async function () {
-    // This is a good place to add tests insuring the app is still
-    // responsive and all windows are closed.
+        // This is a good place to add tests insuring the app is still
+        // responsive and all windows are closed.
         logger.info('Dashboard Window "will-quit" event');
     });
 
