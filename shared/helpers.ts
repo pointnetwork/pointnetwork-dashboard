@@ -8,6 +8,11 @@ import axios from 'axios';
 import rmfr from 'rmfr';
 import {app} from 'electron';
 
+const getOS = () => {
+    if (platform === 'win32') return 'win';
+    return platform;
+};
+
 const getOSAndArch = () => {
     // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
     let osAndArch = '';
@@ -324,5 +329,6 @@ export default Object.freeze({
     getLatestReleaseFromGithub,
     getInstalledVersionInfo,
     delay,
-    lookupStrInFile
+    lookupStrInFile,
+    getOS
 });
