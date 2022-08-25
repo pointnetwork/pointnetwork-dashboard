@@ -10,6 +10,7 @@ import {app} from 'electron';
 
 const getOS = () => {
     if (platform === 'win32') return 'win';
+    if (platform === 'darwin') return 'macos';
     return platform;
 };
 
