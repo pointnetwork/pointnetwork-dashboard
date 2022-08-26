@@ -10,6 +10,7 @@ import {app} from 'electron';
 
 const getOS = () => {
     if (platform === 'win32') return 'win';
+    if (platform === 'darwin') return 'macos';
     return platform;
 };
 
@@ -289,9 +290,13 @@ const delay = (ms: number) =>
     });
 
 const lookupStrInFile = (filename: string, str: string): boolean => {
-    const contents = fs.readFileSync(filename, 'utf-8');
-    const result = contents.includes(str);
-    return result;
+    try {
+        const contents = fs.readFileSync(filename, 'utf-8');
+        const result = contents.includes(str);
+        return result;
+    } catch (err) {
+        return false;
+    }
 };
 
 export default Object.freeze({
