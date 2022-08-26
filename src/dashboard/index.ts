@@ -157,10 +157,11 @@ export default async function () {
     const getInitFilePath = () => {
         const home = helpers.getHomePath();
         const systemShell = process.env.SHELL || '';
+        const plat = helpers.getOS();
 
         switch (true) {
             case /bash/.test(systemShell):
-                return path.join(home, '.bashrc');
+                return plat === 'macos' ? path.join(home, '.bash_profile') : path.join(home, '.bashrc');
             case /zsh/.test(systemShell):
                 return path.join(home, '.zshrc');
             case /ksh/.test(systemShell):
@@ -206,9 +207,7 @@ export default async function () {
         } else {
             cmd = `echo '\nexport PATH=$PATH:${binPath}' >> ${getInitFilePath()}`;
         }
-        exec(cmd, () => {
-            if (plat === 'win') exec('set PATH=C');
-        });
+        exec(cmd);
 
         window?.webContents.send(DashboardChannelsEnum.set_point_path);
     };
