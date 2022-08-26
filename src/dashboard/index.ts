@@ -171,7 +171,7 @@ export default async function () {
             case /sh/.test(systemShell):
                 return path.join(home, '.profile');
             default:
-                return '';
+                return '/dev/null';
         }
     };
 
@@ -198,7 +198,8 @@ export default async function () {
         const {pointAddedToPath} = checkShellAndPath();
         if (pointAddedToPath) return;
 
-        const plat = helpers.getOS();
+        let plat = helpers.getOS();
+        if (plat === 'darwin') plat = 'macos';
         const binPath = path.join(helpers.getHomePath(), `.point/bin/${plat}`);
 
         let cmd = '';
