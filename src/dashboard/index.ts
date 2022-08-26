@@ -206,7 +206,9 @@ export default async function () {
         } else {
             cmd = `echo '\nexport PATH=$PATH:${binPath}' >> ${getInitFilePath()}`;
         }
-        exec(cmd);
+        exec(cmd, () => {
+            if (plat === 'win') exec('set PATH=C');
+        });
 
         window?.webContents.send(DashboardChannelsEnum.set_point_path);
     };
