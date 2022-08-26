@@ -57,7 +57,7 @@ const Sidebar = () => {
         });
 
         window.Dashboard.on(DashboardChannelsEnum.set_point_path, () => {
-            setAlert('Added Point to PATH');
+            setAlert(`Added Point to PATH. (Please restart your system if you're on Windows)`);
             window.Dashboard.checkShellAndPath().then(res => {
                 setAddedToPath(res.pointAddedToPath);
             });
