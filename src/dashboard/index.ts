@@ -156,7 +156,7 @@ export default async function () {
 
     const getInitFilePath = () => {
         const home = helpers.getHomePath();
-        const systemShell = process.env.SHELL ? process.env.SHELL : '';
+        const systemShell = process.env.SHELL || '';
 
         switch (true) {
             case /bash/.test(systemShell):
@@ -428,8 +428,12 @@ export default async function () {
         {
             channel: DashboardChannelsEnum.check_shell_and_path,
             listener() {
-                const res = checkShellAndPath();
-                window?.webContents.send(DashboardChannelsEnum.check_shell_and_path, res);
+                try {
+                    const res = checkShellAndPath();
+                    window?.webContents.send(DashboardChannelsEnum.check_shell_and_path, res);
+                } catch (error) {
+                    logger.error({error, errorType: ErrorsEnum.DASHBOARD_ERROR});
+                }
             }
         },
         {
