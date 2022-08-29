@@ -182,6 +182,9 @@ class Firefox {
                 return;
             }
 
+            const tokenFileName = helpers.getTokenFileName();
+            const authToken = await fs.readFile(tokenFileName, 'utf8');
+
             // MAYBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
             await this._createConfigFiles();
 
@@ -195,7 +198,7 @@ class Firefox {
             this.logger.info('Launching');
             const proc = spawn(
                 cmd,
-                ['--first-startup', '--profile', profilePath, '--url', 'https://point'],
+                ['--first-startup', '--profile', profilePath, '--url', `https://point?token=${authToken}`],
                 {stdio: 'ignore'}
             );
 

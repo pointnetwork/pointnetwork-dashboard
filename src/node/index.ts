@@ -7,6 +7,7 @@ import {spawn} from 'node:child_process';
 import {https} from 'follow-redirects';
 import moment from 'moment';
 import rmfr from 'rmfr';
+import {generate} from 'randomstring';
 import utils from '../../shared/utils';
 import Logger from '../../shared/logger';
 import helpers from '../../shared/helpers';
@@ -207,6 +208,19 @@ class Node {
         });
     }
 
+    async generateAuthToken() {
+        this.logger.info('Checking for auth token');
+        const tokenFileName = helpers.getTokenFileName();
+        if (fs.existsSync(tokenFileName)) {
+            this.logger.info('Auth token already exists');
+            return;
+        }
+        this.logger.info('Generating auth token');
+        const token = generate();
+        await fs.writeFile(tokenFileName, token);
+        this.logger.info('Auth token successfully generated');
+    }
+
     /**
    * Checks
    * 1. If Point Engine exists or not, if not then returns early
@@ -216,6 +230,7 @@ class Node {
     async launch() {
         try {
             this.logger.info('Launching point node');
+            await this.generateAuthToken();
             if (!this.pingTimeout) {
                 this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL);
             }
