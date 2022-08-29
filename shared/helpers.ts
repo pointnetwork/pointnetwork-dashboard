@@ -140,6 +140,8 @@ const getLiveExtensionsDirectoryPathResources = () => path.join(
 
 const getKeyFileName = () => path.join(getLiveDirectoryPath(), 'key.json');
 
+const getTokenFileName = () => path.join(getLiveDirectoryPath(), 'token.txt');
+
 const getArweaveKeyFileName = () => path.join(getLiveDirectoryPath(), 'arweave.json');
 
 const isLoggedIn = () => fs.existsSync(getKeyFileName());
@@ -309,6 +311,7 @@ export default Object.freeze({
     getHomePath,
     getLiveDirectoryPath,
     getKeyFileName,
+    getTokenFileName,
     getArweaveKeyFileName,
     isLoggedIn,
     logout,
