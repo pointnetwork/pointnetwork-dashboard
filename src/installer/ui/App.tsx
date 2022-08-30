@@ -11,6 +11,7 @@ import CreateDirLogs from './components/CreateDirLogs';
 import DisclaimerDialog from './components/DisclaimerDialog';
 import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier';
 import DownloadExtractLogs from './components/DownloadExtractLogs';
+import ExternalLink from '../../../shared/react-components/ExternalLink';
 import TopBar from './components/TopBar';
 import SendIcon from '@mui/icons-material/Send';
 import UIThemeProvider from '../../../shared/react-components/UIThemeProvider';
@@ -102,27 +103,44 @@ export default function App() {
                     </Button>
                 </Box>
                 {attempts ? (
-                    <Alert severity="error">
-                        <Typography mb={1} variant="body2">
-                            {attempts >= 5
-                                ? `An error occurred during installation. Please quit and try installing again. Make sure you have a stable internet connection and use a VPN (if you can). If you're
-        still facing issues, then please contact us. We'll be glad to help
-        you out.`
-                                : `An error occurred during installation. Please try again. Make sure you have a stable internet connection
-                and use a VPN, if the internet in your country is censored.`}
-                        </Typography>
-                        {attempts < 5 ? (
-                            <Button
-                                id={DomIds.installer.app.restartInstallationButton}
-                                size="small"
-                                color="error"
-                                onClick={sendStartInstallation}
-                                variant="contained"
-                            >
-                                Retry Installation
-                            </Button>
-                        ) : null}
-                    </Alert>
+                    <Box border={1} borderColor="red" borderRadius={1}>
+                        <Alert severity="error">
+                            <Typography mb={1} variant="body2">
+                                {attempts >= 5
+                                    ? `An error occurred during installation. Please quit and try installing again. Make sure you have a stable internet connection and use a VPN if the internet in your country is censored.`
+                                    : `An error occurred during installation. Please try again. Make sure you have a stable internet connection
+                and use a VPN if the internet in your country is censored.`}
+                            </Typography>
+                            {attempts >= 5 ? (
+                                <Typography mb={1.5} mt={-0.5} variant="body2">
+                                    If you still face issues, feel free to reach out to our support
+                                    team{' '}
+                                    <ExternalLink
+                                        id={DomIds.dashboard.contactSupport.supportLink}
+                                        onClick={() =>
+                                            window.Installer.openExternalLink(
+                                                'https://pointnetwork.io/support'
+                                            )
+                                        }
+                                    >
+                                        here
+                                    </ExternalLink>{' '}
+                                    with your support ID - {identifier}
+                                </Typography>
+                            ) : null}
+                            {attempts < 5 ? (
+                                <Button
+                                    id={DomIds.installer.app.restartInstallationButton}
+                                    size="small"
+                                    color="error"
+                                    onClick={sendStartInstallation}
+                                    variant="contained"
+                                >
+                                    Retry Installation
+                                </Button>
+                            ) : null}
+                        </Alert>
+                    </Box>
                 ) : null}
                 <Box
                     ref={loggerRef}

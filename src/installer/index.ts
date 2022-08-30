@@ -9,6 +9,7 @@ import {getIdentifier} from '../../shared/getIdentifier';
 // Types
 import {DashboardChannelsEnum, GenericChannelsEnum} from '../@types/ipc_channels';
 import {ErrorsEnum} from '../@types/errors';
+import {EventListener} from '../@types/generic';
 
 export {Installer};
 
@@ -53,15 +54,15 @@ export default async function () {
         });
     }
 
-    const events = [
-    // Installer channels
+    const events: EventListener[] = [
+        // Installer channels
         {
             channel: InstallerChannelsEnum.start,
             async listener() {
                 try {
                     await installer!.install();
                     await welcome();
-          installer!.close();
+                    installer!.close();
                 } catch (error) {
                     logger.error({
                         errorType: ErrorsEnum.INSTALLATION_ERROR,
@@ -83,36 +84,46 @@ export default async function () {
                 }
             }
         },
+        {
+            channel: GenericChannelsEnum.open_external_link,
+            async listener(_, link: string) {
+                try {
+                    await shell.openExternal(link);
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
         // Dashboard channels
         {
             channel: DashboardChannelsEnum.get_version,
             listener() {
-        mainWindow!.webContents.send(
-            DashboardChannelsEnum.get_version,
-            helpers.getInstalledDashboardVersion()
-        );
+                mainWindow!.webContents.send(
+                    DashboardChannelsEnum.get_version,
+                    helpers.getInstalledDashboardVersion()
+                );
             }
         },
         // Generic channels
         {
             channel: GenericChannelsEnum.get_identifier,
             listener() {
-        mainWindow!.webContents.send(
-            GenericChannelsEnum.get_identifier,
-            getIdentifier()[0]
-        );
+                mainWindow!.webContents.send(
+                    GenericChannelsEnum.get_identifier,
+                    getIdentifier()[0]
+                );
             }
         },
         {
             channel: GenericChannelsEnum.minimize_window,
             listener() {
-        mainWindow!.minimize();
+                mainWindow!.minimize();
             }
         },
         {
             channel: GenericChannelsEnum.close_window,
             listener() {
-        mainWindow!.close();
+                mainWindow!.close();
             }
         }
     ];
@@ -143,7 +154,7 @@ export default async function () {
         logger.error({
             errorType: ErrorsEnum.FATAL_ERROR,
             error,
-            info:'Failed to start Installer window'
+            info: 'Failed to start Installer window'
         });
         app.quit();
     }
