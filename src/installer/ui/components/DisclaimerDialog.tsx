@@ -75,7 +75,7 @@ const DisclaimerDialog = ({
                     variant="contained"
                     onClick={() => setOpen(false)}
                 >
-                    I undestand and agree to continue
+                    I understand and agree to continue
                 </Button>
                 <Button
                     id={DomIds.installer.disclaimerDialog.rejectTermsButton}
