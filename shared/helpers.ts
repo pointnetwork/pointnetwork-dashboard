@@ -7,6 +7,7 @@ import {platform, arch} from 'process';
 import axios from 'axios';
 import rmfr from 'rmfr';
 import {app} from 'electron';
+import {sign} from 'jsonwebtoken';
 
 const getOS = () => {
     if (platform === 'win32') return 'win';
@@ -141,6 +142,11 @@ const getLiveExtensionsDirectoryPathResources = () => path.join(
 const getKeyFileName = () => path.join(getLiveDirectoryPath(), 'key.json');
 
 const getTokenFileName = () => path.join(getLiveDirectoryPath(), 'token.txt');
+
+const getAuthToken = async () => fs.readFile(getTokenFileName(), 'utf8');
+
+const generateAuthJwt = async () =>
+    sign({payload: 'point_token'}, await getAuthToken(), {expiresIn: '10s'});
 
 const getArweaveKeyFileName = () => path.join(getLiveDirectoryPath(), 'arweave.json');
 
@@ -312,6 +318,8 @@ export default Object.freeze({
     getLiveDirectoryPath,
     getKeyFileName,
     getTokenFileName,
+    getAuthToken,
+    generateAuthJwt,
     getArweaveKeyFileName,
     isLoggedIn,
     logout,

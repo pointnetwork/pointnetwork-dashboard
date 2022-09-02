@@ -489,11 +489,15 @@ class Node {
             } as IdentityLog)
         });
         try {
-            let res = await axios.get('http://localhost:2468/v1/api/wallet/address');
+            let res = await axios.get(
+                'http://localhost:2468/v1/api/wallet/address',
+                {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
+            );
             const address = res.data.data.address;
 
             res = await axios.get(
-                `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
+                `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`,
+                {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
             );
             const identity = res.data.data.identity;
             this.logger.sendToChannel({

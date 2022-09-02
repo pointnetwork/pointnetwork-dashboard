@@ -41,7 +41,10 @@ class Bounty {
             );
             const referralCode = fileContents.referralCode;
 
-            const addressRes = await axios.get('http://localhost:2468/v1/api/wallet/address');
+            const addressRes = await axios.get(
+                'http://localhost:2468/v1/api/wallet/address',
+                {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
+            );
             const address = addressRes.data.data.address;
 
             if (!fileContents.isGeneratedEventSent && address) {
