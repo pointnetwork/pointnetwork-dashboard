@@ -182,8 +182,7 @@ class Firefox {
                 return;
             }
 
-            const tokenFileName = helpers.getTokenFileName();
-            const authToken = await fs.readFile(tokenFileName, 'utf8');
+            const authToken = await helpers.getAuthToken();
 
             // MAYBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
             await this._createConfigFiles();

@@ -215,7 +215,10 @@ export default async function () {
 
     const checkBalance = async () => {
         let balance = 0;
-        const addressRes = await axios.get('http://localhost:2468/v1/api/wallet/address');
+        const addressRes = await axios.get(
+            'http://localhost:2468/v1/api/wallet/address',
+            {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
+        );
         const address = addressRes.data.data.address;
 
         const faucetURL = helpers.getFaucetURL();
@@ -288,7 +291,8 @@ export default async function () {
                 const start = new Date().getTime();
                 try {
                     const addressRes = await axios.get(
-                        'http://localhost:2468/v1/api/wallet/address'
+                        'http://localhost:2468/v1/api/wallet/address',
+                        {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
                     );
                     const address = addressRes.data.data.address;
 
