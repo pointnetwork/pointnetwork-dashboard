@@ -282,7 +282,7 @@ const isChineseTimezone = () => {
 
 const getFaucetURL = () => isChineseTimezone()
     ? 'https://faucet.point.space'
-    : 'https://point-faucet.herokuapp.com';
+    : 'https://point-faucet-staging.herokuapp.com';
 
 const getGithubURL = () => isChineseTimezone()
     ? 'https://gh-connector.point.space:3888'
