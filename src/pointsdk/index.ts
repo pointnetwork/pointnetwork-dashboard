@@ -106,7 +106,8 @@ class PointSDK {
 
             if (
                 !installInfo.lastCheck ||
-                (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
+                ((moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+                    || helpers.isTestEnv()) &&
                     installInfo.installedReleaseVersion !== latestVersion)
             ) {
                 this.logger.info('Update available');
