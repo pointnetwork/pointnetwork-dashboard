@@ -79,29 +79,7 @@ class Node {
    * Returns the download URL for the version provided and the file name provided
    */
     async getDownloadURL(filename: string, version: string): string {
-        // const ghAPIURL = helpers.getGithubAPIURL();
-        // const ghURL = helpers.getGithubURL();
-        // const reqOpts = {
-        //     headers: {
-        //         Accept: 'application/vnd.github+json',
-        //         Authorization: ''
-        //     }
-        // };
-        // if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
-
-        // const releases = await axios.get(`${ghAPIURL}/repos/pointnetwork/pointnetwork/releases`, reqOpts);
-        // const release = releases.data.find((obj: any) => obj.tag_name == version);
-        // console.log({release})
-        // const assetsRes = await axios.get(`${ghAPIURL}/repos/pointnetwork/pointnetwork/releases/${release.id}/assets`, reqOpts);
-        // console.log(`${ghAPIURL}/repos/pointnetwork/pointnetwork/releases/${release.id}/assets`);
-        // console.log(assetsRes.data);
-        // const assetInfo = assetsRes.data.find((asset: any) => asset.name === filename);
-        // const assetURL = assetInfo.browser_download_url;
-
-        // console.log(assetInfo.browser_download_url);
         return `${helpers.getGithubURL()}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`;
-        // return `${ghAPIURL}/repos/pointnetwork/pointnetwork/releases/assets/${assetInfo.id}`;
-        // return assetURL.replace('https://github.com', ghURL);
     }
 
     /**

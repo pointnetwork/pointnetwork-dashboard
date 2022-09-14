@@ -89,15 +89,17 @@ const getLatestReleaseFromGithub: (
 ) => Promise<string> = async repository => {
     try {
         if (isTestEnv()) return getReleaseFromGithub(repository);
+        const reqOpts = {
+            headers: {
+                'user-agent': 'node.js',
+                'Accept': 'application/vnd.github+json',
+                'Authorization': ''
+            }
+        };
+        if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
         const res = await axios.get(
             `${getGithubAPIURL()}/repos/pointnetwork/${repository}/releases/latest`,
-            {
-                headers: {
-                    'user-agent': 'node.js',
-                    'Accept': 'application/vnd.github+json',
-                    'Authorization': `Bearer ${process.env.GITHUB_PAT}`
-                }
-            }
+            reqOpts
         );
         return res.data.tag_name;
     } catch (error) {
@@ -288,14 +290,15 @@ const isNewDashboardReleaseAvailable = async () => {
     try {
         const githubAPIURL = getGithubAPIURL();
         const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-dashboard/releases/latest`;
-        const headers = {
+        const reqOpts = {
             headers: {
                 'user-agent': 'node.js',
                 'Accept': 'application/vnd.github+json',
-                'Authorization': `Bearer ${process.env.GITHUB_PAT}`
+                'Authorization': ''
             }
         };
-        const res = await axios.get(url, headers);
+        if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
+        const res = await axios.get(url, reqOpts);
         const latestVersion = res.data.tag_name;
 
         if (latestVersion.slice(1) > getInstalledDashboardVersion()) {

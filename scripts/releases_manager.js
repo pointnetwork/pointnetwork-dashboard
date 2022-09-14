@@ -41,14 +41,16 @@ const repositories = [
 ];
 
 const getReleases = async (repository) => {
+    const reqOpts = {
+        headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: ''
+        }
+    };
+    if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
     const result = await axios.get(
         `https://api.github.com/repos/pointnetwork/${repository}/releases`,
-        {
-            headers: {
-                Accept: 'application/vnd.github+json',
-                Authorization: `Bearer ${process.env.GITHUB_PAT}`
-            }
-        });
+        reqOpts);
     return result.data.sort((a, b) =>
         (Date.parse(a.created_at) > Date.parse(b.created_at)) ? 1 : -1);
 };

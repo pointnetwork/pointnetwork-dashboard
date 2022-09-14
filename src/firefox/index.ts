@@ -85,14 +85,17 @@ class Firefox {
             const githubUrl = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`;
             const fallback = `${githubURL}/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`;
             const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/;
-            const headers = {
-                'user-agent': 'node.js',
-                'Accept': 'application/vnd.github+json',
-                'Authorization': `Bearer ${process.env.GITHUB_PAT}`
+            const reqOpts = {
+                headers: {
+                    'user-agent': 'node.js',
+                    'Accept': 'application/vnd.github+json',
+                    'Authorization': ''
+                }
             };
+            if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
 
             try {
-                const {data} = await axios.get<GithubRelease>(githubUrl, {headers});
+                const {data} = await axios.get<GithubRelease>(githubUrl, reqOpts);
                 const browserAsset = data.assets.find(a => re.test(a.name));
 
                 if (!browserAsset) {
