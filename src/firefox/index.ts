@@ -85,9 +85,14 @@ class Firefox {
             const githubUrl = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`;
             const fallback = `${githubURL}/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`;
             const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/;
+            const headers = {
+                'user-agent': 'node.js',
+                'Accept': 'application/vnd.github+json',
+                'Authorization': `Bearer ${process.env.GITHUB_PAT}`
+            };
 
             try {
-                const {data} = await axios.get<GithubRelease>(githubUrl);
+                const {data} = await axios.get<GithubRelease>(githubUrl, {headers});
                 const browserAsset = data.assets.find(a => re.test(a.name));
 
                 if (!browserAsset) {
@@ -302,9 +307,10 @@ class Firefox {
 
             if (
                 isBinMissing ||
-        !installInfo.lastCheck ||
-        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
-          installInfo.installedReleaseVersion !== latestVersion)
+                    !installInfo.lastCheck ||
+                    ((moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+                        || helpers.isTestEnv()) &&
+                        installInfo.installedReleaseVersion !== latestVersion)
             ) {
                 this.logger.info('Update available');
                 this.logger.sendToChannel({

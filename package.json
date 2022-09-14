@@ -40,6 +40,7 @@
     "decompress-zip": "^0.3.3",
     "dmg": "^0.1.0",
     "docker-compose": "^0.23.17",
+    "dotenv": "^16.0.2",
     "electron-log": "^4.4.6",
     "extract-zip": "^2.0.1",
     "find-process": "^1.4.7",

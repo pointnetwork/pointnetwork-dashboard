@@ -7,10 +7,13 @@ import {dialog} from 'electron';
 import fs from 'fs-extra';
 import lockfile from 'proper-lockfile';
 import {ErrorsEnum} from '../@types/errors';
+import * as dotenv from 'dotenv';
 
 const logger = new Logger({module: 'main'});
 
 export default async function main() {
+    dotenv.config();
+
     logger.info('Checking for updates');
     require('update-electron-app')();
     logger.info('Launching Dashboard');

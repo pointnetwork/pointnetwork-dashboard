@@ -88,14 +88,47 @@ const getLatestReleaseFromGithub: (
     | 'pointnetwork-dashboard'
 ) => Promise<string> = async repository => {
     try {
+        if (isTestEnv()) return getReleaseFromGithub(repository);
         const res = await axios.get(
             `${getGithubAPIURL()}/repos/pointnetwork/${repository}/releases/latest`,
-            {headers: {'user-agent': 'node.js'}}
+            {
+                headers: {
+                    'user-agent': 'node.js',
+                    'Accept': 'application/vnd.github+json',
+                    'Authorization': `Bearer ${process.env.GITHUB_PAT}`
+                }
+            }
         );
         return res.data.tag_name;
     } catch (error) {
         throw new Error(ErrorsEnum.GITHUB_ERROR);
     }
+};
+
+const getReleaseFromGithub: (
+    repository:
+        | 'pointnetwork-uninstaller'
+        | 'pointnetwork'
+        | 'pointsdk'
+        | 'pointnetwork-dashboard'
+) => Promise<string> = async repository => {
+    let version: string | undefined;
+    switch (repository) {
+        case 'pointnetwork-uninstaller':
+            version = process.env.UNINSTALLER_VERSION;
+            break;
+        case 'pointnetwork-dashboard':
+            version = process.env.DASHBOARD_VERSION;
+            break;
+        case 'pointsdk':
+            version = process.env.SDK_VERSION;
+            break;
+        case 'pointnetwork':
+            version = process.env.ENGINE_VERSION;
+            break;
+    }
+    if (version === undefined) throw new Error(ErrorsEnum.TESTENV_ERROR);
+    return version;
 };
 
 const getHTTPorHTTPs = () => {
@@ -255,8 +288,14 @@ const isNewDashboardReleaseAvailable = async () => {
     try {
         const githubAPIURL = getGithubAPIURL();
         const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-dashboard/releases/latest`;
-        const headers = {'user-agent': 'node.js'};
-        const res = await axios.get(url, {headers: headers});
+        const headers = {
+            headers: {
+                'user-agent': 'node.js',
+                'Accept': 'application/vnd.github+json',
+                'Authorization': `Bearer ${process.env.GITHUB_PAT}`
+            }
+        };
+        const res = await axios.get(url, headers);
         const latestVersion = res.data.tag_name;
 
         if (latestVersion.slice(1) > getInstalledDashboardVersion()) {
@@ -307,6 +346,15 @@ const lookupStrInFile = (filename: string, str: string): boolean => {
     }
 };
 
+const isTestEnv = (): boolean => {
+    try {
+        if (process.env.IS_TEST !== undefined) return true;
+        return false;
+    } catch (err) {
+        return false;
+    }
+};
+
 export default Object.freeze({
     noop,
     getOSAndArch,
@@ -346,5 +394,6 @@ export default Object.freeze({
     getInstalledVersionInfo,
     delay,
     lookupStrInFile,
-    getOS
+    getOS,
+    isTestEnv
 });

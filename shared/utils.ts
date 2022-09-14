@@ -62,7 +62,17 @@ const download: DownloadFunction = ({
                 });
             }
 
-            const req = https.get(downloadUrl, {timeout: 15000}, async response => {
+            const reqOpts = {
+                timeout: 15000,
+                headers: {
+                    Accept: 'application/vnd.github+json',
+                    Authorization: ''
+                }
+            };
+            if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
+
+            // const req = https.get(downloadUrl, {timeout: 15000}, async response => {
+            const req = https.get(downloadUrl, reqOpts, async response => {
                 res = response;
 
                 response.pipe(downloadStream);
