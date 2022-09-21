@@ -19,7 +19,8 @@ import {
     GenericChannelsEnum,
     NodeChannelsEnum,
     PointSDKChannelsEnum,
-    UninstallerChannelsEnum
+    UninstallerChannelsEnum,
+    InstallerChannelsEnum
 } from '../@types/ipc_channels';
 import {EventListener, UpdateLog} from '../@types/generic';
 import {ErrorsEnum} from '../@types/errors';
@@ -241,6 +242,17 @@ export default async function () {
     };
 
     const events: EventListener[] = [
+        // Check avalible disk space to install
+        {
+            channel: InstallerChannelsEnum.disk_space,
+            listener() {
+                try {
+                    // new Bounty({window: window!}).sendGenerated();
+                } catch (error) {
+                    logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
+                }
+            }
+        },
         // Bounty channels
         {
             channel: BountyChannelsEnum.send_generated,
