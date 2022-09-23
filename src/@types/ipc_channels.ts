@@ -7,7 +7,7 @@ export enum InstallerChannelsEnum {
   create_dirs = 'install:create_dirs',
   clone_repos = 'install:clone_repos',
   open_terms_link = 'install:open_terms_link',
-  disk_space = 'install:disk_space',
+  disk_error = 'install:disk_space_error',
 }
 
 export enum WelcomeChannelsEnum {

@@ -117,6 +117,10 @@ class Installer {
                 channel: InstallerChannelsEnum.error,
                 log: this._attempts.toString()
             });
+            this.logger.sendToChannel({
+                channel: InstallerChannelsEnum.disk_error,
+                log: error.message
+            });
             throw error;
         }
     };
