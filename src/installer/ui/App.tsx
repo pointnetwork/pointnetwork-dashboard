@@ -46,7 +46,7 @@ export default function App() {
     window.Installer.on(
       InstallerChannelsEnum.disk_error,
       (_errorMessage: string) => {
-        setCustomError(_errorMessage);
+        setCustomError('');
         if (_errorMessage.indexOf("ENOSPC") > -1) {
           setCustomError(
             "Please cleanup some disk space to install complete setup successfully."
