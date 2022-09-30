@@ -49,7 +49,7 @@ export default function App() {
         setCustomError('');
         if (_errorMessage.indexOf("ENOSPC") > -1) {
           setCustomError(
-            "Please cleanup some disk space to install complete setup successfully."
+            "Not enough disk space. You need about 2Gb of space to install the dashboard. Please, try again"
           );
         }
       }
