@@ -1,4 +1,4 @@
-import {createContext, useEffect, useState} from 'react';
+import {createContext, useEffect, useState, useCallback, useRef} from 'react';
 import {
     DashboardChannelsEnum,
     FirefoxChannelsEnum,
@@ -7,7 +7,10 @@ import {
     UninstallerChannelsEnum
 } from '../../@types/ipc_channels';
 import {IdentityLog, LaunchProcessLog} from '../../@types/generic';
+import {BalanceCheckResult} from '../../@types/results';
 import {MainStatus} from '../../@types/context';
+
+const CHECK_BALANCE_INTERVAL_MS = 30_000;
 
 export const useMainStatus = () => {
     // General
@@ -35,6 +38,7 @@ export const useMainStatus = () => {
         address: ''
     });
     const [balance, setBalance] = useState<number | string>(0);
+    const timeoutId = useRef<NodeJS.Timeout | undefined>();
 
     // Register these events once to prevent leaks
     const setListeners = () => {
@@ -100,9 +104,18 @@ export const useMainStatus = () => {
             }
         });
 
-        window.Dashboard.on(DashboardChannelsEnum.check_balance_and_airdrop, (bal: string) => {
-            setBalance(bal);
-        });
+        window.Dashboard.on(
+            DashboardChannelsEnum.check_balance_and_airdrop,
+            (result: BalanceCheckResult) => {
+                if (result.success) {
+                    setBalance(result.value);
+                    checkBalance(CHECK_BALANCE_INTERVAL_MS);
+                } else {
+                    // There's been an error, keep the "old" balance and wait longer for the next check
+                    checkBalance(CHECK_BALANCE_INTERVAL_MS * 3);
+                }
+            }
+        );
     };
 
     const getInfo = async () => {
@@ -117,6 +130,13 @@ export const useMainStatus = () => {
         setSdkVersion(pointSdkVersion);
         setBrowserVersion(firefoxVersion);
     };
+
+    const checkBalance = useCallback(delayMs => {
+        clearTimeout(timeoutId.current);
+        timeoutId.current = setTimeout(() => {
+            window.Dashboard.checkBalance();
+        }, delayMs);
+    }, []);
 
     // 1. Set listeners and get info
     const init = async () => {
@@ -133,12 +153,10 @@ export const useMainStatus = () => {
             window.Dashboard.launchBrowser();
             window.Dashboard.checkBalanceAndAirdrop();
             window.Dashboard.sendGeneratedEventToBounty();
+            checkBalance(CHECK_BALANCE_INTERVAL_MS);
             setInterval(() => {
                 window.Dashboard.getIdentityInfo();
             }, 10000);
-            setInterval(() => {
-                window.Dashboard.checkBalance();
-            }, 30_000);
         }
     }, [isNodeRunning]);
 
