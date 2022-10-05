@@ -38,7 +38,7 @@ const download: DownloadFunction = ({
         try {
             switch (channel) {
                 case NodeChannelsEnum.download:
-                    asset = 'Node';
+                    asset = 'Engine';
                     break;
                 case FirefoxChannelsEnum.download:
                     asset = 'Browser';
@@ -62,7 +62,17 @@ const download: DownloadFunction = ({
                 });
             }
 
-            const req = https.get(downloadUrl, {timeout: 15000}, async response => {
+            const reqOpts = {
+                timeout: 15000,
+                headers: {
+                    Accept: 'application/vnd.github+json',
+                    Authorization: ''
+                }
+            };
+            if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
+
+            // const req = https.get(downloadUrl, {timeout: 15000}, async response => {
+            const req = https.get(downloadUrl, reqOpts, async response => {
                 res = response;
 
                 response.pipe(downloadStream);
@@ -138,7 +148,7 @@ const download: DownloadFunction = ({
                 logger?.error({errorType: ErrorsEnum.DOWNLOAD_ERROR, info: 'TIMEOUT', error});
                 reject(error);
                 req.destroy();
-                res.pause();
+                res?.pause();
             });
         } catch (error) {
             if (channel) {

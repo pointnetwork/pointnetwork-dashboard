@@ -85,9 +85,17 @@ class Firefox {
             const githubUrl = `${githubAPIURL}/repos/${owner}/${repo}/releases/latest`;
             const fallback = `${githubURL}/${owner}/${repo}/releases/download/91.7.1-58/point-browser-portable-win64-91.7.1-57.zip`;
             const re = /point-browser-portable-win64-\d+.\d+.\d+(-\d+)?.zip/;
+            const reqOpts = {
+                headers: {
+                    'user-agent': 'node.js',
+                    'Accept': 'application/vnd.github+json',
+                    'Authorization': ''
+                }
+            };
+            if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
 
             try {
-                const {data} = await axios.get<GithubRelease>(githubUrl);
+                const {data} = await axios.get<GithubRelease>(githubUrl, reqOpts);
                 const browserAsset = data.assets.find(a => re.test(a.name));
 
                 if (!browserAsset) {
@@ -182,6 +190,8 @@ class Firefox {
                 return;
             }
 
+            const authToken = await helpers.getAuthToken();
+
             // MAYBE REMOVE THIS LATER ON BUT FOR NOW WE RE-INJECT CONFIG BEFORE STARTING BROWSER
             await this._createConfigFiles();
 
@@ -195,7 +205,7 @@ class Firefox {
             this.logger.info('Launching');
             const proc = spawn(
                 cmd,
-                ['--first-startup', '--profile', profilePath, '--url', 'https://point'],
+                ['--first-startup', '--profile', profilePath, '--url', `https://point?token=${authToken}`],
                 {stdio: 'ignore'}
             );
 
@@ -280,7 +290,7 @@ class Firefox {
     }
 
     /**
-   * Checks for Point Node updates
+   * Checks for Point Engine updates
    */
     async checkForUpdates() {
         try {
@@ -300,9 +310,10 @@ class Firefox {
 
             if (
                 isBinMissing ||
-        !installInfo.lastCheck ||
-        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
-          installInfo.installedReleaseVersion !== latestVersion)
+                    !installInfo.lastCheck ||
+                    ((moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+                        || helpers.isTestEnv()) &&
+                        installInfo.installedReleaseVersion !== latestVersion)
             ) {
                 this.logger.info('Update available');
                 this.logger.sendToChannel({
@@ -396,7 +407,7 @@ class Firefox {
                 }
 
                 if (global.platform.darwin) {
-                    dmg.mount(src, async (_err: any, dmgPath: any) => {
+                    dmg.mount(src, async (_err: Error, dmgPath: string) => {
                         try {
                             const _src = `${dmgPath}/Firefox.app`;
                             const dst = `${dest}/Firefox.app`;
@@ -425,11 +436,11 @@ class Firefox {
                                     return true; // To actually copy the file
                                 }
                             });
-                        } catch (error: any) {
+                        } catch (error) {
                             this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error});
                             throw error;
                         } finally {
-                            dmg.unmount(dmgPath, (error: any) => {
+                            dmg.unmount(dmgPath, (error: Error) => {
                                 if (error) {
                                     this.logger.error({errorType: ErrorsEnum.UNPACK_ERROR, error});
                                     throw error;
@@ -463,7 +474,7 @@ class Firefox {
 
                     readStream.on('finish', _resolve);
                 }
-            } catch (error: any) {
+            } catch (error) {
                 this.logger.sendToChannel({
                     channel: FirefoxChannelsEnum.unpack,
                     log: JSON.stringify({
@@ -537,6 +548,7 @@ pref("browser.sessionstore.resume_session_once", false)
 pref("browser.sessionstore.resume_from_crash", false)
 pref("browser.startup.upgradeDialog.enabled", false)
 pref('security.pki.sha1_enforcement_level', 4)
+pref('browser.newtabpage.enabled', false)
 `;
             const policiesCfgContent = `{
   "policies": {
@@ -560,7 +572,7 @@ pref('security.pki.sha1_enforcement_level', 4)
             );
 
             this.logger.info('Created configuration files');
-        } catch (error: any) {
+        } catch (error) {
             this.logger.error({errorType: ErrorsEnum.FIREFOX_CONFIG_ERROR, error});
             throw error;
         }

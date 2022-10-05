@@ -11,6 +11,7 @@ export interface IsUpdatingState {
 
 export interface EventListener {
   channel: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   listener: (_: IpcMainEvent, ...args: any[]) => void
 }
 

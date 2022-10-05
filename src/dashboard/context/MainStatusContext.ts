@@ -13,25 +13,27 @@ export const useMainStatus = () => {
     // General
     const [identifier, setIdentifier] = useState<string>('');
     const [loader, setIsLaunching] = useState<{
-    isLoading: boolean
-    message: string
-  }>({isLoading: true, message: 'Checking for updates...'});
+        isLoading: boolean;
+        message: string;
+    }>({isLoading: true, message: 'Checking for updates...'});
     const [launchFailed, setLaunchFailed] = useState(false);
     // Node
     const [nodeVersion, setNodeVersion] = useState<string>('');
     const [isNodeRunning, setIsNodeRunning] = useState<boolean>(false);
     const [engineErrorCode, setEngineErrorCode] = useState<number>(0);
+    // PointSDK
+    const [sdkVersion, setSdkVersion] = useState<string>('');
     // Browser
     const [browserVersion, setBrowserVersion] = useState<string>('');
     const [isBrowserRunning, setIsBrowserRunning] = useState<boolean>(false);
     // Identity
     const [identityInfo, setIdentityInfo] = useState<{
-    identity: string
-    address: string
-  }>({
-      identity: '',
-      address: ''
-  });
+        identity: string;
+        address: string;
+    }>({
+        identity: '',
+        address: ''
+    });
     const [balance, setBalance] = useState<number | string>(0);
 
     // Register these events once to prevent leaks
@@ -50,7 +52,7 @@ export const useMainStatus = () => {
             if (parsed.relaunching) {
                 setIsLaunching(prevState => ({
                     ...prevState,
-                    message: 'Point network failed to start, retrying'
+                    message: 'Trying to connect to Point Engine'
                 }));
             }
         });
@@ -98,22 +100,21 @@ export const useMainStatus = () => {
             }
         });
 
-        window.Dashboard.on(
-            DashboardChannelsEnum.check_balance_and_airdrop,
-            (bal: string) => {
-                setBalance(bal);
-            }
-        );
+        window.Dashboard.on(DashboardChannelsEnum.check_balance_and_airdrop, (bal: string) => {
+            setBalance(bal);
+        });
     };
 
     const getInfo = async () => {
-        const [id, pointNodeVersion, firefoxVersion] = await Promise.all([
+        const [id, pointNodeVersion, pointSdkVersion, firefoxVersion] = await Promise.all([
             window.Dashboard.getIndentifier(),
             window.Dashboard.getNodeVersion(),
+            window.Dashboard.getSdkVersion(),
             window.Dashboard.getFirefoxVersion()
         ]);
         setIdentifier(id);
         setNodeVersion(pointNodeVersion);
+        setSdkVersion(pointSdkVersion);
         setBrowserVersion(firefoxVersion);
     };
 
@@ -134,8 +135,10 @@ export const useMainStatus = () => {
             window.Dashboard.sendGeneratedEventToBounty();
             setInterval(() => {
                 window.Dashboard.getIdentityInfo();
-                window.Dashboard.checkBalance();
             }, 10000);
+            setInterval(() => {
+                window.Dashboard.checkBalance();
+            }, 30_000);
         }
     }, [isNodeRunning]);
 
@@ -155,14 +158,14 @@ export const useMainStatus = () => {
         identifier,
         browserVersion,
         nodeVersion,
+        sdkVersion,
         launchFailed,
         loader,
         identityInfo,
         balance,
-        engineErrorCode
+        engineErrorCode,
+        getInfo
     };
 };
 
-export const MainStatusContext = createContext<MainStatus>(
-  {} as unknown as MainStatus
-);
+export const MainStatusContext = createContext<MainStatus>({} as unknown as MainStatus);

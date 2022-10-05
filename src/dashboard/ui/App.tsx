@@ -1,59 +1,59 @@
-import { FunctionComponent, useContext } from 'react'
+import {FunctionComponent, useContext} from 'react';
 // MUI
-import Grid from '@mui/material/Grid'
+import Grid from '@mui/material/Grid';
 // Context
-import { useMainStatus, MainStatusContext } from '../context/MainStatusContext'
+import {useMainStatus, MainStatusContext} from '../context/MainStatusContext';
 import {
-  UpdateStatusContext,
-  useUpdateStatus,
-} from '../context/UpdateStatusContext'
+    UpdateStatusContext,
+    useUpdateStatus
+} from '../context/UpdateStatusContext';
 // Components
-import CheckForUpdatesDialog from './components/CheckForUpdatesDialog'
-import DashboardUpdateAlert from './components/DashboardUpdateAlert'
-import DefaultLoader from './components/DefaultLoader'
-import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier'
-import MainContent from './components/MainContent'
-import Sidebar from './components/Sidebar'
-import TimeoutAlert from './components/TimeoutAlert'
-import ErrorDialog from './components/ErrorDialog'
-import UIThemeProvider from '../../../shared/react-components/UIThemeProvider'
+import CheckForUpdatesDialog from './components/CheckForUpdatesDialog';
+import DashboardUpdateAlert from './components/DashboardUpdateAlert';
+import DefaultLoader from './components/DefaultLoader';
+import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier';
+import MainContent from './components/MainContent';
+import Sidebar from './components/Sidebar';
+import TimeoutAlert from './components/TimeoutAlert';
+import ErrorDialog from './components/ErrorDialog';
+import UIThemeProvider from '../../../shared/react-components/UIThemeProvider';
 
 const App = () => {
-  const { identifier, launchFailed, loader, engineErrorCode } = useContext(MainStatusContext)
-  const { updateDialogOpen } = useContext(UpdateStatusContext)
+    const {identifier, launchFailed, loader, engineErrorCode} = useContext(MainStatusContext);
+    const {updateDialogOpen} = useContext(UpdateStatusContext);
 
-  return (
-    <UIThemeProvider>
-      <DisplayIdentifier identifier={identifier} />
-      <DashboardUpdateAlert />
-      <TimeoutAlert identifier={identifier} open={launchFailed && !engineErrorCode} />
-      <CheckForUpdatesDialog />
-      <ErrorDialog identifier={identifier} errCode={engineErrorCode} />
+    return (
+        <UIThemeProvider>
+            <DisplayIdentifier identifier={identifier} />
+            <DashboardUpdateAlert />
+            <TimeoutAlert identifier={identifier} open={launchFailed && !engineErrorCode} />
+            <CheckForUpdatesDialog />
+            <ErrorDialog identifier={identifier} errCode={engineErrorCode} />
 
-      <DefaultLoader
-        isOpen={loader.isLoading && !updateDialogOpen}
-        message={loader.message}
-      />
+            <DefaultLoader
+                isOpen={loader.isLoading && !updateDialogOpen}
+                message={loader.message}
+            />
 
-      <Grid container height="99.5vh">
-        <Sidebar />
-        <MainContent />
-      </Grid>
-    </UIThemeProvider>
-  )
-}
+            <Grid container height="99.5vh">
+                <Sidebar />
+                <MainContent />
+            </Grid>
+        </UIThemeProvider>
+    );
+};
 
 const AppWithContext: FunctionComponent = () => {
-  const mainStatus = useMainStatus()
-  const updateStatus = useUpdateStatus()
+    const mainStatus = useMainStatus();
+    const updateStatus = useUpdateStatus();
 
-  return (
-    <MainStatusContext.Provider value={mainStatus}>
-      <UpdateStatusContext.Provider value={updateStatus}>
-        <App />
-      </UpdateStatusContext.Provider>
-    </MainStatusContext.Provider>
-  )
-}
+    return (
+        <MainStatusContext.Provider value={mainStatus}>
+            <UpdateStatusContext.Provider value={updateStatus}>
+                <App />
+            </UpdateStatusContext.Provider>
+        </MainStatusContext.Provider>
+    );
+};
 
-export default AppWithContext
+export default AppWithContext;

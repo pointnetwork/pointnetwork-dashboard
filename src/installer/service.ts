@@ -60,7 +60,7 @@ class Installer {
     };
 
     /**
-   * Creates dirs, clones repos, installs Point Node, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
+   * Creates dirs, clones repos, installs Point Engine, Firefox, Uninstaller, SDK, sends events to bounty server and saves the JSON file
    */
     install = async () => {
         try {
@@ -69,14 +69,15 @@ class Installer {
             this.logger.info('Starting installation');
 
             const bounty = new Bounty({window: this.window});
-            await bounty.init();
+            const testFlag = 'test';
+            if (!process.argv.includes(testFlag)) await bounty.init();
 
             await fs.writeFile(
                 Installer.installationJsonFilePath,
                 JSON.stringify({isInstalled: false})
             );
 
-            await bounty.sendInstallStarted();
+            if (!process.argv.includes(testFlag)) await bounty.sendInstallStarted();
             if (this._stepsCompleted === 0) {
                 await this._createDirs();
                 this._stepsCompleted++;
@@ -101,7 +102,7 @@ class Installer {
                 await new Uninstaller({window: this.window}).downloadAndInstall();
             }
 
-            await bounty.sendInstalled();
+            if (!process.argv.includes(testFlag)) await bounty.sendInstalled();
 
             await fs.writeFile(
                 Installer.installationJsonFilePath,
@@ -170,7 +171,7 @@ class Installer {
                     log: `Created required directories`
                 } as GenericProgressLog)
             });
-        } catch (error: any) {
+        } catch (error) {
             this.logger.sendToChannel({
                 channel: InstallerChannelsEnum.create_dirs,
                 log: JSON.stringify({

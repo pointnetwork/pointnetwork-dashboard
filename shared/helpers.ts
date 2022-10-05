@@ -6,6 +6,14 @@ import os from 'os';
 import {platform, arch} from 'process';
 import axios from 'axios';
 import rmfr from 'rmfr';
+import {app} from 'electron';
+import {sign} from 'jsonwebtoken';
+
+const getOS = () => {
+    if (platform === 'win32') return 'win';
+    if (platform === 'darwin') return 'macos';
+    return platform;
+};
 
 const getOSAndArch = () => {
     // Returned values: mac, linux-x86_64, linux-i686, win64, win32, or throws an error
@@ -80,14 +88,49 @@ const getLatestReleaseFromGithub: (
     | 'pointnetwork-dashboard'
 ) => Promise<string> = async repository => {
     try {
+        if (isTestEnv()) return getReleaseFromGithub(repository);
+        const reqOpts = {
+            headers: {
+                'user-agent': 'node.js',
+                'Accept': 'application/vnd.github+json',
+                'Authorization': ''
+            }
+        };
+        if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
         const res = await axios.get(
             `${getGithubAPIURL()}/repos/pointnetwork/${repository}/releases/latest`,
-            {headers: {'user-agent': 'node.js'}}
+            reqOpts
         );
         return res.data.tag_name;
     } catch (error) {
         throw new Error(ErrorsEnum.GITHUB_ERROR);
     }
+};
+
+const getReleaseFromGithub: (
+    repository:
+        | 'pointnetwork-uninstaller'
+        | 'pointnetwork'
+        | 'pointsdk'
+        | 'pointnetwork-dashboard'
+) => Promise<string> = async repository => {
+    let version: string | undefined;
+    switch (repository) {
+        case 'pointnetwork-uninstaller':
+            version = process.env.UNINSTALLER_VERSION;
+            break;
+        case 'pointnetwork-dashboard':
+            version = process.env.DASHBOARD_VERSION;
+            break;
+        case 'pointsdk':
+            version = process.env.SDK_VERSION;
+            break;
+        case 'pointnetwork':
+            version = process.env.ENGINE_VERSION;
+            break;
+    }
+    if (version === undefined) throw new Error(ErrorsEnum.TESTENV_ERROR);
+    return version;
 };
 
 const getHTTPorHTTPs = () => {
@@ -132,6 +175,13 @@ const getLiveExtensionsDirectoryPathResources = () => path.join(
 );
 
 const getKeyFileName = () => path.join(getLiveDirectoryPath(), 'key.json');
+
+const getTokenFileName = () => path.join(getLiveDirectoryPath(), 'token.txt');
+
+const getAuthToken = async () => fs.readFile(getTokenFileName(), 'utf8');
+
+const generateAuthJwt = async () =>
+    sign({payload: 'point_token'}, await getAuthToken(), {expiresIn: '10s'});
 
 const getArweaveKeyFileName = () => path.join(getLiveDirectoryPath(), 'arweave.json');
 
@@ -195,7 +245,9 @@ const logout = async () => {
 
 const getPointPath = () => path.join(getHomePath(), '.point');
 
-const getPointPathTemp = () => path.join(getHomePath(), '.temp');
+const getPointLockfilePath = () => path.join(getPointPath(), 'point_dashboard');
+
+const getPointPathTemp = () => path.join(app.getPath('temp'), 'point');
 
 const getPointSrcPath = () => path.join(getPointPath(), 'src');
 
@@ -238,8 +290,15 @@ const isNewDashboardReleaseAvailable = async () => {
     try {
         const githubAPIURL = getGithubAPIURL();
         const url = `${githubAPIURL}/repos/pointnetwork/pointnetwork-dashboard/releases/latest`;
-        const headers = {'user-agent': 'node.js'};
-        const res = await axios.get(url, {headers: headers});
+        const reqOpts = {
+            headers: {
+                'user-agent': 'node.js',
+                'Accept': 'application/vnd.github+json',
+                'Authorization': ''
+            }
+        };
+        if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
+        const res = await axios.get(url, reqOpts);
         const latestVersion = res.data.tag_name;
 
         if (latestVersion.slice(1) > getInstalledDashboardVersion()) {
@@ -275,6 +334,30 @@ const getGithubAPIURL = () => isChineseTimezone()
     ? 'https://gh-connector.point.space:3889'
     : 'https://api.github.com';
 
+const delay = (ms: number) =>
+    new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
+
+const lookupStrInFile = (filename: string, str: string): boolean => {
+    try {
+        const contents = fs.readFileSync(filename, 'utf-8');
+        const result = contents.includes(str);
+        return result;
+    } catch (err) {
+        return false;
+    }
+};
+
+const isTestEnv = (): boolean => {
+    try {
+        if (process.env.IS_TEST !== undefined) return true;
+        return false;
+    } catch (err) {
+        return false;
+    }
+};
+
 export default Object.freeze({
     noop,
     getOSAndArch,
@@ -285,6 +368,9 @@ export default Object.freeze({
     getHomePath,
     getLiveDirectoryPath,
     getKeyFileName,
+    getTokenFileName,
+    getAuthToken,
+    generateAuthJwt,
     getArweaveKeyFileName,
     isLoggedIn,
     logout,
@@ -292,6 +378,7 @@ export default Object.freeze({
     getPointSoftwarePath,
     getBinPath,
     getPointPath,
+    getPointLockfilePath,
     getLiveDirectoryPathResources,
     countFilesinDir,
     getInstalledDashboardVersion,
@@ -307,5 +394,9 @@ export default Object.freeze({
     getGithubURL,
     getGithubAPIURL,
     getLatestReleaseFromGithub,
-    getInstalledVersionInfo
+    getInstalledVersionInfo,
+    delay,
+    lookupStrInFile,
+    getOS,
+    isTestEnv
 });

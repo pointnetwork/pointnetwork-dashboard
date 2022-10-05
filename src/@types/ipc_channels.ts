@@ -37,6 +37,8 @@ export enum DashboardChannelsEnum {
   get_version = 'dashboard:get_version',
   check_for_updates = 'dashboard:check_for_updates',
   log_out = 'dashboard:log_out',
+  check_shell_and_path = 'dashboard:check_shell_and_path',
+  set_point_path = 'dashboard:set_point_path',
 }
 
 export enum FirefoxChannelsEnum {
@@ -71,6 +73,7 @@ export enum UninstallerChannelsEnum {
 export enum PointSDKChannelsEnum {
   download = 'pointsdk:download',
   check_for_updates = 'pointsdk:check_for_updates',
+  get_version = 'sdk:get_version',
 }
 
 export enum BountyChannelsEnum {
@@ -79,6 +82,7 @@ export enum BountyChannelsEnum {
 
 export type DownloadChannels =
     | NodeChannelsEnum.download
+    | PointSDKChannelsEnum.download
     | FirefoxChannelsEnum.download
     | PointSDKChannelsEnum.download
     | UninstallerChannelsEnum.download

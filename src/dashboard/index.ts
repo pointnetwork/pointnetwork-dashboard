@@ -1,4 +1,3 @@
-import {UpdateLog} from './../@types/generic';
 import {app, BrowserWindow, clipboard, ipcMain, shell} from 'electron';
 import axios from 'axios';
 import Bounty from '../bounty';
@@ -11,6 +10,7 @@ import helpers from '../../shared/helpers';
 import welcome from '../welcome';
 import {getIdentifier} from '../../shared/getIdentifier';
 import baseWindowConfig from '../../shared/windowConfig';
+import path from 'path';
 // Types
 import {
     BountyChannelsEnum,
@@ -18,10 +18,12 @@ import {
     FirefoxChannelsEnum,
     GenericChannelsEnum,
     NodeChannelsEnum,
+    PointSDKChannelsEnum,
     UninstallerChannelsEnum
 } from '../@types/ipc_channels';
-import {EventListener} from '../@types/generic';
+import {EventListener, UpdateLog} from '../@types/generic';
 import {ErrorsEnum} from '../@types/errors';
+import {exec} from 'child_process';
 
 let window: BrowserWindow | null;
 let node: Node | null;
@@ -67,18 +69,15 @@ export default async function () {
     }
 
     /**
-   * Useful where we want to do some cleanup before closing the window
-   */
+     * Useful where we want to do some cleanup before closing the window
+     */
     const shutdownResources = async () => {
         logger.info('Removing all event listeners');
         await removeListeners();
         logger.info('Removed all event listeners');
 
         try {
-            await Promise.all([
-        node!.stop(),
-        firefox!.stop()
-            ]);
+            await Promise.all([node!.stop(), firefox!.stop()]);
         } catch (error) {
             logger.error({
                 errorType: ErrorsEnum.STOP_ERROR,
@@ -109,13 +108,13 @@ export default async function () {
             })(),
             // TODO: notify the UI and handle it same way as for node, ff and sdk
             (async () => {
-                if (!global.platform.darwin) { // TODO: why not darwin?
+                if (!global.platform.darwin) {
+                    // TODO: why not darwin?
                     try {
                         const latestDashboardV = await helpers.getLatestReleaseFromGithub(
                             'pointnetwork-dashboard'
                         );
-                        const installedDashboardV =
-                await helpers.getInstalledDashboardVersion();
+                        const installedDashboardV = await helpers.getInstalledDashboardVersion();
 
                         if (latestDashboardV > `v${installedDashboardV}`) {
                             window?.webContents.send(
@@ -155,15 +154,80 @@ export default async function () {
         await node!.launch();
     };
 
+    const getInitFilePath = () => {
+        const home = helpers.getHomePath();
+        const systemShell = process.env.SHELL || '';
+        const plat = helpers.getOS();
+
+        switch (true) {
+            case /bash/.test(systemShell):
+                return plat === 'macos' ? path.join(home, '.bash_profile') : path.join(home, '.bashrc');
+            case /zsh/.test(systemShell):
+                return path.join(home, '.zshrc');
+            case /ksh/.test(systemShell):
+                return path.join(home, '.profile');
+            case /dash/.test(systemShell):
+                return path.join(home, '.profile');
+            case /sh/.test(systemShell):
+                return path.join(home, '.profile');
+            default:
+                return '/dev/null';
+        }
+    };
+
+    const checkShellAndPath = () => {
+        const initFilePath = getInitFilePath();
+        const plat = helpers.getOSAndArch();
+
+        const result = {
+            systemShell: process.env.SHELL,
+            pointAddedToPath: false
+        };
+
+        if (plat === 'win32' || plat === 'win64') {
+            if (process.env.Path === undefined) return result;
+            result.pointAddedToPath = process.env.Path.includes('.point');
+        } else {
+            result.pointAddedToPath = helpers.lookupStrInFile(initFilePath, '.point');
+        }
+
+        return result;
+    };
+
+    const addPointToPath = () => {
+        const {pointAddedToPath} = checkShellAndPath();
+        if (pointAddedToPath) return;
+
+        let plat = helpers.getOS();
+        if (plat === 'darwin') plat = 'macos';
+        const binPath = path.join(helpers.getHomePath(), `.point/bin/${plat}`);
+
+        let cmd = '';
+        if (plat === 'win') {
+            cmd = `REG ADD HKCU\\Environment /v Path /t REG_SZ /d "${process.env.Path};${binPath}" /f`;
+        } else {
+            cmd = `echo '\nexport PATH=$PATH:${binPath}' >> ${getInitFilePath()}`;
+        }
+        exec(cmd);
+
+        window?.webContents.send(DashboardChannelsEnum.set_point_path);
+    };
+
     const checkBalance = async () => {
         let balance = 0;
         const addressRes = await axios.get(
-            'http://localhost:2468/v1/api/wallet/address'
+            'http://localhost:2468/v1/api/wallet/address',
+            {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
         );
         const address = addressRes.data.data.address;
 
         const faucetURL = helpers.getFaucetURL();
-        const res = await axios.get(`${faucetURL}/balance?address=${address}`);
+
+        const nodeInfo = await helpers.getInstalledVersionInfo('node');
+        let network = 'mainnet';
+        if (nodeInfo.installedReleaseVersion.match(/v0\.[0123]/)) network = 'xnet';
+
+        const res = await axios.get(`${faucetURL}/balance?address=${address}&network=${network}`); // TODO: the network argument should be set dynamically
         if (res.data?.balance && !isNaN(res.data.balance)) {
             balance = res.data.balance;
         } else {
@@ -172,15 +236,12 @@ export default async function () {
                 error: new Error(`Unexpected balance response: ${res.data}`)
             });
         }
-        window?.webContents.send(
-            DashboardChannelsEnum.check_balance_and_airdrop,
-            balance
-        );
+        window?.webContents.send(DashboardChannelsEnum.check_balance_and_airdrop, balance);
         return balance;
     };
 
     const events: EventListener[] = [
-    // Bounty channels
+        // Bounty channels
         {
             channel: BountyChannelsEnum.send_generated,
             listener() {
@@ -200,7 +261,7 @@ export default async function () {
                     await shutdownResources();
                     await helpers.logout();
                     await welcome();
-          window!.close();
+                    window!.close();
                 } catch (error) {
                     logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
                 }
@@ -232,23 +293,22 @@ export default async function () {
         {
             channel: DashboardChannelsEnum.check_balance_and_airdrop,
             async listener() {
-                // TODO: move this func somewhere to utils
-                const delay = (ms: number) =>
-                    new Promise(resolve => {
-                        setTimeout(resolve, ms);
-                    });
                 const start = new Date().getTime();
                 try {
                     const addressRes = await axios.get(
-                        'http://localhost:2468/v1/api/wallet/address'
+                        'http://localhost:2468/v1/api/wallet/address',
+                        {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
                     );
                     const address = addressRes.data.data.address;
+                    const nodeInfo = await helpers.getInstalledVersionInfo('node');
+                    let network = 'mainnet';
+                    if (nodeInfo.installedReleaseVersion.match(/v0\.[0123]/)) network = 'xnet';
 
                     const requestAirdrop = async () => {
                         const faucetURL = helpers.getFaucetURL();
                         logger.info('Airdropping wallet address with POINTS');
                         try {
-                            await axios.get(`${faucetURL}/airdrop?address=${address}`);
+                            await axios.get(`${faucetURL}/airdrop?address=${address}&network=${network}`); // TODO: the network argument should be set dynamically
                         } catch (error) {
                             logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
                         }
@@ -259,12 +319,10 @@ export default async function () {
                     // eslint-disable-next-line no-unmodified-loop-condition
                     while (balance <= 0) {
                         if (new Date().getTime() - start > 120000) {
-                            throw new Error(
-                                'Could not get positive wallet balance in 2 minutes'
-                            );
+                            throw new Error('Could not get positive wallet balance in 2 minutes');
                         }
                         await requestAirdrop();
-                        await delay(10000);
+                        await helpers.delay(10000);
                         balance = await checkBalance();
                     }
                 } catch (error) {
@@ -277,7 +335,7 @@ export default async function () {
             channel: UninstallerChannelsEnum.launch,
             async listener() {
                 try {
-                    await uninstaller?.launch();
+                    await uninstaller!.launch();
                 } catch (error) {
                     logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
                 }
@@ -331,14 +389,20 @@ export default async function () {
                 window?.webContents.send(NodeChannelsEnum.get_version, version);
             }
         },
+        // PointSDK channels
+        {
+            channel: NodeChannelsEnum.get_version,
+            async listener() {
+                const version = (await helpers.getInstalledVersionInfo('sdk'))
+                    .installedReleaseVersion;
+                window?.webContents.send(PointSDKChannelsEnum.get_version, version);
+            }
+        },
         // Generic channels
         {
             channel: GenericChannelsEnum.get_identifier,
             listener() {
-                window?.webContents.send(
-                    GenericChannelsEnum.get_identifier,
-                    getIdentifier()[0]
-                );
+                window?.webContents.send(GenericChannelsEnum.get_identifier, getIdentifier()[0]);
             }
         },
         {
@@ -374,6 +438,27 @@ export default async function () {
             listener() {
                 window?.minimize();
             }
+        },
+        {
+            channel: DashboardChannelsEnum.check_shell_and_path,
+            listener() {
+                try {
+                    const res = checkShellAndPath();
+                    window?.webContents.send(DashboardChannelsEnum.check_shell_and_path, res);
+                } catch (error) {
+                    logger.error({error, errorType: ErrorsEnum.DASHBOARD_ERROR});
+                }
+            }
+        },
+        {
+            channel: DashboardChannelsEnum.set_point_path,
+            listener() {
+                try {
+                    addPointToPath();
+                } catch (error) {
+                    logger.error({error, errorType: ErrorsEnum.DASHBOARD_ERROR});
+                }
+            }
         }
     ];
 
@@ -392,8 +477,8 @@ export default async function () {
     };
 
     app.on('will-quit', async function () {
-    // This is a good place to add tests insuring the app is still
-    // responsive and all windows are closed.
+        // This is a good place to add tests insuring the app is still
+        // responsive and all windows are closed.
         logger.info('Dashboard Window "will-quit" event');
     });
 

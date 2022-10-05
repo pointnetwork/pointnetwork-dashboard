@@ -18,7 +18,7 @@ Dashboard).
 ### Fixed
 - Fixed a bug that prevented the dashboard from being closed when clicking on
   the quit button
-- Fixed a bug where, on some operating systems, Point Node was not being closed
+- Fixed a bug where, on some operating systems, Point Engine was not being closed
   after logging out or closing the dashboard
 
 ## [0.2.18]
@@ -42,7 +42,7 @@ Dashboard).
 - Point Dashboard shows the user's wallet information: their address, their
     identity and their balance.
 - The main dashboard window shows the installed versions of its components:
-    Point Node, Point Browser and Point Dashboard.
+    Point Engine, Point Browser and Point Dashboard.
 ### Changed
 - Improved the UI/UX of the dashboard.
 - The dashboard now presents to the user a more friendly interface when

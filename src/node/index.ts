@@ -7,6 +7,7 @@ import {spawn} from 'node:child_process';
 import {https} from 'follow-redirects';
 import moment from 'moment';
 import rmfr from 'rmfr';
+import {generate} from 'randomstring';
 import utils from '../../shared/utils';
 import Logger from '../../shared/logger';
 import helpers from '../../shared/helpers';
@@ -77,7 +78,7 @@ class Node {
     /**
    * Returns the download URL for the version provided and the file name provided
    */
-    getDownloadURL(filename: string, version: string): string {
+    async getDownloadURL(filename: string, version: string): string {
         return `${helpers.getGithubURL()}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`;
     }
 
@@ -105,11 +106,11 @@ class Node {
                 if (global.platform.darwin) {fileName = `point-macos-${latestVersion}.tar.gz`;}
 
                 const platform = fileName.split('-')[1];
-                const downloadUrl = this.getDownloadURL(fileName, latestVersion);
+                const downloadUrl = await this.getDownloadURL(fileName, latestVersion);
                 const downloadDest = path.join(this.pointDir, fileName);
                 const sha256FileName = `sha256-${latestVersion}.txt`;
                 const sumFileDest = path.join(this.pointDir, sha256FileName);
-                const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
+                const sumFileUrl = await this.getDownloadURL(sha256FileName, latestVersion);
 
                 this.logger.info('Downloading from', downloadUrl);
 
@@ -207,6 +208,19 @@ class Node {
         });
     }
 
+    async generateAuthToken() {
+        this.logger.info('Checking for auth token');
+        const tokenFileName = helpers.getTokenFileName();
+        if (fs.existsSync(tokenFileName)) {
+            this.logger.info('Auth token already exists');
+            return;
+        }
+        this.logger.info('Generating auth token');
+        const token = generate();
+        await fs.writeFile(tokenFileName, token);
+        this.logger.info('Auth token successfully generated');
+    }
+
     /**
    * Checks
    * 1. If Point Engine exists or not, if not then returns early
@@ -216,6 +230,7 @@ class Node {
     async launch() {
         try {
             this.logger.info('Launching point node');
+            await this.generateAuthToken();
             if (!this.pingTimeout) {
                 this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL);
             }
@@ -270,7 +285,7 @@ class Node {
                     // We only give special handling to `point error codes`, which are > 1.
                     // TODO: for now, we hardcode the codes we want to handle,
                     // we'll improve this when we have the `point-error-codes` shared repo.
-                    if (code && [11, 12, 13].includes(code)) {
+                    if (code && [11, 13].includes(code)) {
                         // Critical error from Point Engine, stop the ping interval as they are unrecoverable.
                         this.clearPingTimeout();
 
@@ -417,9 +432,10 @@ class Node {
 
             if (
                 isBinMissing ||
-        !installInfo.lastCheck ||
-        (moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1 &&
-          installInfo.installedReleaseVersion !== latestVersion)
+                    !installInfo.lastCheck ||
+        ((moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+            || helpers.isTestEnv()) &&
+            installInfo.installedReleaseVersion !== latestVersion)
             ) {
                 this.logger.info('Update available');
                 this.logger.sendToChannel({
@@ -474,11 +490,15 @@ class Node {
             } as IdentityLog)
         });
         try {
-            let res = await axios.get('http://localhost:2468/v1/api/wallet/address');
+            let res = await axios.get(
+                'http://localhost:2468/v1/api/wallet/address',
+                {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
+            );
             const address = res.data.data.address;
 
             res = await axios.get(
-                `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`
+                `http://localhost:2468/v1/api/identity/ownerToIdentity/${address}`,
+                {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
             );
             const identity = res.data.data.identity;
             this.logger.sendToChannel({
@@ -506,6 +526,7 @@ class Node {
    */
     async _getRunningProcess(): Promise<Process[]> {
         return (await find('name', 'point', true)).filter(p =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (p as any).bin.match(/bin.+?point(.exe)?$/)
         );
     }

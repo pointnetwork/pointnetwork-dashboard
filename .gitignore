@@ -6,3 +6,4 @@ out
 yarn-error.log
 
 /.idea
+.env

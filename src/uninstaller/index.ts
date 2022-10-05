@@ -1,6 +1,6 @@
 import {BrowserWindow} from 'electron';
-import fs, {PathLike} from 'fs-extra';
-import {exec} from 'node:child_process';
+import fs from 'fs-extra';
+import {spawn} from 'node:child_process';
 import path from 'node:path';
 import rmfr from 'rmfr';
 import Logger from '../../shared/logger';
@@ -10,9 +10,10 @@ import utils from '../../shared/utils';
 import {ErrorsEnum} from '../@types/errors';
 import {UninstallerChannelsEnum} from '../@types/ipc_channels';
 import {GenericProgressLog, LaunchProcessLog} from '../@types/generic';
-
-const decompress = require('decompress');
-const decompressTargz = require('decompress-targz');
+import  decompress from 'decompress';
+// @ts-expect-error no types for the package
+import decompressTargz from 'decompress-targz';
+import find from 'find-process';
 
 // TODO: Add JSDoc comments
 /**
@@ -32,7 +33,7 @@ class Uninstaller {
     }
 
     /**
-   * Returns the latest available version for Point Node
+   * Returns the latest available version for Point Engine
    */
     async getLatestVersion(): Promise<string> {
         return await helpers.getLatestReleaseFromGithub('pointnetwork-uninstaller');
@@ -54,9 +55,13 @@ class Uninstaller {
             try {
                 // 1. Set the parameters for download
                 const latestVersion = await this.getLatestVersion();
-                let filename = `point-uninstaller-${latestVersion}-Linux-Debian-Ubuntu.tar.gz`;
-                if (global.platform.win32) {filename = `point-uninstaller-${latestVersion}-Windows-installer.zip`;}
-                if (global.platform.darwin) {filename = `point-uninstaller-${latestVersion}-MacOS-portable.tar.gz`;}
+                let filename = `point-uninstaller-${latestVersion}-linux.tar.gz`;
+                if (global.platform.win32) {
+                    filename = `point-uninstaller-${latestVersion}-windows.zip`;
+                }
+                if (global.platform.darwin) {
+                    filename = `point-uninstaller-${latestVersion}-macos.tar.gz`;
+                }
 
                 const downloadUrl = this.getDownloadURL(filename, latestVersion);
                 const downloadDest = path.join(this.pointDir, filename);
@@ -107,18 +112,12 @@ class Uninstaller {
                                 });
                             }
                         });
-                    }
-
-                    if (global.platform.darwin) {
+                    } else {
                         await decompress(
                             downloadDest,
-                            this.pointDir,
+                            temp,
                             {plugins: [decompressTargz()]}
                         );
-                    }
-
-                    if (global.platform.linux) {
-                        // TODO: Add code for linux
                     }
 
                     this.logger.info('Unpacked');
@@ -157,45 +156,37 @@ class Uninstaller {
 
     /**
    * Checks
-   * 1. If Point Node exists or not, if it doesn't then downloads it
+   * 1. If Point Engine exists or not, if it doesn't then downloads it
    * 2. Launches the Point Uninstaller
    */
     async launch() {
         const binFile = this._getBinFile();
-        if (binFile && !fs.existsSync(binFile!)) await this.downloadAndInstall();
+        if (binFile && !fs.existsSync(binFile!)) {
+            await this.downloadAndInstall();
+        }
 
-        let cmd;
-        if (global.platform.win32) cmd = `start ${binFile}`;
-        if (global.platform.darwin) cmd = `open ${binFile}`;
+        this.logger.sendToChannel({
+            channel: UninstallerChannelsEnum.running_status,
+            log: JSON.stringify({
+                isRunning: true,
+                log: 'Point Uninstaller is running'
+            } as LaunchProcessLog)
+        });
+        this.logger.info('Launching');
+        const uninstallerProcess = spawn(binFile, {
+            detached: true,
+            stdio: 'ignore'
+        });
 
-        if (cmd) {
-            this.logger.sendToChannel({
-                channel: UninstallerChannelsEnum.running_status,
-                log: JSON.stringify({
-                    isRunning: true,
-                    log: 'Point Uninstaller is running'
-                } as LaunchProcessLog)
-            });
-            this.logger.info('Launching');
-            return exec(cmd, (error, stdout, stderr) => {
-                if (error) {
-                    this.logger.error({errorType: ErrorsEnum.LAUNCH_ERROR, error});
-                }
-                // TODO: refactor with spawn and log exit code
-                if (stderr) {
-                    this.logger.error({
-                        errorType: ErrorsEnum.LAUNCH_ERROR,
-                        error: new Error(`Stderr output from uninstaller: ${stderr}`)
-                    });
-                }
-                if (stdout) this.logger.info('Ran successfully');
-                this.logger.sendToChannel({
-                    channel: UninstallerChannelsEnum.running_status,
-                    log: JSON.stringify({
-                        isRunning: false,
-                        log: 'Point Uninstaller closed'
-                    } as LaunchProcessLog)
-                });
+        uninstallerProcess.unref();
+        await helpers.delay(2000);
+        const processes = await find('pid', uninstallerProcess.pid!);
+        if (processes.length > 0) {
+            process.exit(0);
+        } else {
+            this.logger.error({
+                errorType: ErrorsEnum.LAUNCH_ERROR,
+                error: new Error('Uninstaller failed to start')
             });
         }
     }
@@ -203,12 +194,27 @@ class Uninstaller {
     /**
    * Returns the path where the downloaded Point Uninstaller executable exists
    */
-    _getBinFile(): PathLike | undefined {
-        const binPath = helpers.getPointPathTemp();
-        const file = path.join(binPath, 'pointnetwork-uninstaller');
-
-        if (global.platform.win32) return `${file}.exe`;
-        if (global.platform.darwin) return `${file}.app`;
+    _getBinFile(): string {
+        const binPath = path.join(
+            helpers.getPointPathTemp(),
+            `pointnetwork-uninstaller-${process.platform}-x64`
+        );
+        if (global.platform.win32) {
+            return path.join(binPath, 'pointnetwork-uninstaller.exe');
+        }
+        if (global.platform.darwin) {
+            return path.join(
+                binPath,
+                'pointnetwork-uninstaller.app',
+                'Contents',
+                'MacOS',
+                'pointnetwork-uninstaller'
+            );
+        }
+        return path.join(
+            binPath,
+            'pointnetwork-uninstaller'
+        );
     }
 }
 

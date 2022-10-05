@@ -19,10 +19,10 @@ export const api = {
     getMnemonic: () => ipcRenderer.send(WelcomeChannelsEnum.get_mnemonic),
     generateMnemonic: () =>
         ipcRenderer.send(WelcomeChannelsEnum.generate_mnemonic),
-    validateMnemonic: (value: any) =>
+    validateMnemonic: (value: string) =>
         ipcRenderer.send(WelcomeChannelsEnum.validate_mnemonic, value),
     login: () => ipcRenderer.send(WelcomeChannelsEnum.login),
-    copyMnemonic: (value: any) =>
+    copyMnemonic: (value: string) =>
         ipcRenderer.send(WelcomeChannelsEnum.copy_mnemonic, value),
     pasteMnemonic: () => ipcRenderer.send(WelcomeChannelsEnum.paste_mnemonic),
     getDictionary: () => ipcRenderer.send(WelcomeChannelsEnum.get_dictionary),
@@ -44,6 +44,7 @@ export const api = {
     minimizeWindow: () => ipcRenderer.send(GenericChannelsEnum.minimize_window),
     closeWindow: () => ipcRenderer.send(GenericChannelsEnum.close_window),
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on: (channel: string, callback: (...args: any[]) => void) => {
         ipcRenderer.on(channel, (_, data) => callback(data));
     }

@@ -52,40 +52,40 @@ export default async function () {
     }
 
     const events = [
-    // Welcome channels
+        // Welcome channels
         {
             channel: WelcomeChannelsEnum.generate_mnemonic,
             listener() {
-        welcomeService!.generate();
+                welcomeService!.generate();
             }
         },
         {
             channel: WelcomeChannelsEnum.get_mnemonic,
             listener() {
-        welcomeService!.getGeneratedMnemonic();
+                welcomeService!.getGeneratedMnemonic();
             }
         },
         {
             channel: WelcomeChannelsEnum.pick_words,
             listener() {
-        welcomeService!.pickRandomWords();
+                welcomeService!.pickRandomWords();
             }
         },
         {
             channel: WelcomeChannelsEnum.validate_words,
-            listener(_: any, words: string[]) {
-        welcomeService!.verifyWords(words);
+            listener(_: unknown, words: string[]) {
+                welcomeService!.verifyWords(words);
             }
         },
         {
             channel: WelcomeChannelsEnum.validate_mnemonic,
-            listener(_: any, message: string) {
-        welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''));
+            listener(_: unknown, message: string) {
+                welcomeService!.validate(message.replace(/^\s+|\s+$/g, ''));
             }
         },
         {
             channel: WelcomeChannelsEnum.copy_mnemonic,
-            listener(_: any, message: string) {
+            listener(_: unknown, message: string) {
                 clipboard.writeText(message);
                 window?.webContents.send(WelcomeChannelsEnum.copy_mnemonic);
             }
@@ -112,17 +112,17 @@ export default async function () {
         {
             channel: WelcomeChannelsEnum.get_dictionary,
             listener() {
-        welcomeService!.getDictionary();
+                welcomeService!.getDictionary();
             }
         },
         // Dashboard channels
         {
             channel: DashboardChannelsEnum.get_version,
             listener() {
-        window!.webContents.send(
-            DashboardChannelsEnum.get_version,
-            helpers.getInstalledDashboardVersion()
-        );
+                window!.webContents.send(
+                    DashboardChannelsEnum.get_version,
+                    helpers.getInstalledDashboardVersion()
+                );
             }
         },
         // Generic channels
@@ -138,13 +138,13 @@ export default async function () {
         {
             channel: GenericChannelsEnum.minimize_window,
             listener() {
-        window!.minimize();
+                window!.minimize();
             }
         },
         {
             channel: GenericChannelsEnum.close_window,
             listener() {
-        window!.close();
+                window!.close();
             }
         }
     ];

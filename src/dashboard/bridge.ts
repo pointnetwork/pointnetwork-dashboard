@@ -6,23 +6,22 @@ import {
     UninstallerChannelsEnum,
     FirefoxChannelsEnum,
     GenericChannelsEnum,
-    NodeChannelsEnum
+    NodeChannelsEnum,
+    PointSDKChannelsEnum
 } from './../@types/ipc_channels';
 
 declare global {
-  // eslint-disable-next-line
-  interface Window {
-    Dashboard: typeof api
-  }
+    // eslint-disable-next-line
+    interface Window {
+        Dashboard: typeof api;
+    }
 }
 
 export const api = {
     // Bounty
-    sendGeneratedEventToBounty: () =>
-        ipcRenderer.send(BountyChannelsEnum.send_generated),
+    sendGeneratedEventToBounty: () => ipcRenderer.send(BountyChannelsEnum.send_generated),
     // Dashboard
-    checkBalanceAndAirdrop: () =>
-        ipcRenderer.send(DashboardChannelsEnum.check_balance_and_airdrop),
+    checkBalanceAndAirdrop: () => ipcRenderer.send(DashboardChannelsEnum.check_balance_and_airdrop),
     checkBalance: () => ipcRenderer.send(DashboardChannelsEnum.check_balance),
     getDashboardVersion: () =>
         new Promise<string>(resolve => {
@@ -35,14 +34,24 @@ export const api = {
     // Node
     getIdentityInfo: () => ipcRenderer.send(NodeChannelsEnum.get_identity),
     launchNode: () => ipcRenderer.send(NodeChannelsEnum.launch),
-    getNodeVersion: () => new Promise<string>((resolve) => {
-        ipcRenderer.once(NodeChannelsEnum.get_version, (_, v: string) => {
-            resolve(v);
-        });
-        ipcRenderer.send(NodeChannelsEnum.get_version);
-    }),
+    getNodeVersion: () =>
+        new Promise<string>(resolve => {
+            ipcRenderer.once(NodeChannelsEnum.get_version, (_, v: string) => {
+                resolve(v);
+            });
+            ipcRenderer.send(NodeChannelsEnum.get_version);
+        }),
+    getSdkVersion: () =>
+        new Promise<string>(resolve => {
+            ipcRenderer.once(PointSDKChannelsEnum.get_version, (_, v: string) => {
+                resolve(v);
+            });
+            ipcRenderer.send(PointSDKChannelsEnum.get_version);
+        }),
     // Uninstaller
-    launchUninstaller: () => ipcRenderer.send(UninstallerChannelsEnum.launch),
+    launchUninstaller: () => {
+        ipcRenderer.send(UninstallerChannelsEnum.launch);
+    },
     // Firefox
     getFirefoxVersion: () =>
         new Promise<string>(resolve => {
@@ -57,18 +66,28 @@ export const api = {
         ipcRenderer.send(GenericChannelsEnum.copy_to_clipboard, message),
     openExternalLink: (link: string) =>
         ipcRenderer.send(GenericChannelsEnum.open_external_link, link),
-    getIndentifier: () => new Promise<string>((resolve) => {
-        ipcRenderer.once(GenericChannelsEnum.get_identifier, (_, id: string) => {
-            resolve(id);
-        });
-        ipcRenderer.send(GenericChannelsEnum.get_identifier);
-    }),
+    getIndentifier: () =>
+        new Promise<string>(resolve => {
+            ipcRenderer.once(GenericChannelsEnum.get_identifier, (_, id: string) => {
+                resolve(id);
+            });
+            ipcRenderer.send(GenericChannelsEnum.get_identifier);
+        }),
     checkForUpdates: () => {
         ipcRenderer.send(GenericChannelsEnum.check_for_updates);
     },
     minimizeWindow: () => ipcRenderer.send(GenericChannelsEnum.minimize_window),
     closeWindow: () => ipcRenderer.send(GenericChannelsEnum.close_window),
+    checkShellAndPath: () =>
+        new Promise<{systemShell?: string; pointAddedToPath: boolean}>(resolve => {
+            ipcRenderer.once(DashboardChannelsEnum.check_shell_and_path, (_, res) => {
+                resolve(res);
+            });
+            ipcRenderer.send(DashboardChannelsEnum.check_shell_and_path);
+        }),
+    addPointToPath: () => ipcRenderer.send(DashboardChannelsEnum.set_point_path),
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on: (channel: string, callback: (...args: any[]) => void) =>
         ipcRenderer.on(channel, (_, data) => callback(data))
 };

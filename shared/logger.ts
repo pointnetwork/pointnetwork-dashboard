@@ -34,6 +34,7 @@ interface LoggerConstructorArgs {
 
 const defaultOptions: Partial<LoggerConstructorArgs> = {}
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(logger.transports.udp as any).__udpStream.write(
     Buffer.from(JSON.stringify({identifier, isNewIdentifier})),
     helpers.noop
@@ -55,10 +56,12 @@ export default class Logger {
 
     error = ({errorType, error, info}: {
     errorType: ErrorsEnum
-    error: Error
+    error?: Error & {type?: string}
     info?: string
   }) => {
-        (error as any).type = errorType;
+        if (error) {
+            error.type = errorType;
+        }
         logger.error(`[${this.module}]`, info ? `${info}: ` : '', error);
     };
 
@@ -69,6 +72,7 @@ export default class Logger {
     };
 
     sendMetric = (payload: Record<string, string | number | boolean>) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (logger.transports.udp as any).__udpStream.write(
             Buffer.from(JSON.stringify({identifier, ...payload})),
             helpers.noop
