@@ -135,8 +135,10 @@ export const useMainStatus = () => {
             window.Dashboard.sendGeneratedEventToBounty();
             setInterval(() => {
                 window.Dashboard.getIdentityInfo();
-                window.Dashboard.checkBalance();
             }, 10000);
+            setInterval(() => {
+                window.Dashboard.checkBalance();
+            }, 30_000);
         }
     }, [isNodeRunning]);
 
