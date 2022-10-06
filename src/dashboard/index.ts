@@ -22,6 +22,7 @@ import {
     UninstallerChannelsEnum
 } from '../@types/ipc_channels';
 import {EventListener, UpdateLog} from '../@types/generic';
+import {BalanceCheckResult} from '../@types/results';
 import {ErrorsEnum} from '../@types/errors';
 import {exec} from 'child_process';
 
@@ -161,7 +162,9 @@ export default async function () {
 
         switch (true) {
             case /bash/.test(systemShell):
-                return plat === 'macos' ? path.join(home, '.bash_profile') : path.join(home, '.bashrc');
+                return plat === 'macos'
+                    ? path.join(home, '.bash_profile')
+                    : path.join(home, '.bashrc');
             case /zsh/.test(systemShell):
                 return path.join(home, '.zshrc');
             case /ksh/.test(systemShell):
@@ -213,31 +216,45 @@ export default async function () {
         window?.webContents.send(DashboardChannelsEnum.set_point_path);
     };
 
-    const checkBalance = async () => {
-        let balance = 0;
-        const addressRes = await axios.get(
-            'http://localhost:2468/v1/api/wallet/address',
-            {headers: {'X-Point-Token': `Bearer ${await helpers.generateAuthJwt()}`}}
-        );
-        const address = addressRes.data.data.address;
+    const checkBalance = async (): Promise<BalanceCheckResult> => {
+        try {
+            const token = await helpers.generateAuthJwt();
+            const config = {headers: {'X-Point-Token': `Bearer ${token}`}};
+            const addressRes = await axios.get(
+                'http://localhost:2468/v1/api/wallet/address',
+                config
+            );
 
-        const faucetURL = helpers.getFaucetURL();
+            const address = addressRes.data.data.address;
+            const faucetURL = helpers.getFaucetURL();
 
-        const nodeInfo = await helpers.getInstalledVersionInfo('node');
-        let network = 'mainnet';
-        if (nodeInfo.installedReleaseVersion.match(/v0\.[0123]/)) network = 'xnet';
+            const nodeInfo = await helpers.getInstalledVersionInfo('node');
+            const network = nodeInfo.installedReleaseVersion.match(/v0\.[0123]/)
+                ? 'xnet'
+                : 'mainnet';
 
-        const res = await axios.get(`${faucetURL}/balance?address=${address}&network=${network}`); // TODO: the network argument should be set dynamically
-        if (res.data?.balance && !isNaN(res.data.balance)) {
-            balance = res.data.balance;
-        } else {
+            // TODO: the network argument should be set dynamically
+            const res = await axios.get(
+                `${faucetURL}/balance?address=${address}&network=${network}`
+            );
+
+            if (res.data?.balance && !isNaN(res.data.balance)) {
+                const result: BalanceCheckResult = {success: true, value: res.data.balance};
+                window?.webContents.send(DashboardChannelsEnum.check_balance_and_airdrop, result);
+                return result;
+            } else {
+                throw new Error(`Unexpected balance response: ${JSON.stringify(res.data)}`);
+            }
+        } catch (err) {
             logger.error({
                 errorType: ErrorsEnum.DASHBOARD_ERROR,
-                error: new Error(`Unexpected balance response: ${res.data}`)
+                error: err
             });
+
+            const result: BalanceCheckResult = {success: false, error: err};
+            window?.webContents.send(DashboardChannelsEnum.check_balance_and_airdrop, result);
+            return result;
         }
-        window?.webContents.send(DashboardChannelsEnum.check_balance_and_airdrop, balance);
-        return balance;
     };
 
     const events: EventListener[] = [
@@ -308,22 +325,26 @@ export default async function () {
                         const faucetURL = helpers.getFaucetURL();
                         logger.info('Airdropping wallet address with POINTS');
                         try {
-                            await axios.get(`${faucetURL}/airdrop?address=${address}&network=${network}`); // TODO: the network argument should be set dynamically
+                            await axios.get(
+                                `${faucetURL}/airdrop?address=${address}&network=${network}`
+                            ); // TODO: the network argument should be set dynamically
                         } catch (error) {
                             logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
                         }
                     };
 
-                    let balance = await checkBalance();
+                    let result = await checkBalance();
+                    let balance = result.success ? result.value : 0;
 
                     // eslint-disable-next-line no-unmodified-loop-condition
                     while (balance <= 0) {
-                        if (new Date().getTime() - start > 120000) {
+                        if (new Date().getTime() - start > 120_000) {
                             throw new Error('Could not get positive wallet balance in 2 minutes');
                         }
                         await requestAirdrop();
-                        await helpers.delay(10000);
-                        balance = await checkBalance();
+                        await helpers.delay(10_000);
+                        result = await checkBalance();
+                        balance = result.success ? result.value : 0;
                     }
                 } catch (error) {
                     logger.error({errorType: ErrorsEnum.DASHBOARD_ERROR, error});
