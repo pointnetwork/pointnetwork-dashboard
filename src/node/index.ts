@@ -58,8 +58,8 @@ class Node {
     }
 
     /**
-   * Clears the ping interval, if it was running
-   */
+     * Clears the ping interval, if it was running
+     */
     clearPingTimeout() {
         if (this.pingTimeout) {
             clearTimeout(this.pingTimeout);
@@ -68,25 +68,25 @@ class Node {
     }
 
     /**
-   * Returns the latest available version for Point Engine
-   */
+     * Returns the latest available version for Point Engine
+     */
     async getLatestVersion(): Promise<string> {
         this.logger.info('Getting latest version');
         return await helpers.getLatestReleaseFromGithub('pointnetwork');
     }
 
     /**
-   * Returns the download URL for the version provided and the file name provided
-   */
+     * Returns the download URL for the version provided and the file name provided
+     */
     async getDownloadURL(filename: string, version: string): string {
         return `${helpers.getGithubURL()}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`;
     }
 
     /**
-   * Downloads Point Engine binary from GitHub, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoNode.json file
-   */
+     * Downloads Point Engine binary from GitHub, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoNode.json file
+     */
     downloadAndInstall(): Promise<void> {
-    // eslint-disable-next-line no-async-promise-executor
+        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 // Delete any residual files and stop any residual processes
@@ -222,11 +222,11 @@ class Node {
     }
 
     /**
-   * Checks
-   * 1. If Point Engine exists or not, if not then returns early
-   * 2. Checks if there are any running instances of Point Engine, if yes then returns early
-   * 3. Launches Point Engine
-   */
+     * Checks
+     * 1. If Point Engine exists or not, if not then returns early
+     * 2. Checks if there are any running instances of Point Engine, if yes then returns early
+     * 3. Launches Point Engine
+     */
     async launch() {
         try {
             this.logger.info('Launching point node');
@@ -311,8 +311,8 @@ class Node {
     }
 
     /**
-   * Pings Point Engine and checks if it is ready to receive requests
-   */
+     * Pings Point Engine and checks if it is ready to receive requests
+     */
     async ping() {
         try {
             await axios.get('https://point/v1/api/status/meta', {
@@ -338,6 +338,10 @@ class Node {
             this.nodeRunning = true;
             this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL);
         } catch (error) {
+            this.logger.error({
+                errorType: ErrorsEnum.LAUNCH_ERROR,
+                error: new Error('Trying to launch point node, but Ping is not working. Error : ' + error)
+            });
             this.pingErrorCount += 1;
             const relaunching = this.pingErrorCount > PING_ERROR_THRESHOLD;
             const launchFailed = this.pointLaunchCount >= MAX_RETRY_COUNT;
@@ -372,8 +376,8 @@ class Node {
     }
 
     /**
-   * Stops the running instances of Point Engine
-   */
+     * Stops the running instances of Point Engine
+     */
     async stop() {
         this.logger.sendToChannel({
             channel: NodeChannelsEnum.stop,
@@ -412,8 +416,8 @@ class Node {
     }
 
     /**
-   * Checks for Point Engine updates
-   */
+     * Checks for Point Engine updates
+     */
     async checkForUpdates() {
         try {
             this.logger.info('Checking for updates');
@@ -432,10 +436,10 @@ class Node {
 
             if (
                 isBinMissing ||
-                    !installInfo.lastCheck ||
-        ((moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
-            || helpers.isTestEnv()) &&
-            installInfo.installedReleaseVersion !== latestVersion)
+                !installInfo.lastCheck ||
+                ((moment().diff(moment.unix(installInfo.lastCheck), 'hours') >= 1
+                        || helpers.isTestEnv()) &&
+                    installInfo.installedReleaseVersion !== latestVersion)
             ) {
                 this.logger.info('Update available');
                 this.logger.sendToChannel({
@@ -477,8 +481,8 @@ class Node {
     }
 
     /**
-   * Returns the identity currently active on Point Engine
-   */
+     * Returns the identity currently active on Point Engine
+     */
     async getIdentityInfo(): Promise<{ address: string; identity: string }> {
         this.logger.sendToChannel({
             channel: NodeChannelsEnum.get_identity,
@@ -522,8 +526,8 @@ class Node {
     }
 
     /**
-   * Returns the running instances of Point Engine
-   */
+     * Returns the running instances of Point Engine
+     */
     async _getRunningProcess(): Promise<Process[]> {
         return (await find('name', 'point', true)).filter(p =>
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -532,8 +536,8 @@ class Node {
     }
 
     /**
-   * Returns the path where the downloaded Point Engine executable exists
-   */
+     * Returns the path where the downloaded Point Engine executable exists
+     */
     async _getBinFile(): Promise<string> {
         const binPath = await helpers.getBinPath();
         if (global.platform.win32) return path.join(binPath, 'win', 'point.exe');
