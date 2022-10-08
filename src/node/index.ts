@@ -78,7 +78,7 @@ class Node {
     /**
    * Returns the download URL for the version provided and the file name provided
    */
-    async getDownloadURL(filename: string, version: string): string {
+    async getDownloadURL(filename: string, version: string): Promise<string> {
         return `${helpers.getGithubURL()}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`;
     }
 
