@@ -82,8 +82,25 @@ const VerifyPhrase = ({
                                         (word.idx + 1 === 12 ? ' (the last one)' : '')
                                     }
                                     onKeyDown={e => {
-                                        if (e.key === ' ') {
+                                        if (e.key === 'Tab' || e.key === ' ' || e.key === 'Enter') {
                                             e.key = 'Enter';
+                                            // Unlike ImportExisting, the focus doesn't move automatically.
+                                            // It's bc inputs in ImportExisting are disabled unless
+                                            // the previous input is filled. And once the become
+                                            // active, the autoHighlight works. Here, we have to
+                                            // manually move the focus instead
+                                            if (idx < 2) {
+                                                document.getElementById(`input_${idx + 1}`)?.focus();
+                                            }
+                                        } else if (
+                                            e.key === 'Backspace' &&
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                            (e.target as any).value.length === 0 &&
+                                            idx > 0
+                                        ) {
+                                            // Move focus to previous field
+                                            e.preventDefault();
+                                            document.getElementById(`input_${idx - 1}`)?.focus();
                                         }
                                     }}
                                 />
@@ -107,14 +124,16 @@ const VerifyPhrase = ({
                 ))}
             </Grid>
             <Box display="flex" alignItems="center" mb={3}>
-                {isMatch ? (
-                    <CheckCircleIcon fontSize="small" color="success" />
-                ) : (
-                    <ErrorIcon fontSize="small" color="error" />
-                )}
-                <Typography variant="body2" color={isMatch ? 'success' : 'error'} ml={0.5}>
-                    {'Words' + (isMatch ? '' : ' do not') + ' match'}
-                </Typography>
+                {inputs.reduce((acc, cur) => acc && Boolean(cur), true) && <>
+                    {isMatch ? (
+                        <CheckCircleIcon fontSize="small" color="success" />
+                    ) : (
+                        <ErrorIcon fontSize="small" color="error" />
+                    )}
+                    <Typography variant="body2" color={isMatch ? 'success' : 'error'} ml={0.5}>
+                        {'Words' + (isMatch ? '' : ' do not') + ' match'}
+                    </Typography>
+                </>}
             </Box>
             <Button
                 id={DomIds.welcome.verifyPhrase.loginButton}
