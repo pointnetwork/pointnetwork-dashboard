@@ -43,8 +43,16 @@ export default async function main() {
     if (!fs.existsSync(lockfilePath)) {
         await fs.writeFile(lockfilePath, 'point');
     }
+
+    const onCompromised = async () => {
+        if (!fs.existsSync(lockfilePath)) {
+            await fs.writeFile(lockfilePath, 'point');
+        }
+        release = await lockfile.lock(lockfilePath, {stale: 5000, onCompromised});
+    };
+
     // This will throw if another dashboard is running
-    release = await lockfile.lock(lockfilePath, {stale: 5000});
+    release = await lockfile.lock(lockfilePath, {stale: 5000, onCompromised});
 
     helpers.getPlatform();
     if (!(await Installer.isInstalled())) {
