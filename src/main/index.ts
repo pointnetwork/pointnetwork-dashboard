@@ -3,13 +3,28 @@ import dashboard from '../dashboard';
 import welcome from '../welcome';
 import helpers from '../../shared/helpers';
 import Logger from '../../shared/logger';
-import {dialog} from 'electron';
+import {app, dialog} from 'electron';
 import fs from 'fs-extra';
 import lockfile from 'proper-lockfile';
 import {ErrorsEnum} from '../@types/errors';
 import * as dotenv from 'dotenv';
 
 const logger = new Logger({module: 'main'});
+
+let release: () => Promise<void>;
+app.on('will-quit', async function () {
+    logger.info('"will-quit" event');
+    if (release) {
+        release()
+            .then(() => {logger.info('Lockfile successfully released');})
+            .catch(error => {
+                logger.error({
+                    errorType: ErrorsEnum.LOCKFILE_ERROR,
+                    error
+                });
+            });
+    }
+});
 
 export default async function main() {
     dotenv.config();
@@ -29,7 +44,7 @@ export default async function main() {
         await fs.writeFile(lockfilePath, 'point');
     }
     // This will throw if another dashboard is running
-    await lockfile.lock(lockfilePath, {stale: 5000});
+    release = await lockfile.lock(lockfilePath, {stale: 5000});
 
     helpers.getPlatform();
     if (!(await Installer.isInstalled())) {
