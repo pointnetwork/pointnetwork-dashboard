@@ -338,6 +338,10 @@ class Node {
             this.nodeRunning = true;
             this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL);
         } catch (error) {
+            this.logger.error({
+                errorType: ErrorsEnum.LAUNCH_ERROR,
+                error: new Error('Trying to launch point node, but Ping is not working. Error : ' + error)
+            });
             this.pingErrorCount += 1;
             const relaunching = this.pingErrorCount > PING_ERROR_THRESHOLD;
             const launchFailed = this.pointLaunchCount >= MAX_RETRY_COUNT;
@@ -521,12 +525,12 @@ class Node {
         }
     }
 
-    /**
-   * Returns the running instances of Point Engine
-   */
     async _getRunningProcess(): Promise<Process[]> {
-        return (await find('name', 'point', true)).filter(p =>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line no-console
+        const procList = await find('name', 'point', true);
+        this.logger.info(`procList ${JSON.stringify(procList)}`);
+        return procList.filter(p =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (p as any).bin.match(/bin.+?point(.exe)?$/)
         );
     }
