@@ -8,6 +8,7 @@ import axios from 'axios';
 import rmfr from 'rmfr';
 import {app} from 'electron';
 import {sign} from 'jsonwebtoken';
+import Logger from './logger';
 
 const getOS = () => {
     if (platform === 'win32') return 'win';
@@ -80,13 +81,14 @@ const getInstalledVersionInfo: (resource: 'node' | 'firefox' | 'sdk') => Promise
     }
 };
 
-const getLatestReleaseFromGithub: (
-  repository:
+const getLatestReleaseFromGithub = async (
+    repository:
     | 'pointnetwork-uninstaller'
     | 'pointnetwork'
     | 'pointsdk'
-    | 'pointnetwork-dashboard'
-) => Promise<string> = async repository => {
+    | 'pointnetwork-dashboard',
+    logger: Logger
+): Promise<string> => {
     try {
         if (isTestEnv()) return getReleaseFromGithub(repository);
         const reqOpts = {
@@ -103,7 +105,11 @@ const getLatestReleaseFromGithub: (
         );
         return res.data.tag_name;
     } catch (error) {
-        throw new Error(ErrorsEnum.GITHUB_ERROR);
+        logger.error({
+            errorType: ErrorsEnum.GITHUB_ERROR,
+            error
+        });
+        throw error;
     }
 };
 

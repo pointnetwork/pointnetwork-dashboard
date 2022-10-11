@@ -72,13 +72,13 @@ class Node {
    */
     async getLatestVersion(): Promise<string> {
         this.logger.info('Getting latest version');
-        return await helpers.getLatestReleaseFromGithub('pointnetwork');
+        return await helpers.getLatestReleaseFromGithub('pointnetwork', this.logger);
     }
 
     /**
    * Returns the download URL for the version provided and the file name provided
    */
-    async getDownloadURL(filename: string, version: string): Promise<string> {
+    getDownloadURL(filename: string, version: string): string {
         return `${helpers.getGithubURL()}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`;
     }
 
@@ -106,11 +106,11 @@ class Node {
                 if (global.platform.darwin) {fileName = `point-macos-${latestVersion}.tar.gz`;}
 
                 const platform = fileName.split('-')[1];
-                const downloadUrl = await this.getDownloadURL(fileName, latestVersion);
+                const downloadUrl = this.getDownloadURL(fileName, latestVersion);
                 const downloadDest = path.join(this.pointDir, fileName);
                 const sha256FileName = `sha256-${latestVersion}.txt`;
                 const sumFileDest = path.join(this.pointDir, sha256FileName);
-                const sumFileUrl = await this.getDownloadURL(sha256FileName, latestVersion);
+                const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
 
                 this.logger.info('Downloading from', downloadUrl);
 
