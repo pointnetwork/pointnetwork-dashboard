@@ -37,13 +37,17 @@ const ImportExisting = ({
         }
     }, [secretPhrase]);
 
+    const handlePasteWholePhrase = (phrase: string) => {
+        const words = phrase.split(' ');
+        if (words.length !== 12) {
+            setError('The text in your clipboard doesn’t seem to be a secret phrase');
+            return;
+        }
+        setError('');
+        setSecretPhrase(words);
+    };
     useEffect(() => {
-        window.Welcome.on(WelcomeChannelsEnum.paste_mnemonic, (phrase: string) => {
-            const words = phrase.split(' ');
-            if (words.length !== 12) return setError('Invalid seed length');
-            setError('');
-            setSecretPhrase(words);
-        });
+        window.Welcome.on(WelcomeChannelsEnum.paste_mnemonic, handlePasteWholePhrase);
     }, []);
 
     const handleChange = (value: string, index: number) => {
@@ -77,7 +81,7 @@ const ImportExisting = ({
                 )}
                 <Grid item xs={10} mt={3}>
                     <Typography variant="h4" mb={3}>
-                        Import Existing Key
+                        Log In
                     </Typography>
                     <Typography color="#999">Please enter your secret phrase</Typography>
                 </Grid>
@@ -107,6 +111,20 @@ const ImportExisting = ({
                                     onKeyDown={e => {
                                         if (e.key === 'Tab' || e.key === ' ') {
                                             e.key = 'Enter';
+                                        } else if (
+                                            e.key === 'Backspace' &&
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                            (e.target as any).value.length === 0 &&
+                                            index > 0
+                                        ) {
+                                            // Move focus to previous field
+                                            e.preventDefault();
+                                            document.getElementById(`input_${index - 1}`)?.focus();
+                                        }
+                                    }}
+                                    onChange={e => {
+                                        if (e.target.value.split(' ').length === 12) {
+                                            handlePasteWholePhrase(e.target.value);
                                         }
                                     }}
                                 />

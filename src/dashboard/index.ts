@@ -497,12 +497,6 @@ export default async function () {
         });
     };
 
-    app.on('will-quit', async function () {
-        // This is a good place to add tests insuring the app is still
-        // responsive and all windows are closed.
-        logger.info('Dashboard Window "will-quit" event');
-    });
-
     const start = async () => {
         registerListeners();
         await createWindow();
