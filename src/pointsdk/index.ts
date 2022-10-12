@@ -28,7 +28,7 @@ class PointSDK {
      * Returns the latest available version for Point Engine
      */
     async getLatestVersion(): Promise<string> {
-        return await helpers.getLatestReleaseFromGithub('pointsdk');
+        return await helpers.getLatestReleaseFromGithub('pointsdk', this.logger);
     }
 
     /**

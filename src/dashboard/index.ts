@@ -113,9 +113,10 @@ export default async function () {
                     // TODO: why not darwin?
                     try {
                         const latestDashboardV = await helpers.getLatestReleaseFromGithub(
-                            'pointnetwork-dashboard'
+                            'pointnetwork-dashboard',
+                            logger
                         );
-                        const installedDashboardV = await helpers.getInstalledDashboardVersion();
+                        const installedDashboardV = helpers.getInstalledDashboardVersion();
 
                         if (latestDashboardV > `v${installedDashboardV}`) {
                             window?.webContents.send(
