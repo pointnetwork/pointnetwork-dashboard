@@ -328,7 +328,7 @@ const isChineseTimezone = () => {
     return offset / 60 === -8;
 };
 
-const getFaucetURL = () => 'https://faucet-min.point.space'
+const getFaucetURL = () => 'https://faucet-min.point.space';
 
 const getGithubURL = () => isChineseTimezone()
     ? 'https://gh-connector.point.space:3888'
