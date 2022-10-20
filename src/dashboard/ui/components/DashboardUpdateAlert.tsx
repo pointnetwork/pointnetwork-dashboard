@@ -6,14 +6,19 @@ import AlertTitle from '@mui/material/AlertTitle';
 import {DashboardChannelsEnum} from '../../../@types/ipc_channels';
 import {UpdateLog} from '../../../@types/generic';
 import DomIds from '../../../@types/DOM-el-ids';
+import {WarningAmber} from '@mui/icons-material';
 
 const DashboardUpdateAlert = () => {
-    const [showAlert, setShowAlert] = useState<boolean>(false);
+    const [updateAvailable, setUpdateAvailable] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
         window.Dashboard.on(DashboardChannelsEnum.check_for_updates, (_: string) => {
             const parsed = JSON.parse(_) as UpdateLog;
-            if (parsed.isAvailable) setShowAlert(true);
+            if (parsed.isAvailable) {
+                setUpdateAvailable(true);
+                setShowAlert(true);
+            }
         });
     }, []);
 
@@ -36,7 +41,14 @@ const DashboardUpdateAlert = () => {
             </strong>{' '}
             to download the latest version
         </Alert>
-    ) : null;
+    ) : updateAvailable
+        ? <WarningAmber
+                color="warning"
+                fontSize="large"
+                sx={{position: 'absolute', right: '15px', top: '35px', cursor: 'pointer'}}
+                onClick={() => {setShowAlert(true);}}
+            />
+        : null;
 };
 
 export default DashboardUpdateAlert;
