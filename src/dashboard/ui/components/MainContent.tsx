@@ -20,6 +20,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 // Types
 import {GenericChannelsEnum} from '../../../@types/ipc_channels';
 import DomIds from '../../../@types/DOM-el-ids';
+import DashboardUpdateAlert from './DashboardUpdateAlert';
 
 const ResourceStatusCard = ({
     resource,
@@ -96,7 +97,8 @@ const MainContent = () => {
     const copyWalletAddress = () => window.Dashboard.copyToClipboard(identityInfo.address);
 
     return (
-        <Grid item xs={11}>
+        <Grid item xs={11} sx={{position: 'relative'}}>
+            <DashboardUpdateAlert />
             <Snackbar
                 open={Boolean(alert)}
                 message={alert}

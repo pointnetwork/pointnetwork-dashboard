@@ -9,7 +9,6 @@ import {
 } from '../context/UpdateStatusContext';
 // Components
 import CheckForUpdatesDialog from './components/CheckForUpdatesDialog';
-import DashboardUpdateAlert from './components/DashboardUpdateAlert';
 import DefaultLoader from './components/DefaultLoader';
 import DisplayIdentifier from '../../../shared/react-components/DisplayIdentifier';
 import MainContent from './components/MainContent';
@@ -25,7 +24,6 @@ const App = () => {
     return (
         <UIThemeProvider>
             <DisplayIdentifier identifier={identifier} />
-            <DashboardUpdateAlert />
             <TimeoutAlert identifier={identifier} open={launchFailed && !engineErrorCode} />
             <CheckForUpdatesDialog />
             <ErrorDialog identifier={identifier} errCode={engineErrorCode} />
