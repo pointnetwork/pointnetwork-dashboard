@@ -234,6 +234,10 @@ class Node {
             if (!this.pingTimeout) {
                 this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL);
             }
+            if (process.env.NO_LAUNCH_NODE === '1') {
+                this.logger.info('Dashboard is in NO_LAUNCH_NODE mode, skipping node launch');
+                return;
+            }
             if (!fs.existsSync(await this._getBinFile())) {
                 this.logger.error({
                     errorType: ErrorsEnum.LAUNCH_ERROR,
