@@ -549,6 +549,7 @@ pref("browser.sessionstore.resume_from_crash", false)
 pref("browser.startup.upgradeDialog.enabled", false)
 pref('security.pki.sha1_enforcement_level', 4)
 pref('browser.newtabpage.enabled', false)
+pref('browser.tabs.firefox-view', false)
 `;
             const policiesCfgContent = `{
   "policies": {
