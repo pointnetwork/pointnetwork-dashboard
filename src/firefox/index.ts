@@ -108,7 +108,7 @@ class Firefox {
             }
         }
 
-        return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${helpers.getOSAndArch()}/en-US/${filename}`;
+        return `https://ftp.mozilla.org/pub/firefox/releases/${version}/${helpers.getOSAndArch()}/en-US/${filename}`;
     }
 
     /**
