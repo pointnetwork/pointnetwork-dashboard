@@ -64,6 +64,7 @@ const ImportExisting = ({
             if (result === true) {
                 window.Welcome.login();
             } else {
+                setLoading(false);
                 setError(result.toString());
             }
         });

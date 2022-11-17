@@ -36,7 +36,7 @@ class Uninstaller {
    * Returns the latest available version for Point Engine
    */
     async getLatestVersion(): Promise<string> {
-        return await helpers.getLatestReleaseFromGithub('pointnetwork-uninstaller');
+        return await helpers.getLatestReleaseFromGithub('pointnetwork-uninstaller', this.logger);
     }
 
     /**

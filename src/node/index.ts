@@ -72,13 +72,13 @@ class Node {
    */
     async getLatestVersion(): Promise<string> {
         this.logger.info('Getting latest version');
-        return await helpers.getLatestReleaseFromGithub('pointnetwork');
+        return await helpers.getLatestReleaseFromGithub('pointnetwork', this.logger);
     }
 
     /**
    * Returns the download URL for the version provided and the file name provided
    */
-    async getDownloadURL(filename: string, version: string): Promise<string> {
+    getDownloadURL(filename: string, version: string): string {
         return `${helpers.getGithubURL()}/pointnetwork/pointnetwork/releases/download/${version}/${filename}`;
     }
 
@@ -106,11 +106,11 @@ class Node {
                 if (global.platform.darwin) {fileName = `point-macos-${latestVersion}.tar.gz`;}
 
                 const platform = fileName.split('-')[1];
-                const downloadUrl = await this.getDownloadURL(fileName, latestVersion);
+                const downloadUrl = this.getDownloadURL(fileName, latestVersion);
                 const downloadDest = path.join(this.pointDir, fileName);
                 const sha256FileName = `sha256-${latestVersion}.txt`;
                 const sumFileDest = path.join(this.pointDir, sha256FileName);
-                const sumFileUrl = await this.getDownloadURL(sha256FileName, latestVersion);
+                const sumFileUrl = this.getDownloadURL(sha256FileName, latestVersion);
 
                 this.logger.info('Downloading from', downloadUrl);
 
@@ -233,6 +233,10 @@ class Node {
             await this.generateAuthToken();
             if (!this.pingTimeout) {
                 this.pingTimeout = setTimeout(this.ping.bind(this), PING_INTERVAL);
+            }
+            if (process.env.NO_LAUNCH_NODE === '1') {
+                this.logger.info('Dashboard is in NO_LAUNCH_NODE mode, skipping node launch');
+                return;
             }
             if (!fs.existsSync(await this._getBinFile())) {
                 this.logger.error({
@@ -527,7 +531,7 @@ class Node {
     async _getRunningProcess(): Promise<Process[]> {
         return (await find('name', 'point', true)).filter(p =>
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (p as any).bin.match(/bin.+?point(.exe)?$/)
+            (p as any).bin.match(/bin.+?point(.exe)?$/) && !((p as any).cmd as string).includes('--allow-pre-commit-input')
         );
     }
 

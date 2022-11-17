@@ -174,9 +174,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
-    - uses: actions/setup-python@v2
       with:
         node-version: 16
+    - uses: actions/setup-python@v2
+      with:
         python-version: '3.11.0-alpha - 3.11.0'
     - name: Add Windows certificate
       id: write_file
@@ -184,12 +185,12 @@ jobs:
       with:
         fileName: 'win-certificate.pfx'
         encodedString: ${{ secrets.WINDOWS_PFX_FILE }}
+    - name: config msvs
+      run: npm config set msvs_version 2022
     - name: Update npm
       run: npm i -g npm
     - name: Install dependencies
       run: npm install --legacy-peer-deps
-    - name: config msvs
-      run: npm config set msvs_version 2022
     - name: Build executables
       run: npm run make
     - name: Set path for candle and light

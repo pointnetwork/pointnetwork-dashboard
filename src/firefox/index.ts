@@ -29,6 +29,8 @@ const bz2 = require('unbzip2-stream');
 
 const CHECK_INTERVAL = 2000;
 
+const MAX_BROWSER_DOWNLOAD_ATTEMPTS = 10;
+
 /**
  * WHAT THIS MODULE DOES
  * 1. Downloads the Firefox Browser
@@ -41,15 +43,16 @@ class Firefox {
     window: BrowserWindow;
     pointDir: string = helpers.getPointPath();
     checkInterval: NodeJS.Timeout | null = null;
+    browserDownloadAttempts = 1;
 
-    constructor({window}: { window: BrowserWindow }) {
+    constructor({window}: {window: BrowserWindow}) {
         this.window = window;
         this.logger = new Logger({window, module: 'firefox'});
     }
 
     /**
-   * Returns the latest available version for Firefox
-   */
+     * Returns the latest available version for Firefox
+     */
     async getLatestVersion(): Promise<string> {
         try {
             this.logger.info('Getting the latest version');
@@ -68,15 +71,15 @@ class Firefox {
     }
 
     /**
-   * Returns the download URL for the version provided and the file name provided
-   */
+     * Returns the download URL for the version provided and the file name provided
+     */
     async getDownloadURL({
         filename,
         version
     }: {
-    filename: string
-    version: string
-  }): Promise<string> {
+        filename: string;
+        version: string;
+    }): Promise<string> {
         if (global.platform.win32) {
             const owner = 'pointnetwork';
             const repo = 'phyrox-esr-portable';
@@ -92,7 +95,9 @@ class Firefox {
                     'Authorization': ''
                 }
             };
-            if (process.env.GITHUB_PAT) reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
+            if (process.env.GITHUB_PAT) {
+                reqOpts.headers['Authorization'] = `Bearer ${process.env.GITHUB_PAT}`;
+            }
 
             try {
                 const {data} = await axios.get<GithubRelease>(githubUrl, reqOpts);
@@ -108,14 +113,90 @@ class Firefox {
             }
         }
 
-        return `https://download.cdn.mozilla.net/pub/mozilla.org/firefox/releases/${version}/${helpers.getOSAndArch()}/en-US/${filename}`;
+        return `https://download-installer.cdn.mozilla.net/pub/firefox/releases/${version}/${helpers.getOSAndArch()}/en-US/${filename}`;
     }
 
     /**
-   * Downloads the Firefox brwoser, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoFirefox.json file
-   */
+     * Returns a fallback download URL
+     */
+    async getFallbackDownloadURL({
+        filename,
+        version
+    }: {
+        filename: string;
+        version: string;
+    }): Promise<string> {
+        if (global.platform.win32) {
+            // There's already logic to return a fallback URL for windows in `getDownloadURL`
+            return this.getDownloadURL({filename, version});
+        }
+        return `https://ftp.mozilla.org/pub/firefox/releases/${version}/${helpers.getOSAndArch()}/en-US/${filename}`;
+    }
+
+    /**
+     * Download Firefox and unpack it with retry logic
+     */
+    async _downloadAndUnpack({
+        filename,
+        version,
+        browserDir,
+        downloadDest,
+        fromFallback
+    }: {
+        filename: string;
+        version: string;
+        browserDir: string;
+        downloadDest: string;
+        fromFallback: boolean;
+    }): Promise<boolean> {
+        try {
+            const downloadUrl = fromFallback
+                ? await this.getFallbackDownloadURL({version, filename})
+                : await this.getDownloadURL({version, filename});
+
+            this.logger.info('Downloading from', downloadUrl);
+            const downloadStream = fs.createWriteStream(downloadDest);
+
+            await utils.download({
+                channel: FirefoxChannelsEnum.download,
+                logger: this.logger,
+                downloadUrl,
+                downloadStream
+            });
+
+            await this._unpack({src: downloadDest, dest: browserDir});
+            return true;
+        } catch {
+            this.browserDownloadAttempts++;
+            if (this.browserDownloadAttempts > MAX_BROWSER_DOWNLOAD_ATTEMPTS) {
+                throw new Error(
+                    `Unable to download and install Point Browser after ${MAX_BROWSER_DOWNLOAD_ATTEMPTS} attempts.`
+                );
+            }
+
+            this.logger.info(
+                `Unpacking Point Browser failed, retrying download (attempt #${this.browserDownloadAttempts}).`
+            );
+
+            // For the second half the download attempts, we will use a fallback URL.
+            const useFallbackDownloadURL =
+                this.browserDownloadAttempts > Math.ceil(MAX_BROWSER_DOWNLOAD_ATTEMPTS / 2);
+
+            return this._downloadAndUnpack({
+                filename,
+                version,
+                browserDir,
+                downloadDest,
+                fromFallback: useFallbackDownloadURL
+            });
+        }
+    }
+
+    /**
+     * Downloads the Firefox brwoser, extracts it to the .point directory, deletes the downloaded file, and saves the info to infoFirefox.json file
+     */
     downloadAndInstall(): Promise<void> {
-    // eslint-disable-next-line no-async-promise-executor
+        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 // 0. Delete previous installation
@@ -131,22 +212,17 @@ class Firefox {
                 }
                 if (global.platform.win32) filename = `firefox-win-${version}.zip`;
 
-                const downloadUrl = await this.getDownloadURL({version, filename});
                 const downloadDest = path.join(this.pointDir, filename);
-                this.logger.info('Downloading from', downloadUrl);
-
-                const downloadStream = fs.createWriteStream(downloadDest);
 
                 // 2. Start downloading and send logs to window
-                await utils.download({
-                    channel: FirefoxChannelsEnum.download,
-                    logger: this.logger,
-                    downloadUrl,
-                    downloadStream
+                await this._downloadAndUnpack({
+                    filename,
+                    version,
+                    browserDir,
+                    downloadDest,
+                    fromFallback: false
                 });
 
-                // Unack
-                await this._unpack({src: downloadDest, dest: browserDir});
                 // Create configuration files
                 await this._createConfigFiles();
                 // Delete downloaded file
@@ -175,8 +251,8 @@ class Firefox {
     }
 
     /**
-   * Launches the Firefox brwoser if Firefox is not running already
-   */
+     * Launches the Firefox brwoser if Firefox is not running already
+     */
     async launch() {
         try {
             if (!this.checkInterval) {
@@ -248,8 +324,8 @@ class Firefox {
     }
 
     /**
-   * Stops the running instances of Firefox
-   */
+     * Stops the running instances of Firefox
+     */
     async stop() {
         this.logger.sendToChannel({
             channel: FirefoxChannelsEnum.stop,
@@ -290,8 +366,8 @@ class Firefox {
     }
 
     /**
-   * Checks for Point Engine updates
-   */
+     * Checks for Point Engine updates
+     */
     async checkForUpdates() {
         try {
             this.logger.info('Checking for updates');
@@ -355,11 +431,11 @@ class Firefox {
     }
 
     /**
-   * Unpacks the Firefox brwoser based on the platform
-   */
-    async _unpack({src, dest}: { src: string; dest: string }): Promise<void> {
-    // eslint-disable-next-line no-async-promise-executor
-        return new Promise(async (resolve) => {
+     * Unpacks the Firefox brwoser based on the platform
+     */
+    async _unpack({src, dest}: {src: string; dest: string}): Promise<void> {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async resolve => {
             const _resolve = () => {
                 this.logger.sendToChannel({
                     channel: FirefoxChannelsEnum.unpack,
@@ -407,7 +483,10 @@ class Firefox {
                 }
 
                 if (global.platform.darwin) {
-                    dmg.mount(src, async (_err: Error, dmgPath: string) => {
+                    dmg.mount(src, async (err: Error, dmgPath: string) => {
+                        if (err) {
+                            throw err;
+                        }
                         try {
                             const _src = `${dmgPath}/Firefox.app`;
                             const dst = `${dest}/Firefox.app`;
@@ -489,8 +568,8 @@ class Firefox {
     }
 
     /**
-   * Create configuration files for Firefox
-   */
+     * Create configuration files for Firefox
+     */
     async _createConfigFiles() {
         try {
             this.logger.info('Creating configuration files');
@@ -549,6 +628,7 @@ pref("browser.sessionstore.resume_from_crash", false)
 pref("browser.startup.upgradeDialog.enabled", false)
 pref('security.pki.sha1_enforcement_level', 4)
 pref('browser.newtabpage.enabled', false)
+pref('browser.tabs.firefox-view', false)
 `;
             const policiesCfgContent = `{
   "policies": {
@@ -579,8 +659,8 @@ pref('browser.newtabpage.enabled', false)
     }
 
     /**
-   * Returns the path where Firefox installation resides
-   */
+     * Returns the path where Firefox installation resides
+     */
     async _getRootPath(): Promise<string> {
         if (global.platform.win32 || global.platform.darwin) {
             return path.join(await helpers.getBrowserFolderPath());
@@ -589,14 +669,16 @@ pref('browser.newtabpage.enabled', false)
     }
 
     /**
-   * Returns the app path for the Firefox installation
-   */
+     * Returns the app path for the Firefox installation
+     */
     async _getAppPath(): Promise<string> {
         const rootPath = await this._getRootPath();
 
         let appPath = rootPath;
         if (global.platform.win32) appPath = path.join(rootPath, 'app');
-        if (global.platform.darwin) {appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');}
+        if (global.platform.darwin) {
+            appPath = path.join(rootPath, 'Firefox.app', 'Contents', 'Resources');
+        }
 
         if (!fs.existsSync(appPath)) {
             await fs.mkdir(appPath);
@@ -606,8 +688,8 @@ pref('browser.newtabpage.enabled', false)
     }
 
     /**
-   * Returns the pref path for the Firefox installation
-   */
+     * Returns the pref path for the Firefox installation
+     */
     async _getPrefPath(): Promise<string> {
         const rootPath = await this._getRootPath();
 
@@ -626,12 +708,14 @@ pref('browser.newtabpage.enabled', false)
     }
 
     /**
-   * Returns the policies path for the Firefox installation
-   */
+     * Returns the policies path for the Firefox installation
+     */
     async _getPoliciesPath(): Promise<string> {
         const rootPath = await this._getRootPath();
         let distributionPath = path.join(await this._getAppPath(), 'distribution');
-        if (global.platform.linux) {distributionPath = path.join(rootPath, 'distribution');}
+        if (global.platform.linux) {
+            distributionPath = path.join(rootPath, 'distribution');
+        }
 
         if (!fs.existsSync(distributionPath)) {
             await fs.mkdir(distributionPath);
@@ -640,8 +724,8 @@ pref('browser.newtabpage.enabled', false)
     }
 
     /**
-   * Returns the executable bin path for the Firefox installation
-   */
+     * Returns the executable bin path for the Firefox installation
+     */
     async _getBinFile(): Promise<string> {
         const rootPath = await this._getRootPath();
         if (global.platform.win32) {
@@ -656,8 +740,8 @@ pref('browser.newtabpage.enabled', false)
     }
 
     /**
-   * Returns the running instances of Firefox
-   */
+     * Returns the running instances of Firefox
+     */
     async _getRunningProcess(): Promise<Process[]> {
         return (
             await find('name', /firefox/i)
