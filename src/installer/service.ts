@@ -20,7 +20,6 @@ import fs from 'fs-extra';
 
 const POINT_SRC_DIR = helpers.getPointSrcPath();
 const POINT_LIVE_DIR = helpers.getLiveDirectoryPath();
-
 const DIRECTORIES = [helpers.getPointSoftwarePath(), POINT_LIVE_DIR];
 
 const REPOSITORIES = ['liveprofile'];
@@ -117,6 +116,10 @@ class Installer {
             this.logger.sendToChannel({
                 channel: InstallerChannelsEnum.error,
                 log: this._attempts.toString()
+            });
+            this.logger.sendToChannel({
+                channel: InstallerChannelsEnum.disk_error,
+                log: error.message
             });
             throw error;
         }

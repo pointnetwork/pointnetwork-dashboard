@@ -19,7 +19,8 @@ import {
     GenericChannelsEnum,
     NodeChannelsEnum,
     PointSDKChannelsEnum,
-    UninstallerChannelsEnum
+    UninstallerChannelsEnum,
+    InstallerChannelsEnum
 } from '../@types/ipc_channels';
 import {EventListener, UpdateLog} from '../@types/generic';
 import {BalanceCheckResult} from '../@types/results';
